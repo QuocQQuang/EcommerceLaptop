@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcommerceLaptop.Infrastruct
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcommerceLaptop", "src\EcommerceLaptop.API\EcommerceLaptop.csproj", "{6532DDFE-4287-41C0-8B6F-EA2D1D63D1B6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcommerceLaptop.Tests", "src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj", "{2635B246-B221-4764-9C24-21C141401AEA}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,18 +57,6 @@ Global
 		{6532DDFE-4287-41C0-8B6F-EA2D1D63D1B6}.Release|x64.Build.0 = Release|Any CPU
 		{6532DDFE-4287-41C0-8B6F-EA2D1D63D1B6}.Release|x86.ActiveCfg = Release|Any CPU
 		{6532DDFE-4287-41C0-8B6F-EA2D1D63D1B6}.Release|x86.Build.0 = Release|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Debug|x64.Build.0 = Debug|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Debug|x86.Build.0 = Debug|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Release|x64.ActiveCfg = Release|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Release|x64.Build.0 = Release|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Release|x86.ActiveCfg = Release|Any CPU
-		{2635B246-B221-4764-9C24-21C141401AEA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -79,6 +65,5 @@ Global
 		{1931D595-0447-473F-8BE7-57F2458920C0} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{3EE4B676-D4EA-4EEB-A67A-70FCA213B5CF} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{6532DDFE-4287-41C0-8B6F-EA2D1D63D1B6} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{2635B246-B221-4764-9C24-21C141401AEA} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal
