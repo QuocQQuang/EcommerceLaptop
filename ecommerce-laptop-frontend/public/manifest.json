@@ -1,0 +1,134 @@
+{
+    "name": "Laptop Store - Ca hng laptop chnh hng",
+    "short_name": "Laptop Store",
+    "description": "Ca hng laptop chnh hng vi gi tt nht th trng",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#2563eb",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "vi",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "any",
+            "type": "image/x-icon",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "72x72",
+            "type": "image/x-icon",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "96x96",
+            "type": "image/x-icon",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "128x128",
+            "type": "image/x-icon",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "144x144",
+            "type": "image/x-icon",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "152x152",
+            "type": "image/x-icon",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "192x192",
+            "type": "image/x-icon",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "384x384",
+            "type": "image/x-icon",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "512x512",
+            "type": "image/x-icon",
+            "purpose": "maskable any"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Sn phm",
+            "short_name": "Products",
+            "description": "Xem tt c sn phm laptop",
+            "url": "/products",
+            "icons": [
+                {
+                    "src": "/favicon.ico",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Gi hng",
+            "short_name": "Cart",
+            "description": "Xem gi hng ca bn",
+            "url": "/cart",
+            "icons": [
+                {
+                    "src": "/favicon.ico",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Ti khon",
+            "short_name": "Account",
+            "description": "Qun l ti khon c nhn",
+            "url": "/account",
+            "icons": [
+                {
+                    "src": "/favicon.ico",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ],
+    "categories": [
+        "shopping",
+        "business",
+        "technology"
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshot-wide.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Trang ch Laptop Store"
+        },
+        {
+            "src": "/screenshot-narrow.png",
+            "sizes": "750x1334",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "ng dng mobile Laptop Store"
+        }
+    ],
+    "prefer_related_applications": false,
+    "related_applications": [
+        {
+            "platform": "play",
+            "url": "https://play.google.com/store/apps/details?id=com.laptopstore.app"
+        }
+    ]
+}

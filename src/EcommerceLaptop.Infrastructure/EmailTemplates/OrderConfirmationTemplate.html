@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xc nhn n hng - E-Commerce Laptop</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .order-summary {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .product-item {
+            border-bottom: 1px solid #dee2e6;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .product-item:last-child {
+            border-bottom: none;
+        }
+
+        .total-section {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> n hng  c xc nhn!</h1>
+        </div>
+        <div class="content">
+            <h2>Xin cho {{CustomerName}},</h2>
+            <p>Cm n bn  mua sm ti E-Commerce Laptop! Chng ti  nhn c n hng ca bn v ang x l.</p>
+
+            <div class="order-summary">
+                <h3>Thng tin n hng</h3>
+                <p><strong>M n hng:</strong> {{OrderId}}</p>
+                <p><strong>Ngy t hng:</strong> {{OrderDate}}</p>
+                <p><strong>Trng thi:</strong> {{OrderStatus}}</p>
+                <p><strong>Phng thc thanh ton:</strong> {{PaymentMethod}}</p>
+            </div>
+
+            <h3>Chi tit sn phm:</h3>
+            <div class="order-summary">
+                {{#each OrderItems}}
+                <div class="product-item">
+                    <div>
+                        <strong>{{ProductName}}</strong><br>
+                        <small>SKU: {{SKU}}</small><br>
+                        <small>S lng: {{Quantity}}</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <strong>{{UnitPrice}} VN</strong><br>
+                        <small>Tng: {{TotalPrice}} VN</small>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+
+            <div class="total-section">
+                <h3>Tng cng n hng:</h3>
+                <p>Tm tnh: <strong>{{SubTotal}} VN</strong></p>
+                <p>Ph vn chuyn: <strong>{{ShippingFee}} VN</strong></p>
+                <p>Gim gi: <strong>-{{Discount}} VN</strong></p>
+                <hr>
+                <p style="font-size: 18px;"><strong>Tng cng: {{TotalAmount}} VN</strong></p>
+            </div>
+
+            <h3>a ch giao hng:</h3>
+            <div class="order-summary">
+                <p><strong>{{ShippingName}}</strong></p>
+                <p>{{ShippingPhone}}</p>
+                <p>{{ShippingAddress}}</p>
+                <p>{{ShippingCity}}, {{ShippingProvince}}</p>
+            </div>
+
+            <h3>Thng tin vn chuyn:</h3>
+            <ul>
+                <li><strong>Phng thc vn chuyn:</strong> {{ShippingMethod}}</li>
+                <li><strong>Thi gian giao hng d kin:</strong> {{EstimatedDelivery}}</li>
+                <li><strong>Ghi ch:</strong> {{OrderNotes}}</li>
+            </ul>
+
+            <div style="text-align: center;">
+                <a href="{{OrderTrackingUrl}}" class="button">Theo di n hng</a>
+            </div>
+
+            <h3>Bc tip theo:</h3>
+            <ol>
+                <li>Chng ti s x l v chun b n hng ca bn</li>
+                <li>Bn s nhn c email thng bo khi n hng c giao cho n v vn chuyn</li>
+                <li>Theo di n hng qua link  trn hoc ti khon ca bn</li>
+                <li>Nhn hng v kim tra sn phm</li>
+            </ol>
+
+            <p>Nu bn c bt k cu hi no v n hng, vui lng lin h vi chng ti qua hotline hoc email h tr.
+            </p>
+
+            <p><strong>Trn trng,</strong><br>
+                i ng E-Commerce Laptop</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2025 E-Commerce Laptop. Tt c cc quyn c bo lu.</p>
+            <p>Hotline: 1900-1234 | Email: support@ecommercelaptop.com</p>
+        </div>
+    </div>
+</body>
+
+</html>

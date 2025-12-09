@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{Subject}} - {{CompanyName}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333333;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .footer {
+            background-color: #2c3e50;
+            color: #bdc3c7;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .footer h3 {
+            margin: 0 0 15px;
+            color: #ecf0f1;
+            font-size: 18px;
+        }
+
+        .footer p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .footer .company-info {
+            border-top: 1px solid #34495e;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        .footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>{{CompanyName}}</h1>
+            <p>H thng thng mi in t chuyn nghip</p>
+        </div>
+
+        <div class="content">
+            {{Content}}
+        </div>
+
+        <div class="footer">
+            <h3>{{CompanyName}}</h3>
+            <p><strong>i ng H tr Khch hng</strong></p>
+
+            <div class="company-info">
+                <p>&copy; 2025 {{CompanyName}}. Tt c cc quyn c bo lu.</p>
+                <p> Email: <a href="mailto:support@ecommercelaptop.com">support@ecommercelaptop.com</a></p>
+                <p> Hotline: <a href="tel:1900-123-456">1900.123.456</a> (24/7)</p>
+                <p> Website: <a href="https://ecommercelaptop.com">ecommercelaptop.com</a></p>
+
+                <p style="margin-top: 20px; font-size: 12px; opacity: 0.8;">
+                    Email ny c gi t ng t h thng. Vui lng khng tr li trc tip email ny.<br>
+                    Nu bn c thc mc, hy lin h qua knh h tr chnh thc ca chng ti.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

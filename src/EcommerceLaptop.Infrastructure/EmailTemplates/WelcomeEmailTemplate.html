@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cho mng n vi E-Commerce Laptop</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cho mng bn n vi E-Commerce Laptop!</h1>
+        </div>
+        <div class="content">
+            <h2>Xin cho {{UserName}},</h2>
+            <p>Cm n bn  ng k ti khon ti E-Commerce Laptop. Chng ti rt vui mng c cho n bn vo cng
+                ng ca chng ti!</p>
+
+            <h3>Ti khon ca bn:</h3>
+            <ul>
+                <li><strong>Email:</strong> {{Email}}</li>
+                <li><strong>Ngy ng k:</strong> {{RegistrationDate}}</li>
+            </ul>
+
+            <p> bt u mua sm, vui lng kch hot ti khon ca bn bng cch nhp vo nt bn di:</p>
+
+            <div style="text-align: center;">
+                <a href="{{ActivationUrl}}" class="button">Kch hot ti khon</a>
+            </div>
+
+            <p>Nu bn khng th nhp vo nt trn, vui lng sao chp v dn lin kt sau vo trnh duyt:</p>
+            <p><strong>{{ActivationUrl}}</strong></p>
+
+            <h3>Nhng g bn c th lm:</h3>
+            <ul>
+                <li>Duyt qua b su tp laptop a dng ca chng ti</li>
+                <li>So snh gi c v thng s k thut</li>
+                <li>c nh gi t khch hng khc</li>
+                <li>Nhn thng bo v khuyn mi c bit</li>
+                <li>Theo di n hng ca bn</li>
+            </ul>
+
+            <p>Nu bn c bt k cu hi no, ng ngn ngi lin h vi i ng h tr khch hng ca chng ti.</p>
+
+            <p>Chc bn c tri nghim mua sm tuyt vi!</p>
+
+            <p><strong>Trn trng,</strong><br>
+                i ng E-Commerce Laptop</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2025 E-Commerce Laptop. Tt c cc quyn c bo lu.</p>
+            <p>Email ny c gi t ng, vui lng khng tr li trc tip.</p>
+        </div>
+    </div>
+</body>
+
+</html>

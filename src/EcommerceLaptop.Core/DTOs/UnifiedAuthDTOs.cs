@@ -1,0 +1,337 @@
+using EcommerceLaptop.Core.DTOs;
+using EcommerceLaptop.Core.DTOs.Admin;
+using EcommerceLaptop.Core.Services;
+using System.ComponentModel.DataAnnotations;
+
+namespace EcommerceLaptop.Core.Entities;
+
+/// <summary>
+/// User DTO for backward compatibility with legacy authentication system
+/// </summary>
+public class UserDto
+{
+    public int Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string FullName => $"{FirstName} {LastName}".Trim();
+    public string PhoneNumber { get; set; } = string.Empty;
+    public string? ProfilePictureUrl { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public List<string> Roles { get; set; } = new();
+}
+
+/// <summary>
+/// Unified authentication context for permission system
+/// Supports multiple user types while preserving existing business logic
+/// </summary>
+public enum AuthContext
+{
+    Customer = 1,
+    Admin = 2,
+    Employee = 3,
+    Partner = 4,
+    API = 5,
+    Mobile = 6
+}
+
+/// <summary>
+/// Enhanced user type enum for unified permission system
+/// Replaces separated Users/AdminUsers model
+/// </summary>
+public enum UserType
+{
+    Customer = 1,
+    Admin = 2,
+    Employee = 3,
+    Partner = 4
+}
+
+/// <summary>
+/// Unified authentication result for all user contexts
+/// Replaces separate AuthenticationResult and AdminLoginResponseDto
+/// </summary>
+public class UnifiedAuthResult
+{
+    public bool Success { get; set; }
+    public string? ErrorMessage { get; set; }
+    public string? AccessToken { get; set; }
+    public string? RefreshToken { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public int ExpiresIn { get; set; }
+    public UnifiedUserDto? User { get; set; }
+    public AuthContext Context { get; set; }
+
+    /// <summary>
+    /// Converts unified result to legacy AdminLoginResponseDto for backward compatibility
+    /// </summary>
+    public AdminLoginResponseDto? ToAdminLoginResponse()
+    {
+        if (!Success || User == null) return null;
+
+        return new AdminLoginResponseDto
+        {
+            User = new AdminUserDto
+            {
+                Id = User.Id,
+                Email = User.Email,
+                FirstName = User.FirstName,
+                LastName = User.LastName,
+                Avatar = User.Avatar,
+                IsActive = User.IsActive,
+                IsEmailVerified = User.IsEmailVerified,
+                CreatedAt = User.CreatedAt,
+                LastLoginAt = User.LastLoginAt,
+                Role = User.PrimaryRole != null ? new AdminRoleDto
+                {
+                    Id = User.PrimaryRole.Id,
+                    Name = User.PrimaryRole.Name,
+                    Description = User.PrimaryRole.Description,
+                    Permissions = User.Permissions
+                } : new AdminRoleDto(),
+                Permissions = User.Permissions
+            },
+            AccessToken = AccessToken!,
+            RefreshToken = RefreshToken!,
+            ExpiresAt = ExpiresAt,
+            ExpiresIn = ExpiresIn
+        };
+    }
+
+    /// <summary>
+    /// Converts unified result to legacy AuthenticationResult for backward compatibility
+    /// </summary>
+    public AuthenticationResult? ToAuthenticationResult()
+    {
+        if (!Success || User == null) return null;
+
+        return new AuthenticationResult
+        {
+            Success = Success,
+            ErrorMessage = ErrorMessage,
+            AccessToken = AccessToken,
+            RefreshToken = RefreshToken,
+            AccessTokenExpiry = ExpiresAt,
+            User = new Core.Entities.User
+            {
+                Id = User.Id,
+                Email = User.Email,
+                FirstName = User.FirstName,
+                LastName = User.LastName,
+                PhoneNumber = User.PhoneNumber ?? string.Empty,
+                IsActive = User.IsActive,
+                CreatedAt = User.CreatedAt
+            },
+            Roles = User.Roles.Select(r => r.Name).ToList()
+        };
+    }
+}
+
+/// <summary>
+/// Unified user DTO that works for all user types
+/// Consolidates AdminUserDto and regular UserDto
+/// </summary>
+public class UnifiedUserDto
+{
+    public int Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string? PhoneNumber { get; set; }
+    public string? Avatar { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsEmailVerified { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? LastLoginAt { get; set; }
+    public string? LastLoginIP { get; set; }
+    public UserType UserType { get; set; }
+
+    // Role information
+    public List<RoleDto> Roles { get; set; } = new();
+    public RoleDto? PrimaryRole => Roles.FirstOrDefault();
+
+    // Permission information (for admin users)
+    public List<AdminPermissionDto> Permissions { get; set; } = new();
+
+    // Security information (for admin users)
+    public int FailedLoginAttempts { get; set; }
+    public DateTime? LockedUntil { get; set; }
+    public string? Notes { get; set; }
+
+    /// <summary>
+    /// Checks if user has specific permission
+    /// </summary>
+    public bool HasPermission(string permission)
+    {
+        return Permissions.Any(p => p.Name == permission);
+    }
+
+    /// <summary>
+    /// Checks if user has any of the specified roles
+    /// </summary>
+    public bool HasRole(params string[] roleNames)
+    {
+        return Roles.Any(r => roleNames.Contains(r.Name));
+    }
+
+    /// <summary>
+    /// Gets user display name
+    /// </summary>
+    public string DisplayName => $"{FirstName} {LastName}".Trim();
+}
+
+/// <summary>
+/// Unified refresh token result
+/// </summary>
+public class UnifiedRefreshResult
+{
+    public bool Success { get; set; }
+    public string? ErrorMessage { get; set; }
+    public string? AccessToken { get; set; }
+    public string? RefreshToken { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public int ExpiresIn { get; set; }
+
+    /// <summary>
+    /// Converts to legacy AdminRefreshTokenResponseDto
+    /// </summary>
+    public AdminRefreshTokenResponseDto? ToAdminRefreshResponse()
+    {
+        if (!Success) return null;
+
+        return new AdminRefreshTokenResponseDto
+        {
+            AccessToken = AccessToken!,
+            RefreshToken = RefreshToken!,
+            ExpiresAt = ExpiresAt,
+            ExpiresIn = ExpiresIn
+        };
+    }
+}
+
+/// <summary>
+/// Role DTO that works for both admin and customer roles
+/// </summary>
+public class RoleDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public bool IsAdminRole { get; set; }
+    public List<AdminPermissionDto> Permissions { get; set; } = new();
+}
+
+/// <summary>
+/// Unified login request that supports context-aware authentication
+/// </summary>
+public class UnifiedLoginRequest
+{
+    [Required(ErrorMessage = "Email l bt buc")]
+    [EmailAddress(ErrorMessage = "nh dng email khng hp l")]
+    [StringLength(255, ErrorMessage = "Email khng c vt qu 255 k t")]
+    public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Mt khu l bt buc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu phi c t nht 8 k t v khng qu 100 k t")]
+    public string Password { get; set; } = string.Empty;
+
+    public AuthContext? Context { get; set; }
+    public string? IpAddress { get; set; }
+    public string? UserAgent { get; set; }
+    public bool RememberMe { get; set; } = false;
+}
+
+/// <summary>
+/// Unified registration request that supports context-aware registration
+/// </summary>
+public class UnifiedRegisterRequest
+{
+    [Required(ErrorMessage = "Email l bt buc")]
+    [EmailAddress(ErrorMessage = "nh dng email khng hp l")]
+    [StringLength(255, ErrorMessage = "Email khng c vt qu 255 k t")]
+    public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Mt khu l bt buc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu phi c t nht 8 k t v khng qu 100 k t")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$",
+        ErrorMessage = "Mt khu phi cha t nht 1 ch hoa, 1 ch thng, 1 s v 1 k t c bit")]
+    public string Password { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Xc nhn mt khu l bt buc")]
+    [Compare("Password", ErrorMessage = "Mt khu xc nhn khng khp")]
+    public string ConfirmPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Tn l bt buc")]
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "Tn phi c t nht 3 k t v khng qu 100 k t")]
+    [RegularExpression(@"^[a-zA-Z-\s]+$", ErrorMessage = "Tn ch c cha ch ci v khong trng")]
+    public string FirstName { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "H l bt buc")]
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "H phi c t nht 3 k t v khng qu 100 k t")]
+    [RegularExpression(@"^[a-zA-Z-\s]+$", ErrorMessage = "H ch c cha ch ci v khong trng")]
+    public string LastName { get; set; } = string.Empty;
+
+    [Phone(ErrorMessage = "S in thoi khng hp l")]
+    [StringLength(20, ErrorMessage = "S in thoi khng c vt qu 20 k t")]
+    public string? PhoneNumber { get; set; }
+
+    [Required(ErrorMessage = "Bn phi ng  vi iu khon")]
+    public bool AcceptTerms { get; set; } = false;
+
+    public AuthContext? Context { get; set; }
+    public string? IpAddress { get; set; }
+    public string? UserAgent { get; set; }
+}
+
+/// <summary>
+/// Unified change password request
+/// </summary>
+public class UnifiedChangePasswordRequest
+{
+    [Required(ErrorMessage = "Mt khu hin ti l bt buc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu hin ti phi c t nht 8 k t v khng qu 100 k t")]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Mt khu mi l bt buc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu mi phi c t nht 8 k t v khng qu 100 k t")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$",
+        ErrorMessage = "Mt khu mi phi cha t nht 1 ch hoa, 1 ch thng, 1 s v 1 k t c bit")]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Xc nhn mt khu mi l bt buc")]
+    [Compare("NewPassword", ErrorMessage = "Mt khu xc nhn khng khp")]
+    public string ConfirmPassword { get; set; } = string.Empty;
+
+    public AuthContext? Context { get; set; }
+}
+
+/// <summary>
+/// Unified forgot password request
+/// </summary>
+public class UnifiedForgotPasswordRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public AuthContext? Context { get; set; }
+}
+
+/// <summary>
+/// Unified reset password request
+/// </summary>
+public class UnifiedResetPasswordRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string Token { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+    public string ConfirmPassword { get; set; } = string.Empty;
+    public string? IpAddress { get; set; }
+    public AuthContext? Context { get; set; }
+}
+
+/// <summary>
+/// Resend email confirmation request
+/// </summary>
+public class ResendEmailConfirmationRequest
+{
+    public string Email { get; set; } = string.Empty;
+}

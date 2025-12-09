@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kch hot ti khon - E-Commerce Laptop</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            background-color: #6f42c1;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .activation-section {
+            background-color: #e7e3ff;
+            border: 1px solid #6f42c1;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #6f42c1;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .security-info {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .benefits {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .code-section {
+            background-color: #f8f9fa;
+            border: 2px dashed #6f42c1;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .verification-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #6f42c1;
+            letter-spacing: 3px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> Cho mng n vi E-Commerce Laptop!</h1>
+        </div>
+        <div class="content">
+            <h2>Xin cho {{CustomerName}},</h2>
+            <p>Cm n bn  ng k ti khon ti E-Commerce Laptop!  hon tt qu trnh ng k v bt u tri
+                nghim mua sm, vui lng kch hot ti khon ca bn.</p>
+
+            <div class="activation-section">
+                <h3> Kch hot ti khon</h3>
+                <p>Nhp vo nt bn di  kch hot ti khon ca bn:</p>
+                <a href="{{ActivationUrl}}" class="button">Kch hot ti khon</a>
+                <p><small>Hoc copy v paste link sau vo trnh duyt:</small></p>
+                <p style="word-break: break-all; font-size: 12px; color: #666;">{{ActivationUrl}}</p>
+            </div>
+
+            <div class="code-section">
+                <h3> M xc thc</h3>
+                <p>Nu link khng hot ng, bn c th s dng m xc thc bn di:</p>
+                <div class="verification-code">{{VerificationCode}}</div>
+                <p><small>Nhp m ny vo trang kch hot ti khon</small></p>
+            </div>
+
+            <div class="security-info">
+                <h3> Lu  bo mt</h3>
+                <ul>
+                    <li><strong>Thi hn:</strong> Link kch hot c hiu lc trong {{ExpirationHours}} gi</li>
+                    <li><strong>Mt ln s dng:</strong> Link ch c th s dng mt ln duy nht</li>
+                    <li><strong>Bo mt:</strong> Khng chia s link ny vi bt k ai</li>
+                    <li><strong>Ht hn:</strong> {{ExpirationTime}}</li>
+                </ul>
+            </div>
+
+            <div class="benefits">
+                <h3> Li ch thnh vin</h3>
+                <p>Sau khi kch hot ti khon, bn s c:</p>
+                <ul>
+                    <li> Theo di n hng v lch s mua sm</li>
+                    <li> Nhn thng bo u i v khuyn mi c quyn</li>
+                    <li> Tch im thnh vin v i qu</li>
+                    <li> H tr khch hng u tin</li>
+                    <li> Bo hnh m rng cho sn phm</li>
+                    <li> Min ph vn chuyn cho n hng trn 500,000 VN</li>
+                </ul>
+            </div>
+
+            <h3> Thng tin ti khon:</h3>
+            <div class="benefits">
+                <p><strong>Email:</strong> {{Email}}</p>
+                <p><strong>Ngy ng k:</strong> {{RegistrationDate}}</p>
+                <p><strong>Loi ti khon:</strong> {{AccountType}}</p>
+            </div>
+
+            <h3> Cn h tr?</h3>
+            <p>Nu bn gp kh khn trong vic kch hot ti khon hoc c bt k cu hi no, ng ngn ngi lin h
+                vi chng ti:</p>
+            <ul>
+                <li><strong>Hotline:</strong> 1900-1234 (8:00 - 22:00 hng ngy)</li>
+                <li><strong>Email:</strong> support@ecommercelaptop.com</li>
+                <li><strong>Live Chat:</strong> C sn trn website 24/7</li>
+            </ul>
+
+            <p>Chng ti rt vui mng c ng hnh cng bn trong hnh trnh cng ngh!</p>
+
+            <p><strong>Trn trng,</strong><br>
+                i ng E-Commerce Laptop</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2025 E-Commerce Laptop. Tt c cc quyn c bo lu.</p>
+            <p>Hotline: 1900-1234 | Email: support@ecommercelaptop.com</p>
+            <p>a ch: 123 ng ABC, Qun XYZ, TP. H Ch Minh</p>
+            <p>Website: www.ecommercelaptop.com</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,152 @@
+# ---- OS / Editor junk ----
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.orig
+*.rej
+*.tmp
+
+# VSCode workspace (keep if you intentionally commit settings)
+.vscode/
+
+# ---- Logs ----
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# JetBrains project files (additional)
+*.iml
+
+# ---- Environment files ----
+
+.direnv/
+
+# ---- Docker local state ----
+docker-data/
+docker-compose.override.yml
+
+# ---- Node / Next.js (frontend) ----
+node_modules/
+ecommerce-laptop-frontend/node_modules/
+ecommerce-laptop-frontend/.next/
+ecommerce-laptop-frontend/.vercel/
+ecommerce-laptop-frontend/.turbo/
+ecommerce-laptop-frontend/.cache/
+ecommerce-laptop-frontend/.pnpm-store/
+ecommerce-laptop-frontend/.eslintcache
+.pnpm-store/
+.vercel/
+**/.eslintcache
+
+# Build artifacts / reports
+coverage/
+ecommerce-laptop-frontend/coverage/
+ecommerce-laptop-frontend/.nyc_output/
+ecommerce-laptop-frontend/out/
+ecommerce-laptop-frontend/.swc/
+
+# Playwright
+_e2e_artifacts/
+ecommerce-laptop-frontend/.playwright/
+ecommerce-laptop-frontend/playwright-report/
+ecommerce-laptop-frontend/test-results/
+
+# TypeScript incremental builds
+**/*.tsbuildinfo
+ecommerce-laptop-frontend/tsconfig.tsbuildinfo
+
+# General JS/TS build output
+/dist/
+/build/
+
+# ---- .NET / Visual Studio / Rider ----
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.rsuser
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+artifacts/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+
+# VS / Rider caches
+.vs/
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+.idea/
+StyleCop.Cache
+
+# Database files
+*.mdf
+*.ldf
+*.dbmdl
+
+# Profiler / analysis
+*.psess
+*.vsp
+*.vspx
+*.pidb
+
+# ASP.NET static lib cache
+wwwroot/lib/
+
+# ---- Tools subprojects (C#) ----
+tools/**/bin/
+tools/**/obj/
+tools/
+!tools/**/*.md
+!tools/**/README*
+
+# ---- Misc project outputs ----
+*.bak
+
+# ---- Scratch / temp dirs ----
+.tmp/
+.tmp/**
+.temp/
+.temp/**
+tmp/
+tmp/**
+.tempfiles/
+.history/
+.trash/
+.cache/
+
+# ---- PowerShell scripts ----
+*.ps1
+
+# ---- Scratch variants of docs/seeds/scripts (keep real files) ----
+# Markdown scratch
+*.md.bak
+*.md.tmp
+*.md.old
+
+# SQL scratch
+*.sql.bak
+*.sql.tmp
+*.sql.old
+*.sql.~*
+
+# PowerShell scratch
+*.ps1.bak
+*.ps1.tmp
+*.ps1.old
+*.ps1.~*

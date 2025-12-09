@@ -1,0 +1,443 @@
+{
+    "01": {
+        "name": "H Ni",
+        "slug": "ha-noi",
+        "type": "thanh-pho",
+        "name_with_type": "Thnh ph H Ni",
+        "code": "01"
+    },
+    "02": {
+        "name": "H Giang",
+        "slug": "ha-giang",
+        "type": "tinh",
+        "name_with_type": "Tnh H Giang",
+        "code": "02"
+    },
+    "04": {
+        "name": "Cao Bng",
+        "slug": "cao-bang",
+        "type": "tinh",
+        "name_with_type": "Tnh Cao Bng",
+        "code": "04"
+    },
+    "06": {
+        "name": "Bc Kn",
+        "slug": "bac-kan",
+        "type": "tinh",
+        "name_with_type": "Tnh Bc Kn",
+        "code": "06"
+    },
+    "08": {
+        "name": "Tuyn Quang",
+        "slug": "tuyen-quang",
+        "type": "tinh",
+        "name_with_type": "Tnh Tuyn Quang",
+        "code": "08"
+    },
+    "10": {
+        "name": "Lo Cai",
+        "slug": "lao-cai",
+        "type": "tinh",
+        "name_with_type": "Tnh Lo Cai",
+        "code": "10"
+    },
+    "11": {
+        "name": "in Bin",
+        "slug": "dien-bien",
+        "type": "tinh",
+        "name_with_type": "Tnh in Bin",
+        "code": "11"
+    },
+    "12": {
+        "name": "Lai Chu",
+        "slug": "lai-chau",
+        "type": "tinh",
+        "name_with_type": "Tnh Lai Chu",
+        "code": "12"
+    },
+    "14": {
+        "name": "Sn La",
+        "slug": "son-la",
+        "type": "tinh",
+        "name_with_type": "Tnh Sn La",
+        "code": "14"
+    },
+    "15": {
+        "name": "Yn Bi",
+        "slug": "yen-bai",
+        "type": "tinh",
+        "name_with_type": "Tnh Yn Bi",
+        "code": "15"
+    },
+    "17": {
+        "name": "Ho Bnh",
+        "slug": "hoa-binh",
+        "type": "tinh",
+        "name_with_type": "Tnh Ho Bnh",
+        "code": "17"
+    },
+    "19": {
+        "name": "Thi Nguyn",
+        "slug": "thai-nguyen",
+        "type": "tinh",
+        "name_with_type": "Tnh Thi Nguyn",
+        "code": "19"
+    },
+    "20": {
+        "name": "Lng Sn",
+        "slug": "lang-son",
+        "type": "tinh",
+        "name_with_type": "Tnh Lng Sn",
+        "code": "20"
+    },
+    "22": {
+        "name": "Qung Ninh",
+        "slug": "quang-ninh",
+        "type": "tinh",
+        "name_with_type": "Tnh Qung Ninh",
+        "code": "22"
+    },
+    "24": {
+        "name": "Bc Giang",
+        "slug": "bac-giang",
+        "type": "tinh",
+        "name_with_type": "Tnh Bc Giang",
+        "code": "24"
+    },
+    "25": {
+        "name": "Ph Th",
+        "slug": "phu-tho",
+        "type": "tinh",
+        "name_with_type": "Tnh Ph Th",
+        "code": "25"
+    },
+    "26": {
+        "name": "Vnh Phc",
+        "slug": "vinh-phuc",
+        "type": "tinh",
+        "name_with_type": "Tnh Vnh Phc",
+        "code": "26"
+    },
+    "27": {
+        "name": "Bc Ninh",
+        "slug": "bac-ninh",
+        "type": "tinh",
+        "name_with_type": "Tnh Bc Ninh",
+        "code": "27"
+    },
+    "30": {
+        "name": "Hi Dng",
+        "slug": "hai-duong",
+        "type": "tinh",
+        "name_with_type": "Tnh Hi Dng",
+        "code": "30"
+    },
+    "31": {
+        "name": "Hi Phng",
+        "slug": "hai-phong",
+        "type": "thanh-pho",
+        "name_with_type": "Thnh ph Hi Phng",
+        "code": "31"
+    },
+    "33": {
+        "name": "Hng Yn",
+        "slug": "hung-yen",
+        "type": "tinh",
+        "name_with_type": "Tnh Hng Yn",
+        "code": "33"
+    },
+    "34": {
+        "name": "Thi Bnh",
+        "slug": "thai-binh",
+        "type": "tinh",
+        "name_with_type": "Tnh Thi Bnh",
+        "code": "34"
+    },
+    "35": {
+        "name": "H Nam",
+        "slug": "ha-nam",
+        "type": "tinh",
+        "name_with_type": "Tnh H Nam",
+        "code": "35"
+    },
+    "36": {
+        "name": "Nam nh",
+        "slug": "nam-dinh",
+        "type": "tinh",
+        "name_with_type": "Tnh Nam nh",
+        "code": "36"
+    },
+    "37": {
+        "name": "Ninh Bnh",
+        "slug": "ninh-binh",
+        "type": "tinh",
+        "name_with_type": "Tnh Ninh Bnh",
+        "code": "37"
+    },
+    "38": {
+        "name": "Thanh Ha",
+        "slug": "thanh-hoa",
+        "type": "tinh",
+        "name_with_type": "Tnh Thanh Ha",
+        "code": "38"
+    },
+    "40": {
+        "name": "Ngh An",
+        "slug": "nghe-an",
+        "type": "tinh",
+        "name_with_type": "Tnh Ngh An",
+        "code": "40"
+    },
+    "42": {
+        "name": "H Tnh",
+        "slug": "ha-tinh",
+        "type": "tinh",
+        "name_with_type": "Tnh H Tnh",
+        "code": "42"
+    },
+    "44": {
+        "name": "Qung Bnh",
+        "slug": "quang-binh",
+        "type": "tinh",
+        "name_with_type": "Tnh Qung Bnh",
+        "code": "44"
+    },
+    "45": {
+        "name": "Qung Tr",
+        "slug": "quang-tri",
+        "type": "tinh",
+        "name_with_type": "Tnh Qung Tr",
+        "code": "45"
+    },
+    "46": {
+        "name": "Tha Thin Hu",
+        "slug": "thua-thien-hue",
+        "type": "tinh",
+        "name_with_type": "Tnh Tha Thin Hu",
+        "code": "46"
+    },
+    "48": {
+        "name": " Nng",
+        "slug": "da-nang",
+        "type": "thanh-pho",
+        "name_with_type": "Thnh ph  Nng",
+        "code": "48"
+    },
+    "49": {
+        "name": "Qung Nam",
+        "slug": "quang-nam",
+        "type": "tinh",
+        "name_with_type": "Tnh Qung Nam",
+        "code": "49"
+    },
+    "51": {
+        "name": "Qung Ngi",
+        "slug": "quang-ngai",
+        "type": "tinh",
+        "name_with_type": "Tnh Qung Ngi",
+        "code": "51"
+    },
+    "52": {
+        "name": "Bnh nh",
+        "slug": "binh-dinh",
+        "type": "tinh",
+        "name_with_type": "Tnh Bnh nh",
+        "code": "52"
+    },
+    "54": {
+        "name": "Ph Yn",
+        "slug": "phu-yen",
+        "type": "tinh",
+        "name_with_type": "Tnh Ph Yn",
+        "code": "54"
+    },
+    "56": {
+        "name": "Khnh Ha",
+        "slug": "khanh-hoa",
+        "type": "tinh",
+        "name_with_type": "Tnh Khnh Ha",
+        "code": "56"
+    },
+    "58": {
+        "name": "Ninh Thun",
+        "slug": "ninh-thuan",
+        "type": "tinh",
+        "name_with_type": "Tnh Ninh Thun",
+        "code": "58"
+    },
+    "60": {
+        "name": "Bnh Thun",
+        "slug": "binh-thuan",
+        "type": "tinh",
+        "name_with_type": "Tnh Bnh Thun",
+        "code": "60"
+    },
+    "62": {
+        "name": "Kon Tum",
+        "slug": "kon-tum",
+        "type": "tinh",
+        "name_with_type": "Tnh Kon Tum",
+        "code": "62"
+    },
+    "64": {
+        "name": "Gia Lai",
+        "slug": "gia-lai",
+        "type": "tinh",
+        "name_with_type": "Tnh Gia Lai",
+        "code": "64"
+    },
+    "66": {
+        "name": "k Lk",
+        "slug": "dak-lak",
+        "type": "tinh",
+        "name_with_type": "Tnh k Lk",
+        "code": "66"
+    },
+    "67": {
+        "name": "k Nng",
+        "slug": "dak-nong",
+        "type": "tinh",
+        "name_with_type": "Tnh k Nng",
+        "code": "67"
+    },
+    "68": {
+        "name": "Lm ng",
+        "slug": "lam-dong",
+        "type": "tinh",
+        "name_with_type": "Tnh Lm ng",
+        "code": "68"
+    },
+    "70": {
+        "name": "Bnh Phc",
+        "slug": "binh-phuoc",
+        "type": "tinh",
+        "name_with_type": "Tnh Bnh Phc",
+        "code": "70"
+    },
+    "72": {
+        "name": "Ty Ninh",
+        "slug": "tay-ninh",
+        "type": "tinh",
+        "name_with_type": "Tnh Ty Ninh",
+        "code": "72"
+    },
+    "74": {
+        "name": "Bnh Dng",
+        "slug": "binh-duong",
+        "type": "tinh",
+        "name_with_type": "Tnh Bnh Dng",
+        "code": "74"
+    },
+    "75": {
+        "name": "ng Nai",
+        "slug": "dong-nai",
+        "type": "tinh",
+        "name_with_type": "Tnh ng Nai",
+        "code": "75"
+    },
+    "77": {
+        "name": "B Ra - Vng Tu",
+        "slug": "ba-ria-vung-tau",
+        "type": "tinh",
+        "name_with_type": "Tnh B Ra - Vng Tu",
+        "code": "77"
+    },
+    "79": {
+        "name": "H Ch Minh",
+        "slug": "ho-chi-minh",
+        "type": "thanh-pho",
+        "name_with_type": "Thnh ph H Ch Minh",
+        "code": "79"
+    },
+    "80": {
+        "name": "Long An",
+        "slug": "long-an",
+        "type": "tinh",
+        "name_with_type": "Tnh Long An",
+        "code": "80"
+    },
+    "82": {
+        "name": "Tin Giang",
+        "slug": "tien-giang",
+        "type": "tinh",
+        "name_with_type": "Tnh Tin Giang",
+        "code": "82"
+    },
+    "83": {
+        "name": "Bn Tre",
+        "slug": "ben-tre",
+        "type": "tinh",
+        "name_with_type": "Tnh Bn Tre",
+        "code": "83"
+    },
+    "84": {
+        "name": "Tr Vinh",
+        "slug": "tra-vinh",
+        "type": "tinh",
+        "name_with_type": "Tnh Tr Vinh",
+        "code": "84"
+    },
+    "86": {
+        "name": "Vnh Long",
+        "slug": "vinh-long",
+        "type": "tinh",
+        "name_with_type": "Tnh Vnh Long",
+        "code": "86"
+    },
+    "87": {
+        "name": "ng Thp",
+        "slug": "dong-thap",
+        "type": "tinh",
+        "name_with_type": "Tnh ng Thp",
+        "code": "87"
+    },
+    "89": {
+        "name": "An Giang",
+        "slug": "an-giang",
+        "type": "tinh",
+        "name_with_type": "Tnh An Giang",
+        "code": "89"
+    },
+    "91": {
+        "name": "Kin Giang",
+        "slug": "kien-giang",
+        "type": "tinh",
+        "name_with_type": "Tnh Kin Giang",
+        "code": "91"
+    },
+    "92": {
+        "name": "Cn Th",
+        "slug": "can-tho",
+        "type": "thanh-pho",
+        "name_with_type": "Thnh ph Cn Th",
+        "code": "92"
+    },
+    "93": {
+        "name": "Hu Giang",
+        "slug": "hau-giang",
+        "type": "tinh",
+        "name_with_type": "Tnh Hu Giang",
+        "code": "93"
+    },
+    "94": {
+        "name": "Sc Trng",
+        "slug": "soc-trang",
+        "type": "tinh",
+        "name_with_type": "Tnh Sc Trng",
+        "code": "94"
+    },
+    "95": {
+        "name": "Bc Liu",
+        "slug": "bac-lieu",
+        "type": "tinh",
+        "name_with_type": "Tnh Bc Liu",
+        "code": "95"
+    },
+    "96": {
+        "name": "C Mau",
+        "slug": "ca-mau",
+        "type": "tinh",
+        "name_with_type": "Tnh C Mau",
+        "code": "96"
+    }
+}
