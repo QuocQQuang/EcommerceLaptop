@@ -175,6 +175,70 @@ public class InventoryRepository : EfRepository<Inventory>, IInventoryRepository
         return transaction;
     }
 
+    // Serial Number & Product Lookup
+    public async Task<List<SerialNumber>> GetSerialNumbersAsync(int productId, bool activeOnly)
+    {
+        var query = _context.SerialNumbers.Where(s => s.ProductId == productId);
+        
+        if (activeOnly)
+        {
+            query = query.Where(s => s.Status == SerialNumberStatus.Available || s.Status == SerialNumberStatus.Reserved);
+        }
+        
+        return await query.ToListAsync();
+    }
+
+    public async Task<SerialNumber?> GetSerialNumberByValueAsync(string serialNumber)
+    {
+        return await _context.SerialNumbers
+            .FirstOrDefaultAsync(s => s.Value == serialNumber);
+    }
+
+    public async Task<bool> SerialNumberExistsAsync(string serialNumber)
+    {
+        return await _context.SerialNumbers.AnyAsync(s => s.Value == serialNumber);
+    }
+
+    public async Task AddSerialNumberAsync(SerialNumber serialNumber)
+    {
+        await _context.SerialNumbers.AddAsync(serialNumber);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateSerialNumberAsync(SerialNumber serialNumber)
+    {
+        _context.SerialNumbers.Update(serialNumber);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<Inventory?> GetInventoryByBarcodeAsync(string barcode)
+    {
+        var product = await _context.Products
+            .Include(p => p.Inventory)
+            .ThenInclude(i => i.Product)
+            .FirstOrDefaultAsync(p => p.Barcode == barcode);
+            
+        return product?.Inventory;
+    }
+
+    public async Task<Inventory?> GetInventoryBySkuAsync(string sku)
+    {
+        return await _context.Inventories
+            .Include(i => i.Product)
+            .FirstOrDefaultAsync(i => i.Product.SKU == sku);
+    }
+
+    public async Task<Product?> GetProductByIdAsync(int productId)
+    {
+        return await _context.Products.FindAsync(productId);
+    }
+
+    public async Task UpdateProductAsync(Product product)
+    {
+        _context.Products.Update(product);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task BeginTransactionAsync()
     {
         if (_transaction != null)

@@ -138,4 +138,34 @@ public interface IUserService
     /// <param name="addressId">Address ID</param>
     /// <returns>True if address was set as default</returns>
     Task<bool> SetDefaultAddressAsync(int userId, int addressId);
+
+    /// <summary>
+    /// Gets user statistics
+    /// </summary>
+    /// <returns>User statistics</returns>
+    Task<UserStatisticsDto> GetUserStatisticsAsync();
+    /// <summary>
+    /// Gets admin users with pagination
+    /// </summary>
+    Task<PagedResult<User>> GetAdminUsersAsync(int page, int pageSize, string? searchTerm = null);
+
+    /// <summary>
+    /// Creates a new admin user
+    /// </summary>
+    Task<User> CreateAdminUserAsync(User user, string password, int roleId);
+
+    /// <summary>
+    /// Updates an admin user
+    /// </summary>
+    Task<User> UpdateAdminUserAsync(User user, string? password, int? roleId);
+
+    /// <summary>
+    /// Toggles user active status
+    /// </summary>
+    Task<User> ToggleUserStatusAsync(int userId);
+
+    /// <summary>
+    /// Permanently deletes a user
+    /// </summary>
+    Task<bool> DeleteUserAsync(int userId);
 }

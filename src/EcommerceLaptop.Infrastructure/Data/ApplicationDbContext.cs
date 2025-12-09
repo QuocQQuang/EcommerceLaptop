@@ -51,6 +51,7 @@ public class ApplicationDbContext : DbContext
     // Inventory Management
     public DbSet<Inventory> Inventories { get; set; }
     public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
+    public DbSet<SerialNumber> SerialNumbers { get; set; } // New
 
     // Marketing
     public DbSet<Coupon> Coupons { get; set; }

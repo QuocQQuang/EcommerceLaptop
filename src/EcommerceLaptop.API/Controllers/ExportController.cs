@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EcommerceLaptop.Core.Services;
-using EcommerceLaptop.Core.Entities;
-using EcommerceLaptop.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace EcommerceLaptop.API.Controllers;
 
@@ -11,60 +9,34 @@ namespace EcommerceLaptop.API.Controllers;
 [Route("api/[controller]")]
 public class ExportController : BaseApiController
 {
-    private readonly IPdfExportService _pdfExportService;
-    private readonly IExcelExportService _excelExportService;
-    private readonly ApplicationDbContext _context;
+    private readonly IReportingService _reportingService;
 
     public ExportController(
-        IPdfExportService pdfExportService,
-        IExcelExportService excelExportService,
-        ApplicationDbContext context,
+        IReportingService reportingService,
         ILogger<ExportController> logger) : base(logger)
     {
-        _pdfExportService = pdfExportService;
-        _excelExportService = excelExportService;
-        _context = context;
+        _reportingService = reportingService;
     }
 
     /// <summary>
-    /// Xut ha n PDF vi ch k s (Admin only) - Ch cho php xut ha n n hng  xc nhn tr ln
+    /// Xut ha n PDF vi ch k s (Admin only)
     /// </summary>
-    /// <param name="orderId">ID n hng</param>
-    /// <param name="includeDigitalSignature">C bao gm ch k s hay khng (mc nh: true)</param>
-    /// <returns>File PDF ha n</returns>
     [HttpGet("invoice/pdf/{orderId}")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportInvoicePdf(int orderId, bool includeDigitalSignature = true)
     {
         try
         {
-            var order = await _context.Orders
-                .Include(o => o.User)
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Product)
-                .FirstOrDefaultAsync(o => o.Id == orderId);
-
-            if (order == null)
-            {
-                return NotFound(new { message = "Khng tm thy n hng" });
-            }
-
-            // Ch cho php xut ha n cho n hng  xc nhn tr ln (tr  hy)
-            if (order.Status == OrderStatus.Pending || order.Status == OrderStatus.Cancelled)
-            {
-                return BadRequest(new
-                {
-                    message = "Ch c th xut ha n cho n hng  xc nhn tr ln",
-                    currentStatus = order.Status.ToString(),
-                    allowedStatuses = new[] { "Confirmed", "Processing", "Shipped", "Delivered", "Returned", "Refunded" }
-                });
-            }
-
-            var pdfBytes = await _pdfExportService.ExportInvoicePdfAsync(order, includeDigitalSignature);
-
-            var fileName = $"HoaDon_{order.OrderNumber}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
-
-            return File(pdfBytes, "application/pdf", fileName);
+            var result = await _reportingService.ExportInvoicePdfAsync(orderId, includeDigitalSignature);
+            return File(result.FileContent, result.ContentType, result.FileName);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -74,43 +46,24 @@ public class ExportController : BaseApiController
     }
 
     /// <summary>
-    /// Xut ha n XML (Admin only) - Ch cho php xut ha n n hng  xc nhn tr ln
+    /// Xut ha n XML (Admin only)
     /// </summary>
-    /// <param name="orderId">ID n hng</param>
-    /// <returns>File XML ha n</returns>
     [HttpGet("invoice/xml/{orderId}")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportInvoiceXml(int orderId)
     {
         try
         {
-            var order = await _context.Orders
-                .Include(o => o.User)
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Product)
-                .FirstOrDefaultAsync(o => o.Id == orderId);
-
-            if (order == null)
-            {
-                return NotFound(new { message = "Khng tm thy n hng" });
-            }
-
-            // Ch cho php xut ha n cho n hng  xc nhn tr ln (tr  hy)
-            if (order.Status == OrderStatus.Pending || order.Status == OrderStatus.Cancelled)
-            {
-                return BadRequest(new
-                {
-                    message = "Ch c th xut ha n cho n hng  xc nhn tr ln",
-                    currentStatus = order.Status.ToString(),
-                    allowedStatuses = new[] { "Confirmed", "Processing", "Shipped", "Delivered", "Returned", "Refunded" }
-                });
-            }
-
-            var xmlBytes = await _pdfExportService.ExportInvoiceXmlAsync(order);
-
-            var fileName = $"HoaDon_{order.OrderNumber}_{DateTime.Now:yyyyMMddHHmmss}.xml";
-
-            return File(xmlBytes, "application/xml", fileName);
+            var result = await _reportingService.ExportInvoiceXmlAsync(orderId);
+            return File(result.FileContent, result.ContentType, result.FileName);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -122,13 +75,6 @@ public class ExportController : BaseApiController
     /// <summary>
     /// Xut danh sch n hng ra Excel (Admin only)
     /// </summary>
-    /// <param name="page">Trang (mc nh: 1)</param>
-    /// <param name="pageSize">S lng mi trang (mc nh: 1000)</param>
-    /// <param name="search">Tm kim theo m n hng hoc tn khch hng</param>
-    /// <param name="status">Lc theo trng thi n hng</param>
-    /// <param name="startDate">Ngy bt u (format: yyyy-MM-dd)</param>
-    /// <param name="endDate">Ngy kt thc (format: yyyy-MM-dd)</param>
-    /// <returns>File Excel danh sch n hng</returns>
     [HttpGet("orders/excel")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportOrdersToExcel(
@@ -141,44 +87,8 @@ public class ExportController : BaseApiController
     {
         try
         {
-            var query = _context.Orders
-                .Include(o => o.User)
-                .Include(o => o.OrderItems)
-                .AsQueryable();
-
-            // Apply filters
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(o => o.OrderNumber.Contains(search) || (o.User.FirstName + " " + o.User.LastName).Contains(search));
-            }
-
-            if (!string.IsNullOrEmpty(status) && Enum.TryParse<OrderStatus>(status, true, out var orderStatus))
-            {
-                query = query.Where(o => o.Status == orderStatus);
-            }
-
-            if (startDate.HasValue)
-            {
-                query = query.Where(o => o.OrderDate >= startDate.Value);
-            }
-
-            if (endDate.HasValue)
-            {
-                query = query.Where(o => o.OrderDate <= endDate.Value.AddDays(1));
-            }
-
-            // Get orders
-            var orders = await query
-                .OrderByDescending(o => o.OrderDate)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var excelBytes = await _excelExportService.ExportOrdersToExcelAsync(orders);
-
-            var fileName = $"DanhSachDonHang_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            var result = await _reportingService.ExportOrdersToExcelAsync(page, pageSize, search, status, startDate, endDate);
+            return File(result.FileContent, result.ContentType, result.FileName);
         }
         catch (Exception ex)
         {
@@ -190,13 +100,6 @@ public class ExportController : BaseApiController
     /// <summary>
     /// Xut danh sch sn phm ra Excel (Admin only)
     /// </summary>
-    /// <param name="page">Trang (mc nh: 1)</param>
-    /// <param name="pageSize">S lng mi trang (mc nh: 1000)</param>
-    /// <param name="search">Tm kim theo tn sn phm</param>
-    /// <param name="categoryId">Lc theo danh mc</param>
-    /// <param name="brandId">Lc theo thng hiu</param>
-    /// <param name="isActive">Lc theo trng thi hot ng</param>
-    /// <returns>File Excel danh sch sn phm</returns>
     [HttpGet("products/excel")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportProductsToExcel(
@@ -209,44 +112,8 @@ public class ExportController : BaseApiController
     {
         try
         {
-            var query = _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.ProductBrand)
-                .AsQueryable();
-
-            // Apply filters
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(p => p.Name.Contains(search));
-            }
-
-            if (categoryId.HasValue)
-            {
-                query = query.Where(p => p.CategoryId == categoryId.Value);
-            }
-
-            if (brandId.HasValue)
-            {
-                query = query.Where(p => p.BrandId == brandId.Value);
-            }
-
-            if (isActive.HasValue)
-            {
-                query = query.Where(p => p.IsActive == isActive.Value);
-            }
-
-            // Get products
-            var products = await query
-                .OrderBy(p => p.Name)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var excelBytes = await _excelExportService.ExportProductsToExcelAsync(products);
-
-            var fileName = $"DanhSachSanPham_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            var result = await _reportingService.ExportProductsToExcelAsync(page, pageSize, search, categoryId, brandId, isActive);
+            return File(result.FileContent, result.ContentType, result.FileName);
         }
         catch (Exception ex)
         {
@@ -258,9 +125,6 @@ public class ExportController : BaseApiController
     /// <summary>
     /// Xut bo co doanh thu ra Excel (Admin only)
     /// </summary>
-    /// <param name="startDate">Ngy bt u (format: yyyy-MM-dd)</param>
-    /// <param name="endDate">Ngy kt thc (format: yyyy-MM-dd)</param>
-    /// <returns>File Excel bo co doanh thu</returns>
     [HttpGet("revenue/excel")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportRevenueReportToExcel(
@@ -269,16 +133,12 @@ public class ExportController : BaseApiController
     {
         try
         {
-            if (startDate > endDate)
-            {
-                return BadRequest(new { message = "Ngy bt u khng c ln hn ngy kt thc" });
-            }
-
-            var excelBytes = await _excelExportService.ExportRevenueReportToExcelAsync(startDate, endDate);
-
-            var fileName = $"BaoCaoDoanhThu_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.xlsx";
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            var result = await _reportingService.ExportRevenueReportToExcelAsync(startDate, endDate);
+            return File(result.FileContent, result.ContentType, result.FileName);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -290,18 +150,14 @@ public class ExportController : BaseApiController
     /// <summary>
     /// Xut bo co tn kho ra Excel (Admin only)
     /// </summary>
-    /// <returns>File Excel bo co tn kho</returns>
     [HttpGet("inventory/excel")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportInventoryReportToExcel()
     {
         try
         {
-            var excelBytes = await _excelExportService.ExportInventoryReportToExcelAsync();
-
-            var fileName = $"BaoCaoTonKho_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            var result = await _reportingService.ExportInventoryReportToExcelAsync();
+            return File(result.FileContent, result.ContentType, result.FileName);
         }
         catch (Exception ex)
         {
@@ -313,12 +169,6 @@ public class ExportController : BaseApiController
     /// <summary>
     /// Xut danh sch khch hng ra Excel (Admin only)
     /// </summary>
-    /// <param name="page">Trang (mc nh: 1)</param>
-    /// <param name="pageSize">S lng mi trang (mc nh: 1000)</param>
-    /// <param name="search">Tm kim theo tn hoc email</param>
-    /// <param name="isActive">Lc theo trng thi hot ng</param>
-    /// <param name="vipLevel">Lc theo cp  VIP</param>
-    /// <returns>File Excel danh sch khch hng</returns>
     [HttpGet("users/excel")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportUsersToExcel(
@@ -330,38 +180,8 @@ public class ExportController : BaseApiController
     {
         try
         {
-            var query = _context.Users
-                .Include(u => u.Orders)
-                .AsQueryable();
-
-            // Apply filters
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(u => (u.FirstName + " " + u.LastName).Contains(search) || u.Email.Contains(search));
-            }
-
-            if (isActive.HasValue)
-            {
-                query = query.Where(u => u.IsActive == isActive.Value);
-            }
-
-            if (vipLevel.HasValue)
-            {
-                query = query.Where(u => u.VipTierId == vipLevel.Value);
-            }
-
-            // Get users
-            var users = await query
-                .OrderBy(u => u.FirstName + " " + u.LastName)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var excelBytes = await _excelExportService.ExportUsersToExcelAsync(users);
-
-            var fileName = $"DanhSachKhachHang_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            var result = await _reportingService.ExportUsersToExcelAsync(page, pageSize, search, isActive, vipLevel);
+            return File(result.FileContent, result.ContentType, result.FileName);
         }
         catch (Exception ex)
         {
@@ -373,13 +193,10 @@ public class ExportController : BaseApiController
     #region Customer Export Endpoints
 
     /// <summary>
-    /// Xut ha n PDF cho khch hng (khng cn quyn admin) - Ch cho php xut ha n n hng  xc nhn tr ln
+    /// Xut ha n PDF cho khch hng
     /// </summary>
-    /// <param name="orderId">ID n hng</param>
-    /// <param name="includeDigitalSignature">C bao gm ch k s hay khng (mc nh: false)</param>
-    /// <returns>File PDF ha n</returns>
     [HttpGet("customer/invoice/pdf/{orderId}")]
-    [Authorize] // Ch cn ng nhp, khng cn quyn admin
+    [Authorize]
     public async Task<IActionResult> ExportCustomerInvoicePdf(int orderId, bool includeDigitalSignature = false)
     {
         try
@@ -390,33 +207,16 @@ public class ExportController : BaseApiController
                 return Unauthorized(new { message = "Vui lng ng nhp  xut ha n" });
             }
 
-            var order = await _context.Orders
-                .Include(o => o.User)
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Product)
-                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId.Value);
-
-            if (order == null)
-            {
-                return NotFound(new { message = "Khng tm thy n hng hoc bn khng c quyn truy cp" });
-            }
-
-            // Ch cho php xut ha n cho n hng  xc nhn tr ln (tr  hy)
-            if (order.Status == OrderStatus.Pending || order.Status == OrderStatus.Cancelled)
-            {
-                return BadRequest(new
-                {
-                    message = "Ch c th xut ha n cho n hng  xc nhn tr ln",
-                    currentStatus = order.Status.ToString(),
-                    allowedStatuses = new[] { "Confirmed", "Processing", "Shipped", "Delivered", "Returned", "Refunded" }
-                });
-            }
-
-            var pdfBytes = await _pdfExportService.ExportInvoicePdfAsync(order, includeDigitalSignature);
-
-            var fileName = $"HoaDon_{order.OrderNumber}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
-
-            return File(pdfBytes, "application/pdf", fileName);
+            var result = await _reportingService.ExportCustomerInvoicePdfAsync(orderId, userId.Value, includeDigitalSignature);
+            return File(result.FileContent, result.ContentType, result.FileName);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -426,12 +226,10 @@ public class ExportController : BaseApiController
     }
 
     /// <summary>
-    /// Xut ha n XML cho khch hng (khng cn quyn admin) - Ch cho php xut ha n n hng  xc nhn tr ln
+    /// Xut ha n XML cho khch hng
     /// </summary>
-    /// <param name="orderId">ID n hng</param>
-    /// <returns>File XML ha n</returns>
     [HttpGet("customer/invoice/xml/{orderId}")]
-    [Authorize] // Ch cn ng nhp, khng cn quyn admin
+    [Authorize] 
     public async Task<IActionResult> ExportCustomerInvoiceXml(int orderId)
     {
         try
@@ -442,33 +240,16 @@ public class ExportController : BaseApiController
                 return Unauthorized(new { message = "Vui lng ng nhp  xut ha n" });
             }
 
-            var order = await _context.Orders
-                .Include(o => o.User)
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Product)
-                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId.Value);
-
-            if (order == null)
-            {
-                return NotFound(new { message = "Khng tm thy n hng hoc bn khng c quyn truy cp" });
-            }
-
-            // Ch cho php xut ha n cho n hng  xc nhn tr ln (tr  hy)
-            if (order.Status == OrderStatus.Pending || order.Status == OrderStatus.Cancelled)
-            {
-                return BadRequest(new
-                {
-                    message = "Ch c th xut ha n cho n hng  xc nhn tr ln",
-                    currentStatus = order.Status.ToString(),
-                    allowedStatuses = new[] { "Confirmed", "Processing", "Shipped", "Delivered", "Returned", "Refunded" }
-                });
-            }
-
-            var xmlBytes = await _pdfExportService.ExportInvoiceXmlAsync(order);
-
-            var fileName = $"HoaDon_{order.OrderNumber}_{DateTime.Now:yyyyMMddHHmmss}.xml";
-
-            return File(xmlBytes, "application/xml", fileName);
+            var result = await _reportingService.ExportCustomerInvoiceXmlAsync(orderId, userId.Value);
+            return File(result.FileContent, result.ContentType, result.FileName);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -480,14 +261,6 @@ public class ExportController : BaseApiController
     /// <summary>
     /// Xut danh sch s kin bo mt ra Excel (Admin only)
     /// </summary>
-    /// <param name="page">Trang (mc nh: 1)</param>
-    /// <param name="pageSize">S lng mi trang (mc nh: 1000)</param>
-    /// <param name="search">Tm kim theo m t hoc IP</param>
-    /// <param name="eventType">Lc theo loi s kin</param>
-    /// <param name="severity">Lc theo mc  nghim trng</param>
-    /// <param name="startDate">Ngy bt u (format: yyyy-MM-dd)</param>
-    /// <param name="endDate">Ngy kt thc (format: yyyy-MM-dd)</param>
-    /// <returns>File Excel danh sch s kin bo mt</returns>
     [HttpGet("security-events/excel")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportSecurityEventsToExcel(
@@ -501,46 +274,8 @@ public class ExportController : BaseApiController
     {
         try
         {
-            var query = _context.SecurityEvents.AsQueryable();
-
-            // Apply filters
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(e => e.Description.Contains(search) || e.IPAddress.Contains(search));
-            }
-
-            if (!string.IsNullOrEmpty(eventType))
-            {
-                query = query.Where(e => e.EventType == eventType);
-            }
-
-            if (!string.IsNullOrEmpty(severity))
-            {
-                query = query.Where(e => e.Severity == severity);
-            }
-
-            if (startDate.HasValue)
-            {
-                query = query.Where(e => e.CreatedAt >= startDate.Value);
-            }
-
-            if (endDate.HasValue)
-            {
-                query = query.Where(e => e.CreatedAt <= endDate.Value.AddDays(1));
-            }
-
-            // Get events
-            var events = await query
-                .OrderByDescending(e => e.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var excelBytes = await _excelExportService.ExportSecurityEventsToExcelAsync(events);
-
-            var fileName = $"DanhSachSuKienBaoMat_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            var result = await _reportingService.ExportSecurityEventsToExcelAsync(page, pageSize, search, eventType, severity, startDate, endDate);
+            return File(result.FileContent, result.ContentType, result.FileName);
         }
         catch (Exception ex)
         {
@@ -552,12 +287,6 @@ public class ExportController : BaseApiController
     /// <summary>
     /// Xut danh sch IP Block Rules ra Excel (Admin only)
     /// </summary>
-    /// <param name="page">Trang (mc nh: 1)</param>
-    /// <param name="pageSize">S lng mi trang (mc nh: 1000)</param>
-    /// <param name="search">Tm kim theo IP hoc l do</param>
-    /// <param name="type">Lc theo loi (blacklist/whitelist)</param>
-    /// <param name="isActive">Lc theo trng thi hot ng</param>
-    /// <returns>File Excel danh sch IP Block Rules</returns>
     [HttpGet("ip-block-rules/excel")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportIPBlockRulesToExcel(
@@ -569,36 +298,8 @@ public class ExportController : BaseApiController
     {
         try
         {
-            var query = _context.IPBlockRules.AsQueryable();
-
-            // Apply filters
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(r => r.IPAddress.Contains(search) || r.Reason.Contains(search));
-            }
-
-            if (!string.IsNullOrEmpty(type))
-            {
-                query = query.Where(r => r.Type == type);
-            }
-
-            if (isActive.HasValue)
-            {
-                query = query.Where(r => r.IsActive == isActive.Value);
-            }
-
-            // Get rules
-            var rules = await query
-                .OrderByDescending(r => r.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var excelBytes = await _excelExportService.ExportIPBlockRulesToExcelAsync(rules);
-
-            var fileName = $"DanhSachIPBlockRules_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            var result = await _reportingService.ExportIPBlockRulesToExcelAsync(page, pageSize, search, type, isActive);
+            return File(result.FileContent, result.ContentType, result.FileName);
         }
         catch (Exception ex)
         {
@@ -610,11 +311,6 @@ public class ExportController : BaseApiController
     /// <summary>
     /// Xut danh sch Rate Limit Rules ra Excel (Admin only)
     /// </summary>
-    /// <param name="page">Trang (mc nh: 1)</param>
-    /// <param name="pageSize">S lng mi trang (mc nh: 1000)</param>
-    /// <param name="search">Tm kim theo tn hoc endpoint</param>
-    /// <param name="isActive">Lc theo trng thi hot ng</param>
-    /// <returns>File Excel danh sch Rate Limit Rules</returns>
     [HttpGet("rate-limit-rules/excel")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportRateLimitRulesToExcel(
@@ -625,31 +321,8 @@ public class ExportController : BaseApiController
     {
         try
         {
-            var query = _context.RateLimitRules.AsQueryable();
-
-            // Apply filters
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(r => r.Name.Contains(search) || r.Endpoint.Contains(search));
-            }
-
-            if (isActive.HasValue)
-            {
-                query = query.Where(r => r.IsActive == isActive.Value);
-            }
-
-            // Get rules
-            var rules = await query
-                .OrderByDescending(r => r.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var excelBytes = await _excelExportService.ExportRateLimitRulesToExcelAsync(rules);
-
-            var fileName = $"DanhSachRateLimitRules_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            var result = await _reportingService.ExportRateLimitRulesToExcelAsync(page, pageSize, search, isActive);
+            return File(result.FileContent, result.ContentType, result.FileName);
         }
         catch (Exception ex)
         {
@@ -661,9 +334,6 @@ public class ExportController : BaseApiController
     /// <summary>
     /// Xut bo co bo mt tng hp ra Excel (Admin only)
     /// </summary>
-    /// <param name="startDate">Ngy bt u (format: yyyy-MM-dd)</param>
-    /// <param name="endDate">Ngy kt thc (format: yyyy-MM-dd)</param>
-    /// <returns>File Excel bo co bo mt tng hp</returns>
     [HttpGet("security-report/excel")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportSecurityReportToExcel(
@@ -672,11 +342,8 @@ public class ExportController : BaseApiController
     {
         try
         {
-            var excelBytes = await _excelExportService.ExportSecurityReportToExcelAsync(startDate, endDate);
-
-            var fileName = $"BaoCaoBaoMat_{startDate?.ToString("yyyyMMdd") ?? "all"}_{endDate?.ToString("yyyyMMdd") ?? "all"}_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            var result = await _reportingService.ExportSecurityReportToExcelAsync(startDate, endDate);
+            return File(result.FileContent, result.ContentType, result.FileName);
         }
         catch (Exception ex)
         {

@@ -179,7 +179,8 @@ public class AdminDashboardService : IAdminDashboardService
                     Status = o.Status.ToString(),
                     StatusColor = GetOrderStatusColor(o.Status),
                     CreatedAt = o.CreatedAt,
-                    ItemCount = o.OrderItems.Count
+                    ItemCount = o.OrderItems.Count,
+                    FirstProductName = o.OrderItems.Any() ? o.OrderItems.First().Product.Name : "No Items"
                 })
                 .ToListAsync();
 
@@ -432,5 +433,40 @@ public class AdminDashboardService : IAdminDashboardService
             OrderStatus.Refunded => "secondary",
             _ => "secondary"
         };
+    }
+
+        public async Task<IEnumerable<CategoryDistributionDto>> GetCategoryDistributionAsync()
+    {
+        try
+        {
+            var rawData = await _context.Orders
+                .Where(o => o.Status != OrderStatus.Cancelled)
+                .SelectMany(o => o.OrderItems)
+                .Select(oi => new { oi.Product.CategoryId, CategoryName = oi.Product.Category != null ? oi.Product.Category.Name : "Uncategorized" })
+                .GroupBy(x => x.CategoryName)
+                .Select(g => new 
+                {
+                    Name = g.Key,
+                    Value = g.Count()
+                })
+                .ToListAsync();
+
+            // Define a palette of nice colors
+            var colors = new[] { "#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d", "#ffc658", "#8dd1e1" };
+            
+            var categoryData = rawData.Select((item, index) => new CategoryDistributionDto
+            {
+                Name = item.Name,
+                Value = item.Value,
+                Color = colors[index % colors.Length]
+            }).ToList();
+
+            return categoryData;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting category distribution");
+            throw;
+        }
     }
 }

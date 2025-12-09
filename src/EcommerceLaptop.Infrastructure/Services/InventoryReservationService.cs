@@ -3,6 +3,7 @@ using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,12 @@ namespace EcommerceLaptop.Infrastructure.Services;
 public class InventoryReservationService : IInventoryReservationService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ILogger<InventoryReservationService> _logger;
 
-    public InventoryReservationService(ApplicationDbContext context)
+    public InventoryReservationService(ApplicationDbContext context, ILogger<InventoryReservationService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     /// <summary>
@@ -183,5 +186,130 @@ public class InventoryReservationService : IInventoryReservationService
 
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    /// <summary>
+    /// Confirms inventory reservations by permanently deducting from stock and clearing reservation
+    /// Used when payment is successful
+    /// </summary>
+    public async Task<bool> ConfirmInventoryReservationAsync(int orderId)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order == null || !order.InventoryReserved)
+            {
+                _logger.LogWarning("Order {OrderId} not found or inventory not reserved", orderId);
+                return false;
+            }
+
+            foreach (var item in order.OrderItems)
+            {
+                var inventory = await _context.Inventories.FirstOrDefaultAsync(i => i.ProductId == item.ProductId);
+                if (inventory != null)
+                {
+                    if (inventory.ReservedQuantity >= item.Quantity)
+                    {
+                        inventory.QuantityInStock -= item.Quantity;
+                        inventory.ReservedQuantity -= item.Quantity;
+
+                        // Create transaction record
+                        _context.InventoryTransactions.Add(new InventoryTransaction
+                        {
+                            InventoryId = inventory.Id,
+                            Type = InventoryTransactionType.Sale,
+                            Quantity = -item.Quantity,
+                            Reference = $"ORDER_{orderId}",
+                            Notes = "Order confirmed - Inventory deducted",
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = 0 // System
+                        });
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Inventory mismatch for product {ProductId} in order {OrderId}. Reserved: {Reserved}, Required: {Required}", 
+                            item.ProductId, orderId, inventory.ReservedQuantity, item.Quantity);
+                        
+                        // Force fix
+                        inventory.QuantityInStock -= item.Quantity;
+                        inventory.ReservedQuantity = Math.Max(0, inventory.ReservedQuantity - item.Quantity);
+                    }
+                    
+                    _context.Inventories.Update(inventory);
+                }
+            }
+
+            order.InventoryReserved = false;
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            
+            _logger.LogInformation("Confirmed inventory for order {OrderId}", orderId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Error confirming inventory for order {OrderId}", orderId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Restocks inventory for an order (e.g. refund/return)
+    /// </summary>
+    public async Task<bool> RestockInventoryForOrderAsync(int orderId)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order == null)
+            {
+                _logger.LogWarning("Order {OrderId} not found for restocking", orderId);
+                return false;
+            }
+
+            foreach (var item in order.OrderItems)
+            {
+                var inventory = await _context.Inventories.FirstOrDefaultAsync(i => i.ProductId == item.ProductId);
+                if (inventory != null)
+                {
+                    inventory.QuantityInStock += item.Quantity;
+
+                    // Create transaction record
+                    _context.InventoryTransactions.Add(new InventoryTransaction
+                    {
+                        InventoryId = inventory.Id,
+                        Type = InventoryTransactionType.Return,
+                        Quantity = item.Quantity,
+                        Reference = $"REFUND_{orderId}",
+                        Notes = "Order refunded - Inventory restocked",
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = 0 // System
+                    });
+                    
+                    _context.Inventories.Update(inventory);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            
+            _logger.LogInformation("Restocked inventory for order {OrderId}", orderId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Error restocking inventory for order {OrderId}", orderId);
+            return false;
+        }
     }
 }

@@ -29,6 +29,10 @@ public abstract class Product
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public Inventory Inventory { get; set; } = null!;
+    public ICollection<SerialNumber> SerialNumbers { get; set; } = new List<SerialNumber>(); // New
+
+    // Additional Properties
+    public string Barcode { get; set; } = string.Empty; // New
 
     // Variant navigation properties
     public Product? ParentProduct { get; set; }

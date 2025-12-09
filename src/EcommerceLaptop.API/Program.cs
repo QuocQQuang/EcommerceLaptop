@@ -201,6 +201,7 @@ builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.Services.IBrandServic
 
 // Customer Management Services
 builder.Services.AddScoped<ICustomerManagementService, CustomerManagementService>();
+builder.Services.AddScoped<EcommerceLaptop.Core.Services.IWishlistService, EcommerceLaptop.Infrastructure.Services.WishlistService>();
 // NOTE: IFileUploadService removed - all uploads now use IImageHostingService (ImgBB)
 
 // Email Service Configuration
@@ -296,6 +297,7 @@ builder.Services.AddScoped<FluentValidation.IValidator<EcommerceLaptop.Core.Conf
 // Export Services
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.IPdfExportService, EcommerceLaptop.Infrastructure.Services.PdfExportService>();
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.IExcelExportService, EcommerceLaptop.Infrastructure.Services.ExcelExportService>();
+builder.Services.AddScoped<EcommerceLaptop.Core.Services.IReportingService, EcommerceLaptop.Infrastructure.Services.ReportingService>();
 
 // Background Services
 builder.Services.AddHostedService<EcommerceLaptop.Infrastructure.Services.ProductIndexingService>();

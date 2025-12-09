@@ -21,20 +21,17 @@ namespace EcommerceLaptop.API.Controllers;
 public class UsersController : BaseApiController
 {
     private readonly IUserService _userService;
-    private readonly ApplicationDbContext _context;
     private readonly IImageHostingService _imageHostingService;
     private readonly IAuditLoggingService _auditLoggingService;
 
     public UsersController(
         IUserService userService,
-        ApplicationDbContext context,
         IImageHostingService imageHostingService,
         IAuditLoggingService auditLoggingService,
         ILogger<UsersController> logger)
         : base(logger)
     {
         _userService = userService;
-        _context = context;
         _imageHostingService = imageHostingService;
         _auditLoggingService = auditLoggingService;
     }
@@ -87,14 +84,13 @@ public class UsersController : BaseApiController
                 return ErrorResponse("User not found", 401);
 
             // Get user with security context
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == userId.Value && u.IsActive);
+            var user = await _userService.GetByIdAsync(userId.Value);
 
             if (user == null)
                 return ErrorResponse("User not found", 404);
 
             // Verify current password
-            if (!BCrypt.Net.BCrypt.Verify(changePasswordRequest.CurrentPassword, user.PasswordHash))
+            if (!await _userService.VerifyPasswordAsync(user, changePasswordRequest.CurrentPassword))
             {
                 // Log failed password change attempt
                 _logger.LogWarning("Failed password change attempt for user {UserId} from IP {IP}",
@@ -121,19 +117,13 @@ public class UsersController : BaseApiController
             }
 
             // Check if new password is different from current
-            if (BCrypt.Net.BCrypt.Verify(changePasswordRequest.NewPassword, user.PasswordHash))
+            if (await _userService.VerifyPasswordAsync(user, changePasswordRequest.NewPassword))
             {
                 return ErrorResponse("Mt khu mi phi khc vi mt khu hin ti", 400);
             }
 
-            // Hash new password with high work factor for security
-            var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordRequest.NewPassword, 12);
-
             // Update password
-            user.PasswordHash = newPasswordHash;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
+            await _userService.UpdatePasswordAsync(userId.Value, changePasswordRequest.NewPassword);
 
             // Log successful password change
             _logger.LogInformation("Password changed successfully for user {UserId} from IP {IP}",
@@ -241,8 +231,7 @@ public class UsersController : BaseApiController
 
             // Update user profile picture URL
             user.ProfilePictureUrl = uploadResult.Url;
-            user.UpdatedAt = DateTime.UtcNow;
-
+            
             var updatedUser = await _userService.UpdateUserAsync(user);
             var roles = await _userService.GetUserRolesAsync(userId.Value);
             var userDto = MapToUserProfileDto(updatedUser, roles);
@@ -608,31 +597,28 @@ public class UsersController : BaseApiController
                 return ErrorResponse("Access denied", 403);
 
             // Get the existing address to update
-            var existingAddress = await _userService.GetUserAddressesAsync(userId);
-            var addressToUpdate = existingAddress.FirstOrDefault(a => a.Id == addressId);
+            var existingAddresses = await _userService.GetUserAddressesAsync(userId);
+            var addressToUpdate = existingAddresses.FirstOrDefault(a => a.Id == addressId);
 
             if (addressToUpdate == null)
                 return ErrorResponse("Address not found", 404);
 
             // Apply updates only for non-null values
-            var updatedAddress = new Core.Entities.Address
-            {
-                Id = addressId,
-                UserId = userId,
-                FullName = request.FullName ?? addressToUpdate.FullName,
-                PhoneNumber = request.PhoneNumber ?? addressToUpdate.PhoneNumber,
-                Street = request.Street ?? addressToUpdate.Street,
-                City = request.City ?? addressToUpdate.City,
-                Province = request.Province ?? addressToUpdate.Province,
-                Ward = request.District ?? addressToUpdate.Ward, // District DTO maps to Ward entity
-                PostalCode = request.PostalCode ?? addressToUpdate.PostalCode,
-                Country = request.Country ?? addressToUpdate.Country,
-                IsDefault = request.IsDefault ?? addressToUpdate.IsDefault
-            };
-
-            var result = await _userService.UpdateUserAddressAsync(updatedAddress);
+            // NOTE: In a real entity tracking scenario, we might iterate.
+            // Since this object comes from service (maybe detached), we just update props and call update.
+            addressToUpdate.FullName = request.FullName ?? addressToUpdate.FullName;
+            addressToUpdate.PhoneNumber = request.PhoneNumber ?? addressToUpdate.PhoneNumber;
+            addressToUpdate.Street = request.Street ?? addressToUpdate.Street;
+            addressToUpdate.City = request.City ?? addressToUpdate.City;
+            addressToUpdate.Province = request.Province ?? addressToUpdate.Province;
+            addressToUpdate.Ward = request.District ?? addressToUpdate.Ward;
+            addressToUpdate.PostalCode = request.PostalCode ?? addressToUpdate.PostalCode;
+            addressToUpdate.Country = request.Country ?? addressToUpdate.Country;
+            addressToUpdate.IsDefault = request.IsDefault ?? addressToUpdate.IsDefault;
+            
+            var result = await _userService.UpdateUserAddressAsync(addressToUpdate);
             if (result == null)
-                return ErrorResponse("Address not found", 404);
+                return ErrorResponse("Address not found (during update)", 404);
 
             var addressDto = MapToAddressDto(result);
             return SuccessResponse(addressDto, "Address updated successfully");
@@ -707,20 +693,7 @@ public class UsersController : BaseApiController
     {
         try
         {
-            // Get basic user statistics using direct database queries
-            var totalUsers = await _context.Users.CountAsync();
-            var activeUsers = await _context.Users.CountAsync(u => u.IsActive);
-            var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-            var newUsersThisMonth = await _context.Users.CountAsync(u => u.CreatedAt >= startOfMonth);
-
-            var statistics = new
-            {
-                totalUsers = totalUsers,
-                activeUsers = activeUsers,
-                newUsersThisMonth = newUsersThisMonth,
-                inactiveUsers = totalUsers - activeUsers
-            };
-
+            var statistics = await _userService.GetUserStatisticsAsync();
             return SuccessResponse(statistics);
         }
         catch (Exception ex)

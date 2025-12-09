@@ -12,6 +12,19 @@ public interface IInventoryRepository : IAsyncRepository<Inventory>
     Task<List<InventoryTransaction>> GetTransactionsAsync(int productId, DateTime? fromDate, DateTime? toDate);
     Task<List<InventoryTransaction>> GetStockMovementAsync(DateTime startDate, DateTime endDate);
     Task<InventoryTransaction> AddTransactionAsync(InventoryTransaction transaction);
+    
+    // Serial Number & Product Lookup
+    Task<List<SerialNumber>> GetSerialNumbersAsync(int productId, bool activeOnly);
+    Task<SerialNumber?> GetSerialNumberByValueAsync(string serialNumber);
+    Task<bool> SerialNumberExistsAsync(string serialNumber);
+    Task AddSerialNumberAsync(SerialNumber serialNumber);
+    Task UpdateSerialNumberAsync(SerialNumber serialNumber);
+    
+    Task<Inventory?> GetInventoryByBarcodeAsync(string barcode);
+    Task<Inventory?> GetInventoryBySkuAsync(string sku);
+    Task<Product?> GetProductByIdAsync(int productId);
+    Task UpdateProductAsync(Product product);
+
     Task BeginTransactionAsync();
     Task CommitTransactionAsync();
     Task RollbackTransactionAsync();

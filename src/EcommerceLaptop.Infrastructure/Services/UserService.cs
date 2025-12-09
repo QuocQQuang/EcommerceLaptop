@@ -309,4 +309,172 @@ public class UserService : IUserService
             await _context.SaveChangesAsync();
         }
     }
+    public async Task<UserStatisticsDto> GetUserStatisticsAsync()
+    {
+        var totalUsers = await _context.Users.CountAsync();
+        var activeUsers = await _context.Users.CountAsync(u => u.IsActive);
+        var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        var newUsersThisMonth = await _context.Users.CountAsync(u => u.CreatedAt >= startOfMonth);
+
+        return new UserStatisticsDto
+        {
+            TotalUsers = totalUsers,
+            ActiveUsers = activeUsers,
+            NewUsersThisMonth = newUsersThisMonth,
+            InactiveUsers = totalUsers - activeUsers
+        };
+    }
+
+    public async Task<PagedResult<User>> GetAdminUsersAsync(int page, int pageSize, string? searchTerm = null)
+    {
+        var query = _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+            .Where(u => u.UserRoles.Any(ur => ur.Role.IsAdminRole))
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(u => u.FirstName.Contains(searchTerm) ||
+                                   u.LastName.Contains(searchTerm) ||
+                                   u.Email.Contains(searchTerm));
+        }
+
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .OrderBy(u => u.FirstName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<User>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<User> CreateAdminUserAsync(User user, string password, int roleId)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // Validate role
+            var role = await _context.Roles.FindAsync(roleId);
+            if (role == null || !role.IsAdminRole)
+            {
+                throw new ArgumentException("Invalid admin role ID");
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
+            user.CreatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+            user.IsActive = true;
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            var userRole = new UserRole
+            {
+                UserId = user.Id,
+                RoleId = roleId
+            };
+
+            _context.UserRoles.Add(userRole);
+            await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
+            // Reload to get relations
+            await _context.Entry(user)
+                .Collection(u => u.UserRoles)
+                .Query()
+                .Include(ur => ur.Role)
+                .LoadAsync();
+
+            return user;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task<User> UpdateAdminUserAsync(User user, string? password, int? roleId)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            if (!string.IsNullOrEmpty(password))
+            {
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
+            }
+
+            user.UpdatedAt = DateTime.UtcNow;
+            
+            if (roleId.HasValue)
+            {
+                var role = await _context.Roles.FindAsync(roleId.Value);
+                if (role == null || !role.IsAdminRole)
+                {
+                    throw new ArgumentException("Invalid admin role ID");
+                }
+
+                // Remove old admin roles
+                var oldAdminRoles = user.UserRoles.Where(ur => ur.Role.IsAdminRole).ToList();
+                foreach (var oldRole in oldAdminRoles)
+                {
+                    _context.UserRoles.Remove(oldRole);
+                }
+
+                _context.UserRoles.Add(new UserRole
+                {
+                    UserId = user.Id,
+                    RoleId = roleId.Value
+                });
+            }
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            // Reload
+            await _context.Entry(user)
+                .Collection(u => u.UserRoles)
+                .Query()
+                .Include(ur => ur.Role)
+                .LoadAsync();
+            
+            return user;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task<User> ToggleUserStatusAsync(int userId)
+    {
+        var user = await GetByIdAsync(userId);
+        if (user == null) throw new KeyNotFoundException("User not found");
+
+        user.IsActive = !user.IsActive;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return user;
+    }
+
+    public async Task<bool> DeleteUserAsync(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using EcommerceLaptop.Core.Entities;
-using EcommerceLaptop.Infrastructure.Data;
 using EcommerceLaptop.Core.DTOs.Admin;
+using EcommerceLaptop.Core.Services;
 using System.Security.Claims;
-using BCrypt.Net;
 
 namespace EcommerceLaptop.API.Controllers.Admin;
 
@@ -14,12 +12,12 @@ namespace EcommerceLaptop.API.Controllers.Admin;
 [Authorize]
 public class AdminUsersController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IUserService _userService;
     private readonly ILogger<AdminUsersController> _logger;
 
-    public AdminUsersController(ApplicationDbContext context, ILogger<AdminUsersController> logger)
+    public AdminUsersController(IUserService userService, ILogger<AdminUsersController> logger)
     {
-        _context = context;
+        _userService = userService;
         _logger = logger;
     }
 
@@ -30,46 +28,29 @@ public class AdminUsersController : ControllerBase
     [Authorize(Policy = "RequirePermission:users:read")]
     public async Task<ActionResult<UsersResponseDto>> GetUsers([FromQuery] int page = 1, [FromQuery] int limit = 10, [FromQuery] string search = "")
     {
-        // Query unified Users table, filter for admin users only
-        var query = _context.Users
-            .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-            .Where(u => u.UserRoles.Any(ur => ur.Role.IsAdminRole)) // Only admin users
-            .AsQueryable();
+        var result = await _userService.GetAdminUsersAsync(page, limit, search);
+        var totalPages = (int)Math.Ceiling(result.TotalCount / (double)limit);
 
-        if (!string.IsNullOrEmpty(search))
-        {
-            query = query.Where(u => u.FirstName.Contains(search) ||
-                                   u.LastName.Contains(search) ||
-                                   u.Email.Contains(search));
-        }
-
-        var totalCount = await query.CountAsync();
-        var totalPages = (int)Math.Ceiling(totalCount / (double)limit);
-
-        var users = await query
-            .OrderBy(u => u.FirstName)
-            .Skip((page - 1) * limit)
-            .Take(limit)
-            .Select(u => new AdminUserManagementDto
+        var userDtos = result.Items.Select(u => {
+            var adminRole = u.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
+            return new AdminUserManagementDto
             {
                 Id = u.Id,
                 FirstName = u.FirstName,
                 LastName = u.LastName,
                 Email = u.Email,
                 IsActive = u.IsActive,
-                // Get the first admin role (user might have multiple admin roles)
-                RoleId = u.UserRoles.First(ur => ur.Role.IsAdminRole).RoleId,
-                RoleName = u.UserRoles.First(ur => ur.Role.IsAdminRole).Role.Name,
+                RoleId = adminRole?.RoleId ?? 0,
+                RoleName = adminRole?.Role.Name ?? "Unknown",
                 CreatedAt = u.CreatedAt,
                 UpdatedAt = u.UpdatedAt
-            })
-            .ToListAsync();
+            };
+        }).ToList();
 
         return Ok(new UsersResponseDto
         {
-            Users = users,
-            TotalCount = totalCount,
+            Users = userDtos,
+            TotalCount = result.TotalCount,
             CurrentPage = page,
             TotalPages = totalPages,
             PageSize = limit
@@ -83,71 +64,53 @@ public class AdminUsersController : ControllerBase
     [Authorize(Policy = "RequirePermission:users:write")]
     public async Task<ActionResult<AdminUserManagementDto>> CreateUser([FromBody] CreateUserRequestDto request)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // Validate email uniqueness in unified Users table
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            // Email uniqueness check is usually handled by service or DB constraint, 
+            // but CreateAdminUserAsync doesn't explicitly return "Email exists" error type.
+            // We can check explicitly if needed, or catch exception.
+            // UserService.CreateUserAsync checks? No, it just adds.
+            // Existing controller did explicit check.
+            if (await _userService.GetByEmailAsync(request.Email) != null)
             {
                 return BadRequest(new { message = "Email already exists" });
             }
 
-            // Validate role is admin role
-            var role = await _context.Roles.FindAsync(request.RoleId);
-            if (role == null || !role.IsAdminRole)
-            {
-                return BadRequest(new { message = "Invalid admin role ID" });
-            }
-
-            // Create user in unified Users table
             var user = new User
             {
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                Email = request.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                Email = request.Email
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var createdUser = await _userService.CreateAdminUserAsync(user, request.Password, request.RoleId);
 
-            // Assign admin role via UserRoles table
-            var userRole = new UserRole
-            {
-                UserId = user.Id,
-                RoleId = request.RoleId
-            };
+            var adminRole = createdUser.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
 
-            _context.UserRoles.Add(userRole);
-            await _context.SaveChangesAsync();
-
-            await transaction.CommitAsync();
-
-            // Return response
             var userDto = new AdminUserManagementDto
             {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                IsActive = user.IsActive,
-                RoleId = request.RoleId,
-                RoleName = role.Name,
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt
+                Id = createdUser.Id,
+                FirstName = createdUser.FirstName,
+                LastName = createdUser.LastName,
+                Email = createdUser.Email,
+                IsActive = createdUser.IsActive,
+                RoleId = adminRole?.RoleId ?? request.RoleId,
+                RoleName = adminRole?.Role.Name ?? "Unknown",
+                CreatedAt = createdUser.CreatedAt,
+                UpdatedAt = createdUser.UpdatedAt
             };
 
-            _logger.LogInformation("Admin user created in unified system: {Email} by {AdminId}",
-                user.Email, User.FindFirstValue(ClaimTypes.NameIdentifier));
+            _logger.LogInformation("Admin user created: {Email} by {AdminId}",
+                createdUser.Email, User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, userDto);
+            return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, userDto);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             _logger.LogError(ex, "Error creating admin user: {Email}", request.Email);
             return StatusCode(500, new { message = "An error occurred while creating the user" });
         }
@@ -160,18 +123,19 @@ public class AdminUsersController : ControllerBase
     [Authorize(Policy = "RequirePermission:users:read")]
     public async Task<ActionResult<AdminUserManagementDto>> GetUser(int id)
     {
-        var user = await _context.Users
-            .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-            .Where(u => u.Id == id && u.UserRoles.Any(ur => ur.Role.IsAdminRole))
-            .FirstOrDefaultAsync();
+        var user = await _userService.GetByIdAsync(id);
 
         if (user == null)
         {
             return NotFound(new { message = "Admin user not found" });
         }
 
-        var adminRole = user.UserRoles.First(ur => ur.Role.IsAdminRole);
+        // Verify it's an admin user
+        var adminRole = user.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
+        if (adminRole == null)
+        {
+             return NotFound(new { message = "Admin user not found" });
+        }
 
         var userDto = new AdminUserManagementDto
         {
@@ -196,101 +160,56 @@ public class AdminUsersController : ControllerBase
     [Authorize(Policy = "RequirePermission:users:write")]
     public async Task<ActionResult<AdminUserManagementDto>> UpdateUser(int id, [FromBody] UpdateUserRequestDto request)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            var user = await _context.Users
-                .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
-                .Where(u => u.Id == id && u.UserRoles.Any(ur => ur.Role.IsAdminRole))
-                .FirstOrDefaultAsync();
-
-            if (user == null)
+            var user = await _userService.GetByIdAsync(id);
+            if (user == null || !user.UserRoles.Any(ur => ur.Role.IsAdminRole))
             {
                 return NotFound(new { message = "Admin user not found" });
             }
 
-            // Check email uniqueness if changing email
+            // Email uniqueness check
             if (!string.IsNullOrEmpty(request.Email) && request.Email != user.Email)
             {
-                if (await _context.Users.AnyAsync(u => u.Email == request.Email && u.Id != id))
+                var existingUser = await _userService.GetByEmailAsync(request.Email);
+                if (existingUser != null && existingUser.Id != id)
                 {
                     return BadRequest(new { message = "Email already exists" });
                 }
                 user.Email = request.Email;
             }
 
-            // Update basic info
-            if (!string.IsNullOrEmpty(request.FirstName))
-                user.FirstName = request.FirstName;
+            if (!string.IsNullOrEmpty(request.FirstName)) user.FirstName = request.FirstName;
+            if (!string.IsNullOrEmpty(request.LastName)) user.LastName = request.LastName;
 
-            if (!string.IsNullOrEmpty(request.LastName))
-                user.LastName = request.LastName;
+            var updatedUser = await _userService.UpdateAdminUserAsync(user, request.Password, request.RoleId);
 
-            // Update password if provided
-            if (!string.IsNullOrEmpty(request.Password))
-            {
-                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            }
-
-            // Update role if provided
-            if (request.RoleId.HasValue)
-            {
-                var newRole = await _context.Roles.FindAsync(request.RoleId.Value);
-                if (newRole == null || !newRole.IsAdminRole)
-                {
-                    return BadRequest(new { message = "Invalid admin role ID" });
-                }
-
-                // Remove old admin roles and add new one
-                var oldAdminRoles = user.UserRoles.Where(ur => ur.Role.IsAdminRole).ToList();
-                foreach (var oldRole in oldAdminRoles)
-                {
-                    _context.UserRoles.Remove(oldRole);
-                }
-
-                var newUserRole = new UserRole
-                {
-                    UserId = user.Id,
-                    RoleId = request.RoleId.Value
-                };
-                _context.UserRoles.Add(newUserRole);
-            }
-
-            user.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            // Reload for response
-            await _context.Entry(user)
-                .Collection(u => u.UserRoles)
-                .Query()
-                .Include(ur => ur.Role)
-                .LoadAsync();
-
-            var adminRole = user.UserRoles.First(ur => ur.Role.IsAdminRole);
+             var adminRole = updatedUser.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
 
             var userDto = new AdminUserManagementDto
             {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                IsActive = user.IsActive,
-                RoleId = adminRole.RoleId,
-                RoleName = adminRole.Role.Name,
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt
+                Id = updatedUser.Id,
+                FirstName = updatedUser.FirstName,
+                LastName = updatedUser.LastName,
+                Email = updatedUser.Email,
+                IsActive = updatedUser.IsActive,
+                RoleId = adminRole?.RoleId ?? request.RoleId ?? 0,
+                RoleName = adminRole?.Role.Name ?? "Unknown",
+                CreatedAt = updatedUser.CreatedAt,
+                UpdatedAt = updatedUser.UpdatedAt
             };
 
             _logger.LogInformation("Admin user updated: {Email} by {AdminId}",
-                user.Email, User.FindFirstValue(ClaimTypes.NameIdentifier));
+                updatedUser.Email, User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             return Ok(userDto);
         }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             _logger.LogError(ex, "Error updating admin user: {UserId}", id);
             return StatusCode(500, new { message = "An error occurred while updating the user" });
         }
@@ -303,13 +222,8 @@ public class AdminUsersController : ControllerBase
     [Authorize(Policy = "RequirePermission:users:delete")]
     public async Task<ActionResult> DeleteUser(int id)
     {
-        var user = await _context.Users
-            .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-            .Where(u => u.Id == id && u.UserRoles.Any(ur => ur.Role.IsAdminRole))
-            .FirstOrDefaultAsync();
-
-        if (user == null)
+        var user = await _userService.GetByIdAsync(id);
+        if (user == null || !user.UserRoles.Any(ur => ur.Role.IsAdminRole))
         {
             return NotFound(new { message = "Admin user not found" });
         }
@@ -321,8 +235,7 @@ public class AdminUsersController : ControllerBase
             return BadRequest(new { message = "Cannot delete your own account" });
         }
 
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
+        await _userService.DeleteUserAsync(id);
 
         _logger.LogInformation("Admin user deleted: {Email} by {AdminId}",
             user.Email, currentUserId);
@@ -337,13 +250,8 @@ public class AdminUsersController : ControllerBase
     [Authorize(Policy = "RequirePermission:users:write")]
     public async Task<ActionResult<AdminUserManagementDto>> ToggleUserStatus(int id)
     {
-        var user = await _context.Users
-            .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-            .Where(u => u.Id == id && u.UserRoles.Any(ur => ur.Role.IsAdminRole))
-            .FirstOrDefaultAsync();
-
-        if (user == null)
+        var user = await _userService.GetByIdAsync(id);
+        if (user == null || !user.UserRoles.Any(ur => ur.Role.IsAdminRole))
         {
             return NotFound(new { message = "Admin user not found" });
         }
@@ -355,28 +263,25 @@ public class AdminUsersController : ControllerBase
             return BadRequest(new { message = "Cannot deactivate your own account" });
         }
 
-        user.IsActive = !user.IsActive;
-        user.UpdatedAt = DateTime.UtcNow;
+        var updatedUser = await _userService.ToggleUserStatusAsync(id);
 
-        await _context.SaveChangesAsync();
-
-        var adminRole = user.UserRoles.First(ur => ur.Role.IsAdminRole);
+        var adminRole = updatedUser.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
 
         var userDto = new AdminUserManagementDto
         {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            IsActive = user.IsActive,
-            RoleId = adminRole.RoleId,
-            RoleName = adminRole.Role.Name,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt
+            Id = updatedUser.Id,
+            FirstName = updatedUser.FirstName,
+            LastName = updatedUser.LastName,
+            Email = updatedUser.Email,
+            IsActive = updatedUser.IsActive,
+            RoleId = adminRole?.RoleId ?? 0,
+            RoleName = adminRole?.Role.Name ?? "Unknown",
+            CreatedAt = updatedUser.CreatedAt,
+            UpdatedAt = updatedUser.UpdatedAt
         };
 
         _logger.LogInformation("Admin user status toggled: {Email} -> {IsActive} by {AdminId}",
-            user.Email, user.IsActive, currentUserId);
+            updatedUser.Email, updatedUser.IsActive, currentUserId);
 
         return Ok(userDto);
     }

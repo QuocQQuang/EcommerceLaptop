@@ -1,0 +1,26 @@
+  Determining projects to restore...
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.API\EcommerceLaptop.csproj : warning NU1603: EcommerceLaptop.Infrastructure depends on Stripe.net (>= 45.21.0) but Stripe.net 45.21.0 was not found. Stripe.net 46.0.0 was resolved instead. [C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj]
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\EcommerceLaptop.Infrastructure.csproj : warning NU1603: EcommerceLaptop.Infrastructure depends on Stripe.net (>= 45.21.0) but Stripe.net 45.21.0 was not found. Stripe.net 46.0.0 was resolved instead. [C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj]
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj : warning NU1603: EcommerceLaptop.Tests depends on Microsoft.AspNetCore.Mvc.Testing (>= 9.0.0-preview.4.24266.19) but Microsoft.AspNetCore.Mvc.Testing 9.0.0-preview.4.24266.19 was not found. Microsoft.AspNetCore.Mvc.Testing 9.0.0-preview.4.24267.6 was resolved instead.
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj : warning NU1603: EcommerceLaptop.Infrastructure depends on Stripe.net (>= 45.21.0) but Stripe.net 45.21.0 was not found. Stripe.net 46.0.0 was resolved instead.
+  All projects are up-to-date for restore.
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj : warning NU1603: EcommerceLaptop.Tests depends on Microsoft.AspNetCore.Mvc.Testing (>= 9.0.0-preview.4.24266.19) but Microsoft.AspNetCore.Mvc.Testing 9.0.0-preview.4.24266.19 was not found. Microsoft.AspNetCore.Mvc.Testing 9.0.0-preview.4.24267.6 was resolved instead.
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj : warning NU1603: EcommerceLaptop.Infrastructure depends on Stripe.net (>= 45.21.0) but Stripe.net 45.21.0 was not found. Stripe.net 46.0.0 was resolved instead.
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\EcommerceLaptop.Infrastructure.csproj : warning NU1603: EcommerceLaptop.Infrastructure depends on Stripe.net (>= 45.21.0) but Stripe.net 45.21.0 was not found. Stripe.net 46.0.0 was resolved instead.
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.API\EcommerceLaptop.csproj : warning NU1603: EcommerceLaptop.Infrastructure depends on Stripe.net (>= 45.21.0) but Stripe.net 45.21.0 was not found. Stripe.net 46.0.0 was resolved instead.
+  EcommerceLaptop.Core -> C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Core\bin\Debug\net9.0\EcommerceLaptop.Core.dll
+  EcommerceLaptop.Infrastructure -> C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\bin\Debug\net9.0\EcommerceLaptop.Infrastructure.dll
+  EcommerceLaptop -> C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.API\bin\Debug\net9.0\EcommerceLaptop.dll
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\Integration\AuthMigrationTests.cs(142,9): warning CS8602: Dereference of a possibly null reference. [C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj]
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\Integration\AuthMigrationTests.cs(190,9): warning CS8602: Dereference of a possibly null reference. [C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj]
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\Services\ProductServiceTests.cs(358,9): warning CS8602: Dereference of a possibly null reference. [C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj]
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\Services\ProductServiceTests.cs(574,9): warning CS8602: Dereference of a possibly null reference. [C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj]
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\Services\ProductServiceTests.cs(576,9): warning CS8602: Dereference of a possibly null reference. [C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\EcommerceLaptop.Tests.csproj]
+  EcommerceLaptop.Tests -> C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\bin\Debug\net9.0\EcommerceLaptop.Tests.dll
+Test run for C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Tests\bin\Debug\net9.0\EcommerceLaptop.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 161 ms - EcommerceLaptop.Tests.dll (net9.0)

@@ -460,10 +460,11 @@ public class SerialNumberDto
     public int ProductId { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public string SKU { get; set; } = string.Empty;
-    public string SerialNumber { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string SerialNumber { get => Value; set => Value = value; } // Alias for backward compatibility if needed
     public string BatchNumber { get; set; } = string.Empty;
-    public DateTime ManufactureDate { get; set; }
-    public DateTime? SoldDate { get; set; }
+    public DateTime DateReceived { get; set; }
+    public DateTime? DateSold { get; set; }
     public DateTime? WarrantyExpiry { get; set; }
     public string Status { get; set; } = string.Empty; // Available, Reserved, Sold, Defective, Returned
     public string OrderReference { get; set; } = string.Empty;

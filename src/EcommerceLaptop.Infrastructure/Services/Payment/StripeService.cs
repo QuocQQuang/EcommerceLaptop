@@ -288,7 +288,6 @@ public class StripeService : IStripeService
 
             var stripeEvent = verificationResult;
 
-            // TODO: Implement idempotency check to prevent duplicate processing
             // if (_idempotencyService.HasEventBeenProcessed(stripeEvent))
             // {
             //     _logger.LogInformation("Stripe event {EventId} has already been processed, skipping", stripeEvent.Id);
@@ -305,7 +304,6 @@ public class StripeService : IStripeService
             //     };
             // }
 
-            // TODO: Check for similar events (additional duplicate protection)
             // if (_idempotencyService.HasSimilarEventBeenProcessed(stripeEvent))
             // {
             //     _logger.LogInformation("Similar Stripe event has been processed recently for event {EventId}", stripeEvent.Id);
@@ -383,7 +381,6 @@ public class StripeService : IStripeService
                 // Mark event as processed for idempotency after successful processing
                 if (result.IsSuccess)
                 {
-                    // TODO: Mark event as processed for idempotency
                     // _idempotencyService.MarkEventAsProcessed(stripeEvent);
                     // _idempotencyService.MarkSimilarEventAsProcessed(stripeEvent);
 

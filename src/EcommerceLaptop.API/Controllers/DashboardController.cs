@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using EcommerceLaptop.Core.Entities;
-using EcommerceLaptop.Infrastructure.Data;
+using EcommerceLaptop.Core.Services;
 
 namespace EcommerceLaptop.API.Controllers
 {
@@ -11,11 +9,11 @@ namespace EcommerceLaptop.API.Controllers
     [Authorize(Roles = "Admin")]
     public class DashboardController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IAdminDashboardService _dashboardService;
 
-        public DashboardController(ApplicationDbContext context)
+        public DashboardController(IAdminDashboardService dashboardService)
         {
-            _context = context;
+            _dashboardService = dashboardService;
         }
 
         [HttpGet("overview")]
@@ -23,66 +21,32 @@ namespace EcommerceLaptop.API.Controllers
         {
             try
             {
-                var today = DateTime.Today;
-                var yesterday = today.AddDays(-1);
-                var lastWeek = today.AddDays(-7);
-                var lastMonth = today.AddMonths(-1);
+                var kpis = await _dashboardService.GetDashboardKpisAsync();
 
-                // Today's sales
-                var todaySales = await _context.Orders
-                    .Where(o => o.CreatedAt.Date == today && o.Status != OrderStatus.Cancelled)
-                    .SumAsync(o => o.TotalAmount);
-
-                var yesterdaySales = await _context.Orders
-                    .Where(o => o.CreatedAt.Date == yesterday && o.Status != OrderStatus.Cancelled)
-                    .SumAsync(o => o.TotalAmount);
-
-                var salesChange = yesterdaySales > 0 ? ((todaySales - yesterdaySales) / yesterdaySales) * 100 : 0;
-
-                // New orders today
-                var todayOrders = await _context.Orders
-                    .Where(o => o.CreatedAt.Date == today)
-                    .CountAsync();
-
-                var yesterdayOrders = await _context.Orders
-                    .Where(o => o.CreatedAt.Date == yesterday)
-                    .CountAsync();
-
-                var ordersChange = yesterdayOrders > 0 ? ((double)(todayOrders - yesterdayOrders) / yesterdayOrders) * 100 : 0;
-
-                // Low stock items - need to check what properties Inventory actually has
-                var lowStockItems = await _context.Inventories
-                    .Where(i => i.QuantityInStock <= i.ReorderLevel)
-                    .CountAsync();
-
-                // Active users (users created recently as proxy for activity)
-                var activeUsers = await _context.Users
-                    .Where(u => u.IsActive && u.CreatedAt >= DateTime.UtcNow.AddDays(-30))
-                    .CountAsync();
-
+                // Map to expected frontend structure
                 var result = new
                 {
                     todaySales = new
                     {
-                        value = todaySales,
-                        change = Math.Round(salesChange, 1),
-                        isPositive = salesChange >= 0
+                        value = kpis.TodaySales.Value,
+                        change = Math.Round(kpis.TodaySales.Change, 1),
+                        isPositive = kpis.TodaySales.IsPositive
                     },
                     newOrders = new
                     {
-                        value = todayOrders,
-                        change = Math.Round(ordersChange, 1),
-                        isPositive = ordersChange >= 0
+                        value = kpis.NewOrders.Value,
+                        change = Math.Round(kpis.NewOrders.Change, 1),
+                        isPositive = kpis.NewOrders.IsPositive
                     },
                     lowStock = new
                     {
-                        value = lowStockItems,
+                        value = kpis.LowStock.Value,
                         change = 0,
                         isPositive = true
                     },
                     visitors = new
                     {
-                        value = activeUsers,
+                        value = kpis.Visitors.Value,
                         change = 0,
                         isPositive = true
                     }
@@ -101,28 +65,14 @@ namespace EcommerceLaptop.API.Controllers
         {
             try
             {
-                var endDate = DateTime.Today;
-                var startDate = endDate.AddDays(-days + 1);
-
-                var salesData = new List<object>();
-
-                for (var date = startDate; date <= endDate; date = date.AddDays(1))
+                var salesDataDto = await _dashboardService.GetSalesTrendAsync(days);
+                
+                var salesData = salesDataDto.Select(d => new
                 {
-                    var dailySales = await _context.Orders
-                        .Where(o => o.CreatedAt.Date == date && o.Status != OrderStatus.Cancelled)
-                        .SumAsync(o => o.TotalAmount);
-
-                    var dailyOrders = await _context.Orders
-                        .Where(o => o.CreatedAt.Date == date)
-                        .CountAsync();
-
-                    salesData.Add(new
-                    {
-                        name = date.ToString("dd/MM"),
-                        sales = dailySales,
-                        orders = dailyOrders
-                    });
-                }
+                    name = d.Name, // e.g., "15/01"
+                    sales = d.Sales,
+                    orders = d.Orders
+                }).ToList();
 
                 return Ok(salesData);
             }
@@ -137,19 +87,14 @@ namespace EcommerceLaptop.API.Controllers
         {
             try
             {
-                var categoryData = await _context.Orders
-                    .Where(o => o.Status != OrderStatus.Cancelled)
-                    .SelectMany(o => o.OrderItems)
-                    .GroupBy(oi => oi.Product.GetType().Name)
-                    .Select(g => new
-                    {
-                        name = g.Key == "Laptop" ? "Laptop" : 
-                               g.Key == "Accessory" ? "Ph kin" : "Khc",
-                        value = g.Count(),
-                        color = g.Key == "Laptop" ? "#0088FE" : 
-                                g.Key == "Accessory" ? "#00C49F" : "#FFBB28"
-                    })
-                    .ToListAsync();
+                var categoryDataDto = await _dashboardService.GetCategoryDistributionAsync();
+                
+                var categoryData = categoryDataDto.Select(c => new
+                {
+                    name = c.Name,
+                    value = c.Value,
+                    color = c.Color
+                }).ToList();
 
                 return Ok(categoryData);
             }
@@ -164,22 +109,18 @@ namespace EcommerceLaptop.API.Controllers
         {
             try
             {
-                var recentOrders = await _context.Orders
-                    .Include(o => o.User)
-                    .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.Product)
-                    .OrderByDescending(o => o.CreatedAt)
-                    .Take(limit)
-                    .Select(o => new
-                    {
-                        id = o.Id,
-                        customer = $"{o.User.FirstName} {o.User.LastName}",
-                        product = o.OrderItems.First().Product.Name,
-                        amount = o.TotalAmount,
-                        status = o.Status.ToString().ToLower(),
-                        time = GetTimeAgo(o.CreatedAt)
-                    })
-                    .ToListAsync();
+                // Service default page size is 10, we want limit
+                var pagedOrders = await _dashboardService.GetRecentOrdersAsync(1, limit);
+                
+                var recentOrders = pagedOrders.Items.Select(o => new
+                {
+                    id = o.Id,
+                    customer = o.CustomerName,
+                    product = o.FirstProductName,
+                    amount = o.Total,
+                    status = o.Status.ToLower(),
+                    time = GetTimeAgo(o.CreatedAt)
+                }).ToList();
 
                 return Ok(recentOrders);
             }
@@ -194,18 +135,14 @@ namespace EcommerceLaptop.API.Controllers
         {
             try
             {
-                var lowStockItems = await _context.Inventories
-                    .Include(i => i.Product)
-                    .Where(i => i.QuantityInStock <= i.ReorderLevel)
-                    .OrderBy(i => i.QuantityInStock)
-                    .Take(limit)
-                    .Select(i => new
-                    {
-                        name = i.Product.Name,
-                        stock = i.QuantityInStock,
-                        threshold = i.ReorderLevel
-                    })
-                    .ToListAsync();
+                var lowStockDto = await _dashboardService.GetLowStockProductsAsync();
+                
+                var lowStockItems = lowStockDto.Take(limit).Select(i => new
+                {
+                    name = i.Name,
+                    stock = i.CurrentStock,
+                    threshold = i.MinStock
+                }).ToList();
 
                 return Ok(lowStockItems);
             }

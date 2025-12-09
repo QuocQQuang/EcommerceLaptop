@@ -11,6 +11,9 @@ using EcommerceLaptop.Infrastructure.Data;
 using EcommerceLaptop.Infrastructure.Services;
 using System.ComponentModel.DataAnnotations;
 
+using EcommerceLaptop.Infrastructure.Repositories;
+using EcommerceLaptop.Core.Interfaces;
+
 namespace EcommerceLaptop.Tests.Services;
 
 /// <summary>
@@ -22,6 +25,7 @@ public class InventoryServiceTests : IDisposable
     private readonly ApplicationDbContext _context;
     private readonly Mock<IInventoryReservationService> _mockReservationService;
     private readonly Mock<ILogger<InventoryService>> _mockLogger;
+    private readonly IInventoryRepository _repository;
     private readonly InventoryService _service;
 
     public InventoryServiceTests()
@@ -35,7 +39,8 @@ public class InventoryServiceTests : IDisposable
         _mockReservationService = new Mock<IInventoryReservationService>();
         _mockLogger = new Mock<ILogger<InventoryService>>();
         
-        _service = new InventoryService(_context, _mockReservationService.Object, _mockLogger.Object);
+        _repository = new InventoryRepository(_context);
+        _service = new InventoryService(_repository, _mockReservationService.Object, _mockLogger.Object);
 
         SeedTestData();
     }

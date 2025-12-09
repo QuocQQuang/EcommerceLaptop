@@ -47,8 +47,8 @@ public class InventoryService : IInventoryService
 
     public async Task<PagedResult<InventoryDto>> GetInventoriesAsync(InventoryFilterRequest request)
     {
-        _logger.LogInformation("Getting inventories with filter");
-        return await _repository.GetInventoriesAsync(request);
+        var result = await _repository.GetInventoriesAsync(request);
+        return result;
     }
 
     public async Task<InventoryDto> CreateInventoryAsync(CreateInventoryRequest request)
@@ -961,35 +961,144 @@ public class InventoryService : IInventoryService
     }
 
     // Placeholders moved from previous file
-    public Task<List<SerialNumberDto>> GetSerialNumbersAsync(int productId, bool activeOnly = true) => throw new NotImplementedException("Phase 2");
+    public async Task<List<SerialNumberDto>> GetSerialNumbersAsync(int productId, bool activeOnly = true)
+    {
+        _logger.LogInformation("Getting serial numbers for product {ProductId}", productId);
+        var serials = await _repository.GetSerialNumbersAsync(productId, activeOnly);
+        
+        return serials.Select(s => new SerialNumberDto
+        {
+            Id = s.Id,
+            ProductId = s.ProductId,
+            Value = s.Value,
+            Status = s.Status.ToString(),
+            BatchNumber = s.BatchNumber,
+            DateReceived = s.DateReceived,
+            DateSold = s.DateSold,
+            OrderReference = s.OrderReference ?? string.Empty
+        }).ToList();
+    }
+
+    public async Task<List<SerialNumberDto>> GetAvailableSerialNumbersAsync(int productId)
+    {
+        return await GetSerialNumbersAsync(productId, activeOnly: true);
+    }
+
+    public async Task<bool> AssignSerialNumberAsync(int productId, string serialNumber, string batchNumber = "")
+    {
+         _logger.LogInformation("Assigning new serial number {SerialNumber} for product {ProductId}", serialNumber, productId);
+         
+         if (await _repository.SerialNumberExistsAsync(serialNumber))
+         {
+             throw new ValidationException($"Serial number {serialNumber} already exists");
+         }
+         
+         var sn = new SerialNumber
+         {
+             ProductId = productId,
+             Value = serialNumber,
+             Status = SerialNumberStatus.Available,
+             BatchNumber = batchNumber,
+             DateReceived = DateTime.UtcNow
+         };
+         
+         await _repository.AddSerialNumberAsync(sn);
+         return true;
+    }
+
+    public async Task<bool> ReserveSerialNumberAsync(string serialNumber, string orderReference)
+    {
+        var sn = await _repository.GetSerialNumberByValueAsync(serialNumber);
+        if (sn == null) return false;
+        
+        if (sn.Status != SerialNumberStatus.Available)
+        {
+            throw new ValidationException($"Serial number {serialNumber} is not available (Status: {sn.Status})");
+        }
+        
+        sn.Status = SerialNumberStatus.Reserved;
+        sn.OrderReference = orderReference;
+        
+        await _repository.UpdateSerialNumberAsync(sn);
+        return true;
+    }
+
+    public async Task<SerialNumberDto?> GetProductBySerialNumberAsync(string serialNumber)
+    {
+        var sn = await _repository.GetSerialNumberByValueAsync(serialNumber);
+        if (sn == null) return null;
+        
+        return new SerialNumberDto
+        {
+            Id = sn.Id,
+            ProductId = sn.ProductId,
+            Value = sn.Value,
+            Status = sn.Status.ToString(),
+            BatchNumber = sn.BatchNumber,
+            DateReceived = sn.DateReceived,
+            DateSold = sn.DateSold,
+            OrderReference = sn.OrderReference ?? string.Empty
+        };
+    }
+
+    public async Task<InventoryDto?> GetInventoryByBarcodeAsync(string barcode)
+    {
+        var inventory = await _repository.GetInventoryByBarcodeAsync(barcode);
+        return inventory != null ? MapToInventoryDto(inventory) : null;
+    }
+
+    public async Task<InventoryDto?> GetInventoryBySKUAsync(string sku)
+    {
+        var inventory = await _repository.GetInventoryBySkuAsync(sku);
+        return inventory != null ? MapToInventoryDto(inventory) : null;
+    }
+
+    public async Task<bool> GenerateBarcodeAsync(int productId, string format = "EAN13")
+    {
+        var product = await _repository.GetProductByIdAsync(productId);
+        if (product == null) return false;
+        
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+        var random = new Random().Next(1000, 9999).ToString();
+        product.Barcode = $"{productId}{timestamp.Substring(timestamp.Length - 6)}{random}"; 
+        
+        await _repository.UpdateProductAsync(product);
+        return true;
+    }
+
+    public async Task<List<InventoryDto>> ScanMultipleBarcodesAsync(List<string> barcodes)
+    {
+        var inventories = new List<InventoryDto>();
+        foreach(var barcode in barcodes.Distinct())
+        {
+            var inv = await GetInventoryByBarcodeAsync(barcode);
+            if(inv != null) inventories.Add(inv);
+        }
+        return inventories;
+    }
+
+    // Remaining Phase 3-7 placeholders
+    public Task<CycleCountDto> CreateCycleCountAsync(CycleCountRequest request) => throw new NotImplementedException("Phase 3");
+    public Task<bool> RecordCycleCountAsync(int cycleCountId, List<CountedItemDto> countedItems) => throw new NotImplementedException("Phase 3");
+    public Task<List<InventoryDiscrepancyDto>> GetInventoryDiscrepanciesAsync(int cycleCountId) => throw new NotImplementedException("Phase 3");
     public Task<bool> AdjustInventoryFromCycleCountAsync(int productId, bool adjustmentApproved) => throw new NotImplementedException("Phase 3");
+
+    public Task<List<PurchaseOrderDto>> GetPendingPurchaseOrdersAsync() => throw new NotImplementedException("Phase 4");
     public Task<bool> ReceiveInventoryFromPOAsync(int purchaseOrderId, List<ReceivedItemDto> receivedItems) => throw new NotImplementedException("Phase 4");
     public Task<bool> CreateAutomaticPurchaseOrderAsync(List<ReorderSuggestionDto> suggestions) => throw new NotImplementedException("Phase 4");
+
     public Task<bool> RecordDamagedInventoryAsync(DamageReportRequest request) => throw new NotImplementedException("Phase 5");
     public Task<bool> ProcessCustomerReturnAsync(CustomerReturnRequest request) => throw new NotImplementedException("Phase 5");
     public Task<List<DamagedInventoryDto>> GetDamagedInventoryAsync(string warehouseLocation = "") => throw new NotImplementedException("Phase 5");
     public Task<bool> DisposeDamagedInventoryAsync(int damageId, string disposalMethod, string notes) => throw new NotImplementedException("Phase 5");
+
     public Task<List<SlowMovingItemDto>> GetSlowMovingInventoryAsync(int daysPeriod = 90) => throw new NotImplementedException("Phase 6");
     public Task<List<FastMovingItemDto>> GetFastMovingInventoryAsync(int daysPeriod = 30) => throw new NotImplementedException("Phase 6");
-    public Task<bool> UpdateProductExpiryDateAsync(int productId, DateTime expiryDate) => throw new NotImplementedException("Phase 7");
-    public Task<List<ExpiredInventoryDto>> GetExpiredInventoryAsync(string warehouseLocation = "") => throw new NotImplementedException("Phase 7");
-    
-    // Additional placeholders from interface
-    public Task<List<SerialNumberDto>> GetAvailableSerialNumbersAsync(int productId) => throw new NotImplementedException("Phase 2");
-    public Task<bool> AssignSerialNumberAsync(int productId, string serialNumber, string batchNumber = "") => throw new NotImplementedException("Phase 2");
-    public Task<bool> ReserveSerialNumberAsync(string serialNumber, string orderReference) => throw new NotImplementedException("Phase 2");
-    public Task<SerialNumberDto?> GetProductBySerialNumberAsync(string serialNumber) => throw new NotImplementedException("Phase 2");
-    public Task<InventoryDto?> GetInventoryByBarcodeAsync(string barcode) => throw new NotImplementedException("Phase 2");
-    public Task<InventoryDto?> GetInventoryBySKUAsync(string sku) => throw new NotImplementedException("Phase 2");
-    public Task<bool> GenerateBarcodeAsync(int productId, string format = "EAN13") => throw new NotImplementedException("Phase 2");
-    public Task<List<InventoryDto>> ScanMultipleBarcodesAsync(List<string> barcodes) => throw new NotImplementedException("Phase 2");
-    public Task<CycleCountDto> CreateCycleCountAsync(CycleCountRequest request) => throw new NotImplementedException("Phase 3");
-    public Task<bool> RecordCycleCountAsync(int cycleCountId, List<CountedItemDto> countedItems) => throw new NotImplementedException("Phase 3");
-    public Task<List<InventoryDiscrepancyDto>> GetInventoryDiscrepanciesAsync(int cycleCountId) => throw new NotImplementedException("Phase 3");
-    public Task<List<PurchaseOrderDto>> GetPendingPurchaseOrdersAsync() => throw new NotImplementedException("Phase 4");
-
     public Task<bool> UpdateForecastParametersAsync(int productId, ForecastParametersDto parameters) => throw new NotImplementedException("Phase 6");
     public Task<DemandForecastDto> GenerateDemandForecastAsync(int productId, int forecastDays = 90) => throw new NotImplementedException("Phase 6");
+
+    public Task<bool> UpdateProductExpiryDateAsync(int productId, DateTime expiryDate) => throw new NotImplementedException("Phase 7");
+    public Task<List<ExpiredInventoryDto>> GetExpiredInventoryAsync(string warehouseLocation = "") => throw new NotImplementedException("Phase 7");
     public Task<List<ExpiringWarrantyDto>> GetExpiringWarrantiesAsync(int daysAhead = 30) => throw new NotImplementedException("Phase 7");
     
     #endregion

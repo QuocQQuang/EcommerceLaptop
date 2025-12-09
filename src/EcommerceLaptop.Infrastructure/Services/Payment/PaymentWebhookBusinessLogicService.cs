@@ -390,12 +390,8 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
     {
         try
         {
-            // This would call the inventory service to confirm reservations
-            // For now, we'll log the action as the inventory service interface may vary
             _logger.LogInformation("Confirming inventory reservations for order {OrderId}", orderId);
-            
-            // Implementation would be:
-            // await _inventoryService.ConfirmReservationsAsync(orderId);
+            await _inventoryService.ConfirmInventoryReservationAsync(orderId);
         }
         catch (Exception ex)
         {
@@ -411,9 +407,7 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
         try
         {
             _logger.LogInformation("Releasing inventory reservations for order {OrderId}", orderId);
-            
-            // Implementation would be:
-            // await _inventoryService.ReleaseReservationsAsync(orderId);
+            await _inventoryService.ReleaseInventoryForOrderAsync(orderId);
         }
         catch (Exception ex)
         {
@@ -429,9 +423,7 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
         try
         {
             _logger.LogInformation("Restoring inventory for refunded order {OrderId}", orderId);
-            
-            // Implementation would be:
-            // await _inventoryService.RestoreInventoryAsync(orderId);
+            await _inventoryService.RestockInventoryForOrderAsync(orderId);
         }
         catch (Exception ex)
         {

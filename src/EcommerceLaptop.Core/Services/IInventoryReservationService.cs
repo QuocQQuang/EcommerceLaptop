@@ -11,6 +11,8 @@ public interface IInventoryReservationService
     Task<bool> ReleaseInventoryForOrderAsync(int orderId);
     Task<InventoryValidationResult> ValidateCartItemsAvailabilityAsync(IEnumerable<CartItem> cartItems);
     Task<bool> UpdateReservedQuantityAsync(int productId, int quantityChange);
+    Task<bool> ConfirmInventoryReservationAsync(int orderId);
+    Task<bool> RestockInventoryForOrderAsync(int orderId);
 }
 
 public class InventoryValidationResult

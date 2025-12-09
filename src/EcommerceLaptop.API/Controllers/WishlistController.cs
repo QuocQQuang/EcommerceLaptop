@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using EcommerceLaptop.Core.Entities;
-using EcommerceLaptop.Infrastructure.Data;
+using EcommerceLaptop.Core.Services;
 using System.Security.Claims;
 
 namespace EcommerceLaptop.API.Controllers
@@ -12,11 +10,11 @@ namespace EcommerceLaptop.API.Controllers
     [Authorize]
     public class WishlistController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IWishlistService _wishlistService;
 
-        public WishlistController(ApplicationDbContext context)
+        public WishlistController(IWishlistService wishlistService)
         {
-            _context = context;
+            _wishlistService = wishlistService;
         }
 
         [HttpGet]
@@ -30,39 +28,26 @@ namespace EcommerceLaptop.API.Controllers
                     return Unauthorized(new { message = "Khng th xc thc ngi dng" });
                 }
 
-                var wishlistItems = await _context.WishlistItems
-                    .Include(w => w.Product)
-                        .ThenInclude(p => p.Images)
-                    .Where(w => w.UserId == userId)
-                    .OrderByDescending(w => w.CreatedAt)
-                    .Select(w => new
-                    {
-                        id = w.Id,
-                        productId = w.ProductId,
-                        product = new
-                        {
-                            id = w.Product.Id,
-                            name = w.Product.Name,
-                            price = w.Product.Price,
-                            sku = w.Product.SKU,
-                            brand = w.Product.Brand,
-                            isActive = w.Product.IsActive,
-                            images = w.Product.Images.Select(img => new
-                            {
-                                id = img.Id,
-                                imageUrl = img.ImageUrl,
-                                altText = img.AltText,
-                                isPrimary = img.IsPrimary
-                            }).ToList()
-                        },
-                        addedAt = w.CreatedAt
-                    })
-                    .ToListAsync();
+                var result = await _wishlistService.GetWishlistAsync(userId.Value);
 
                 return Ok(new
                 {
-                    items = wishlistItems,
-                    totalCount = wishlistItems.Count
+                    items = result.Items.Select(w => new
+                    {
+                        id = w.Id,
+                        productId = w.ProductId,
+                        productName = w.ProductName,
+                        price = w.Price,
+                        images = w.Images.Select(img => new
+                        {
+                            id = img.Id,
+                            imageUrl = img.ImageUrl,
+                            altText = img.AltText,
+                            isPrimary = img.IsPrimary
+                        }),
+                        addedAt = w.AddedAt
+                    }),
+                    totalCount = result.TotalCount
                 });
             }
             catch (Exception ex)
@@ -82,35 +67,12 @@ namespace EcommerceLaptop.API.Controllers
                     return Unauthorized(new { message = "Khng th xc thc ngi dng" });
                 }
 
-                // Check if product exists
-                var product = await _context.Products.FindAsync(productId);
-                if (product == null)
-                {
-                    return NotFound(new { message = "Khng tm thy sn phm" });
-                }
-
-                // Check if already in wishlist
-                var existingItem = await _context.WishlistItems
-                    .FirstOrDefaultAsync(w => w.UserId == userId && w.ProductId == productId);
-
-                if (existingItem != null)
-                {
-                    return BadRequest(new { message = "Sn phm  c trong danh sch yu thch" });
-                }
-
-                // Add to wishlist
-                var wishlistItem = new WishlistItem
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = userId.Value,
-                    ProductId = productId,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                _context.WishlistItems.Add(wishlistItem);
-                await _context.SaveChangesAsync();
-
+                await _wishlistService.AddToWishlistAsync(userId.Value, productId);
                 return Ok(new { message = " thm vo danh sch yu thch" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -129,18 +91,12 @@ namespace EcommerceLaptop.API.Controllers
                     return Unauthorized(new { message = "Khng th xc thc ngi dng" });
                 }
 
-                var wishlistItem = await _context.WishlistItems
-                    .FirstOrDefaultAsync(w => w.UserId == userId && w.ProductId == productId);
-
-                if (wishlistItem == null)
-                {
-                    return NotFound(new { message = "Sn phm khng c trong danh sch yu thch" });
-                }
-
-                _context.WishlistItems.Remove(wishlistItem);
-                await _context.SaveChangesAsync();
-
+                await _wishlistService.RemoveFromWishlistAsync(userId.Value, productId);
                 return Ok(new { message = " xa khi danh sch yu thch" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -159,13 +115,7 @@ namespace EcommerceLaptop.API.Controllers
                     return Unauthorized(new { message = "Khng th xc thc ngi dng" });
                 }
 
-                var wishlistItems = await _context.WishlistItems
-                    .Where(w => w.UserId == userId)
-                    .ToListAsync();
-
-                _context.WishlistItems.RemoveRange(wishlistItems);
-                await _context.SaveChangesAsync();
-
+                await _wishlistService.ClearWishlistAsync(userId.Value);
                 return Ok(new { message = " xa ton b danh sch yu thch" });
             }
             catch (Exception ex)
@@ -185,9 +135,7 @@ namespace EcommerceLaptop.API.Controllers
                     return Unauthorized(new { message = "Khng th xc thc ngi dng" });
                 }
 
-                var isInWishlist = await _context.WishlistItems
-                    .AnyAsync(w => w.UserId == userId && w.ProductId == productId);
-
+                var isInWishlist = await _wishlistService.CheckInWishlistAsync(userId.Value, productId);
                 return Ok(new { isInWishlist = isInWishlist });
             }
             catch (Exception ex)
@@ -207,9 +155,7 @@ namespace EcommerceLaptop.API.Controllers
                     return Unauthorized(new { message = "Khng th xc thc ngi dng" });
                 }
 
-                var count = await _context.WishlistItems
-                    .CountAsync(w => w.UserId == userId);
-
+                var count = await _wishlistService.GetWishlistCountAsync(userId.Value);
                 return Ok(new { count = count });
             }
             catch (Exception ex)

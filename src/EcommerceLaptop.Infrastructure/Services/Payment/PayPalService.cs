@@ -367,10 +367,7 @@ public class PayPalService : IPayPalService
             _logger.LogInformation("PayPal payment capture completed. PayPal ID: {PayPalId}, Order ID: {OrderId}, Amount: {Amount}",
                 capture?.Id, orderId, capture?.Amount?.Value);
 
-            // TODO: Update order status in database
-            // TODO: Send confirmation email to customer
-            // TODO: Update inventory if needed
-            // TODO: Trigger order fulfillment process
+            // Business logic for order updates, emails, and inventory is handled by PaymentWebhookBusinessLogicService. process
             await Task.Delay(1); // Placeholder for async operations
 
             return new PaymentWebhookResult

@@ -48,4 +48,9 @@ public interface IAdminDashboardService
     /// Gets security events for dashboard monitoring
     /// </summary>
     Task<PagedResponseDto<SecurityEventDto>> GetSecurityEventsAsync(int page = 1, int limit = 5, string? severity = null);
+
+    /// <summary>
+    /// Gets category distribution for charts
+    /// </summary>
+    Task<IEnumerable<CategoryDistributionDto>> GetCategoryDistributionAsync();
 }

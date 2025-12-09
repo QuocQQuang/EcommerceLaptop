@@ -62,6 +62,7 @@ public class DashboardOrderDto
     public string StatusColor { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public int ItemCount { get; set; }
+    public string FirstProductName { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -168,4 +169,14 @@ public class SecurityEventDto
     public DateTime CreatedAt { get; set; }
     public string UserAgent { get; set; } = string.Empty;
     public string EventType { get; set; } = string.Empty; // "login_failed", "ip_blocked", etc.
+}
+
+/// <summary>
+/// Category distribution for charts
+/// </summary>
+public class CategoryDistributionDto
+{
+    public string Name { get; set; } = string.Empty;
+    public int Value { get; set; }
+    public string Color { get; set; } = string.Empty;
 }
