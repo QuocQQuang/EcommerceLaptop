@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.API.DTOs;
+using CoreInventory = EcommerceLaptop.Core.DTOs.Inventory;
 using EcommerceLaptop.Infrastructure.Services.Security;
-using EcommerceLaptop.Infrastructure.Data;
 using System.Text.Json;
 
 namespace EcommerceLaptop.API.Controllers;
@@ -23,16 +23,16 @@ public class ProductsController : BaseApiController
     private readonly IMemoryCache _cache;
     private readonly IImageHostingService _imageHostingService;
     private readonly IAuditLoggingService _auditLoggingService;
-    private readonly ApplicationDbContext _context;
+    private readonly IInventoryService _inventoryService;
 
-    public ProductsController(IProductService productService, IImageHostingService imageHostingService, IAuditLoggingService auditLoggingService, ILogger<ProductsController> logger, IMemoryCache cache, ApplicationDbContext context)
+    public ProductsController(IProductService productService, IImageHostingService imageHostingService, IAuditLoggingService auditLoggingService, ILogger<ProductsController> logger, IMemoryCache cache, IInventoryService inventoryService)
         : base(logger)
     {
         _productService = productService;
         _imageHostingService = imageHostingService;
         _auditLoggingService = auditLoggingService;
         _cache = cache;
-        _context = context;
+        _inventoryService = inventoryService;
     }
 
     /// <summary>
@@ -559,43 +559,36 @@ public class ProductsController : BaseApiController
             {
                 if (stockElement.TryGetInt32(out var stockQuantity))
                 {
-                    var inventory = await _context.Inventories.FirstOrDefaultAsync(i => i.ProductId == id);
+                    var inventory = await _inventoryService.GetInventoryByProductIdAsync(id);
                     if (inventory == null)
                     {
-                        inventory = new Inventory
+                        var createRequest = new CoreInventory.CreateInventoryRequest
                         {
                             ProductId = id,
                             QuantityInStock = stockQuantity,
-                            ReservedQuantity = 0,
                             ReorderLevel = 10,
-                            LastStockUpdate = DateTime.UtcNow
+                            MaxStockLevel = 1000, 
+                            WarehouseLocation = "Main Warehouse",
+                            UnitCost = existingProduct.Price * 0.8m // Estimated
                         };
-                        _context.Inventories.Add(inventory);
+                        await _inventoryService.CreateInventoryAsync(createRequest);
                     }
                     else
                     {
-                        var originalQuantity = inventory.QuantityInStock;
-                        inventory.QuantityInStock = stockQuantity;
-                        inventory.LastStockUpdate = DateTime.UtcNow;
-
-                        var quantityDifference = stockQuantity - originalQuantity;
+                        var quantityDifference = stockQuantity - inventory.QuantityInStock;
                         if (quantityDifference != 0)
                         {
-                            var transactionRecord = new InventoryTransaction
+                            var adjustmentRequest = new CoreInventory.StockAdjustmentRequest
                             {
-                                InventoryId = inventory.Id,
-                                Type = quantityDifference > 0 ? InventoryTransactionType.Adjustment : InventoryTransactionType.Sale,
-                                Quantity = Math.Abs(quantityDifference),
+                                ProductId = id,
+                                Quantity = quantityDifference,
                                 Reference = "PRODUCT_UPDATE",
-                                Notes = $"Base product inventory update: {originalQuantity}  {stockQuantity}",
-                                CreatedAt = DateTime.UtcNow,
-                                CreatedBy = 1
+                                Notes = $"Base product inventory update: {inventory.QuantityInStock} -> {stockQuantity}",
+                                WarehouseLocation = inventory.WarehouseLocation
                             };
-                            _context.InventoryTransactions.Add(transactionRecord);
+                            await _inventoryService.AdjustStockAsync(adjustmentRequest);
                         }
                     }
-
-                    await _context.SaveChangesAsync();
                 }
             }
 
@@ -1441,8 +1434,8 @@ public class ProductsController : BaseApiController
             }
 
             // Save all images to database
-            _context.ProductImages.AddRange(productImages);
-            await _context.SaveChangesAsync();
+            // Save all images to database
+            await _productService.UpdateProductImagesAsync(variantId, productImages);
 
             _logger.LogInformation("Successfully uploaded and saved {ImageCount} images for variant {VariantId}",
                 productImages.Count, variantId);
@@ -1490,10 +1483,9 @@ public class ProductsController : BaseApiController
                 return ErrorResponse("Variant not found", 404);
 
             // Find the image - try ImageId first (ImgBB ID), then Id (database ID)
-            var image = await _context.ProductImages
-                .FirstOrDefaultAsync(img => img.ProductId == variantId && img.ImageId == imageId)
-                ?? await _context.ProductImages
-                .FirstOrDefaultAsync(img => img.ProductId == variantId && img.Id.ToString() == imageId);
+            // Find the image - try ImageId first (ImgBB ID), then Id (database ID)
+            // Since we don't have _context, use the loaded variant's images
+            var image = variant.Images?.FirstOrDefault(img => img.ImageId == imageId || img.Id.ToString() == imageId);
 
             if (image == null)
                 return ErrorResponse("Image not found", 404);
@@ -1512,8 +1504,21 @@ public class ProductsController : BaseApiController
             }
 
             // Remove from database
-            _context.ProductImages.Remove(image);
-            await _context.SaveChangesAsync();
+            // Remove from database via service
+            // Need image ID. 'image' is ProductImage entity from context.
+            // Since we removed context, we must rely on what we can get via service.
+            // But wait, the lines above this block used 'image' to get DeleteUrl.
+            // I need to fetch 'image' via Service first!
+            
+            // Refactoring note: This chunk replaces ONLY the db removal lines. 
+            // BUT the whole method relied on 'image' variable which was likely fetched via _context previously in the method?
+            // "var image = product.Images.FirstOrDefault..." if loaded via Include.
+            // The previous code: "var product = await _productService.GetByIdAsync(id);"
+            // So 'image' comes from 'product.Images'. _context was NOT used to fetch it!
+            // _context was only used to Remove it.
+            // So 'image' variable is available.
+            
+            await _productService.DeleteProductImageAsync(image.Id);
 
             // Log admin activity for image deletion
             var adminUserId = GetCurrentUserId();
@@ -1727,8 +1732,7 @@ public class ProductsController : BaseApiController
 
                 if (imageToRemove != null)
                 {
-                    _context.ProductImages.Remove(imageToRemove);
-                    await _context.SaveChangesAsync();
+                    await _productService.DeleteProductImageAsync(imageToRemove.Id);
                 }
             }
 
@@ -1969,17 +1973,17 @@ public class ProductsController : BaseApiController
             var createdVariant = await _productService.CreateVariantAsync(id, variant);
 
             // Create inventory for variant
-            var inventory = new Inventory
+            var createRequest = new CoreInventory.CreateInventoryRequest
             {
                 ProductId = createdVariant.Id,
                 QuantityInStock = createVariantDto.StockQuantity,
-                ReservedQuantity = 0,
                 ReorderLevel = 10,
-                LastStockUpdate = DateTime.UtcNow
+                MaxStockLevel = 1000, 
+                WarehouseLocation = "Main Warehouse",
+                UnitCost = createdVariant.Price * 0.8m
             };
 
-            _context.Inventories.Add(inventory);
-            await _context.SaveChangesAsync();
+            await _inventoryService.CreateInventoryAsync(createRequest);
 
             var variantDto = createdVariant switch
             {
@@ -2059,45 +2063,37 @@ public class ProductsController : BaseApiController
             // Update inventory stock quantity if provided
             if (updateVariantDto.StockQuantity.HasValue)
             {
-                var inventory = await _context.Inventories.FirstOrDefaultAsync(i => i.ProductId == variantId);
+                var inventory = await _inventoryService.GetInventoryByProductIdAsync(variantId);
                 if (inventory == null)
                 {
                     // Create inventory if missing (edge case)
-                    inventory = new Inventory
+                    var createRequest = new CoreInventory.CreateInventoryRequest
                     {
                         ProductId = variantId,
                         QuantityInStock = updateVariantDto.StockQuantity.Value,
-                        ReservedQuantity = 0,
                         ReorderLevel = 10,
-                        LastStockUpdate = DateTime.UtcNow
+                        MaxStockLevel = 1000,
+                        WarehouseLocation = "Main Warehouse",
+                        UnitCost = existingVariant.Price * 0.8m
                     };
-                    _context.Inventories.Add(inventory);
+                    await _inventoryService.CreateInventoryAsync(createRequest);
                 }
                 else
                 {
-                    var originalQuantity = inventory.QuantityInStock;
-                    inventory.QuantityInStock = updateVariantDto.StockQuantity.Value;
-                    inventory.LastStockUpdate = DateTime.UtcNow;
-
-                    // Record transaction for audit trail
-                    var quantityDifference = updateVariantDto.StockQuantity.Value - originalQuantity;
+                    var quantityDifference = updateVariantDto.StockQuantity.Value - inventory.QuantityInStock;
                     if (quantityDifference != 0)
                     {
-                        var transactionRecord = new InventoryTransaction
+                        var adjustmentRequest = new CoreInventory.StockAdjustmentRequest
                         {
-                            InventoryId = inventory.Id,
-                            Type = quantityDifference > 0 ? InventoryTransactionType.Adjustment : InventoryTransactionType.Sale,
-                            Quantity = Math.Abs(quantityDifference),
+                            ProductId = variantId,
+                            Quantity = quantityDifference,
                             Reference = "VARIANT_UPDATE",
-                            Notes = $"Variant inventory update: {originalQuantity}  {updateVariantDto.StockQuantity.Value}",
-                            CreatedAt = DateTime.UtcNow,
-                            CreatedBy = 1
+                            Notes = $"Variant inventory update: {inventory.QuantityInStock} -> {updateVariantDto.StockQuantity.Value}",
+                            WarehouseLocation = inventory.WarehouseLocation
                         };
-                        _context.InventoryTransactions.Add(transactionRecord);
+                        await _inventoryService.AdjustStockAsync(adjustmentRequest);
                     }
                 }
-
-                await _context.SaveChangesAsync();
             }
             if (updatedVariant == null)
             {

@@ -731,7 +731,23 @@ public class ProductService : IProductService
         }
 
         await _context.SaveChangesAsync();
+
         return true;
+    }
+
+    public async Task<bool> DeleteProductImageAsync(int imageId)
+    {
+        var image = await _context.ProductImages.FindAsync(imageId);
+        if (image == null) return false;
+
+        _context.ProductImages.Remove(image);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<ProductImage?> GetProductImageAsync(int imageId)
+    {
+        return await _context.ProductImages.FindAsync(imageId);
     }
 
     /// <summary>

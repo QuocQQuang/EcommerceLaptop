@@ -176,6 +176,20 @@ public interface IProductService
     /// <returns>True if updated successfully</returns>
     Task<bool> UpdateProductImagesAsync(int productId, IEnumerable<ProductImage> images);
 
+    /// <summary>
+    /// Deletes a product image
+    /// </summary>
+    /// <param name="imageId">Image ID</param>
+    /// <returns>True if deleted successfully</returns>
+    Task<bool> DeleteProductImageAsync(int imageId);
+
+    /// <summary>
+    /// Gets a product image by ID
+    /// </summary>
+    /// <param name="imageId">Image ID</param>
+    /// <returns>Product image if found</returns>
+    Task<ProductImage?> GetProductImageAsync(int imageId);
+
     // T005 Enhanced Product Catalog Operations
 
     /// <summary>

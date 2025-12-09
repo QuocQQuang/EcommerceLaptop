@@ -226,7 +226,10 @@ builder.Services.AddHttpClient<EcommerceLaptop.Infrastructure.Services.ImgBBServ
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.IImageHostingService, EcommerceLaptop.Infrastructure.Services.ImgBBService>();
 
 // T012: Inventory Management Services
-builder.Services.AddScoped<EcommerceLaptop.Core.Services.IInventoryService, EcommerceLaptop.Infrastructure.Services.InventoryService>();
+builder.Services.AddScoped(typeof(EcommerceLaptop.Core.Interfaces.IAsyncRepository<>), typeof(EcommerceLaptop.Infrastructure.Repositories.EfRepository<>));
+builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.IInventoryRepository, EcommerceLaptop.Infrastructure.Repositories.InventoryRepository>();
+
+builder.Services.AddScoped<EcommerceLaptop.Core.Services.IInventoryService, EcommerceLaptop.Core.Services.InventoryService>();
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.IInventoryReservationService, EcommerceLaptop.Infrastructure.Services.InventoryReservationService>();
 
 // T007: Shopping Cart Services
