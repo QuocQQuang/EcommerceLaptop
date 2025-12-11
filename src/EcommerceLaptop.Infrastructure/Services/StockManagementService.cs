@@ -46,30 +46,34 @@ public class StockManagementService : IStockManagementService
             throw new ValidationException($"Inventory already exists for product {request.ProductId}");
         }
 
-        var inventory = new Inventory
-        {
-            ProductId = request.ProductId,
-            QuantityInStock = request.QuantityInStock,
-            ReorderLevel = request.ReorderLevel,
-            MaxStockLevel = request.MaxStockLevel,
-            WarehouseLocation = request.WarehouseLocation,
-            LastStockUpdate = DateTime.UtcNow
-        };
+        // Use Domain Factory
+        var inventory = Inventory.Create(
+            request.ProductId,
+            request.QuantityInStock,
+            request.ReorderLevel,
+            request.MaxStockLevel,
+            request.WarehouseLocation
+        );
 
-        inventory = await _repository.AddAsync(inventory);
-
-        var transaction = new InventoryTransaction
+        // Add initial transaction logic if needed, or let the factory/add method handle it. 
+        // Since Factory just creates object, we might want to log initial stock as a transaction?
+        // The original logic did. Let's replicate this "Initial Stock" transaction logic by calling AddStock? 
+        // BUT Inventory.Create sets the initial stock directly.
+        // We can manually add the transaction to the entity's list for initial creation to keep it consistent.
+        
+        inventory.Transactions.Add(new InventoryTransaction
         {
-            InventoryId = inventory.Id,
             Type = InventoryTransactionType.Purchase,
             Quantity = request.QuantityInStock,
             Reference = "INITIAL_STOCK",
             Notes = "Initial inventory creation",
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = 1 // System user
-        };
+            CreatedBy = 1, // System user
+            Reason = "Initial Creation"
+        });
 
-        await _repository.AddTransactionAsync(transaction);
+        inventory = await _repository.AddAsync(inventory);
+        // Repository AddAsync should save the graph including the transaction.
 
         _logger.LogInformation("Created inventory for product {ProductId} with {Quantity} units", request.ProductId, request.QuantityInStock);
 
@@ -84,30 +88,26 @@ public class StockManagementService : IStockManagementService
 
         var originalQuantity = inventory.QuantityInStock;
 
-        if (request.QuantityInStock.HasValue) inventory.QuantityInStock = request.QuantityInStock.Value;
+        // Handle non-stock property updates
         if (request.ReorderLevel.HasValue) inventory.ReorderLevel = request.ReorderLevel.Value;
         if (request.MaxStockLevel.HasValue) inventory.MaxStockLevel = request.MaxStockLevel.Value;
         if (!string.IsNullOrEmpty(request.WarehouseLocation)) inventory.WarehouseLocation = request.WarehouseLocation;
-        
-        inventory.LastStockUpdate = DateTime.UtcNow;
+
+        // Handle stock quantity updates via Domain Methods
+        if (request.QuantityInStock.HasValue)
+        {
+            var quantityDifference = request.QuantityInStock.Value - originalQuantity;
+            if (quantityDifference > 0)
+            {
+                inventory.AddStock(quantityDifference, "MANUAL_UPDATE", "Inventory Update (Manual)", 1);
+            }
+            else if (quantityDifference < 0)
+            {
+                inventory.RemoveStock(Math.Abs(quantityDifference), "MANUAL_UPDATE", "Inventory Update (Manual)", 1);
+            }
+        }
 
         await _repository.UpdateAsync(inventory);
-
-        var quantityDifference = (request.QuantityInStock ?? originalQuantity) - originalQuantity;
-        if (quantityDifference != 0)
-        {
-            var transaction = new InventoryTransaction
-            {
-                InventoryId = inventory.Id,
-                Type = quantityDifference > 0 ? InventoryTransactionType.Adjustment : InventoryTransactionType.Sale,
-                Quantity = Math.Abs(quantityDifference),
-                Reference = "INVENTORY_UPDATE",
-                Notes = $"Inventory update: {originalQuantity}  {request.QuantityInStock ?? originalQuantity}",
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = 1
-            };
-            await _repository.AddTransactionAsync(transaction);
-        }
 
         return MapToInventoryDto(inventory);
     }
@@ -138,25 +138,16 @@ public class StockManagementService : IStockManagementService
             var inventory = await _repository.GetByProductIdAsync(request.ProductId);
             if (inventory == null) throw new ValidationException($"Inventory not found for product {request.ProductId}");
 
-            var newQuantity = inventory.QuantityInStock + request.Quantity;
-            if (newQuantity < 0) throw new ValidationException($"Insufficient stock. Available: {inventory.QuantityInStock}");
-            if (newQuantity > inventory.MaxStockLevel) throw new ValidationException($"Stock adjustment would exceed maximum stock level ({inventory.MaxStockLevel})");
-
-            inventory.QuantityInStock = newQuantity;
-            inventory.LastStockUpdate = DateTime.UtcNow;
-            await _repository.UpdateAsync(inventory);
-
-            var transaction = new InventoryTransaction
+            if (request.Quantity > 0)
             {
-                InventoryId = inventory.Id,
-                Type = request.Quantity > 0 ? InventoryTransactionType.Purchase : InventoryTransactionType.Sale,
-                Quantity = Math.Abs(request.Quantity),
-                Reference = request.Reference,
-                Notes = request.Notes,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = 1
-            };
-            await _repository.AddTransactionAsync(transaction);
+                inventory.AddStock(request.Quantity, request.Reference, request.Notes ?? "Stock Adjustment", 1);
+            }
+            else if (request.Quantity < 0)
+            {
+                inventory.RemoveStock(Math.Abs(request.Quantity), request.Reference, request.Notes ?? "Stock Adjustment", 1);
+            }
+
+            await _repository.UpdateAsync(inventory);
             await _repository.CommitTransactionAsync();
             return true;
         }
@@ -182,25 +173,16 @@ public class StockManagementService : IStockManagementService
                     var inventory = await _repository.GetByProductIdAsync(request.ProductId);
                     if (inventory == null) throw new Exception("Inventory not found");
 
-                    var newQuantity = inventory.QuantityInStock + request.Quantity;
-                    if (newQuantity < 0) throw new Exception("Insufficient stock");
-                    if (newQuantity > inventory.MaxStockLevel) throw new Exception("Exceeds max stock");
-
-                    inventory.QuantityInStock = newQuantity;
-                    inventory.LastStockUpdate = DateTime.UtcNow;
-                    await _repository.UpdateAsync(inventory);
-
-                    var transaction = new InventoryTransaction
+                    if (request.Quantity > 0)
                     {
-                        InventoryId = inventory.Id,
-                        Type = request.Quantity > 0 ? InventoryTransactionType.Purchase : InventoryTransactionType.Sale,
-                        Quantity = Math.Abs(request.Quantity),
-                        Reference = request.Reference,
-                        Notes = request.Notes,
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedBy = 1
-                    };
-                    await _repository.AddTransactionAsync(transaction);
+                        inventory.AddStock(request.Quantity, request.Reference, request.Notes ?? "Bulk Adjustment", 1);
+                    }
+                    else if (request.Quantity < 0)
+                    {
+                        inventory.RemoveStock(Math.Abs(request.Quantity), request.Reference, request.Notes ?? "Bulk Adjustment", 1);
+                    }
+
+                    await _repository.UpdateAsync(inventory);
                     result.SuccessfulItems++;
                 }
                 catch (Exception ex)
@@ -239,34 +221,28 @@ public class StockManagementService : IStockManagementService
             var toInventory = toList.FirstOrDefault();
 
             if (fromInventory == null) throw new ValidationException("Source inventory not found");
-            if (fromInventory.QuantityInStock < request.Quantity) throw new ValidationException("Insufficient stock");
+            
+            // Use Domain Methods
+            fromInventory.RemoveStock(request.Quantity, request.Reference, $"Transfer to {request.ToWarehouse}", 1);
 
             if (toInventory == null)
             {
-                toInventory = new Inventory
-                {
-                    ProductId = request.ProductId,
-                    QuantityInStock = 0,
-                    ReorderLevel = fromInventory.ReorderLevel,
-                    MaxStockLevel = fromInventory.MaxStockLevel,
-                    WarehouseLocation = request.ToWarehouse,
-                    LastStockUpdate = DateTime.UtcNow
-                };
-                await _repository.AddAsync(toInventory);
+                toInventory = Inventory.Create(
+                    request.ProductId,
+                    0, // Start with 0 then AddStock
+                    fromInventory.ReorderLevel,
+                    fromInventory.MaxStockLevel,
+                    request.ToWarehouse
+                );
+                // We need to add it to context first or just add stock? 
+                // AddStock works on instance.
+                await _repository.AddAsync(toInventory); // Add to context
             }
 
-            if (toInventory.QuantityInStock + request.Quantity > toInventory.MaxStockLevel) throw new ValidationException("Exceeds destination max stock");
+            toInventory.AddStock(request.Quantity, request.Reference, $"Transfer from {request.FromWarehouse}", 1);
 
-            fromInventory.QuantityInStock -= request.Quantity;
-            fromInventory.LastStockUpdate = DateTime.UtcNow;
             await _repository.UpdateAsync(fromInventory);
-
-            toInventory.QuantityInStock += request.Quantity;
-            toInventory.LastStockUpdate = DateTime.UtcNow;
             await _repository.UpdateAsync(toInventory);
-
-            await _repository.AddTransactionAsync(new InventoryTransaction { InventoryId = fromInventory.Id, Type = InventoryTransactionType.Transfer, Quantity = request.Quantity, Reference = request.Reference, Notes = $"To {request.ToWarehouse}", CreatedAt = DateTime.UtcNow });
-            await _repository.AddTransactionAsync(new InventoryTransaction { InventoryId = toInventory.Id, Type = InventoryTransactionType.Transfer, Quantity = request.Quantity, Reference = request.Reference, Notes = $"From {request.FromWarehouse}", CreatedAt = DateTime.UtcNow });
 
             await _repository.CommitTransactionAsync();
             return true;

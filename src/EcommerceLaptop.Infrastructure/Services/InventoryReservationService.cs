@@ -26,6 +26,10 @@ public class InventoryReservationService : IInventoryReservationService
     /// Internal method to reserve inventory without managing transactions
     /// Used when transaction is already managed by caller (e.g., OrderService)
     /// </summary>
+    /// <summary>
+    /// Internal method to reserve inventory without managing transactions
+    /// Used when transaction is already managed by caller (e.g., OrderService)
+    /// </summary>
     public async Task<bool> ReserveInventoryInternalAsync(int orderId)
     {
         var order = await _context.Orders
@@ -42,26 +46,17 @@ public class InventoryReservationService : IInventoryReservationService
         foreach (var orderItem in order.OrderItems)
         {
             var inventory = orderItem.Product.Inventory;
-            if (inventory == null || inventory.QuantityInStock < orderItem.Quantity)
+            if (inventory == null || inventory.AvailableQuantity < orderItem.Quantity)
             {
                 return false; // Don't rollback here - let caller handle it
             }
 
-            inventory.ReservedQuantity += orderItem.Quantity;
-            inventory.LastStockUpdate = DateTime.UtcNow;
-
-            // Create transaction record
-            var transactionRecord = new InventoryTransaction
-            {
-                InventoryId = inventory.Id,
-                Type = InventoryTransactionType.Reservation,
-                Quantity = orderItem.Quantity,
-                Reference = order.OrderNumber,
-                Notes = "Reserved for order",
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = order.UserId
-            };
-            _context.InventoryTransactions.Add(transactionRecord);
+            inventory.ReserveStock(
+                orderItem.Quantity, 
+                order.OrderNumber, 
+                "Reserved for order", 
+                order.UserId
+            );
         }
 
         order.MarkAsInventoryReserved();
@@ -116,20 +111,13 @@ public class InventoryReservationService : IInventoryReservationService
                 var inventory = orderItem.Product.Inventory;
                 if (inventory != null)
                 {
-                    inventory.ReservedQuantity -= orderItem.Quantity;
-                    inventory.LastStockUpdate = DateTime.UtcNow;
-
-                    var transactionRecord = new InventoryTransaction
-                    {
-                        InventoryId = inventory.Id,
-                        Type = InventoryTransactionType.Release,
-                        Quantity = -orderItem.Quantity,
-                        Reference = order.OrderNumber,
-                        Notes = "Released from cancelled order",
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedBy = order.UserId
-                    };
-                    _context.InventoryTransactions.Add(transactionRecord);
+                    // Use CancelReservation
+                    inventory.CancelReservation(
+                        orderItem.Quantity,
+                        order.OrderNumber,
+                        "Released from cancelled order",
+                        order.UserId
+                    );
                 }
             }
 
@@ -181,8 +169,16 @@ public class InventoryReservationService : IInventoryReservationService
             return false;
         }
 
-        inventory.ReservedQuantity += quantityChange;
-        inventory.LastStockUpdate = DateTime.UtcNow;
+        // Logic here is ambiguous: is it a reservation or release?
+        // Assuming quantityChange > 0 is Reserve, < 0 is Release
+        if (quantityChange > 0)
+        {
+            inventory.ReserveStock(quantityChange, "MANUAL_UPDATE", "Manual reservation update", 1);
+        }
+        else if (quantityChange < 0)
+        {
+            inventory.CancelReservation(Math.Abs(quantityChange), "MANUAL_UPDATE", "Manual reservation update", 1);
+        }
 
         await _context.SaveChangesAsync();
         return true;
@@ -214,29 +210,63 @@ public class InventoryReservationService : IInventoryReservationService
                 {
                     if (inventory.ReservedQuantity >= item.Quantity)
                     {
-                        inventory.QuantityInStock -= item.Quantity;
-                        inventory.ReservedQuantity -= item.Quantity;
-
-                        // Create transaction record
-                        _context.InventoryTransactions.Add(new InventoryTransaction
-                        {
-                            InventoryId = inventory.Id,
-                            Type = InventoryTransactionType.Sale,
-                            Quantity = -item.Quantity,
-                            Reference = $"ORDER_{orderId}",
-                            Notes = "Order confirmed - Inventory deducted",
-                            CreatedAt = DateTime.UtcNow,
-                            CreatedBy = 0 // System
-                        });
+                        inventory.ConfirmReservation(
+                            item.Quantity,
+                            $"ORDER_{orderId}",
+                            "Order confirmed - Inventory deducted",
+                            0 // System
+                        );
                     }
                     else
                     {
                         _logger.LogWarning("Inventory mismatch for product {ProductId} in order {OrderId}. Reserved: {Reserved}, Required: {Required}", 
                             item.ProductId, orderId, inventory.ReservedQuantity, item.Quantity);
                         
-                        // Force fix
-                        inventory.QuantityInStock -= item.Quantity;
-                        inventory.ReservedQuantity = Math.Max(0, inventory.ReservedQuantity - item.Quantity);
+                        // Force fix: if we don't have enough reserved, we just deduct what we can from reserved and the rest?
+                        // Or we just deduct from stock anyway?
+                        // ConfirmReservation throws if Reserved < Q.
+                        // We must handle this mismatch manually or assume Reserved is reliable.
+                        // If Reserved < Q, we should probably just RemoveStock (adjusting quantity) and set Reserved to MAX(0, Reserved - Q) manually?
+                        // But I can't set Reserved manually.
+                        // I will use RemoveStock directly and CancelReservation for whatever IS reserved?
+                        
+                        var reservedToRelease = Math.Min(inventory.ReservedQuantity, item.Quantity);
+                        if (reservedToRelease > 0)
+                        {
+                            // This adds a Release transaction which we might NOT want.
+                            // But since it's a "mismatch fix", logging it is fine?
+                            // No, ConfirmReservation reduces reserved silently.
+                            // I can't call ConfirmReservation if Q > Reserved.
+                            
+                            // Domain method limitation: cannot "Force" fix mismatch if private setters are used.
+                            // I might need a "ForceCorrection" method on Inventory or just rely on ConfirmReservation logic being correct if data is correct.
+                            // Given this is an edge case block ("mismatch"), let's try to proceed as best as possible.
+                            
+                            // Scenario: Reserved = 5, Item Q = 10.
+                            // We want: Reserved -> 0, Stock -> Stock - 10.
+                            // ConfirmReservation(5) -> Reserved=0, Stock=Stock-5.
+                            // Then RemoveStock(5) -> Stock=Stock-10.
+                            // This works!
+                            
+                            if (inventory.ReservedQuantity > 0)
+                            {
+                                inventory.ConfirmReservation(inventory.ReservedQuantity, $"ORDER_{orderId}", "Partial reservation confirmation", 0);
+                            }
+                            
+                            var remaining = item.Quantity - inventory.ReservedQuantity; // Wait, inventory.ReservedQuantity is 0 now.
+                            // So: var remaining = item.Quantity - initialReserved;
+                            
+                            // Recalculating:
+                            var initialReserved = inventory.ReservedQuantity;
+                            inventory.ConfirmReservation(initialReserved, $"ORDER_{orderId}", "Partial reservation confirmation", 0);
+                            
+                            var leftover = item.Quantity - initialReserved;
+                            inventory.RemoveStock(leftover, $"ORDER_{orderId}", "Force deduction for unreserved portion", 0);
+                        }
+                        else
+                        {
+                            inventory.RemoveStock(item.Quantity, $"ORDER_{orderId}", "Force deduction", 0);
+                        }
                     }
                     
                     _context.Inventories.Update(inventory);
@@ -281,19 +311,13 @@ public class InventoryReservationService : IInventoryReservationService
                 var inventory = await _context.Inventories.FirstOrDefaultAsync(i => i.ProductId == item.ProductId);
                 if (inventory != null)
                 {
-                    inventory.QuantityInStock += item.Quantity;
-
-                    // Create transaction record
-                    _context.InventoryTransactions.Add(new InventoryTransaction
-                    {
-                        InventoryId = inventory.Id,
-                        Type = InventoryTransactionType.Return,
-                        Quantity = item.Quantity,
-                        Reference = $"REFUND_{orderId}",
-                        Notes = "Order refunded - Inventory restocked",
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedBy = 0 // System
-                    });
+                    // Use AddStock domain method
+                    inventory.AddStock(
+                        item.Quantity,
+                        $"REFUND_{orderId}",
+                        "Order refunded - Inventory restocked",
+                        0 // System
+                    );
                     
                     _context.Inventories.Update(inventory);
                 }

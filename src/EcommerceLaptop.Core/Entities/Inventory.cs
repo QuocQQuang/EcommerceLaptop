@@ -1,15 +1,23 @@
+using EcommerceLaptop.Core.Common;
+using EcommerceLaptop.Core.DomainEvents;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("EcommerceLaptop.Infrastructure")]
+[assembly: InternalsVisibleTo("EcommerceLaptop.API")]
+[assembly: InternalsVisibleTo("EcommerceLaptop")]
+
 namespace EcommerceLaptop.Core.Entities;
 
-public class Inventory
+public class Inventory : BaseEntity
 {
-    public int Id { get; set; }
+    // Id is inherited from BaseEntity
     public int ProductId { get; set; }
-    public int QuantityInStock { get; set; }
-    public int ReservedQuantity { get; set; }
+    public int QuantityInStock { get; internal set; } // Internal setter for seeding/infrastructure
+    public int ReservedQuantity { get; internal set; }
     public int ReorderLevel { get; set; }
     public int MaxStockLevel { get; set; }
     public string WarehouseLocation { get; set; } = string.Empty;
-    public DateTime LastStockUpdate { get; set; }
+    public DateTime LastStockUpdate { get; internal set; }
     
     // Calculated property
     public int AvailableQuantity => QuantityInStock - ReservedQuantity;
@@ -17,6 +25,135 @@ public class Inventory
     // Navigation properties
     public Product Product { get; set; } = null!;
     public ICollection<InventoryTransaction> Transactions { get; set; } = new List<InventoryTransaction>();
+
+    // Domain Methods
+
+    public void AddStock(int quantity, string reference, string reason, int userId)
+    {
+        if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be positive.");
+
+        QuantityInStock += quantity;
+        LastStockUpdate = DateTime.UtcNow;
+
+        AddDomainEvent(new InventoryUpdatedEvent(this, quantity, reason));
+        
+        var transaction = new InventoryTransaction
+        {
+            Type = InventoryTransactionType.Purchase, // Or Adjustment
+            Quantity = quantity,
+            Reference = reference,
+            Reason = reason, 
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = userId,
+            Notes = reason
+        };
+        Transactions.Add(transaction);
+        
+        CheckLowStock();
+    }
+
+    public void RemoveStock(int quantity, string reference, string reason, int userId)
+    {
+        if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be positive.");
+        if (AvailableQuantity < quantity) throw new InvalidOperationException("Insufficient stock.");
+
+        QuantityInStock -= quantity;
+        LastStockUpdate = DateTime.UtcNow;
+
+        AddDomainEvent(new InventoryUpdatedEvent(this, -quantity, reason));
+        
+        var transaction = new InventoryTransaction
+        {
+            Type = InventoryTransactionType.Sale, // Or Adjustment
+            Quantity = -quantity,
+            Reference = reference,
+            Reason = reason,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = userId,
+            Notes = reason
+        };
+        Transactions.Add(transaction);
+
+        CheckLowStock();
+    }
+    
+    public void ReserveStock(int quantity, string reference, string reason, int userId)
+    {
+         if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be positive.");
+         if (AvailableQuantity < quantity) throw new InvalidOperationException("Insufficient available stock to reserve.");
+         
+         ReservedQuantity += quantity;
+         LastStockUpdate = DateTime.UtcNow;
+         
+         var transaction = new InventoryTransaction
+         {
+             Type = InventoryTransactionType.Reservation,
+             Quantity = quantity,
+             Reference = reference,
+             Reason = reason,
+             CreatedAt = DateTime.UtcNow,
+             CreatedBy = userId,
+             Notes = reason
+         };
+         Transactions.Add(transaction);
+
+         CheckLowStock();
+    }
+
+    public void CancelReservation(int quantity, string reference, string reason, int userId)
+    {
+        if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be positive.");
+        if (ReservedQuantity < quantity) throw new InvalidOperationException("Cannot release more than reserved.");
+
+        ReservedQuantity -= quantity;
+        LastStockUpdate = DateTime.UtcNow;
+
+        var transaction = new InventoryTransaction
+        {
+            Type = InventoryTransactionType.Release,
+            Quantity = -quantity,
+            Reference = reference,
+            Reason = reason,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = userId,
+            Notes = reason
+        };
+        Transactions.Add(transaction);
+    }
+    
+    public void ConfirmReservation(int quantity, string reference, string reason, int userId)
+    {
+        if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be positive.");
+        if (ReservedQuantity < quantity) throw new InvalidOperationException("Cannot confirm more than reserved.");
+
+        // Decrement reserved quantity silently (as it's being converted to sale)
+        ReservedQuantity -= quantity;
+        
+        // Remove from stock (logs Sale transaction)
+        RemoveStock(quantity, reference, reason, userId);
+    }
+
+    private void CheckLowStock()
+    {
+        if (AvailableQuantity <= ReorderLevel)
+        {
+            AddDomainEvent(new InventoryLowStockEvent(this));
+        }
+    }
+    
+    // Helper to initialize for EF or Factory
+    public static Inventory Create(int productId, int initialStock, int reorderLevel, int maxStock, string location)
+    {
+        return new Inventory
+        {
+            ProductId = productId,
+            QuantityInStock = initialStock,
+            ReorderLevel = reorderLevel,
+            MaxStockLevel = maxStock,
+            WarehouseLocation = location,
+            LastStockUpdate = DateTime.UtcNow
+        };
+    }
 }
 
 public class InventoryTransaction
@@ -26,6 +163,7 @@ public class InventoryTransaction
     public InventoryTransactionType Type { get; set; }
     public int Quantity { get; set; }
     public string Reference { get; set; } = string.Empty; // Order ID, Adjustment ID, etc.
+    public string Reason { get; set; } = string.Empty; // Added Reason property
     public string Notes { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public int CreatedBy { get; set; } // User ID

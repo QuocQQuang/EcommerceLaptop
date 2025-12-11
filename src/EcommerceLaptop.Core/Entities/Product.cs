@@ -1,8 +1,10 @@
+using EcommerceLaptop.Core.Common;
+
 namespace EcommerceLaptop.Core.Entities;
 
-public abstract class Product
+public abstract class Product : BaseEntity
 {
-    public int Id { get; set; }
+    // Id is inherited from BaseEntity
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Brand { get; set; } = string.Empty; // Keep for backward compatibility
