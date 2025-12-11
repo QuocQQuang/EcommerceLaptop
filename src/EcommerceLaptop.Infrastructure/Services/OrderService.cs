@@ -1,3 +1,4 @@
+using AutoMapper;
 using EcommerceLaptop.Core.DTOs;
 using EcommerceLaptop.Core.DTOs.Admin;
 using EcommerceLaptop.Core.DTOs.Order;
@@ -21,6 +22,7 @@ public class OrderService : IOrderService
     private readonly IInventoryReservationService _inventoryService;
     private readonly IEmailService _emailService;
     private readonly IOrderWorkflowService _workflowService;
+    private readonly IMapper _mapper;
     private readonly ILogger<OrderService> _logger;
 
     public OrderService(
@@ -28,12 +30,14 @@ public class OrderService : IOrderService
         IInventoryReservationService inventoryService,
         IEmailService emailService,
         IOrderWorkflowService workflowService,
+        IMapper mapper,
         ILogger<OrderService> logger)
     {
         _context = context;
         _inventoryService = inventoryService;
         _emailService = emailService;
         _workflowService = workflowService;
+        _mapper = mapper;
         _logger = logger;
     }
 
@@ -123,7 +127,7 @@ public class OrderService : IOrderService
             _context.Update(cart);
             await _context.SaveChangesAsync();
 
-            return MapToOrderDto(order);
+            return _mapper.Map<OrderDto>(order);
         }
         catch
         {
@@ -274,7 +278,7 @@ public class OrderService : IOrderService
             return new AtomicCheckoutResult
             {
                 IsSuccess = true,
-                Order = MapToOrderDto(order),
+                Order = _mapper.Map<OrderDto>(order),
                 Payment = new PaymentInitializationResult
                 {
                     IsSuccess = false,
@@ -313,7 +317,7 @@ public class OrderService : IOrderService
             throw new ArgumentException("Order not found");
         }
 
-        return MapToOrderDetailsDto(order);
+        return _mapper.Map<OrderDetailsDto>(order);
     }
 
     public async Task<EcommerceLaptop.Core.DTOs.PagedResult<OrderDto>> GetCustomerOrdersAsync(int customerId, int page = 1, int pageSize = 10)
@@ -331,7 +335,7 @@ public class OrderService : IOrderService
             .Take(pageSize)
             .ToListAsync();
 
-        var orderDtos = orders.Select(MapToOrderDto).ToList();
+        var orderDtos = _mapper.Map<List<OrderDto>>(orders);
 
         return new EcommerceLaptop.Core.DTOs.PagedResult<OrderDto>
         {
@@ -395,80 +399,7 @@ public class OrderService : IOrderService
         return hex.Length > length ? hex.Substring(0, length) : hex;
     }
 
-    private DateTime? CalculateEstimatedDeliveryDate(DateTime orderDate)
-    {
-        // Simple calculation: 5-7 business days
-        var estimated = orderDate.AddDays(5);
-        // Adjust for weekends, etc. (simplified)
-        return estimated;
-    }
 
-    private OrderDto MapToOrderDto(Order order)
-    {
-        // Determine payment status from payments
-        var latestPayment = order.Payments?.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
-        var paymentStatus = MapPaymentStatusForAdmin(latestPayment?.Status);
-
-        return new OrderDto
-        {
-            Id = order.Id,
-            OrderNumber = order.OrderNumber,
-            Status = order.Status,
-            Subtotal = order.SubTotal,
-            ShippingCost = order.ShippingAmount,
-            TaxAmount = order.TaxAmount,
-            TotalAmount = order.TotalAmount,
-            CreatedAt = order.CreatedAt,
-            PaymentStatus = paymentStatus,
-            Items = order.OrderItems.Select(oi => new OrderItemDto
-            {
-                Id = oi.Id,
-                ProductId = oi.ProductId,
-                ProductName = oi.Product.Name, // Assumes Product loaded
-                Quantity = oi.Quantity,
-                UnitPrice = oi.UnitPrice,
-                TotalPrice = oi.TotalPrice
-            }).ToList()
-        };
-    }
-
-    private OrderDetailsDto MapToOrderDetailsDto(Order order)
-    {
-        var dto = MapToOrderDto(order);
-        var detailsDto = new OrderDetailsDto
-        {
-            Id = dto.Id,
-            OrderNumber = dto.OrderNumber,
-            Status = dto.Status,
-            Subtotal = dto.Subtotal,
-            ShippingCost = dto.ShippingCost,
-            TaxAmount = dto.TaxAmount,
-            TotalAmount = dto.TotalAmount,
-            CreatedAt = dto.CreatedAt,
-            EstimatedDeliveryDate = dto.EstimatedDeliveryDate,
-            Items = dto.Items,
-            CustomerId = order.UserId,
-            CustomerEmail = order.User.Email,
-            CustomerName = $"{order.User.FirstName} {order.User.LastName}".Trim(),
-            ShippingAddress = FormatShippingAddress(order),
-            AuditTrail = order.Audits.Select(a => new OrderAuditDto
-            {
-                OldStatus = a.OldStatus,
-                NewStatus = a.NewStatus,
-                ChangedBy = a.ChangedByUser?.Email ?? "System",
-                Reason = a.Reason,
-                ChangedAt = a.ChangedAt
-            }).ToList()
-        };
-
-        return detailsDto;
-    }
-
-    private string FormatShippingAddress(string street, string city, string province, string postalCode, string country)
-    {
-        var parts = new[] { street, city, province, postalCode, country }.Where(p => !string.IsNullOrWhiteSpace(p));
-        return string.Join(", ", parts);
-    }
 
     public async Task<EcommerceLaptop.Core.DTOs.PagedResult<OrderDto>> GetAdminOrdersAsync(int page = 1, int pageSize = 20, string? search = null, string? status = null, int? customerId = null)
     {
@@ -509,7 +440,7 @@ public class OrderService : IOrderService
                 .Take(pageSize)
                 .ToListAsync();
 
-            var orderDtos = orders.Select(MapToOrderDto).ToList();
+            var orderDtos = _mapper.Map<List<OrderDto>>(orders);
 
             return new EcommerceLaptop.Core.DTOs.PagedResult<OrderDto>
             {
@@ -570,7 +501,7 @@ public class OrderService : IOrderService
                 .Take(pageSize)
                 .ToListAsync();
 
-            var adminOrderDtos = orders.Select(MapToAdminOrderDto).ToList();
+            var adminOrderDtos = _mapper.Map<List<AdminOrderDto>>(orders);
 
             return new EcommerceLaptop.Core.DTOs.PagedResult<AdminOrderDto>
             {
@@ -587,81 +518,7 @@ public class OrderService : IOrderService
         }
     }
 
-    /// <summary>
-    /// Maps PaymentStatus enum to admin-friendly status strings that match frontend expectations
-    /// </summary>
-    private string MapPaymentStatusForAdmin(PaymentStatus? status)
-    {
-        return status switch
-        {
-            PaymentStatus.Completed => "paid",
-            PaymentStatus.Failed => "failed",
-            PaymentStatus.Cancelled => "failed",
-            PaymentStatus.Refunded => "refunded",
-            PaymentStatus.Pending => "pending",
-            null => "pending",
-            _ => "pending"
-        };
-    }
 
-    private AdminOrderDto MapToAdminOrderDto(Order order)
-    {
-        // Determine payment status and method from payments
-        var latestPayment = order.Payments.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
-        var paymentStatus = MapPaymentStatusForAdmin(latestPayment?.Status);
-        var paymentMethod = latestPayment?.Gateway.ToString() ?? "Card";
-
-        return new AdminOrderDto
-        {
-            Id = order.Id,
-            OrderNumber = order.OrderNumber,
-            Status = order.Status,
-            Subtotal = order.SubTotal,
-            ShippingCost = order.ShippingAmount,
-            TaxAmount = order.TaxAmount,
-            TotalAmount = order.TotalAmount,
-            CreatedAt = order.CreatedAt,
-            EstimatedDeliveryDate = CalculateEstimatedDeliveryDate(order.CreatedAt),
-
-            // Customer Information
-            CustomerId = order.UserId,
-            CustomerName = $"{order.User?.FirstName} {order.User?.LastName}".Trim(),
-            CustomerEmail = order.User?.Email ?? "",
-            CustomerPhone = order.User?.PhoneNumber ?? "",
-
-            // Shipping Information
-            ShippingAddress = $"{order.ShippingStreet}, {order.ShippingCity}, {order.ShippingProvince}".Trim(' ', ','),
-
-            // Payment Information
-            PaymentStatus = paymentStatus,
-            PaymentMethod = paymentMethod,
-
-            // Order Items
-            Items = order.OrderItems.Select(oi => new OrderItemDto
-            {
-                Id = oi.Id,
-                ProductId = oi.ProductId,
-                ProductName = oi.Product?.Name ?? "",
-                Quantity = oi.Quantity,
-                UnitPrice = oi.UnitPrice,
-                TotalPrice = oi.TotalPrice
-            }).ToList()
-        };
-    }
-
-    private string FormatShippingAddress(Order order)
-    {
-        var addressParts = new List<string>
-        {
-            order.ShippingStreet,
-            order.ShippingCity,
-            order.ShippingProvince,
-            order.ShippingPostalCode,
-            order.ShippingCountry
-        }.Where(part => !string.IsNullOrWhiteSpace(part));
-
-        return string.Join(", ", addressParts);
-    }
 
     public async Task<EcommerceLaptop.Core.Entities.Payment?> GetPaymentByTransactionIdAsync(string transactionId)
     {

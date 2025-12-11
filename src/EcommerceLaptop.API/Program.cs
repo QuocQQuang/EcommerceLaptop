@@ -306,6 +306,9 @@ builder.Services.AddScoped<EcommerceLaptop.Core.Services.IReportingService, Ecom
 // Background Services
 builder.Services.AddHostedService<EcommerceLaptop.Infrastructure.Services.ProductIndexingService>();
 
+// AutoMapper Registration
+builder.Services.AddAutoMapper(typeof(Program));
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

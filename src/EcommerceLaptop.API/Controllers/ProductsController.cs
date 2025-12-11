@@ -8,6 +8,7 @@ using EcommerceLaptop.API.DTOs;
 using CoreInventory = EcommerceLaptop.Core.DTOs.Inventory;
 using EcommerceLaptop.Infrastructure.Services.Security;
 using System.Text.Json;
+using AutoMapper;
 
 namespace EcommerceLaptop.API.Controllers;
 
@@ -24,8 +25,16 @@ public class ProductsController : BaseApiController
     private readonly IImageHostingService _imageHostingService;
     private readonly IAuditLoggingService _auditLoggingService;
     private readonly IInventoryService _inventoryService;
+    private readonly IMapper _mapper;
 
-    public ProductsController(IProductService productService, IImageHostingService imageHostingService, IAuditLoggingService auditLoggingService, ILogger<ProductsController> logger, IMemoryCache cache, IInventoryService inventoryService)
+    public ProductsController(
+        IProductService productService, 
+        IImageHostingService imageHostingService, 
+        IAuditLoggingService auditLoggingService, 
+        ILogger<ProductsController> logger, 
+        IMemoryCache cache, 
+        IInventoryService inventoryService,
+        IMapper mapper)
         : base(logger)
     {
         _productService = productService;
@@ -33,6 +42,7 @@ public class ProductsController : BaseApiController
         _auditLoggingService = auditLoggingService;
         _cache = cache;
         _inventoryService = inventoryService;
+        _mapper = mapper;
     }
 
     /// <summary>
@@ -74,13 +84,7 @@ public class ProductsController : BaseApiController
                 var result = await _productService.GetProductsAsync(
                     page, pageSize, search, type, brand, category, minPrice, maxPrice, true, sortBy);
 
-                var productDtos = result.Items.Select(product => product switch
-                {
-                    Laptop laptop => MapToLaptopDto(laptop),
-                    Accessory accessory => MapToAccessoryDto(accessory),
-                    Bundle bundle => MapToBundleDto(bundle),
-                    _ => MapToProductDto(product)
-                }).ToList();
+                var productDtos = _mapper.Map<List<ProductDto>>(result.Items);
                 resultAction = PaginatedResponse(productDtos, result.TotalCount, page, pageSize);
 
                 // Cache for 5 minutes
@@ -140,14 +144,8 @@ public class ProductsController : BaseApiController
             }
 
             // TPT Optimization: Return detailed DTO based on the actual product type
-            // This provides the frontend with all necessary fields without extra calls
-            object productDto = product switch
-            {
-                Laptop laptop => MapToLaptopDto(laptop),
-                Accessory accessory => MapToAccessoryDto(accessory),
-                Bundle bundle => MapToBundleDto(bundle),
-                _ => MapToProductDto(product) // Fallback for base product type
-            };
+            // AutoMapper handles polymorphism automatically
+            var productDto = _mapper.Map<ProductDto>(product);
 
             return SuccessResponse(productDto);
         }
@@ -221,14 +219,7 @@ public class ProductsController : BaseApiController
                 product.Variants = variants.ToList();
             }
 
-            // TPT Optimization: Return detailed DTO based on the actual product type
-            object productDto = product switch
-            {
-                Laptop laptop => MapToLaptopDto(laptop),
-                Accessory accessory => MapToAccessoryDto(accessory),
-                Bundle bundle => MapToBundleDto(bundle),
-                _ => MapToProductDto(product)
-            };
+            var productDto = _mapper.Map<ProductDto>(product);
 
             return SuccessResponse(productDto);
         }
@@ -318,7 +309,7 @@ public class ProductsController : BaseApiController
                 page, pageSize, search, brand, minPrice, maxPrice,
                 cpuBrand, ramCapacity, storageType);
 
-            var laptopDtos = result.Items.Select(MapToLaptopDto).ToList();
+            var laptopDtos = _mapper.Map<List<LaptopDto>>(result.Items);
 
             return PaginatedResponse(laptopDtos, result.TotalCount, page, pageSize);
         }
@@ -351,7 +342,7 @@ public class ProductsController : BaseApiController
             var result = await _productService.GetAccessoriesAsync(
                 page, pageSize, search, accessoryType, compatibility);
 
-            var accessoryDtos = result.Items.Select(MapToAccessoryDto).ToList();
+            var accessoryDtos = _mapper.Map<List<AccessoryDto>>(result.Items);
 
             return PaginatedResponse(accessoryDtos, result.TotalCount, page, pageSize);
         }
@@ -382,7 +373,7 @@ public class ProductsController : BaseApiController
             var result = await _productService.GetBundlesAsync(
                 page, pageSize, search, bundleType);
 
-            var bundleDtos = result.Items.Select(MapToBundleDto).ToList();
+            var bundleDtos = _mapper.Map<List<BundleDto>>(result.Items);
 
             return PaginatedResponse(bundleDtos, result.TotalCount, page, pageSize);
         }
@@ -406,7 +397,7 @@ public class ProductsController : BaseApiController
             if (count < 1 || count > 50) count = 10;
 
             var products = await _productService.GetFeaturedProductsAsync(count);
-            var productDtos = products.Select(MapToProductDto).ToList();
+            var productDtos = _mapper.Map<List<ProductDto>>(products);
 
             return SuccessResponse(productDtos);
         }
@@ -431,7 +422,7 @@ public class ProductsController : BaseApiController
             if (count < 1 || count > 20) count = 5;
 
             var products = await _productService.GetRelatedProductsAsync(id, count);
-            var productDtos = products.Select(MapToProductDto).ToList();
+            var productDtos = _mapper.Map<List<ProductDto>>(products);
 
             return SuccessResponse(productDtos);
         }
@@ -502,7 +493,7 @@ public class ProductsController : BaseApiController
 
 
             var createdProduct = await _productService.CreateProductAsync(product);
-            var productDto = MapToProductDto(createdProduct);
+            var productDto = _mapper.Map<ProductDto>(createdProduct);
 
             // Log admin product creation activity
             var adminUserId = GetCurrentUserId();
@@ -592,7 +583,7 @@ public class ProductsController : BaseApiController
                 }
             }
 
-            var productDto = MapToProductDto(updatedProduct);
+            var productDto = _mapper.Map<ProductDto>(updatedProduct);
 
             // Log admin product update activity
             var adminUserId = GetCurrentUserId();
@@ -663,239 +654,7 @@ public class ProductsController : BaseApiController
         }
     }
 
-    #region Mapping Methods
-
-    private ProductDto MapToProductDto(Product product)
-    {
-        var images = product.Images?.Select(MapToProductImageDto).ToList() ?? new List<ProductImageDto>();
-        var primaryImage = images.FirstOrDefault(img => img.IsPrimary) ?? images.FirstOrDefault();
-
-        return new ProductDto
-        {
-            Id = product.Id,
-            Name = product.Name,
-            Description = product.Description,
-            Brand = product.Brand,
-            Model = product.Model,
-            Price = product.Price,
-            SKU = product.SKU,
-            IsActive = product.IsActive,
-            ProductType = product.GetType().Name,
-            StockQuantity = product.Inventory?.AvailableQuantity ?? 0,
-            CreatedAt = product.CreatedAt,
-            UpdatedAt = product.UpdatedAt,
-            ImageUrl = primaryImage?.ImageUrl, // Set primary image URL
-            Images = images,
-            Specifications = GenerateProductSpecifications(product),
-            Inventory = product.Inventory != null ? MapToInventoryDto(product.Inventory) : null,
-
-            // Variant support
-            ParentProductId = product.ParentProductId,
-            VariantName = product.VariantName,
-            VariantSku = product.VariantSku,
-            IsVariant = product.IsVariant,
-            IsBaseProduct = product.IsBaseProduct,
-            Variants = product.Variants?.Select(v => v switch
-            {
-                Laptop laptop => MapToLaptopDto(laptop),
-                Accessory accessory => MapToAccessoryDto(accessory),
-                Bundle bundle => MapToBundleDto(bundle),
-                _ => MapToProductDto(v)
-            }).ToList() ?? new List<ProductDto>()
-        };
-    }
-
-    private LaptopDto MapToLaptopDto(Laptop laptop)
-    {
-        var baseDto = MapToProductDto(laptop);
-        return new LaptopDto
-        {
-            Id = baseDto.Id,
-            Name = baseDto.Name,
-            Description = baseDto.Description,
-            Brand = baseDto.Brand,
-            Model = baseDto.Model,
-            Price = baseDto.Price,
-            SKU = baseDto.SKU,
-            IsActive = baseDto.IsActive,
-            ProductType = baseDto.ProductType,
-            StockQuantity = baseDto.StockQuantity,
-            CreatedAt = baseDto.CreatedAt,
-            UpdatedAt = baseDto.UpdatedAt,
-            Images = baseDto.Images,
-            Specifications = baseDto.Specifications,
-            Inventory = baseDto.Inventory,
-            Series = laptop.Series,
-            CpuBrand = laptop.CpuBrand,
-            CpuModel = laptop.CpuModel,
-            CpuGeneration = laptop.CpuGeneration,
-            CpuCores = laptop.CpuCores,
-            CpuBaseClockGHz = laptop.CpuBaseClockGHz,
-            CpuBoostClockGHz = laptop.CpuBoostClockGHz,
-            CpuCache = laptop.CpuCache,
-            RamType = laptop.RamType,
-            RamCapacityGB = laptop.RamCapacityGB,
-            RamSlots = laptop.RamSlots,
-            RamSpeed = laptop.RamSpeed,
-            RamUpgradeable = laptop.RamUpgradeable,
-            StorageType = laptop.StorageType,
-            StorageCapacityGB = laptop.StorageCapacityGB,
-            StorageInterface = laptop.StorageInterface,
-            NvMeSupport = laptop.NvMeSupport,
-            GpuType = laptop.GpuType,
-            GpuBrand = laptop.GpuBrand,
-            GpuModel = laptop.GpuModel,
-            GpuVramGB = laptop.GpuVramGB,
-            DisplaySizeInches = laptop.DisplaySizeInches,
-            DisplayResolution = laptop.DisplayResolution,
-            DisplayPanelType = laptop.DisplayPanelType,
-            DisplayRefreshRateHz = laptop.DisplayRefreshRateHz,
-            DisplayTouchscreen = laptop.DisplayTouchscreen,
-            BatteryCapacityWh = laptop.BatteryCapacityWh,
-            WeightKg = laptop.WeightKg,
-            Dimensions = laptop.Dimensions,
-            Color = laptop.Color,
-            Ports = laptop.Ports,
-            WiFi6Support = laptop.WiFi6Support,
-            BluetoothSupport = laptop.BluetoothSupport,
-            BluetoothVersion = laptop.BluetoothVersion,
-            WarrantyPeriod = laptop.WarrantyPeriod,
-            TargetAudience = laptop.TargetAudience,
-            // Variant properties
-            ParentProductId = baseDto.ParentProductId,
-            VariantName = baseDto.VariantName,
-            VariantSku = baseDto.VariantSku,
-            IsVariant = baseDto.IsVariant,
-            IsBaseProduct = baseDto.IsBaseProduct,
-            Variants = baseDto.Variants
-        };
-    }
-
-    private AccessoryDto MapToAccessoryDto(Accessory accessory)
-    {
-        var baseDto = MapToProductDto(accessory);
-        return new AccessoryDto
-        {
-            Id = baseDto.Id,
-            Name = baseDto.Name,
-            Description = baseDto.Description,
-            Brand = baseDto.Brand,
-            Model = baseDto.Model,
-            Price = baseDto.Price,
-            SKU = baseDto.SKU,
-            IsActive = baseDto.IsActive,
-            ProductType = baseDto.ProductType,
-            StockQuantity = baseDto.StockQuantity,
-            CreatedAt = baseDto.CreatedAt,
-            UpdatedAt = baseDto.UpdatedAt,
-            Images = baseDto.Images,
-            Specifications = baseDto.Specifications,
-            Inventory = baseDto.Inventory,
-            AccessoryType = accessory.AccessoryType,
-            Compatibility = accessory.Compatibility,
-            SpecificationDetails = accessory.Specifications,
-            Color = accessory.Color,
-            Connectivity = accessory.Connectivity,
-            // Variant properties
-            ParentProductId = baseDto.ParentProductId,
-            VariantName = baseDto.VariantName,
-            VariantSku = baseDto.VariantSku,
-            IsVariant = baseDto.IsVariant,
-            IsBaseProduct = baseDto.IsBaseProduct,
-            Variants = baseDto.Variants
-        };
-    }
-
-    private BundleDto MapToBundleDto(Bundle bundle)
-    {
-        var baseDto = MapToProductDto(bundle);
-        return new BundleDto
-        {
-            Id = baseDto.Id,
-            Name = baseDto.Name,
-            Description = baseDto.Description,
-            Brand = baseDto.Brand,
-            Model = baseDto.Model,
-            Price = baseDto.Price,
-            SKU = baseDto.SKU,
-            IsActive = baseDto.IsActive,
-            ProductType = baseDto.ProductType,
-            StockQuantity = baseDto.StockQuantity,
-            CreatedAt = baseDto.CreatedAt,
-            UpdatedAt = baseDto.UpdatedAt,
-            Images = baseDto.Images,
-            Specifications = baseDto.Specifications,
-            Inventory = baseDto.Inventory,
-            BundleType = bundle.BundleType,
-            DiscountPercentage = bundle.DiscountPercentage,
-            ValidFrom = bundle.ValidFrom,
-            ValidTo = bundle.ValidTo,
-            BundleItems = bundle.BundleItems?.Select(bi => new BundleItemDto
-            {
-                Id = bi.Id,
-                ProductId = bi.ProductId,
-                ProductName = bi.Product?.Name ?? "",
-                ProductSku = bi.Product?.SKU ?? "",
-                ProductImageUrl = bi.Product?.Images?.FirstOrDefault(img => img.IsPrimary)?.ImageUrl
-                                ?? bi.Product?.Images?.FirstOrDefault()?.ImageUrl,
-                Brand = bi.Product?.Brand ?? "",
-                OriginalPrice = bi.Product?.Price ?? 0,
-                Quantity = bi.Quantity,
-                DiscountPercentage = bi.DiscountPercentage,
-                DiscountedPrice = CalculateDiscountedPrice(bi.Product?.Price ?? 0, bi.DiscountPercentage),
-                TotalPrice = CalculateDiscountedPrice(bi.Product?.Price ?? 0, bi.DiscountPercentage) * bi.Quantity,
-                IsAvailable = bi.Product?.IsActive ?? false,
-                StockQuantity = bi.Product?.Inventory?.AvailableQuantity ?? 0
-            }).ToList() ?? new List<BundleItemDto>(),
-            // Variant properties
-            ParentProductId = baseDto.ParentProductId,
-            VariantName = baseDto.VariantName,
-            VariantSku = baseDto.VariantSku,
-            IsVariant = baseDto.IsVariant,
-            IsBaseProduct = baseDto.IsBaseProduct,
-            Variants = baseDto.Variants
-        };
-    }
-
-    /// <summary>
-    /// Helper method to calculate discounted price
-    /// </summary>
-    private static decimal CalculateDiscountedPrice(decimal originalPrice, decimal discountPercentage)
-    {
-        return originalPrice * (1 - discountPercentage / 100);
-    }
-
-    private ProductImageDto MapToProductImageDto(ProductImage image)
-    {
-        return new ProductImageDto
-        {
-            Id = image.Id,
-            ImageUrl = image.ImageUrl,
-            AltText = image.AltText,
-            SortOrder = image.SortOrder,
-            IsPrimary = image.IsPrimary,
-            ImageId = image.ImageId,
-            DeleteUrl = image.DeleteUrl,
-            DisplayOrder = image.DisplayOrder
-        };
-    }
-
-    private InventoryDto MapToInventoryDto(Inventory inventory)
-    {
-        return new InventoryDto
-        {
-            Id = inventory.Id,
-            ProductId = inventory.ProductId,
-            ProductName = "", // This would need to be loaded separately
-            QuantityInStock = inventory.QuantityInStock,
-            ReservedQuantity = inventory.ReservedQuantity,
-            ReorderLevel = inventory.ReorderLevel,
-            MaxStockLevel = inventory.MaxStockLevel,
-            WarehouseLocation = inventory.WarehouseLocation,
-            LastStockUpdate = inventory.LastStockUpdate
-        };
-    }
-
+    
     private Product MapToProduct(JsonElement request, string productType)
     {
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -990,97 +749,6 @@ public class ProductsController : BaseApiController
         }
     }
 
-    private List<ProductSpecificationDto> GenerateProductSpecifications(Product product)
-    {
-        var specifications = new List<ProductSpecificationDto>();
-        int displayOrder = 0;
-
-        switch (product)
-        {
-            case Laptop laptop:
-                // CPU Specifications
-                if (!string.IsNullOrEmpty(laptop.CpuBrand))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "CPU Brand", Value = laptop.CpuBrand, Category = "Processor", DisplayOrder = displayOrder });
-                if (!string.IsNullOrEmpty(laptop.CpuModel))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "CPU Model", Value = laptop.CpuModel, Category = "Processor", DisplayOrder = displayOrder });
-                if (laptop.CpuCores > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "CPU Cores", Value = laptop.CpuCores.ToString(), Category = "Processor", DisplayOrder = displayOrder });
-                if (laptop.CpuBaseClockGHz > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Base Clock", Value = $"{laptop.CpuBaseClockGHz} GHz", Category = "Processor", DisplayOrder = displayOrder });
-                if (laptop.CpuBoostClockGHz > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Boost Clock", Value = $"{laptop.CpuBoostClockGHz} GHz", Category = "Processor", DisplayOrder = displayOrder });
-
-                // RAM Specifications
-                if (!string.IsNullOrEmpty(laptop.RamType))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "RAM Type", Value = laptop.RamType, Category = "Memory", DisplayOrder = displayOrder });
-                if (laptop.RamCapacityGB > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "RAM Capacity", Value = $"{laptop.RamCapacityGB} GB", Category = "Memory", DisplayOrder = displayOrder });
-                if (laptop.RamSpeed > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "RAM Speed", Value = $"{laptop.RamSpeed} MHz", Category = "Memory", DisplayOrder = displayOrder });
-
-                // Storage Specifications
-                if (!string.IsNullOrEmpty(laptop.StorageType))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Storage Type", Value = laptop.StorageType, Category = "Storage", DisplayOrder = displayOrder });
-                if (laptop.StorageCapacityGB > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Storage Capacity", Value = $"{laptop.StorageCapacityGB} GB", Category = "Storage", DisplayOrder = displayOrder });
-
-                // GPU Specifications
-                if (!string.IsNullOrEmpty(laptop.GpuBrand))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "GPU Brand", Value = laptop.GpuBrand, Category = "Graphics", DisplayOrder = displayOrder });
-                if (!string.IsNullOrEmpty(laptop.GpuModel))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "GPU Model", Value = laptop.GpuModel, Category = "Graphics", DisplayOrder = displayOrder });
-                if (laptop.GpuVramGB > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "VRAM", Value = $"{laptop.GpuVramGB} GB", Category = "Graphics", DisplayOrder = displayOrder });
-
-                // Display Specifications
-                if (laptop.DisplaySizeInches > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Display Size", Value = $"{laptop.DisplaySizeInches}\"", Category = "Display", DisplayOrder = displayOrder });
-                if (!string.IsNullOrEmpty(laptop.DisplayResolution))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Resolution", Value = laptop.DisplayResolution, Category = "Display", DisplayOrder = displayOrder });
-                if (laptop.DisplayRefreshRateHz > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Refresh Rate", Value = $"{laptop.DisplayRefreshRateHz} Hz", Category = "Display", DisplayOrder = displayOrder });
-
-                // Physical Specifications
-                if (laptop.WeightKg > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Weight", Value = $"{laptop.WeightKg} kg", Category = "Physical", DisplayOrder = displayOrder });
-                if (!string.IsNullOrEmpty(laptop.Dimensions))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Dimensions", Value = laptop.Dimensions, Category = "Physical", DisplayOrder = displayOrder });
-                if (laptop.BatteryCapacityWh > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Battery", Value = $"{laptop.BatteryCapacityWh} Wh", Category = "Physical", DisplayOrder = displayOrder });
-                break;
-
-            case Accessory accessory:
-                if (!string.IsNullOrEmpty(accessory.AccessoryType))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Type", Value = accessory.AccessoryType, Category = "General", DisplayOrder = displayOrder });
-                if (!string.IsNullOrEmpty(accessory.Compatibility))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Compatibility", Value = accessory.Compatibility, Category = "General", DisplayOrder = displayOrder });
-                if (!string.IsNullOrEmpty(accessory.Specifications))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Details", Value = accessory.Specifications, Category = "General", DisplayOrder = displayOrder });
-                if (!string.IsNullOrEmpty(accessory.Color))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Color", Value = accessory.Color, Category = "Design", DisplayOrder = displayOrder });
-                if (!string.IsNullOrEmpty(accessory.Connectivity))
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Connectivity", Value = accessory.Connectivity, Category = "Technical", DisplayOrder = displayOrder });
-                break;
-
-            case Bundle bundle:
-                if (bundle.DiscountPercentage > 0)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Discount", Value = $"{bundle.DiscountPercentage}%", Category = "Bundle", DisplayOrder = displayOrder });
-                if (bundle.ValidFrom.HasValue)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Valid From", Value = bundle.ValidFrom.Value.ToString("yyyy-MM-dd"), Category = "Bundle", DisplayOrder = displayOrder });
-                if (bundle.ValidTo.HasValue)
-                    specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Valid To", Value = bundle.ValidTo.Value.ToString("yyyy-MM-dd"), Category = "Bundle", DisplayOrder = displayOrder });
-                break;
-        }
-
-        // Common specifications for all products
-        specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Brand", Value = product.Brand, Category = "General", DisplayOrder = displayOrder });
-        specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "Model", Value = product.Model, Category = "General", DisplayOrder = displayOrder });
-        specifications.Add(new ProductSpecificationDto { Id = ++displayOrder, Name = "SKU", Value = product.SKU, Category = "General", DisplayOrder = displayOrder });
-
-        return specifications.OrderBy(s => s.Category).ThenBy(s => s.DisplayOrder).ToList();
-    }
-
-    #endregion
 
     #region T005 Enhanced Product Catalog Operations
 
@@ -1126,7 +794,7 @@ public class ProductsController : BaseApiController
                 minDisplaySize, maxDisplaySize, displayResolution,
                 minRefreshRate, touchscreen, targetAudience);
 
-            var laptopDtos = result.Items.Select(MapToLaptopDto);
+            var laptopDtos = _mapper.Map<List<LaptopDto>>(result.Items);
 
             return SuccessResponse(new
             {
@@ -1165,7 +833,7 @@ public class ProductsController : BaseApiController
             var result = await _productService.GetAccessoriesWithCompatibilityAsync(
                 page, pageSize, search, accessoryType, compatibility, productId);
 
-            var accessoryDtos = result.Items.Select(MapToAccessoryDto);
+            var accessoryDtos = _mapper.Map<List<AccessoryDto>>(result.Items);
 
             return SuccessResponse(new
             {
@@ -1203,7 +871,7 @@ public class ProductsController : BaseApiController
                 request.ValidFrom,
                 request.ValidTo);
 
-            return SuccessResponse(MapToBundleDto(bundle), "Bundle created successfully");
+            return SuccessResponse(_mapper.Map<BundleDto>(bundle), "Bundle created successfully");
         }
         catch (ArgumentException ex)
         {
@@ -1296,9 +964,9 @@ public class ProductsController : BaseApiController
                 return Unauthorized();
 
             var recommendations = await _productService.GetRecommendedProductsAsync(userId.Value, count);
-            var recommendationDtos = recommendations.Select(MapToProductDto);
+            var recommendationDtos = _mapper.Map<IEnumerable<ProductDto>>(recommendations);
 
-            return SuccessResponse<IEnumerable<ProductDto>>(recommendationDtos);
+            return SuccessResponse(recommendationDtos);
         }
         catch (Exception ex)
         {
@@ -1463,722 +1131,5 @@ public class ProductsController : BaseApiController
             return HandleException(ex, nameof(UploadVariantImages));
         }
     }
-
-    /// <summary>
-    /// Deletes a variant image
-    /// </summary>
-    /// <param name="id">Base product ID</param>
-    /// <param name="variantId">Variant ID</param>
-    /// <param name="imageId">Image ID to delete</param>
-    /// <returns>Success response</returns>
-    [HttpDelete("{id}/variants/{variantId}/images/{imageId}")]
-    [Authorize(Policy = "RequirePermission:products:manage")]
-    public async Task<IActionResult> DeleteVariantImage(int id, int variantId, string imageId)
-    {
-        try
-        {
-            // Verify variant exists and belongs to the base product
-            var variant = await _productService.GetByIdAsync(variantId);
-            if (variant == null || variant.ParentProductId != id)
-                return ErrorResponse("Variant not found", 404);
-
-            // Find the image - try ImageId first (ImgBB ID), then Id (database ID)
-            // Find the image - try ImageId first (ImgBB ID), then Id (database ID)
-            // Since we don't have _context, use the loaded variant's images
-            var image = variant.Images?.FirstOrDefault(img => img.ImageId == imageId || img.Id.ToString() == imageId);
-
-            if (image == null)
-                return ErrorResponse("Image not found", 404);
-
-            // Delete from ImgBB
-            if (!string.IsNullOrEmpty(image.DeleteUrl))
-            {
-                try
-                {
-                    await _imageHostingService.DeleteImageAsync(image.DeleteUrl);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to delete image {ImageId} from ImgBB, but continuing with database cleanup", imageId);
-                }
-            }
-
-            // Remove from database
-            // Remove from database via service
-            // Need image ID. 'image' is ProductImage entity from context.
-            // Since we removed context, we must rely on what we can get via service.
-            // But wait, the lines above this block used 'image' to get DeleteUrl.
-            // I need to fetch 'image' via Service first!
-            
-            // Refactoring note: This chunk replaces ONLY the db removal lines. 
-            // BUT the whole method relied on 'image' variable which was likely fetched via _context previously in the method?
-            // "var image = product.Images.FirstOrDefault..." if loaded via Include.
-            // The previous code: "var product = await _productService.GetByIdAsync(id);"
-            // So 'image' comes from 'product.Images'. _context was NOT used to fetch it!
-            // _context was only used to Remove it.
-            // So 'image' variable is available.
-            
-            await _productService.DeleteProductImageAsync(image.Id);
-
-            // Log admin activity for image deletion
-            var adminUserId = GetCurrentUserId();
-            if (adminUserId.HasValue)
-            {
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-                await _auditLoggingService.LogAdminActivityAsync(
-                    adminUserId.Value,
-                    "variant_image_deleted",
-                    $"Admin deleted variant image {imageId} from variant {variantId} of product {id}",
-                    ipAddress ?? "Unknown",
-                    userAgent ?? "Unknown",
-                    targetResource: $"Product:{id}/Variant:{variantId}/Image:{imageId}"
-                );
-            }
-
-            return Ok(new
-            {
-                success = true,
-                message = "Image deleted successfully"
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting variant image {ImageId} for variant {VariantId}", imageId, variantId);
-            return HandleException(ex, nameof(DeleteVariantImage));
-        }
-    }
-
-    #endregion
-
-    #region Image Upload Operations
-
-    /// <summary>
-    /// Uploads product images to ImgBB cloud hosting
-    /// </summary>
-    /// <param name="id">Product ID</param>
-    /// <param name="files">Image files to upload</param>
-    /// <returns>Uploaded image URLs and details</returns>
-    [HttpPost("{id}/images")]
-    [Authorize(Policy = "RequirePermission:products:manage")]
-    [Consumes("multipart/form-data")]
-    public async Task<IActionResult> UploadProductImages(int id, IFormFileCollection files)
-    {
-        try
-        {
-            // Debug logging
-            _logger.LogInformation("UploadProductImages called with {FileCount} files for product {ProductId}",
-                files?.Count ?? 0, id);
-
-            if (files != null)
-            {
-                for (int i = 0; i < files.Count; i++)
-                {
-                    var file = files[i];
-                    _logger.LogInformation("File {Index}: {FileName}, Size: {Size} bytes",
-                        i + 1, file.FileName, file.Length);
-                }
-            }
-
-            if (files == null || files.Count == 0)
-                return ErrorResponse("No files provided", 400);
-
-            var product = await _productService.GetByIdAsync(id);
-            if (product == null)
-                return ErrorResponse("Product not found", 404);
-
-            var uploadResults = new List<ImageUploadResult>();
-            var productImages = new List<ProductImage>();
-
-            _logger.LogInformation("Starting upload of {FileCount} files for product {ProductId}",
-                files.Count, id);
-
-            for (int i = 0; i < files.Count; i++)
-            {
-                var file = files[i];
-                _logger.LogInformation("Uploading file {Index}/{Total}: {FileName} ({Size} bytes)",
-                    i + 1, files.Count, file.FileName, file.Length);
-
-                // Validate file
-                if (!_imageHostingService.IsValidImage(file.FileName, file.ContentType, file.Length))
-                {
-                    return ErrorResponse($"Invalid image file: {file.FileName}", 400);
-                }
-
-                try
-                {
-                    // Upload to ImgBB
-                    using var stream = file.OpenReadStream();
-                    var uploadResult = await _imageHostingService.UploadImageAsync(stream, file.FileName, ImageCategory.Products);
-                    uploadResults.Add(uploadResult);
-
-                    _logger.LogInformation("Successfully uploaded file {Index}/{Total}: {FileName}",
-                        i + 1, files.Count, file.FileName);
-
-                    // Prepare ProductImage entity
-                    productImages.Add(new ProductImage
-                    {
-                        ProductId = id,
-                        ImageUrl = uploadResult.Url,
-                        AltText = $"{product.Name} - Image",
-                        DisplayOrder = productImages.Count + 1,
-                        ImageId = uploadResult.ImageId,
-                        DeleteUrl = uploadResult.DeleteUrl
-                    });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to upload image {FileName} for product {ProductId}", file.FileName, id);
-
-                    // Cleanup already uploaded images on error
-                    foreach (var result in uploadResults)
-                    {
-                        try
-                        {
-                            await _imageHostingService.DeleteImageAsync(result.DeleteUrl);
-                        }
-                        catch (Exception cleanupEx)
-                        {
-                            _logger.LogError(cleanupEx, "Failed to cleanup image {ImageId} during error handling", result.ImageId);
-                        }
-                    }
-
-                    return ErrorResponse($"Failed to upload image {file.FileName}: {ex.Message}", 500);
-                }
-            }
-
-            // Update product images in database
-            var success = await _productService.UpdateProductImagesAsync(id, productImages);
-            if (!success)
-            {
-                // Cleanup uploaded images if database update fails
-                foreach (var result in uploadResults)
-                {
-                    try
-                    {
-                        await _imageHostingService.DeleteImageAsync(result.DeleteUrl);
-                    }
-                    catch (Exception cleanupEx)
-                    {
-                        _logger.LogError(cleanupEx, "Failed to cleanup image {ImageId} after database error", result.ImageId);
-                    }
-                }
-
-                return ErrorResponse("Failed to update product images", 500);
-            }
-
-            _logger.LogInformation("Successfully uploaded {Count} images for product {ProductId}", uploadResults.Count, id);
-
-            return SuccessResponse(new
-            {
-                productId = id,
-                uploadedImages = uploadResults.Select(r => new
-                {
-                    url = r.Url,
-                    imageId = r.ImageId,
-                    fileName = r.FileName,
-                    size = r.Size,
-                    dimensions = new { width = r.Width, height = r.Height }
-                }),
-                message = $"Successfully uploaded {uploadResults.Count} image(s)"
-            });
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(UploadProductImages));
-        }
-    }
-
-    /// <summary>
-    /// Deletes a specific product image
-    /// </summary>
-    /// <param name="id">Product ID</param>
-    /// <param name="imageId">Image ID to delete</param>
-    /// <returns>Success status</returns>
-    [HttpDelete("{id}/images/{imageId}")]
-    [Authorize(Policy = "RequirePermission:products:manage")]
-    public async Task<IActionResult> DeleteProductImage(int id, string imageId)
-    {
-        try
-        {
-            var product = await _productService.GetByIdAsync(id);
-            if (product == null)
-                return ErrorResponse("Product not found", 404);
-
-            // Try to find image by ImageId first (ImgBB ID), then by Id (database ID)
-            var productImage = product.Images?.FirstOrDefault(i => i.ImageId == imageId)
-                             ?? product.Images?.FirstOrDefault(i => i.Id.ToString() == imageId);
-            if (productImage == null)
-                return ErrorResponse("Image not found", 404);
-
-            // Delete from ImgBB
-            if (!string.IsNullOrEmpty(productImage.DeleteUrl))
-            {
-                var deleteSuccess = await _imageHostingService.DeleteImageAsync(productImage.DeleteUrl);
-                if (!deleteSuccess)
-                {
-                    _logger.LogWarning("Failed to delete image {ImageId} from ImgBB for product {ProductId}", imageId, id);
-                    // Continue with database deletion even if ImgBB deletion fails
-                }
-            }
-
-
-            // Remove from database
-            if (product.Images != null)
-            {
-                var imageToRemove = product.Images.FirstOrDefault(i =>
-                    (i.ImageId == imageId) || (i.Id.ToString() == imageId));
-
-                if (imageToRemove != null)
-                {
-                    await _productService.DeleteProductImageAsync(imageToRemove.Id);
-                }
-            }
-
-
-            _logger.LogInformation("Successfully deleted image {ImageId} from product {ProductId}", imageId, id);
-
-            // Log admin activity for image deletion
-            var adminUserId = GetCurrentUserId();
-            if (adminUserId.HasValue)
-            {
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-                await _auditLoggingService.LogAdminActivityAsync(
-                    adminUserId.Value,
-                    "product_image_deleted",
-                    $"Admin deleted image {imageId} from product {id}",
-                    ipAddress ?? "Unknown",
-                    userAgent ?? "Unknown",
-                    targetResource: $"Product:{id}/Image:{imageId}"
-                );
-            }
-
-            return SuccessResponse(new
-            {
-                productId = id,
-                deletedImageId = imageId,
-                message = "Image deleted successfully"
-            });
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(DeleteProductImage));
-        }
-    }
-
-    #endregion
-
-    #region Admin Endpoints
-
-    /// <summary>
-    /// Get all products for admin management (includes all product data)
-    /// </summary>
-    [HttpGet("admin")]
-    [Authorize(Policy = "RequirePermission:products:read")]
-    public async Task<IActionResult> GetAdminProducts(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50,
-        [FromQuery] string? search = null,
-        [FromQuery] string? type = null,
-        [FromQuery] string? brand = null,
-        [FromQuery] string? status = null,
-        [FromQuery] string? productType = null)
-    {
-        try
-        {
-            if (page < 1) page = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 50;
-
-            var result = await _productService.GetAdminProductsAsync(page, pageSize, search, type, brand, status, productType);
-
-            return Ok(new
-            {
-                products = result.Items ?? new List<Product>(),
-                totalCount = result.TotalCount,
-                currentPage = result.Page,
-                totalPages = result.TotalPages,
-                pageSize = result.PageSize
-            });
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetAdminProducts));
-        }
-    }
-
-    #endregion
-
-    #region Variant Management Endpoints
-
-    /// <summary>
-    /// Gets variants for a specific product
-    /// </summary>
-    /// <param name="id">Product ID</param>
-    /// <returns>List of variants</returns>
-    [HttpGet("{id}/variants")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetVariants(int id)
-    {
-        try
-        {
-            var variants = await _productService.GetVariantsAsync(id);
-            var variantDtos = variants.Select(v => v switch
-            {
-                Laptop laptop => MapToLaptopDto(laptop),
-                Accessory accessory => MapToAccessoryDto(accessory),
-                Bundle bundle => MapToBundleDto(bundle),
-                _ => MapToProductDto(v)
-            }).ToList();
-
-            return SuccessResponse(variantDtos);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetVariants));
-        }
-    }
-
-    /// <summary>
-    /// Gets base product for a variant
-    /// </summary>
-    /// <param name="id">Variant ID</param>
-    /// <returns>Base product</returns>
-    [HttpGet("{id}/base-product")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetBaseProduct(int id)
-    {
-        try
-        {
-            var baseProduct = await _productService.GetBaseProductAsync(id);
-            if (baseProduct == null)
-            {
-                return ErrorResponse("Base product not found", 404);
-            }
-
-            var baseProductDto = baseProduct switch
-            {
-                Laptop laptop => MapToLaptopDto(laptop),
-                Accessory accessory => MapToAccessoryDto(accessory),
-                Bundle bundle => MapToBundleDto(bundle),
-                _ => MapToProductDto(baseProduct)
-            };
-
-            return SuccessResponse(baseProductDto);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetBaseProduct));
-        }
-    }
-
-    /// <summary>
-    /// Creates a new variant for a product
-    /// </summary>
-    /// <param name="id">Base product ID</param>
-    /// <param name="createVariantDto">Variant data</param>
-    /// <returns>Created variant</returns>
-    [HttpPost("{id}/variants")]
-    [Authorize(Policy = "RequirePermission:products:write")]
-    public async Task<IActionResult> CreateVariant(int id, [FromBody] CreateVariantDto createVariantDto)
-    {
-        try
-        {
-            // Get base product to determine type
-            var baseProduct = await _productService.GetByIdAsync(id);
-            if (baseProduct == null)
-            {
-                return ErrorResponse("Base product not found", 404);
-            }
-
-            // Create variant based on base product type
-            Product variant = baseProduct switch
-            {
-                Laptop => new Laptop
-                {
-                    Name = $"{baseProduct.Name} - {createVariantDto.VariantName}",
-                    Description = createVariantDto.Description ?? baseProduct.Description,
-                    Brand = baseProduct.Brand,
-                    Model = baseProduct.Model,
-                    Price = createVariantDto.Price,
-                    SKU = createVariantDto.VariantSku,
-                    IsActive = createVariantDto.IsActive,
-                    VariantName = createVariantDto.VariantName,
-                    VariantSku = createVariantDto.VariantSku,
-                    ParentProductId = id,
-
-                    // M RNG: S dng gi tr t DTO hoc fallback v base product
-                    Series = createVariantDto.Series ?? ((Laptop)baseProduct).Series,
-
-                    // CPU Specifications - C TH THAY I
-                    CpuBrand = createVariantDto.CpuBrand ?? ((Laptop)baseProduct).CpuBrand,
-                    CpuModel = createVariantDto.CpuModel ?? ((Laptop)baseProduct).CpuModel,
-                    CpuGeneration = createVariantDto.CpuGeneration ?? ((Laptop)baseProduct).CpuGeneration,
-                    CpuCores = createVariantDto.CpuCores ?? ((Laptop)baseProduct).CpuCores,
-                    CpuBaseClockGHz = createVariantDto.CpuBaseClockGHz ?? ((Laptop)baseProduct).CpuBaseClockGHz,
-                    CpuBoostClockGHz = createVariantDto.CpuBoostClockGHz ?? ((Laptop)baseProduct).CpuBoostClockGHz,
-                    CpuCache = createVariantDto.CpuCache ?? ((Laptop)baseProduct).CpuCache,
-
-                    // RAM Specifications - C TH THAY I
-                    RamType = createVariantDto.RamType ?? ((Laptop)baseProduct).RamType,
-                    RamCapacityGB = createVariantDto.RamCapacityGB ?? ((Laptop)baseProduct).RamCapacityGB,
-                    RamSlots = createVariantDto.RamSlots ?? ((Laptop)baseProduct).RamSlots,
-                    RamSpeed = createVariantDto.RamSpeed ?? ((Laptop)baseProduct).RamSpeed,
-                    RamUpgradeable = createVariantDto.RamUpgradeable ?? ((Laptop)baseProduct).RamUpgradeable,
-
-                    // Storage Specifications - C TH THAY I
-                    StorageType = createVariantDto.StorageType ?? ((Laptop)baseProduct).StorageType,
-                    StorageCapacityGB = createVariantDto.StorageCapacityGB ?? ((Laptop)baseProduct).StorageCapacityGB,
-                    StorageInterface = createVariantDto.StorageInterface ?? ((Laptop)baseProduct).StorageInterface,
-                    NvMeSupport = createVariantDto.NvMeSupport ?? ((Laptop)baseProduct).NvMeSupport,
-
-                    // GPU Specifications - C TH THAY I
-                    GpuType = createVariantDto.GpuType ?? ((Laptop)baseProduct).GpuType,
-                    GpuBrand = createVariantDto.GpuBrand ?? ((Laptop)baseProduct).GpuBrand,
-                    GpuModel = createVariantDto.GpuModel ?? ((Laptop)baseProduct).GpuModel,
-                    GpuVramGB = createVariantDto.GpuVramGB ?? ((Laptop)baseProduct).GpuVramGB,
-
-                    // Display Specifications - C TH THAY I
-                    DisplaySizeInches = createVariantDto.DisplaySizeInches ?? ((Laptop)baseProduct).DisplaySizeInches,
-                    DisplayResolution = createVariantDto.DisplayResolution ?? ((Laptop)baseProduct).DisplayResolution,
-                    DisplayPanelType = createVariantDto.DisplayPanelType ?? ((Laptop)baseProduct).DisplayPanelType,
-                    DisplayRefreshRateHz = createVariantDto.DisplayRefreshRateHz ?? ((Laptop)baseProduct).DisplayRefreshRateHz,
-                    DisplayTouchscreen = createVariantDto.DisplayTouchscreen ?? ((Laptop)baseProduct).DisplayTouchscreen,
-
-                    // Physical Specifications - C TH THAY I
-                    BatteryCapacityWh = createVariantDto.BatteryCapacityWh ?? ((Laptop)baseProduct).BatteryCapacityWh,
-                    WeightKg = createVariantDto.WeightKg ?? ((Laptop)baseProduct).WeightKg,
-                    Dimensions = createVariantDto.Dimensions ?? ((Laptop)baseProduct).Dimensions,
-                    Color = createVariantDto.Color ?? ((Laptop)baseProduct).Color,
-                    Ports = createVariantDto.Ports ?? ((Laptop)baseProduct).Ports,
-
-                    // Connectivity - C TH THAY I
-                    WiFi6Support = createVariantDto.WiFi6Support ?? ((Laptop)baseProduct).WiFi6Support,
-                    BluetoothSupport = createVariantDto.BluetoothSupport ?? ((Laptop)baseProduct).BluetoothSupport,
-                    BluetoothVersion = createVariantDto.BluetoothVersion ?? ((Laptop)baseProduct).BluetoothVersion,
-
-                    // Business info - C TH THAY I
-                    WarrantyPeriod = createVariantDto.WarrantyPeriod ?? ((Laptop)baseProduct).WarrantyPeriod,
-                    TargetAudience = createVariantDto.TargetAudience ?? ((Laptop)baseProduct).TargetAudience,
-
-                    // Copy relationships
-                    CategoryId = baseProduct.CategoryId,
-                    BrandId = baseProduct.BrandId
-                },
-                _ => throw new ArgumentException("Only laptop variants are currently supported")
-            };
-
-            var createdVariant = await _productService.CreateVariantAsync(id, variant);
-
-            // Create inventory for variant
-            var createRequest = new CoreInventory.CreateInventoryRequest
-            {
-                ProductId = createdVariant.Id,
-                QuantityInStock = createVariantDto.StockQuantity,
-                ReorderLevel = 10,
-                MaxStockLevel = 1000, 
-                WarehouseLocation = "Main Warehouse",
-                UnitCost = createdVariant.Price * 0.8m
-            };
-
-            await _inventoryService.CreateInventoryAsync(createRequest);
-
-            var variantDto = createdVariant switch
-            {
-                Laptop laptop => MapToLaptopDto(laptop),
-                _ => MapToProductDto(createdVariant)
-            };
-
-            return CreatedAtAction(nameof(GetProduct), new { id = createdVariant.Id }, variantDto);
-        }
-        catch (ArgumentException ex)
-        {
-            return ErrorResponse(ex.Message, 400);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(CreateVariant));
-        }
-    }
-
-    /// <summary>
-    /// Updates a variant
-    /// </summary>
-    /// <param name="id">Base product ID</param>
-    /// <param name="variantId">Variant ID</param>
-    /// <param name="updateVariantDto">Updated variant data</param>
-    /// <returns>Updated variant</returns>
-    [HttpPut("{id}/variants/{variantId}")]
-    [Authorize(Policy = "RequirePermission:products:write")]
-    public async Task<IActionResult> UpdateVariant(int id, int variantId, [FromBody] UpdateVariantDto updateVariantDto)
-    {
-        try
-        {
-            // Get existing variant
-            var existingVariant = await _productService.GetByIdAsync(variantId);
-            if (existingVariant == null || existingVariant.ParentProductId != id)
-            {
-                return ErrorResponse("Variant not found", 404);
-            }
-
-            // Update variant properties
-            if (!string.IsNullOrEmpty(updateVariantDto.VariantName))
-            {
-                existingVariant.VariantName = updateVariantDto.VariantName;
-                existingVariant.Name = $"{existingVariant.ParentProduct?.Name} - {updateVariantDto.VariantName}";
-            }
-
-            if (!string.IsNullOrEmpty(updateVariantDto.VariantSku))
-                existingVariant.VariantSku = updateVariantDto.VariantSku;
-
-            if (updateVariantDto.Price.HasValue)
-                existingVariant.Price = updateVariantDto.Price.Value;
-
-            if (!string.IsNullOrEmpty(updateVariantDto.Description))
-                existingVariant.Description = updateVariantDto.Description;
-
-            if (updateVariantDto.IsActive.HasValue)
-                existingVariant.IsActive = updateVariantDto.IsActive.Value;
-
-            // Update laptop-specific properties
-            if (existingVariant is Laptop laptop)
-            {
-                if (updateVariantDto.RamCapacityGB.HasValue)
-                    laptop.RamCapacityGB = updateVariantDto.RamCapacityGB.Value;
-
-                if (updateVariantDto.StorageCapacityGB.HasValue)
-                    laptop.StorageCapacityGB = updateVariantDto.StorageCapacityGB.Value;
-
-                if (!string.IsNullOrEmpty(updateVariantDto.Color))
-                    laptop.Color = updateVariantDto.Color;
-
-                if (!string.IsNullOrEmpty(updateVariantDto.GpuModel))
-                    laptop.GpuModel = updateVariantDto.GpuModel;
-            }
-
-            var updatedVariant = await _productService.UpdateVariantAsync(variantId, existingVariant);
-
-            // Update inventory stock quantity if provided
-            if (updateVariantDto.StockQuantity.HasValue)
-            {
-                var inventory = await _inventoryService.GetInventoryByProductIdAsync(variantId);
-                if (inventory == null)
-                {
-                    // Create inventory if missing (edge case)
-                    var createRequest = new CoreInventory.CreateInventoryRequest
-                    {
-                        ProductId = variantId,
-                        QuantityInStock = updateVariantDto.StockQuantity.Value,
-                        ReorderLevel = 10,
-                        MaxStockLevel = 1000,
-                        WarehouseLocation = "Main Warehouse",
-                        UnitCost = existingVariant.Price * 0.8m
-                    };
-                    await _inventoryService.CreateInventoryAsync(createRequest);
-                }
-                else
-                {
-                    var quantityDifference = updateVariantDto.StockQuantity.Value - inventory.QuantityInStock;
-                    if (quantityDifference != 0)
-                    {
-                        var adjustmentRequest = new CoreInventory.StockAdjustmentRequest
-                        {
-                            ProductId = variantId,
-                            Quantity = quantityDifference,
-                            Reference = "VARIANT_UPDATE",
-                            Notes = $"Variant inventory update: {inventory.QuantityInStock} -> {updateVariantDto.StockQuantity.Value}",
-                            WarehouseLocation = inventory.WarehouseLocation
-                        };
-                        await _inventoryService.AdjustStockAsync(adjustmentRequest);
-                    }
-                }
-            }
-            if (updatedVariant == null)
-            {
-                return ErrorResponse("Variant not found", 404);
-            }
-
-            var variantDto = updatedVariant switch
-            {
-                Laptop updatedLaptop => MapToLaptopDto(updatedLaptop),
-                _ => MapToProductDto(updatedVariant)
-            };
-
-            return SuccessResponse(variantDto);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(UpdateVariant));
-        }
-    }
-
-    /// <summary>
-    /// Deletes a variant
-    /// </summary>
-    /// <param name="id">Base product ID</param>
-    /// <param name="variantId">Variant ID</param>
-    /// <returns>Success response</returns>
-    [HttpDelete("{id}/variants/{variantId}")]
-    [Authorize(Policy = "RequirePermission:products:write")]
-    public async Task<IActionResult> DeleteVariant(int id, int variantId)
-    {
-        try
-        {
-            var success = await _productService.DeleteVariantAsync(variantId);
-            if (!success)
-            {
-                return ErrorResponse("Variant not found", 404);
-            }
-
-            return SuccessResponse(new { message = "Variant deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(DeleteVariant));
-        }
-    }
-
-    /// <summary>
-    /// Gets products with their variants (for product listings)
-    /// </summary>
-    [HttpGet("with-variants")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetProductsWithVariants(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        [FromQuery] string? search = null,
-        [FromQuery] string? type = null,
-        [FromQuery] string? brand = null,
-        [FromQuery] string? category = null,
-        [FromQuery] decimal? minPrice = null,
-        [FromQuery] decimal? maxPrice = null,
-        [FromQuery] string? sortBy = null)
-    {
-        try
-        {
-            if (page < 1) page = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 20;
-
-            var result = await _productService.GetProductsWithVariantsAsync(
-                page, pageSize, search, type, brand, category, minPrice, maxPrice, true, sortBy);
-
-            var productDtos = result.Items.Select(product => product switch
-            {
-                Laptop laptop => MapToLaptopDto(laptop),
-                Accessory accessory => MapToAccessoryDto(accessory),
-                Bundle bundle => MapToBundleDto(bundle),
-                _ => MapToProductDto(product)
-            }).ToList();
-
-            return PaginatedResponse(productDtos, result.TotalCount, page, pageSize);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetProductsWithVariants));
-        }
-    }
-
     #endregion
 }
