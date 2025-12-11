@@ -17,10 +17,20 @@ public class ApplicationDbContext : DbContext
         _dispatcher = dispatcher;
     }
 
+    public override int SaveChanges()
+    {
+        DispatchEventsHelper().GetAwaiter().GetResult();
+        return base.SaveChanges();
+    }
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var result = await base.SaveChangesAsync(cancellationToken);
+        await DispatchEventsHelper();
+        return await base.SaveChangesAsync(cancellationToken);
+    }
 
+    private async Task DispatchEventsHelper()
+    {
         if (_dispatcher != null)
         {
             var entitiesWithEvents = ChangeTracker.Entries<BaseEntity>()
@@ -38,8 +48,6 @@ public class ApplicationDbContext : DbContext
                 }
             }
         }
-
-        return result;
     }
 
     // User Management
