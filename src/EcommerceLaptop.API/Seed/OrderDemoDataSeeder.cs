@@ -74,95 +74,68 @@ public static class OrderDemoDataSeeder
 
         var orderCount = 100;
         var ordersToAdd = new List<Order>(orderCount);
-        var orderItemsToAdd = new List<OrderItem>(orderCount * 2);
+
+        // Reflection for setting private properties
+        var statusProp = typeof(Order).GetProperty("Status");
+        var orderDateProp = typeof(Order).GetProperty("OrderDate");
+        var createdAtProp = typeof(Order).GetProperty("CreatedAt");
+        var updatedAtProp = typeof(Order).GetProperty("UpdatedAt");
+        var invReservedProp = typeof(Order).GetProperty("InventoryReserved");
 
         for (var i = 0; i < orderCount; i++)
         {
             var customer = customers[random.Next(customers.Count)];
             var createdAt = DateTime.UtcNow.AddDays(-random.Next(0, 30)).AddMinutes(-random.Next(0, 1440));
 
-            // Choose status with bias toward Confirmed/Shipped
+            // Choose status
             var statusRoll = random.NextDouble();
             var status = statusRoll < 0.7 ? OrderStatus.Confirmed : statusRoll < 0.9 ? OrderStatus.Shipped : OrderStatus.Processing;
 
+            var shippingAddress = new EcommerceLaptop.Core.ValueObjects.Address("123 Seed Street", "Hanoi", "HN", "100000", "VN");
+            var orderNumber = $"SEED-{DateTime.UtcNow:yyyyMMdd}-{i + 1:0000}";
+            
+            var order = Order.Create(customer.Id, orderNumber, shippingAddress);
+
+            // Add Items
             var itemCount = random.Next(1, 4);
             var chosenProducts = products.OrderBy(_ => random.Next()).Take(itemCount).ToList();
-
-            decimal subTotal = 0m;
+            
             foreach (var p in chosenProducts)
             {
                 var qty = random.Next(1, 3);
                 var unitPrice = p.Price > 0 ? p.Price : random.Next(500_000, 5_000_000);
-                var itemTotal = unitPrice * qty;
-                subTotal += itemTotal;
+                order.AddItem(p.Id, qty, unitPrice, 0);
+
+                // Inventory impact (manual for seeding simplicity, bypassing StockService)
+                if (inventories.TryGetValue(p.Id, out var inv))
+                {
+                     inv.QuantityInStock = Math.Max(0, inv.QuantityInStock - qty);
+                     inv.LastStockUpdate = DateTime.UtcNow;
+                }
             }
 
+            // Financials
+            var subTotal = order.SubTotal; // Calculated by AddItem
             var tax = Math.Round(subTotal * 0.08m, 2);
             var shipping = subTotal > 5_000_000m ? 0 : 50_000m;
             var discount = 0m;
-            var total = subTotal + tax + shipping - discount;
+            order.SetFinancialDetails(tax, shipping, discount);
 
-            var order = new Order
+            // Backdate and Status via Reflection
+            statusProp?.SetValue(order, status);
+            orderDateProp?.SetValue(order, createdAt);
+            createdAtProp?.SetValue(order, createdAt);
+            updatedAtProp?.SetValue(order, createdAt);
+            
+            if (status != OrderStatus.Cancelled)
             {
-                UserId = customer.Id,
-                OrderNumber = $"SEED-{DateTime.UtcNow:yyyyMMdd}-{i + 1:0000}",
-                Status = status,
-                OrderDate = createdAt,
-                CreatedAt = createdAt,
-                UpdatedAt = createdAt,
-                SubTotal = subTotal,
-                TaxAmount = tax,
-                ShippingAmount = shipping,
-                DiscountAmount = discount,
-                TotalAmount = total,
-                InventoryReserved = status != OrderStatus.Cancelled,
-                ShippingStreet = "123 Seed Street",
-                ShippingCity = "Hanoi",
-                ShippingProvince = "HN",
-                ShippingPostalCode = "100000",
-                ShippingCountry = "VN"
-            };
+                 invReservedProp?.SetValue(order, true);
+            }
+
             ordersToAdd.Add(order);
         }
 
         context.Orders.AddRange(ordersToAdd);
-        context.SaveChanges();
-
-        // Create items and decrement inventory
-        var persistedOrders = context.Orders.OrderByDescending(o => o.Id).Take(orderCount).ToList();
-        var index = 0;
-        foreach (var order in persistedOrders)
-        {
-            var rnd = new Random(12345 + index++);
-            var itemCount = rnd.Next(1, 4);
-            var chosenProducts = products.OrderBy(_ => rnd.Next()).Take(itemCount).ToList();
-
-            foreach (var p in chosenProducts)
-            {
-                var qty = rnd.Next(1, 3);
-                var unitPrice = p.Price > 0 ? p.Price : rnd.Next(500_000, 5_000_000);
-                var totalPrice = unitPrice * qty;
-
-                orderItemsToAdd.Add(new OrderItem
-                {
-                    OrderId = order.Id,
-                    ProductId = p.Id,
-                    Quantity = qty,
-                    UnitPrice = unitPrice,
-                    DiscountAmount = 0,
-                    TotalPrice = totalPrice
-                });
-
-                if (inventories.TryGetValue(p.Id, out var inv))
-                {
-                    inv.QuantityInStock = Math.Max(0, inv.QuantityInStock - qty);
-                    inv.ReservedQuantity += 0;
-                    inv.LastStockUpdate = DateTime.UtcNow;
-                }
-            }
-        }
-
-        context.OrderItems.AddRange(orderItemsToAdd);
         context.SaveChanges();
 
         logger.LogInformation("Seeded {OrderCount} demo orders with items and ensured inventory for all products.", orderCount);

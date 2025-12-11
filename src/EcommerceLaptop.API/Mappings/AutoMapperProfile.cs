@@ -183,7 +183,7 @@ public class AutoMapperProfile : Profile
         }
     }
 
-    private string MapPaymentStatusForAdmin(ICollection<EcommerceLaptop.Core.Entities.Payment>? payments)
+    private string MapPaymentStatusForAdmin(IEnumerable<EcommerceLaptop.Core.Entities.Payment>? payments)
     {
         var latestPayment = payments?.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
         return latestPayment?.Status switch
@@ -198,7 +198,7 @@ public class AutoMapperProfile : Profile
         };
     }
 
-    private string GetPaymentMethod(ICollection<EcommerceLaptop.Core.Entities.Payment>? payments)
+    private string GetPaymentMethod(IEnumerable<EcommerceLaptop.Core.Entities.Payment>? payments)
     {
         var latestPayment = payments?.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
         return latestPayment?.Gateway.ToString() ?? "Card"; // Default fallback
