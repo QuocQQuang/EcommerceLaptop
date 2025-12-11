@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using EcommerceLaptop.Infrastructure.Data;
+using EcommerceLaptop.Core.Interfaces.Services;
 
 namespace EcommerceLaptop.API.Controllers;
 
@@ -8,11 +7,11 @@ namespace EcommerceLaptop.API.Controllers;
 [Route("api/[controller]")]
 public class DevController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDevService _devService;
 
-    public DevController(ApplicationDbContext context)
+    public DevController(IDevService devService)
     {
-        _context = context;
+        _devService = devService;
     }
 
     [HttpPost("seed-permissions")]
@@ -20,7 +19,7 @@ public class DevController : ControllerBase
     {
         try
         {
-            await PermissionSeeder.SeedPermissionsAsync(_context);
+            await _devService.SeedPermissionsAsync();
             return Ok(new { message = "Permissions seeded successfully" });
         }
         catch (Exception ex)
@@ -34,43 +33,7 @@ public class DevController : ControllerBase
     {
         try
         {
-            // Legacy AdminUsers system removed - use unified Users system instead
-            var adminUsers = await _context.Users
-                .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-                .ThenInclude(r => r.RolePermissions)
-                .ThenInclude(rp => rp.Permission)
-                .Where(u => u.UserRoles.Any(ur => ur.Role.IsAdminRole == true))
-                .ToListAsync();
-
-            var result = adminUsers.Select(u => new
-            {
-                AdminUser = new
-                {
-                    u.Id,
-                    u.Email,
-                    u.FirstName,
-                    u.LastName,
-                    u.IsActive,
-                    AdminRoles = u.UserRoles.Where(ur => ur.Role.IsAdminRole == true).Select(ur => ur.Role.Name).ToList()
-                },
-                Roles = u.UserRoles.Where(ur => ur.Role.IsAdminRole == true).Select(ur => new
-                {
-                    ur.Role.Id,
-                    ur.Role.Name,
-                    ur.Role.Description,
-                    ur.Role.IsAdminRole,
-                    PermissionCount = ur.Role.RolePermissions?.Count ?? 0,
-                    Permissions = ur.Role.RolePermissions?.Select(rp => new
-                    {
-                        rp.Permission.Id,
-                        rp.Permission.Name,
-                        rp.Permission.Module,
-                        rp.Permission.Action
-                    }).ToList()
-                }).ToList()
-            }).ToList();
-
+            var result = await _devService.GetDebugAdminInfoAsync();
             return Ok(result);
         }
         catch (Exception ex)

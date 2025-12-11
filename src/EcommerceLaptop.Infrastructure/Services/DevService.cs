@@ -1,15 +1,26 @@
+using EcommerceLaptop.Core.DTOs.Admin;
+using EcommerceLaptop.Core.Entities;
+using EcommerceLaptop.Core.Interfaces.Services;
 using EcommerceLaptop.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
-namespace EcommerceLaptop.API;
+namespace EcommerceLaptop.Infrastructure.Services;
 
-public static class PermissionSeeder
+public class DevService : IDevService
 {
-    public static async Task SeedPermissionsAsync(ApplicationDbContext context)
-    {
-        Console.WriteLine(" Starting permission seeding...");
+    private readonly ApplicationDbContext _context;
+    private readonly ILogger<DevService> _logger;
 
-        // Define all permissions
+    public DevService(ApplicationDbContext context, ILogger<DevService> logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
+    public async Task SeedPermissionsAsync()
+    {
+        // Logic moved from PermissionSeeder
         var permissions = new[]
         {
             new { Name = "dashboard:read", Description = "View dashboard", Module = "dashboard", Action = "read" },
@@ -42,15 +53,14 @@ public static class PermissionSeeder
             new { Name = "logs:manage", Description = "Full log management", Module = "logs", Action = "manage" }
         };
 
-        // Insert permissions if they don't exist
         foreach (var permissionData in permissions)
         {
-            var existingPermission = await context.Permissions
+            var existingPermission = await _context.Permissions
                 .FirstOrDefaultAsync(p => p.Name == permissionData.Name);
 
             if (existingPermission == null)
             {
-                var permission = new EcommerceLaptop.Core.Entities.Permission
+                var permission = new Permission
                 {
                     Name = permissionData.Name,
                     Description = permissionData.Description,
@@ -59,61 +69,72 @@ public static class PermissionSeeder
                     CreatedAt = DateTime.UtcNow
                 };
 
-                context.Permissions.Add(permission);
-                Console.WriteLine($" Added permission: {permission.Name}");
-            }
-            else
-            {
-                Console.WriteLine($" Permission already exists: {permissionData.Name}");
+                _context.Permissions.Add(permission);
+                _logger.LogInformation("Added permission: {PermissionName}", permission.Name);
             }
         }
 
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
 
-        // Find Admin role (assuming it exists with Id = 2)
-        var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
-        if (adminRole == null)
+        var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+        if (adminRole != null)
         {
-            Console.WriteLine(" Admin role not found!");
-            return;
-        }
-
-        Console.WriteLine($" Found Admin role with ID: {adminRole.Id}");
-
-        // Get all permissions
-        var allPermissions = await context.Permissions.ToListAsync();
-        Console.WriteLine($" Total permissions in database: {allPermissions.Count}");
-
-        // Assign all permissions to Admin role
-        foreach (var permission in allPermissions)
-        {
-            var existingRolePermission = await context.RolePermissions
-                .FirstOrDefaultAsync(rp => rp.RoleId == adminRole.Id && rp.PermissionId == permission.Id);
-
-            if (existingRolePermission == null)
+            var allPermissions = await _context.Permissions.ToListAsync();
+            foreach (var permission in allPermissions)
             {
-                var rolePermission = new EcommerceLaptop.Core.Entities.RolePermission
+                var existingRolePermission = await _context.RolePermissions
+                    .FirstOrDefaultAsync(rp => rp.RoleId == adminRole.Id && rp.PermissionId == permission.Id);
+
+                if (existingRolePermission == null)
                 {
-                    RoleId = adminRole.Id,
-                    PermissionId = permission.Id
-                };
-
-                context.RolePermissions.Add(rolePermission);
-                Console.WriteLine($" Assigned permission '{permission.Name}' to Admin role");
+                    _context.RolePermissions.Add(new RolePermission
+                    {
+                        RoleId = adminRole.Id,
+                        PermissionId = permission.Id
+                    });
+                     _logger.LogInformation("Assigned permission '{PermissionName}' to Admin role", permission.Name);
+                }
             }
-            else
-            {
-                Console.WriteLine($" Permission '{permission.Name}' already assigned to Admin role");
-            }
+            await _context.SaveChangesAsync();
         }
+    }
 
-        await context.SaveChangesAsync();
+    public async Task<List<DevDebugAdminDto>> GetDebugAdminInfoAsync()
+    {
+        var adminUsers = await _context.Users
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .ThenInclude(r => r.RolePermissions)
+            .ThenInclude(rp => rp.Permission)
+            .Where(u => u.UserRoles.Any(ur => ur.Role.IsAdminRole))
+            .ToListAsync();
 
-        // Verify results
-        var adminPermissionCount = await context.RolePermissions
-            .CountAsync(rp => rp.RoleId == adminRole.Id);
-
-        Console.WriteLine($" Permission seeding completed!");
-        Console.WriteLine($" Admin role now has {adminPermissionCount} permissions assigned");
+        return adminUsers.Select(u => new DevDebugAdminDto
+        {
+            AdminUser = new
+            {
+                u.Id,
+                u.Email,
+                u.FirstName,
+                u.LastName,
+                u.IsActive,
+                AdminRoles = u.UserRoles.Where(ur => ur.Role.IsAdminRole).Select(ur => ur.Role.Name).ToList()
+            },
+            Roles = u.UserRoles.Where(ur => ur.Role.IsAdminRole).Select(ur => new DevDebugRoleDto
+            {
+                Id = ur.Role.Id,
+                Name = ur.Role.Name,
+                Description = ur.Role.Description,
+                IsAdminRole = ur.Role.IsAdminRole,
+                PermissionCount = ur.Role.RolePermissions?.Count ?? 0,
+                Permissions = ur.Role.RolePermissions?.Select(rp => new DevDebugPermissionDto
+                {
+                    Id = rp.Permission.Id,
+                    Name = rp.Permission.Name,
+                    Module = rp.Permission.Module,
+                    Action = rp.Permission.Action
+                }).ToList() ?? new List<DevDebugPermissionDto>()
+            }).ToList()
+        }).ToList();
     }
 }

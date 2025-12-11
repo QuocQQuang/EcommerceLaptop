@@ -228,6 +228,7 @@ builder.Services.AddScoped<EcommerceLaptop.Core.Services.IImageHostingService, E
 
 // T012: Inventory Management Services
 builder.Services.AddScoped(typeof(EcommerceLaptop.Core.Interfaces.IAsyncRepository<>), typeof(EcommerceLaptop.Infrastructure.Repositories.EfRepository<>));
+builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.IProductRepository, EcommerceLaptop.Infrastructure.Repositories.ProductRepository>();
 builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.IInventoryRepository, EcommerceLaptop.Infrastructure.Repositories.InventoryRepository>();
 
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.IInventoryService, EcommerceLaptop.Core.Services.InventoryService>();
@@ -252,7 +253,10 @@ builder.Services.AddScoped<EcommerceLaptop.Core.Services.IBlogService, Ecommerce
 // TODO: Fix CategoryService namespace issues
 // builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.Services.ICategoryService, EcommerceLaptop.Infrastructure.Services.CategoryService>();
 
-// Admin Management Services (temporarily commented out - interface issues)
+// Admin Management Services
+builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.Services.IAdminRoleService, EcommerceLaptop.Infrastructure.Services.AdminRoleService>();
+builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.Services.IAdminUserService, EcommerceLaptop.Infrastructure.Services.AdminUserService>();
+builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.Services.IDevService, EcommerceLaptop.Infrastructure.Services.DevService>();
 // builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.Services.IBrandService, EcommerceLaptop.Infrastructure.Services.BrandService>();
 // builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.Services.ISystemSettingsService, EcommerceLaptop.Infrastructure.Services.SystemSettingsService>();
 // TODO: Fix UserVipTierService namespace issues

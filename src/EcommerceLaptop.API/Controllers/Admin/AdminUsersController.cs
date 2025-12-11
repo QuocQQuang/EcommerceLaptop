@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.DTOs.Admin;
-using EcommerceLaptop.Core.Services;
+using EcommerceLaptop.Core.Interfaces.Services;
 using System.Security.Claims;
 
 namespace EcommerceLaptop.API.Controllers.Admin;
@@ -12,10 +12,10 @@ namespace EcommerceLaptop.API.Controllers.Admin;
 [Authorize]
 public class AdminUsersController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IAdminUserService _userService;
     private readonly ILogger<AdminUsersController> _logger;
 
-    public AdminUsersController(IUserService userService, ILogger<AdminUsersController> logger)
+    public AdminUsersController(IAdminUserService userService, ILogger<AdminUsersController> logger)
     {
         _userService = userService;
         _logger = logger;
@@ -66,15 +66,13 @@ public class AdminUsersController : ControllerBase
     {
         try
         {
-            // Email uniqueness check is usually handled by service or DB constraint, 
-            // but CreateAdminUserAsync doesn't explicitly return "Email exists" error type.
-            // We can check explicitly if needed, or catch exception.
-            // UserService.CreateUserAsync checks? No, it just adds.
-            // Existing controller did explicit check.
+            // Email uniqueness check (can be moved to Service, but checking here for specific 400 response msg structure if needed)
             if (await _userService.GetByEmailAsync(request.Email) != null)
             {
                 return BadRequest(new { message = "Email already exists" });
             }
+
+            var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "unknown";
 
             var user = new User
             {
@@ -83,7 +81,7 @@ public class AdminUsersController : ControllerBase
                 Email = request.Email
             };
 
-            var createdUser = await _userService.CreateAdminUserAsync(user, request.Password, request.RoleId);
+            var createdUser = await _userService.CreateAdminUserAsync(user, request.Password, request.RoleId, adminId);
 
             var adminRole = createdUser.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
 
@@ -99,9 +97,6 @@ public class AdminUsersController : ControllerBase
                 CreatedAt = createdUser.CreatedAt,
                 UpdatedAt = createdUser.UpdatedAt
             };
-
-            _logger.LogInformation("Admin user created: {Email} by {AdminId}",
-                createdUser.Email, User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, userDto);
         }
@@ -182,7 +177,9 @@ public class AdminUsersController : ControllerBase
             if (!string.IsNullOrEmpty(request.FirstName)) user.FirstName = request.FirstName;
             if (!string.IsNullOrEmpty(request.LastName)) user.LastName = request.LastName;
 
-            var updatedUser = await _userService.UpdateAdminUserAsync(user, request.Password, request.RoleId);
+            var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "unknown";
+            
+            var updatedUser = await _userService.UpdateAdminUserAsync(user, request.Password, request.RoleId, adminId);
 
              var adminRole = updatedUser.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
 
@@ -198,9 +195,6 @@ public class AdminUsersController : ControllerBase
                 CreatedAt = updatedUser.CreatedAt,
                 UpdatedAt = updatedUser.UpdatedAt
             };
-
-            _logger.LogInformation("Admin user updated: {Email} by {AdminId}",
-                updatedUser.Email, User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             return Ok(userDto);
         }
@@ -235,10 +229,7 @@ public class AdminUsersController : ControllerBase
             return BadRequest(new { message = "Cannot delete your own account" });
         }
 
-        await _userService.DeleteUserAsync(id);
-
-        _logger.LogInformation("Admin user deleted: {Email} by {AdminId}",
-            user.Email, currentUserId);
+        await _userService.DeleteUserAsync(id, currentUserId ?? "unknown");
 
         return NoContent();
     }
@@ -263,7 +254,7 @@ public class AdminUsersController : ControllerBase
             return BadRequest(new { message = "Cannot deactivate your own account" });
         }
 
-        var updatedUser = await _userService.ToggleUserStatusAsync(id);
+        var updatedUser = await _userService.ToggleUserStatusAsync(id, currentUserId ?? "unknown");
 
         var adminRole = updatedUser.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
 
@@ -279,9 +270,6 @@ public class AdminUsersController : ControllerBase
             CreatedAt = updatedUser.CreatedAt,
             UpdatedAt = updatedUser.UpdatedAt
         };
-
-        _logger.LogInformation("Admin user status toggled: {Email} -> {IsActive} by {AdminId}",
-            updatedUser.Email, updatedUser.IsActive, currentUserId);
 
         return Ok(userDto);
     }
