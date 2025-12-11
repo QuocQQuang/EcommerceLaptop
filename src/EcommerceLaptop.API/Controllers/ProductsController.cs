@@ -104,6 +104,35 @@ public class ProductsController : BaseApiController
     }
 
     /// <summary>
+    /// Gets products for admin management
+    /// </summary>
+    [HttpGet("admin")]
+    [Authorize(Policy = "RequirePermission:products:read")]
+    public async Task<IActionResult> GetAdminProducts(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        [FromQuery] string? search = null,
+        [FromQuery] string? type = null,
+        [FromQuery] string? brand = null,
+        [FromQuery] string? status = null,
+        [FromQuery] string? productType = null)
+    {
+        try
+        {
+            var result = await _productService.GetAdminProductsAsync(
+                page, pageSize, search, type, brand, status, productType);
+
+            var productDtos = _mapper.Map<List<ProductDto>>(result.Items);
+
+            return PaginatedResponse(productDtos, result.TotalCount, page, pageSize);
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex, nameof(GetAdminProducts));
+        }
+    }
+
+    /// <summary>
     /// Gets specific product by ID
     /// </summary>
     /// <param name="id">Product ID</param>

@@ -176,6 +176,9 @@ builder.Services.AddScoped<EcommerceLaptop.Core.Services.IAdminDashboardService,
 builder.Services.AddScoped<ISystemSettingsService, SystemSettingsService>();
 
 // Phase 2: Unified Authentication Services  
+builder.Services.AddScoped<EcommerceLaptop.Core.Services.IIdentityService, EcommerceLaptop.Infrastructure.Services.IdentityService>();
+builder.Services.AddScoped<EcommerceLaptop.Core.Services.IPermissionService, EcommerceLaptop.Infrastructure.Services.PermissionService>();
+builder.Services.AddScoped<EcommerceLaptop.Core.Services.IAccountService, EcommerceLaptop.Infrastructure.Services.AccountService>();
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.IAuthService, EcommerceLaptop.Infrastructure.Services.AuthService>();
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.ITokenService, EcommerceLaptop.Infrastructure.Services.TokenService>();
 

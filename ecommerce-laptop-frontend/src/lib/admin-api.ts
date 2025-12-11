@@ -1696,8 +1696,15 @@ export const mapFormToUpdatePayload = (formData: ProductFormData): ProductUpdate
 };
 
 export const getAdminProducts = async (params: AdminProductsParams = {}): Promise<AdminProductsResponse> => {
-  const response = await api.get<AdminProductsResponse>('/products/admin', { params });
-  return response.data;
+  const response = await api.get<any>('/products/admin', { params });
+  const raw = response.data;
+  return {
+    products: raw.data || [],
+    totalCount: raw.totalCount || 0,
+    currentPage: raw.page || 1,
+    totalPages: raw.totalPages || 0,
+    pageSize: raw.pageSize || 20
+  };
 };
 
 export const getAdminProduct = async (productId: number): Promise<Product> => {

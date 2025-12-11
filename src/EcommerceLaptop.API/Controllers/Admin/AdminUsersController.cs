@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EcommerceLaptop.Core.Entities;
@@ -13,11 +14,13 @@ namespace EcommerceLaptop.API.Controllers.Admin;
 public class AdminUsersController : ControllerBase
 {
     private readonly IAdminUserService _userService;
+    private readonly IMapper _mapper;
     private readonly ILogger<AdminUsersController> _logger;
 
-    public AdminUsersController(IAdminUserService userService, ILogger<AdminUsersController> logger)
+    public AdminUsersController(IAdminUserService userService, IMapper mapper, ILogger<AdminUsersController> logger)
     {
         _userService = userService;
+        _mapper = mapper;
         _logger = logger;
     }
 
@@ -31,21 +34,7 @@ public class AdminUsersController : ControllerBase
         var result = await _userService.GetAdminUsersAsync(page, limit, search);
         var totalPages = (int)Math.Ceiling(result.TotalCount / (double)limit);
 
-        var userDtos = result.Items.Select(u => {
-            var adminRole = u.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
-            return new AdminUserManagementDto
-            {
-                Id = u.Id,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Email = u.Email,
-                IsActive = u.IsActive,
-                RoleId = adminRole?.RoleId ?? 0,
-                RoleName = adminRole?.Role.Name ?? "Unknown",
-                CreatedAt = u.CreatedAt,
-                UpdatedAt = u.UpdatedAt
-            };
-        }).ToList();
+        var userDtos = _mapper.Map<List<AdminUserManagementDto>>(result.Items);
 
         return Ok(new UsersResponseDto
         {
@@ -83,20 +72,7 @@ public class AdminUsersController : ControllerBase
 
             var createdUser = await _userService.CreateAdminUserAsync(user, request.Password, request.RoleId, adminId);
 
-            var adminRole = createdUser.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
-
-            var userDto = new AdminUserManagementDto
-            {
-                Id = createdUser.Id,
-                FirstName = createdUser.FirstName,
-                LastName = createdUser.LastName,
-                Email = createdUser.Email,
-                IsActive = createdUser.IsActive,
-                RoleId = adminRole?.RoleId ?? request.RoleId,
-                RoleName = adminRole?.Role.Name ?? "Unknown",
-                CreatedAt = createdUser.CreatedAt,
-                UpdatedAt = createdUser.UpdatedAt
-            };
+            var userDto = _mapper.Map<AdminUserManagementDto>(createdUser);
 
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, userDto);
         }
@@ -132,18 +108,7 @@ public class AdminUsersController : ControllerBase
              return NotFound(new { message = "Admin user not found" });
         }
 
-        var userDto = new AdminUserManagementDto
-        {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            IsActive = user.IsActive,
-            RoleId = adminRole.RoleId,
-            RoleName = adminRole.Role.Name,
-            CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt
-        };
+        var userDto = _mapper.Map<AdminUserManagementDto>(user);
 
         return Ok(userDto);
     }
@@ -181,20 +146,7 @@ public class AdminUsersController : ControllerBase
             
             var updatedUser = await _userService.UpdateAdminUserAsync(user, request.Password, request.RoleId, adminId);
 
-             var adminRole = updatedUser.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
-
-            var userDto = new AdminUserManagementDto
-            {
-                Id = updatedUser.Id,
-                FirstName = updatedUser.FirstName,
-                LastName = updatedUser.LastName,
-                Email = updatedUser.Email,
-                IsActive = updatedUser.IsActive,
-                RoleId = adminRole?.RoleId ?? request.RoleId ?? 0,
-                RoleName = adminRole?.Role.Name ?? "Unknown",
-                CreatedAt = updatedUser.CreatedAt,
-                UpdatedAt = updatedUser.UpdatedAt
-            };
+            var userDto = _mapper.Map<AdminUserManagementDto>(updatedUser);
 
             return Ok(userDto);
         }
@@ -256,20 +208,7 @@ public class AdminUsersController : ControllerBase
 
         var updatedUser = await _userService.ToggleUserStatusAsync(id, currentUserId ?? "unknown");
 
-        var adminRole = updatedUser.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole);
-
-        var userDto = new AdminUserManagementDto
-        {
-            Id = updatedUser.Id,
-            FirstName = updatedUser.FirstName,
-            LastName = updatedUser.LastName,
-            Email = updatedUser.Email,
-            IsActive = updatedUser.IsActive,
-            RoleId = adminRole?.RoleId ?? 0,
-            RoleName = adminRole?.Role.Name ?? "Unknown",
-            CreatedAt = updatedUser.CreatedAt,
-            UpdatedAt = updatedUser.UpdatedAt
-        };
+        var userDto = _mapper.Map<AdminUserManagementDto>(updatedUser);
 
         return Ok(userDto);
     }

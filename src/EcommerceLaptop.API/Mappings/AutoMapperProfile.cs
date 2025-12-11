@@ -91,6 +91,12 @@ public class AutoMapperProfile : Profile
             .ForMember(d => d.PaymentStatus, opt => opt.MapFrom(s => MapPaymentStatusForAdmin(s.Payments)))
             .ForMember(d => d.PaymentMethod, opt => opt.MapFrom(s => GetPaymentMethod(s.Payments)))
             .ForMember(d => d.Items, opt => opt.MapFrom(s => s.OrderItems));
+
+        // Admin User Management Mapping
+        CreateMap<User, AdminUserManagementDto>()
+            .ForMember(d => d.FullName, opt => opt.MapFrom(s => $"{s.FirstName} {s.LastName}".Trim()))
+            .ForMember(d => d.RoleId, opt => opt.MapFrom(s => s.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole) != null ? s.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole)!.RoleId : 0))
+            .ForMember(d => d.RoleName, opt => opt.MapFrom(s => s.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole) != null ? s.UserRoles.FirstOrDefault(ur => ur.Role.IsAdminRole)!.Role.Name : "Unknown"));
     }
 
     private static decimal CalculateDiscountedPrice(decimal originalPrice, decimal discountPercentage)
