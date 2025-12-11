@@ -66,40 +66,32 @@ public class OrderService : IOrderService
             }
 
             // Create order
-            var order = new Order
-            {
-                UserId = customerId,
-                OrderNumber = GenerateOrderNumber(),
-                Status = OrderStatus.Pending,
-                OrderDate = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                SubTotal = cart.SubTotal,
-                TaxAmount = cart.TaxAmount,
-                ShippingAmount = cart.ShippingCost,
-                DiscountAmount = cart.DiscountAmount,
-                TotalAmount = cart.TotalAmount,
-                InventoryReserved = false,
-                ShippingStreet = shippingAddress
-            };
+            var order = Order.Create(
+                customerId,
+                GenerateOrderNumber(),
+                shippingAddress,
+                "", "", "", "" // Simple address for now, or fetch from Address entity if applicable
+            );
+
+            // Calculate financials from cart
+            order.SetFinancialDetails(cart.TaxAmount, cart.ShippingCost, cart.DiscountAmount);
 
             _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            // await _context.SaveChangesAsync(); // Defer save? No, keeping flow similar
 
-            // Create order items
+            // Add order items
             foreach (var cartItem in cart.CartItems)
             {
-                var orderItem = new OrderItem
-                {
-                    OrderId = order.Id,
-                    ProductId = cartItem.ProductId,
-                    Quantity = cartItem.Quantity,
-                    UnitPrice = cartItem.UnitPrice,
-                    DiscountAmount = cartItem.ItemDiscount,
-                    TotalPrice = cartItem.TotalPrice
-                };
-                _context.OrderItems.Add(orderItem);
+                order.AddItem(
+                    cartItem.ProductId,
+                    cartItem.Quantity,
+                    cartItem.UnitPrice,
+                    cartItem.ItemDiscount
+                );
             }
+            // EF Core will automatically track added items due to AddItem adding to the collection
+            
+            await _context.SaveChangesAsync();
 
             await _context.SaveChangesAsync();
 
@@ -190,53 +182,42 @@ public class OrderService : IOrderService
             // Step 3: Create order
             _logger.LogDebug("Creating order entity from cart {CartId}", cart.Id);
 
+            // Step 3: Create order
+            _logger.LogDebug("Creating order entity from cart {CartId}", cart.Id);
+
             var orderNumber = GenerateOrderNumber();
-            var order = new Order
-            {
-                UserId = request.CustomerId,
-                OrderNumber = orderNumber,
-                Status = OrderStatus.Pending,
-                OrderDate = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                SubTotal = cart.SubTotal,
-                TaxAmount = cart.TaxAmount,
-                ShippingAmount = cart.ShippingCost,
-                DiscountAmount = cart.DiscountAmount,
-                TotalAmount = cart.TotalAmount,
-                InventoryReserved = false,
-                ShippingStreet = request.ShippingAddress,
-                ShippingCity = request.ShippingCity,
-                ShippingProvince = request.ShippingProvince,
-                ShippingPostalCode = request.ShippingPostalCode,
-                ShippingCountry = request.ShippingCountry
-            };
+            var order = Order.Create(
+                request.CustomerId,
+                orderNumber,
+                request.ShippingAddress,
+                request.ShippingCity,
+                request.ShippingProvince,
+                request.ShippingPostalCode,
+                request.ShippingCountry
+            );
+            
+            order.SetFinancialDetails(cart.TaxAmount, cart.ShippingCost, cart.DiscountAmount);
 
             _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Order {OrderNumber} (ID: {OrderId}) created successfully for customer {CustomerId}",
-                orderNumber, order.Id, request.CustomerId);
-
+            
             // Step 4: Create order items
-            _logger.LogDebug("Creating {ItemCount} order items for order {OrderId}", cart.CartItems.Count, order.Id);
+            _logger.LogDebug("Creating {ItemCount} order items for order", cart.CartItems.Count);
 
             foreach (var cartItem in cart.CartItems)
             {
-                var orderItem = new OrderItem
-                {
-                    OrderId = order.Id,
-                    ProductId = cartItem.ProductId,
-                    Quantity = cartItem.Quantity,
-                    UnitPrice = cartItem.UnitPrice,
-                    DiscountAmount = cartItem.ItemDiscount,
-                    TotalPrice = cartItem.TotalPrice
-                };
-                _context.OrderItems.Add(orderItem);
+                order.AddItem(
+                    cartItem.ProductId,
+                    cartItem.Quantity,
+                    cartItem.UnitPrice,
+                    cartItem.ItemDiscount
+                );
 
                 _logger.LogDebug("Added order item: Product {ProductId}, Quantity {Quantity}, Unit Price ${UnitPrice:F2}",
                     cartItem.ProductId, cartItem.Quantity, cartItem.UnitPrice);
             }
+            
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Successfully created order {OrderId} and items", order.Id);
 
             await _context.SaveChangesAsync();
             _logger.LogInformation("Successfully created {ItemCount} order items for order {OrderId}", cart.CartItems.Count, order.Id);
@@ -261,7 +242,7 @@ public class OrderService : IOrderService
             // Step 6: Mark order as inventory reserved and clear cart
             _logger.LogDebug("Marking order {OrderId} as inventory reserved and clearing cart {CartId}", order.Id, cart.Id);
 
-            order.InventoryReserved = true;
+            order.MarkAsInventoryReserved();
             _context.Update(order);
 
             // Clear the cart

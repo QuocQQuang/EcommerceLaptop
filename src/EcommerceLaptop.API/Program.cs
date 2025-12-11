@@ -234,7 +234,10 @@ builder.Services.AddScoped(typeof(EcommerceLaptop.Core.Interfaces.IAsyncReposito
 builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.IProductRepository, EcommerceLaptop.Infrastructure.Repositories.ProductRepository>();
 builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.IInventoryRepository, EcommerceLaptop.Infrastructure.Repositories.InventoryRepository>();
 
-builder.Services.AddScoped<EcommerceLaptop.Core.Services.IInventoryService, EcommerceLaptop.Core.Services.InventoryService>();
+builder.Services.AddScoped<EcommerceLaptop.Core.Services.IStockManagementService, EcommerceLaptop.Infrastructure.Services.StockManagementService>();
+builder.Services.AddScoped<EcommerceLaptop.Core.Services.IAssetTrackingService, EcommerceLaptop.Infrastructure.Services.AssetTrackingService>();
+builder.Services.AddScoped<EcommerceLaptop.Core.Services.IInventoryReportingService, EcommerceLaptop.Infrastructure.Services.InventoryReportingService>();
+builder.Services.AddScoped<EcommerceLaptop.Core.Services.IInventoryService, EcommerceLaptop.Infrastructure.Services.InventoryService>();
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.IInventoryReservationService, EcommerceLaptop.Infrastructure.Services.InventoryReservationService>();
 
 // T007: Shopping Cart Services
