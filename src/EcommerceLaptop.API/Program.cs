@@ -240,6 +240,9 @@ builder.Services.AddScoped<EcommerceLaptop.Core.Services.IInventoryReportingServ
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.IInventoryService, EcommerceLaptop.Infrastructure.Services.InventoryService>();
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.IInventoryReservationService, EcommerceLaptop.Infrastructure.Services.InventoryReservationService>();
 
+// Domain Events
+builder.Services.AddScoped<EcommerceLaptop.Core.Interfaces.IDomainEventDispatcher, EcommerceLaptop.Infrastructure.Services.DomainEventDispatcher>();
+
 // T007: Shopping Cart Services
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.IShoppingCartService, EcommerceLaptop.Infrastructure.Services.ShoppingCartService>();
 builder.Services.AddScoped<EcommerceLaptop.Core.Services.IPricingService, EcommerceLaptop.Infrastructure.Services.PricingService>();

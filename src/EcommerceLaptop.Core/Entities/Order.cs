@@ -1,8 +1,9 @@
 using EcommerceLaptop.Core.ValueObjects;
+using EcommerceLaptop.Core.Common;
 
 namespace EcommerceLaptop.Core.Entities;
 
-public class Order
+public class Order : BaseEntity
 {
     private readonly List<OrderItem> _orderItems = new();
     private readonly List<OrderAudit> _audits = new();
@@ -25,10 +26,11 @@ public class Order
             ShippingAddress = shippingAddress
         };
         
+        order.AddDomainEvent(new EcommerceLaptop.Core.DomainEvents.OrderCreatedEvent(order));
+        
         return order;
     }
 
-    public int Id { get; private set; }
     public int UserId { get; private set; }
     public string OrderNumber { get; private set; } = string.Empty;
     public DateTime OrderDate { get; private set; }

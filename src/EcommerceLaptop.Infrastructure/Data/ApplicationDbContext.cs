@@ -3,12 +3,43 @@ using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Infrastructure.Data;
 using EcommerceLaptop.Infrastructure.Services.Security;
 
+using EcommerceLaptop.Core.Interfaces;
+using EcommerceLaptop.Core.Common;
+
 namespace EcommerceLaptop.Infrastructure.Data;
 
 public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    private readonly IDomainEventDispatcher? _dispatcher;
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IDomainEventDispatcher? dispatcher = null) : base(options)
     {
+        _dispatcher = dispatcher;
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        if (_dispatcher != null)
+        {
+            var entitiesWithEvents = ChangeTracker.Entries<BaseEntity>()
+                .Select(e => e.Entity)
+                .Where(e => e.DomainEvents.Any())
+                .ToArray();
+
+            foreach (var entity in entitiesWithEvents)
+            {
+                var events = entity.DomainEvents.ToArray();
+                entity.ClearDomainEvents();
+                foreach (var domainEvent in events)
+                {
+                    await _dispatcher.DispatchAsync(domainEvent);
+                }
+            }
+        }
+
+        return result;
     }
 
     // User Management
