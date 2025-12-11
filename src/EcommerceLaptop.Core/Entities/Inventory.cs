@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("EcommerceLaptop.Infrastructure")]
 [assembly: InternalsVisibleTo("EcommerceLaptop.API")]
 [assembly: InternalsVisibleTo("EcommerceLaptop")]
+[assembly: InternalsVisibleTo("EcommerceLaptop.UnitTests")]
 
 namespace EcommerceLaptop.Core.Entities;
 
