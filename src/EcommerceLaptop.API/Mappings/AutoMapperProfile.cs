@@ -206,7 +206,7 @@ public class AutoMapperProfile : Profile
 
     private string FormatShippingAddress(Order order)
     {
-        var parts = new[] { order.ShippingStreet, order.ShippingCity, order.ShippingProvince, order.ShippingPostalCode, order.ShippingCountry }
+        var parts = new[] { order.ShippingAddress.Street, order.ShippingAddress.City, order.ShippingAddress.Province, order.ShippingAddress.PostalCode, order.ShippingAddress.Country }
             .Where(p => !string.IsNullOrWhiteSpace(p));
         return string.Join(", ", parts);
     }

@@ -116,10 +116,10 @@ public class PdfExportService : IPdfExportService
                 .Add(new Paragraph($"a ch giao hng:")
                     .SetFont(font)
                     .SetFontSize(10))
-                .Add(new Paragraph($"{order.ShippingStreet}")
+                .Add(new Paragraph($"{order.ShippingAddress.Street}")
                     .SetFont(font)
                     .SetFontSize(10))
-                .Add(new Paragraph($"{order.ShippingCity}, {order.ShippingProvince}")
+                .Add(new Paragraph($"{order.ShippingAddress.City}, {order.ShippingAddress.Province}")
                     .SetFont(font)
                     .SetFontSize(10))
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER));
@@ -301,7 +301,7 @@ public class PdfExportService : IPdfExportService
             xml.AppendLine("  <Customer>");
             xml.AppendLine($"    <Name>{order.User.FirstName} {order.User.LastName}</Name>");
             xml.AppendLine($"    <Email>{order.User.Email}</Email>");
-            xml.AppendLine($"    <Address>{order.ShippingStreet}, {order.ShippingCity}, {order.ShippingProvince}</Address>");
+            xml.AppendLine($"    <Address>{order.ShippingAddress.Street}, {order.ShippingAddress.City}, {order.ShippingAddress.Province}</Address>");
             xml.AppendLine("  </Customer>");
 
             xml.AppendLine("  <Items>");

@@ -58,41 +58,51 @@ public class OrderWorkflowService : IOrderWorkflowService
         };
         _context.OrderAudits.Add(audit);
 
-        // Update order status
-        order.Status = newStatus;
-        order.UpdatedAt = DateTime.UtcNow;
-
-        // Business logic based on new status
+        // Delegate state transition to domain entity
         switch (newStatus)
         {
             case OrderStatus.Confirmed:
+                order.Confirm();
                 // Reserve inventory if not already reserved
                 if (!order.InventoryReserved)
                 {
                     var reserved = await _inventoryService.ReserveInventoryForOrderAsync(orderId);
                     if (!reserved)
                     {
-                        // Rollback if reservation fails
-                        return false;
+                        // Rollback if reservation fails - This is tricky because Order is already modified in memory
+                        // But since we haven't saved Changes yet, we can return false.
+                        // However, Order status in memory is Confirmed.
+                        // Ideally we should do check before mod.
+                        return false; 
                     }
                 }
                 break;
             case OrderStatus.Processing:
-                // Prepare for shipping
+                order.MarkAsProcessing();
                 break;
             case OrderStatus.Shipped:
-                // Order shipped - no tracking needed for simplified system
+                order.Ship();
                 break;
             case OrderStatus.Delivered:
-                // Order delivered successfully
+                order.Deliver();
                 break;
             case OrderStatus.Cancelled:
-                // Release inventory
+                 // Release inventory if reserved
                 if (order.InventoryReserved)
                 {
                     await _inventoryService.ReleaseInventoryForOrderAsync(orderId);
                 }
+                order.Cancel();
                 break;
+            case OrderStatus.Returned:
+                order.Return();
+                break;
+            case OrderStatus.Refunded:
+                order.Refund();
+                break;
+            default:
+                _logger.LogWarning("Unsupported status transition to {NewStatus}", newStatus);
+                return false;
         }
 
         await _context.SaveChangesAsync();

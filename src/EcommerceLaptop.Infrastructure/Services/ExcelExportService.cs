@@ -52,7 +52,7 @@ public class ExcelExportService : IExcelExportService
                 worksheet.Cell(row, 9).Value = order.ShippingAmount;
                 worksheet.Cell(row, 10).Value = order.TaxAmount;
                 worksheet.Cell(row, 11).Value = order.TotalAmount;
-                worksheet.Cell(row, 12).Value = $"{order.ShippingStreet}, {order.ShippingCity}, {order.ShippingProvince}";
+                worksheet.Cell(row, 12).Value = $"{order.ShippingAddress.Street}, {order.ShippingAddress.City}, {order.ShippingAddress.Province}";
 
                 // Format currency columns as USD
                 worksheet.Cell(row, 7).Style.NumberFormat.Format = "$#,##0.00";

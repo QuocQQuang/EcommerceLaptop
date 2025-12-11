@@ -1,3 +1,5 @@
+using EcommerceLaptop.Core.ValueObjects;
+
 namespace EcommerceLaptop.Core.Entities;
 
 public class Order
@@ -8,11 +10,8 @@ public class Order
     private readonly List<OrderEvent> _orderEvents = new();
     private readonly List<Refund> _refunds = new();
 
-    // Private parameterless constructor for EF Core
-    private Order() { }
-
     // Factory Method
-    public static Order Create(int userId, string orderNumber, string shippingStreet, string shippingCity, string shippingProvince, string shippingPostalCode, string shippingCountry)
+    public static Order Create(int userId, string orderNumber, EcommerceLaptop.Core.ValueObjects.Address shippingAddress)
     {
         var order = new Order
         {
@@ -22,10 +21,10 @@ public class Order
             OrderDate = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            InventoryReserved = false
+            InventoryReserved = false,
+            ShippingAddress = shippingAddress
         };
-
-        order.SetShippingAddress(shippingStreet, shippingCity, shippingProvince, shippingPostalCode, shippingCountry);
+        
         return order;
     }
 
@@ -40,17 +39,14 @@ public class Order
     public decimal DiscountAmount { get; private set; }
     public decimal TotalAmount { get; private set; }
 
-    // Shipping Information
-    public string ShippingStreet { get; private set; } = string.Empty;
-    public string ShippingCity { get; private set; } = string.Empty;
-    public string ShippingProvince { get; private set; } = string.Empty;
-    public string ShippingPostalCode { get; private set; } = string.Empty;
-    public string ShippingCountry { get; private set; } = string.Empty;
+    // Shipping Information (Value Object)
+    public EcommerceLaptop.Core.ValueObjects.Address ShippingAddress { get; private set; } = null!;
 
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
     public bool InventoryReserved { get; private set; } = false;
 
+    // Navigation properties
     // Navigation properties
     public User User { get; set; } = null!;
     
@@ -84,16 +80,9 @@ public class Order
         RecalculateTotals();
     }
 
-    public void SetShippingAddress(string street, string city, string province, string postalCode, string country)
+    public void SetShippingAddress(EcommerceLaptop.Core.ValueObjects.Address address)
     {
-        if (string.IsNullOrWhiteSpace(street)) throw new ArgumentException("Street is required.", nameof(street));
-        if (string.IsNullOrWhiteSpace(city)) throw new ArgumentException("City is required.", nameof(city));
-        
-        ShippingStreet = street;
-        ShippingCity = city;
-        ShippingProvince = province;
-        ShippingPostalCode = postalCode;
-        ShippingCountry = country;
+        ShippingAddress = address ?? throw new ArgumentNullException(nameof(address));
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -108,6 +97,12 @@ public class Order
     public void MarkAsInventoryReserved()
     {
         InventoryReserved = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ReleaseInventoryReservation()
+    {
+        InventoryReserved = false;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -154,6 +149,14 @@ public class Order
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void Confirm()
+    {
+        if (Status != OrderStatus.Pending) return; // Idempotent or throw?
+        
+        Status = OrderStatus.Confirmed;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     private void RecalculateTotals()
     {
         SubTotal = _orderItems.Sum(x => x.TotalPrice);
@@ -167,6 +170,35 @@ public class Order
         TotalAmount = SubTotal + TaxAmount + ShippingAmount - DiscountAmount;
         if (TotalAmount < 0) TotalAmount = 0;
     }
+
+    public void Deliver()
+    {
+        if (Status != OrderStatus.Shipped)
+        {
+             // Flexible?
+        }
+        Status = OrderStatus.Delivered;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Return()
+    {
+         if (Status != OrderStatus.Delivered)
+        {
+            throw new InvalidOperationException("Only delivered orders can be returned.");
+        }
+        Status = OrderStatus.Returned;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Refund()
+    {
+        // Can be refunded from various states
+        Status = OrderStatus.Refunded;
+        UpdatedAt = DateTime.UtcNow;
+    }  
+
+
 }
 
 public class OrderItem

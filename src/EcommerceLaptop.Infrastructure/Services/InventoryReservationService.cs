@@ -64,7 +64,7 @@ public class InventoryReservationService : IInventoryReservationService
             _context.InventoryTransactions.Add(transactionRecord);
         }
 
-        order.InventoryReserved = true;
+        order.MarkAsInventoryReserved();
         await _context.SaveChangesAsync();
 
         return true;
@@ -133,7 +133,7 @@ public class InventoryReservationService : IInventoryReservationService
                 }
             }
 
-            order.InventoryReserved = false;
+            order.ReleaseInventoryReservation();
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -243,7 +243,7 @@ public class InventoryReservationService : IInventoryReservationService
                 }
             }
 
-            order.InventoryReserved = false;
+            order.ReleaseInventoryReservation();
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
             

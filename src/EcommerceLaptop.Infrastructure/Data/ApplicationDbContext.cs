@@ -349,6 +349,15 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.DiscountAmount).HasPrecision(18, 2);
             entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
 
+            entity.OwnsOne(o => o.ShippingAddress, a =>
+            {
+                a.Property(p => p.Street).HasColumnName("ShippingStreet").HasMaxLength(255).IsRequired();
+                a.Property(p => p.City).HasColumnName("ShippingCity").HasMaxLength(100).IsRequired();
+                a.Property(p => p.Province).HasColumnName("ShippingProvince").HasMaxLength(100);
+                a.Property(p => p.PostalCode).HasColumnName("ShippingPostalCode").HasMaxLength(20);
+                a.Property(p => p.Country).HasColumnName("ShippingCountry").HasMaxLength(100);
+            });
+
             entity.HasOne(e => e.User)
                 .WithMany(e => e.Orders)
                 .HasForeignKey(e => e.UserId);

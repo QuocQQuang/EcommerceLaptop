@@ -1,4 +1,5 @@
 using AutoMapper;
+using AddressVO = EcommerceLaptop.Core.ValueObjects.Address;
 using EcommerceLaptop.Core.DTOs;
 using EcommerceLaptop.Core.DTOs.Admin;
 using EcommerceLaptop.Core.DTOs.Order;
@@ -65,19 +66,24 @@ public class OrderService : IOrderService
                 throw new InvalidOperationException("Insufficient inventory for some items");
             }
 
+            // Create Address Value Object
+            var addressParts = shippingAddress.Split(',');
+            var street = addressParts.Length > 0 ? addressParts[0].Trim() : shippingAddress;
+            var city = addressParts.Length > 1 ? addressParts[1].Trim() : "Unknown City";
+            var address = new AddressVO(street, city, "", "", "");
+
             // Create order
             var order = Order.Create(
                 customerId,
                 GenerateOrderNumber(),
-                shippingAddress,
-                "", "", "", "" // Simple address for now, or fetch from Address entity if applicable
+                address
             );
 
             // Calculate financials from cart
             order.SetFinancialDetails(cart.TaxAmount, cart.ShippingCost, cart.DiscountAmount);
 
             _context.Orders.Add(order);
-            // await _context.SaveChangesAsync(); // Defer save? No, keeping flow similar
+            // await _context.SaveChangesAsync(); 
 
             // Add order items
             foreach (var cartItem in cart.CartItems)
@@ -91,8 +97,6 @@ public class OrderService : IOrderService
             }
             // EF Core will automatically track added items due to AddItem adding to the collection
             
-            await _context.SaveChangesAsync();
-
             await _context.SaveChangesAsync();
 
             // Reserve inventory (using internal method to avoid nested transaction)
@@ -182,18 +186,20 @@ public class OrderService : IOrderService
             // Step 3: Create order
             _logger.LogDebug("Creating order entity from cart {CartId}", cart.Id);
 
-            // Step 3: Create order
-            _logger.LogDebug("Creating order entity from cart {CartId}", cart.Id);
-
             var orderNumber = GenerateOrderNumber();
+            
+            var shippingAddress = new AddressVO(
+                request.ShippingAddress,
+                request.ShippingCity,
+                request.ShippingProvince ?? "",
+                request.ShippingPostalCode ?? "",
+                request.ShippingCountry ?? "Vietnam"
+            );
+
             var order = Order.Create(
                 request.CustomerId,
                 orderNumber,
-                request.ShippingAddress,
-                request.ShippingCity,
-                request.ShippingProvince,
-                request.ShippingPostalCode,
-                request.ShippingCountry
+                shippingAddress
             );
             
             order.SetFinancialDetails(cart.TaxAmount, cart.ShippingCost, cart.DiscountAmount);
@@ -218,9 +224,6 @@ public class OrderService : IOrderService
             
             await _context.SaveChangesAsync();
             _logger.LogInformation("Successfully created order {OrderId} and items", order.Id);
-
-            await _context.SaveChangesAsync();
-            _logger.LogInformation("Successfully created {ItemCount} order items for order {OrderId}", cart.CartItems.Count, order.Id);
 
             // Step 5: Reserve inventory (using internal method to avoid nested transaction)
             _logger.LogDebug("Reserving inventory for order {OrderId}", order.Id);
