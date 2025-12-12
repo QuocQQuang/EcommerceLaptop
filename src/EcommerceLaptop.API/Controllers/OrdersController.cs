@@ -6,21 +6,19 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using EcommerceLaptop.Core.Services.Payment;
-using EcommerceLaptop.Core.DTOs.Payment;
+using MediatR;
+using EcommerceLaptop.API.Features.Orders;
 
 namespace EcommerceLaptop.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] // Require authentication for order operations
+[Authorize]
 public class OrdersController(
-    IOrderService orderService, 
-    IPaymentOrchestrator paymentOrchestrator, 
+    ISender sender, 
     ILogger<OrdersController> logger) : BaseApiController(logger)
 {
-    private readonly IOrderService _orderService = orderService;
-    private readonly IPaymentOrchestrator _paymentOrchestrator = paymentOrchestrator;
+    private readonly ISender _sender = sender;
     private new readonly ILogger<OrdersController> _logger = logger;
 
     [HttpPost("checkout")]
@@ -30,32 +28,15 @@ public class OrdersController(
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AtomicCheckoutResult>> AtomicCheckout([FromBody] CreateOrderRequest request)
     {
-        var customerId = GetUserId();
-        if (string.IsNullOrEmpty(customerId))
+        var userId = GetCurrentUserId();
+        if (userId == null)
         {
             return Unauthorized();
         }
 
-        request.CustomerId = int.Parse(customerId);
-
-        // Enforce email confirmation before allowing checkout
-        var isEmailConfirmed = User.Claims.FirstOrDefault(c => c.Type == "email_confirmed")?.Value;
-        if (string.IsNullOrEmpty(isEmailConfirmed))
-        {
-            // Fallback: require service to verify user record
-            var authService = HttpContext.RequestServices
-                .GetRequiredService<EcommerceLaptop.Core.Services.IAuthService>();
-            var profile = await authService.GetUserProfileAsync(request.CustomerId);
-            if (profile == null || profile.IsEmailVerified == false)
-            {
-                return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
-            }
-        }
-        else if (!bool.TryParse(isEmailConfirmed, out var confirmed) || !confirmed)
-        {
-            return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
-        }
-        var result = await _orderService.CreateOrderAndInitializePaymentAsync(request);
+        // Email verification is handled in the Command Handler
+        var command = new CreateOrderCommand(request) { AuthenticatedUserId = userId };
+        var result = await _sender.Send(command);
 
         if (result.IsSuccess)
         {
@@ -74,43 +55,32 @@ public class OrdersController(
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrderDto>> CreateFromCart(string cartId, [FromBody] CreateOrderRequest request)
     {
-        // Validate and parse cartId
         if (!int.TryParse(cartId, out int parsedCartId))
         {
             return BadRequest("Invalid cart ID format");
         }
 
-        var customerId = GetUserId();
-        if (string.IsNullOrEmpty(customerId))
+        var userId = GetCurrentUserId();
+        if (userId == null)
         {
             return Unauthorized();
         }
 
-        // Enforce email confirmation for order creation from cart as well
-        var isEmailConfirmed2 = User.Claims.FirstOrDefault(c => c.Type == "email_confirmed")?.Value;
-        if (string.IsNullOrEmpty(isEmailConfirmed2))
-        {
-            var authService = HttpContext.RequestServices
-                .GetRequiredService<EcommerceLaptop.Core.Services.IAuthService>();
-            var profile = await authService.GetUserProfileAsync(int.Parse(customerId));
-            if (profile == null || profile.IsEmailVerified == false)
-            {
-                return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
-            }
-        }
-        else if (!bool.TryParse(isEmailConfirmed2, out var confirmed2) || !confirmed2)
-        {
-            return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
-        }
-
-        // Validate shipping address
         if (string.IsNullOrWhiteSpace(request.ShippingAddress))
         {
             return BadRequest("Shipping address is required");
         }
 
-        var order = await _orderService.CreateOrderFromCartAsync(parsedCartId, int.Parse(customerId), request.ShippingAddress);
-        return CreatedAtAction(nameof(GetOrder), new { orderId = order.Id }, order);
+        try 
+        {
+            var command = new CreateOrderFromCartCommand(parsedCartId, request) { AuthenticatedUserId = userId };
+            var order = await _sender.Send(command);
+            return CreatedAtAction(nameof(GetOrder), new { orderId = order.Id }, order);
+        }
+        catch (InvalidOperationException ex) // Catch validation errors like email not verified
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("{orderId}")]
@@ -120,13 +90,16 @@ public class OrdersController(
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrderDetailsDto>> GetOrder(int orderId)
     {
-        var customerId = GetUserId();
-        if (string.IsNullOrEmpty(customerId))
+        var userId = GetCurrentUserId();
+        if (userId == null)
         {
             return Unauthorized();
         }
 
-        var order = await _orderService.GetOrderDetailsAsync(orderId);
+        // Note: Existing controller logic didn't verify ownership. 
+        // We preserve this behavior but the Service ideally should handle it.
+        var query = new GetOrderByIdQuery(orderId) { AuthenticatedUserId = userId };
+        var order = await _sender.Send(query);
         return Ok(order);
     }
 
@@ -142,7 +115,9 @@ public class OrdersController(
         _logger.LogInformation(" UPDATE ORDER STATUS - OrderId: {OrderId}, NewStatus: {NewStatus}, Reason: {Reason}",
             orderId, request.NewStatus, request.Reason);
 
-        var success = await _orderService.UpdateOrderStatusAsync(orderId, request);
+        var command = new UpdateOrderStatusCommand(orderId, request);
+        var success = await _sender.Send(command);
+        
         if (!success)
         {
             _logger.LogWarning(" UPDATE FAILED - OrderId: {OrderId}, NewStatus: {NewStatus}",
@@ -164,23 +139,26 @@ public class OrdersController(
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CancelOrder(int orderId, [FromBody] CancelOrderRequest request)
     {
-        var customerId = GetUserId();
-        if (string.IsNullOrEmpty(customerId))
+        var userId = GetCurrentUserId();
+        if (userId == null)
         {
             return Unauthorized();
         }
 
-        var success = await _orderService.CancelOrderAsync(orderId, request);
+        var command = new CancelOrderCommand(orderId, request) { AuthenticatedUserId = userId };
+        var success = await _sender.Send(command);
+        
         if (!success)
         {
-            // Check if order exists to provide better error message
-            var order = await _orderService.GetOrderDetailsAsync(orderId);
+            // Check if order exists (fetch via query) to provide better error
+            // Using MediatR for this too
+            var order = await _sender.Send(new GetOrderByIdQuery(orderId));
+            
             if (order == null)
             {
                 return NotFound("Order not found");
             }
 
-            // If order exists but cancellation failed, it's likely because it's already paid
             return BadRequest("Khng th hy n hng  thanh ton. Vui lng lin h h tr  c hon tin.");
         }
 
@@ -194,13 +172,14 @@ public class OrdersController(
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EcommerceLaptop.Core.DTOs.PagedResult<OrderDto>>> GetCustomerOrders(int customerId, int page = 1, int pageSize = 10)
     {
-        var userId = GetUserId();
-        if (string.IsNullOrEmpty(userId) || int.Parse(userId) != customerId)
+        var userId = GetCurrentUserId();
+        if (userId == null || userId != customerId)
         {
             return Unauthorized("Access denied");
         }
 
-        var orders = await _orderService.GetCustomerOrdersAsync(customerId, page, pageSize);
+        var query = new GetCustomerOrdersQuery(customerId, page, pageSize) { AuthenticatedUserId = userId };
+        var orders = await _sender.Send(query);
         return Ok(orders);
     }
 
@@ -224,7 +203,8 @@ public class OrdersController(
         if (page < 1) page = 1;
         if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
-        var result = await _orderService.GetEnhancedAdminOrdersAsync(page, pageSize, search, status, customerId);
+        var query = new GetAdminOrdersQuery(page, pageSize, search, status, customerId);
+        var result = await _sender.Send(query);
 
         return Ok(new
         {
@@ -242,9 +222,4 @@ public class OrdersController(
     }
 
     #endregion
-
-    private string? GetUserId()
-    {
-        return User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-    }
 }

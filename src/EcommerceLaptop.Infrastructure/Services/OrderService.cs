@@ -17,30 +17,20 @@ using System.Threading.Tasks;
 
 namespace EcommerceLaptop.Infrastructure.Services;
 
-public class OrderService : IOrderService
+public class OrderService(
+    ApplicationDbContext context,
+    IInventoryReservationService inventoryService,
+    IEmailService emailService,
+    IOrderWorkflowService workflowService,
+    IMapper mapper,
+    ILogger<OrderService> logger) : IOrderService
 {
-    private readonly ApplicationDbContext _context;
-    private readonly IInventoryReservationService _inventoryService;
-    private readonly IEmailService _emailService;
-    private readonly IOrderWorkflowService _workflowService;
-    private readonly IMapper _mapper;
-    private readonly ILogger<OrderService> _logger;
-
-    public OrderService(
-        ApplicationDbContext context,
-        IInventoryReservationService inventoryService,
-        IEmailService emailService,
-        IOrderWorkflowService workflowService,
-        IMapper mapper,
-        ILogger<OrderService> logger)
-    {
-        _context = context;
-        _inventoryService = inventoryService;
-        _emailService = emailService;
-        _workflowService = workflowService;
-        _mapper = mapper;
-        _logger = logger;
-    }
+    private readonly ApplicationDbContext _context = context;
+    private readonly IInventoryReservationService _inventoryService = inventoryService;
+    private readonly IEmailService _emailService = emailService;
+    private readonly IOrderWorkflowService _workflowService = workflowService;
+    private readonly IMapper _mapper = mapper;
+    private readonly ILogger<OrderService> _logger = logger;
 
     public async Task<OrderDto> CreateOrderFromCartAsync(int cartId, int customerId, string shippingAddress)
     {

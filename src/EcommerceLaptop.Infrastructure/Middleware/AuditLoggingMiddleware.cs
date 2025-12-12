@@ -144,7 +144,7 @@ public class AuditLoggingMiddleware
 
             await auditService.LogEventAsync(
                 entityType: entityType,
-                entityId: entityId,
+                entityId: entityId ?? "unknown",
                 eventType: eventType,
                 eventCategory: eventCategory,
                 oldValues: null, // No old values for HTTP requests

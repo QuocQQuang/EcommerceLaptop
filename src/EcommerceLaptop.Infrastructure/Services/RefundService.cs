@@ -53,7 +53,7 @@ public class RefundService : IRefundService
             {
                 query = query.Where(r => r.Reason.Contains(searchTerm) ||
                                         r.Order.User.Email.Contains(searchTerm) ||
-                                        r.TransactionId.Contains(searchTerm));
+                                        (r.TransactionId != null && r.TransactionId.Contains(searchTerm)));
             }
 
             if (!string.IsNullOrEmpty(status))

@@ -1172,7 +1172,7 @@ namespace EcommerceLaptop.Infrastructure.Services
                     smtpServer = await settingsService.GetSettingValueAsync<string>("smtp_host", smtpServer) ?? smtpServer;
                     smtpPort = await settingsService.GetSettingValueAsync<int>("smtp_port", smtpPort);
                     smtpUsername = await settingsService.GetSettingValueAsync<string>("smtp_username", smtpUsername) ?? smtpUsername;
-                    smtpPassword = await settingsService.GetSettingValueAsync<string>("smtp_password", smtpPassword);
+                    smtpPassword = await settingsService.GetSettingValueAsync<string>("smtp_password", smtpPassword) ?? smtpPassword;
                     enableTls = await settingsService.GetSettingValueAsync<bool>("smtp_enable_tls", enableTls);
                     enableSsl = await settingsService.GetSettingValueAsync<bool>("smtp_enable_ssl", enableSsl);
                 }

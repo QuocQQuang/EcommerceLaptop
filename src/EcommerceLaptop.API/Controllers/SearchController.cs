@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using EcommerceLaptop.Core.Services;
-using EcommerceLaptop.Core.Interfaces.Services;
-using EcommerceLaptop.API.DTOs;
+using EcommerceLaptop.Core.Interfaces;
 using EcommerceLaptop.Core.Entities;
+using EcommerceLaptop.API.DTOs;
 using EcommerceLaptop.API.Controllers;
 
 namespace EcommerceLaptop.API.Controllers;
@@ -16,9 +16,11 @@ namespace EcommerceLaptop.API.Controllers;
 [Route("api/[controller]")]
 public class SearchController(
     IProductSearchService searchService,
+    IAsyncRepository<Product> productRepository,
     ILogger<SearchController> logger) : BaseApiController(logger)
 {
     private readonly IProductSearchService _searchService = searchService;
+    private readonly IAsyncRepository<Product> _productRepository = productRepository;
 
     /// <summary>
     /// Performs advanced product search with full-text capabilities
@@ -280,10 +282,16 @@ public class SearchController(
     /// <returns>Indexing status</returns>
     [HttpPost("index/product/{productId}")]
     [Authorize(Roles = "Admin")]
-    public IActionResult IndexProduct(int productId)
+    public async Task<IActionResult> IndexProduct(int productId)
     {
-        // In a real implementation, you'd fetch the product from the database
-        // For now, we'll return a placeholder response
+        var product = await _productRepository.GetByIdAsync(productId);
+        if (product == null)
+        {
+            return NotFound(new { message = $"Product with ID {productId} not found" });
+        }
+
+        await _searchService.IndexProductAsync(product);
+        
         return SuccessResponse(new { 
             message = $"Product indexing queued for product ID: {productId}",
             productId = productId

@@ -716,12 +716,10 @@ public class IdentityService : IIdentityService
     private bool IsSequentialString(string input)
     {
         if (string.IsNullOrEmpty(input) || input.Length < 3) return false;
-        var hasDigits = false;
         for (int i = 0; i < input.Length - 2; i++)
         {
             if (char.IsDigit(input[i]) && char.IsDigit(input[i + 1]) && char.IsDigit(input[i + 2]))
             {
-                hasDigits = true;
                 if (input[i + 1] == input[i] + 1 && input[i + 2] == input[i] + 2) return true;
                 if (input[i + 1] == input[i] - 1 && input[i + 2] == input[i] - 2) return true;
             }

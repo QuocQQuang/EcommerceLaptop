@@ -4,25 +4,34 @@ using EcommerceLaptop.Core.DTOs.Inventory;
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Core.Interfaces;
+using EcommerceLaptop.Core.Specifications.InventorySpecs;
 using System.ComponentModel.DataAnnotations;
 
 namespace EcommerceLaptop.Infrastructure.Services;
 
 public class AssetTrackingService : IAssetTrackingService
 {
-    private readonly IInventoryRepository _repository;
+    private readonly IAsyncRepository<SerialNumber> _serialNumberRepository;
+    private readonly IAsyncRepository<Inventory> _inventoryRepository;
+    private readonly IAsyncRepository<Product> _productRepository;
     private readonly ILogger<AssetTrackingService> _logger;
 
-    public AssetTrackingService(IInventoryRepository repository, ILogger<AssetTrackingService> logger)
+    public AssetTrackingService(
+        IAsyncRepository<SerialNumber> serialNumberRepository,
+        IAsyncRepository<Inventory> inventoryRepository,
+        IAsyncRepository<Product> productRepository,
+        ILogger<AssetTrackingService> logger)
     {
-        _repository = repository;
+        _serialNumberRepository = serialNumberRepository;
+        _inventoryRepository = inventoryRepository;
+        _productRepository = productRepository;
         _logger = logger;
     }
 
     public async Task<List<SerialNumberDto>> GetSerialNumbersAsync(int productId, bool activeOnly = true)
     {
         _logger.LogInformation("Getting serial numbers for product {ProductId}", productId);
-        var serials = await _repository.GetSerialNumbersAsync(productId, activeOnly);
+        var serials = await _serialNumberRepository.GetAsync(new SerialNumberSpecification(productId, activeOnly));
         
         return serials.Select(s => new SerialNumberDto
         {
@@ -46,7 +55,8 @@ public class AssetTrackingService : IAssetTrackingService
     {
          _logger.LogInformation("Assigning new serial number {SerialNumber} for product {ProductId}", serialNumber, productId);
          
-         if (await _repository.SerialNumberExistsAsync(serialNumber))
+         var existing = await _serialNumberRepository.GetEntityWithSpec(new SerialNumberByValueSpecification(serialNumber));
+         if (existing != null)
          {
              throw new ValidationException($"Serial number {serialNumber} already exists");
          }
@@ -60,13 +70,13 @@ public class AssetTrackingService : IAssetTrackingService
              DateReceived = DateTime.UtcNow
          };
          
-         await _repository.AddSerialNumberAsync(sn);
+         await _serialNumberRepository.AddAsync(sn);
          return true;
     }
 
     public async Task<bool> ReserveSerialNumberAsync(string serialNumber, string orderReference)
     {
-        var sn = await _repository.GetSerialNumberByValueAsync(serialNumber);
+        var sn = await _serialNumberRepository.GetEntityWithSpec(new SerialNumberByValueSpecification(serialNumber));
         if (sn == null) return false;
         
         if (sn.Status != SerialNumberStatus.Available)
@@ -77,13 +87,13 @@ public class AssetTrackingService : IAssetTrackingService
         sn.Status = SerialNumberStatus.Reserved;
         sn.OrderReference = orderReference;
         
-        await _repository.UpdateSerialNumberAsync(sn);
+        await _serialNumberRepository.UpdateAsync(sn);
         return true;
     }
 
     public async Task<SerialNumberDto?> GetProductBySerialNumberAsync(string serialNumber)
     {
-        var sn = await _repository.GetSerialNumberByValueAsync(serialNumber);
+        var sn = await _serialNumberRepository.GetEntityWithSpec(new SerialNumberByValueSpecification(serialNumber));
         if (sn == null) return null;
         
         return new SerialNumberDto
@@ -101,19 +111,20 @@ public class AssetTrackingService : IAssetTrackingService
 
     public async Task<InventoryDto?> GetInventoryByBarcodeAsync(string barcode)
     {
-        var inventory = await _repository.GetInventoryByBarcodeAsync(barcode);
+        var inventory = await _inventoryRepository.GetEntityWithSpec(new InventoryByBarcodeSpecification(barcode));
         return inventory != null ? MapToInventoryDto(inventory) : null;
     }
 
     public async Task<InventoryDto?> GetInventoryBySKUAsync(string sku)
     {
-        var inventory = await _repository.GetInventoryBySkuAsync(sku);
+        // SKU is unique? Assuming yes.
+        var inventory = await _inventoryRepository.GetEntityWithSpec(new InventoryBySkuSpecification(sku));
         return inventory != null ? MapToInventoryDto(inventory) : null;
     }
 
     public async Task<bool> GenerateBarcodeAsync(int productId, string format = "EAN13")
     {
-        var product = await _repository.GetProductByIdAsync(productId);
+        var product = await _productRepository.GetByIdAsync(productId);
         if (product == null) return false;
         
         // Simple logic for demonstration
@@ -121,7 +132,7 @@ public class AssetTrackingService : IAssetTrackingService
         var random = new Random().Next(1000, 9999).ToString();
         product.Barcode = $"{productId}{timestamp.Substring(timestamp.Length - 6)}{random}"; 
         
-        await _repository.UpdateProductAsync(product);
+        await _productRepository.UpdateAsync(product);
         return true;
     }
 

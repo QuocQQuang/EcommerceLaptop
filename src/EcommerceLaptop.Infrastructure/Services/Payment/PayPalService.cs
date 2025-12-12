@@ -291,7 +291,7 @@ public class PayPalService : IPayPalService
                 webhookEvent.EventType, webhookEvent.Resource?.Id);
 
             // Step 3: Handle different PayPal event types
-            var result = await HandlePayPalEvent(webhookEvent);
+            var result = await HandlePayPalEvent(webhookEvent!);
 
             _logger.LogInformation("PayPal webhook processed successfully. Event: {EventType}, Action: {Action}",
                 webhookEvent.EventType, result.Action);
@@ -324,7 +324,12 @@ public class PayPalService : IPayPalService
     /// </summary>
     private async Task<PaymentWebhookResult> HandlePayPalEvent(PayPalWebhookEvent webhookEvent)
     {
-        return webhookEvent.EventType.ToUpperInvariant() switch
+        if (webhookEvent == null)
+        {
+             return new PaymentWebhookResult { IsSuccess = false, ErrorMessage = "Webhook event is null" };
+        }
+
+        return (webhookEvent.EventType ?? "").ToUpperInvariant() switch
         {
             // Payment Events
             "PAYMENT.CAPTURE.COMPLETED" => await HandlePaymentCaptureCompleted(webhookEvent),
@@ -416,7 +421,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "payment_denied",
-                TransactionId = capture?.Id,
+                TransactionId = capture?.Id ?? "",
                 Status = PaymentStatus.Failed,
                 Data = new Dictionary<string, object>
                 {
@@ -455,7 +460,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "payment_pending",
-                TransactionId = capture?.Id,
+                TransactionId = capture?.Id ?? "",
                 Status = PaymentStatus.Pending,
                 Data = new Dictionary<string, object>
                 {
@@ -495,7 +500,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "payment_refunded",
-                TransactionId = refund?.Id,
+                TransactionId = refund?.Id ?? "",
                 Status = PaymentStatus.Refunded,
                 Data = new Dictionary<string, object>
                 {
@@ -536,7 +541,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "payment_reversed",
-                TransactionId = capture?.Id,
+                TransactionId = capture?.Id ?? "",
                 Status = PaymentStatus.Failed,
                 Data = new Dictionary<string, object>
                 {
@@ -574,7 +579,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "order_approved",
-                TransactionId = order?.Id,
+                TransactionId = order?.Id ?? "",
                 Status = PaymentStatus.Processing,
                 Data = new Dictionary<string, object>
                 {
@@ -612,7 +617,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "order_completed",
-                TransactionId = order?.Id,
+                TransactionId = order?.Id ?? "",
                 Status = PaymentStatus.Completed,
                 Data = new Dictionary<string, object>
                 {
@@ -647,7 +652,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "order_processing",
-                TransactionId = order?.Id,
+                TransactionId = order?.Id ?? "",
                 Status = PaymentStatus.Processing,
                 Data = new Dictionary<string, object>
                 {
@@ -684,7 +689,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "dispute_created",
-                TransactionId = dispute?.DisputeId,
+                TransactionId = dispute?.DisputeId ?? "",
                 Status = PaymentStatus.Failed,
                 Data = new Dictionary<string, object>
                 {
@@ -723,7 +728,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "dispute_resolved",
-                TransactionId = dispute?.DisputeId,
+                TransactionId = dispute?.DisputeId ?? "",
                 Status = PaymentStatus.Completed, // Or failed based on outcome
                 Data = new Dictionary<string, object>
                 {
@@ -761,7 +766,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "subscription_created",
-                TransactionId = subscription?.Id,
+                TransactionId = subscription?.Id ?? "",
                 Status = PaymentStatus.Completed,
                 Data = new Dictionary<string, object>
                 {
@@ -797,7 +802,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "subscription_activated",
-                TransactionId = subscription?.Id,
+                TransactionId = subscription?.Id ?? "",
                 Status = PaymentStatus.Completed,
                 Data = new Dictionary<string, object>
                 {
@@ -832,7 +837,7 @@ public class PayPalService : IPayPalService
             {
                 IsSuccess = true,
                 Action = "subscription_cancelled",
-                TransactionId = subscription?.Id,
+                TransactionId = subscription?.Id ?? "",
                 Status = PaymentStatus.Cancelled,
                 Data = new Dictionary<string, object>
                 {

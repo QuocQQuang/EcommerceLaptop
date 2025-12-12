@@ -225,7 +225,7 @@ public class PayPalWebhookVerificationService
 
             // Download certificate
             var certData = await _httpClient.GetStringAsync(certUrl);
-            var certificate = new X509Certificate2(Encoding.UTF8.GetBytes(certData));
+            var certificate = X509CertificateLoader.LoadCertificate(Encoding.UTF8.GetBytes(certData));
 
             // Cache certificate
             _certificateCache[certUrl] = certificate;

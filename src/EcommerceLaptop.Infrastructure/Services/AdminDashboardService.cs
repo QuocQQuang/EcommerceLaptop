@@ -174,7 +174,7 @@ public class AdminDashboardService : IAdminDashboardService
                     Id = o.Id,
                     OrderNumber = o.OrderNumber,
                     CustomerName = o.User != null ? $"{o.User.FirstName} {o.User.LastName}".Trim() : "Guest",
-                    CustomerEmail = o.User.Email,
+                    CustomerEmail = o.User != null ? o.User.Email : "",
                     Total = o.TotalAmount,
                     Status = o.Status.ToString(),
                     StatusColor = GetOrderStatusColor(o.Status),
@@ -251,7 +251,7 @@ public class AdminDashboardService : IAdminDashboardService
                     SKU = g.First().Product.SKU,
                     TotalSold = g.Sum(oi => oi.Quantity),
                     Revenue = g.Sum(oi => oi.TotalPrice),
-                    Category = g.First().Product.Category != null ? g.First().Product.Category.Name : g.First().Product.Brand,
+                    Category = g.First().Product.Category != null ? g.First().Product.Category!.Name : g.First().Product.Brand,
                     ImageUrl = g.First().Product.Images
                         .Where(pi => pi.IsPrimary)
                         .Select(pi => pi.ImageUrl)

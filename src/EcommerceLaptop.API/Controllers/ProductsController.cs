@@ -1,51 +1,29 @@
+using MediatR;
+using EcommerceLaptop.API.Features.Products;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.EntityFrameworkCore;
-using EcommerceLaptop.Core.Services;
-using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.API.DTOs;
-using CoreInventory = EcommerceLaptop.Core.DTOs.Inventory;
-using EcommerceLaptop.Infrastructure.Services.Security;
 using System.Text.Json;
 using AutoMapper;
+using System.Security.Claims;
 
 namespace EcommerceLaptop.API.Controllers;
 
-/// <summary>
-/// Products controller handling all product-related operations
-/// Implements RESTful API design with comprehensive CRUD operations
-/// </summary>
-[ApiController]
-[Route("api/[controller]")]
 public class ProductsController(
-    IProductService productService,
-    IImageHostingService imageHostingService,
-    IAuditLoggingService auditLoggingService,
     ILogger<ProductsController> logger,
     IMemoryCache cache,
-    IInventoryService inventoryService,
-    IMapper mapper)
+    IMapper mapper,
+    ISender sender)
     : BaseApiController(logger)
 {
-    private readonly IProductService _productService = productService;
     private readonly IMemoryCache _cache = cache;
-    private readonly IImageHostingService _imageHostingService = imageHostingService;
-    private readonly IAuditLoggingService _auditLoggingService = auditLoggingService;
-    private readonly IInventoryService _inventoryService = inventoryService;
     private readonly IMapper _mapper = mapper;
+    private readonly ISender _sender = sender;
 
     /// <summary>
     /// Gets paginated list of products with filtering
-    /// </summary>
-    /// <param name="page">Page number (default: 1)</param>
-    /// <param name="pageSize">Items per page (default: 20)</param>
-    /// <param name="search">Search term for name, brand, model</param>
-    /// <param name="type">Product type filter (Laptop, Accessory, Bundle)</param>
-    /// <param name="brand">Brand filter</param>
-    /// <param name="minPrice">Minimum price filter</param>
-    /// <param name="maxPrice">Maximum price filter</param>
-    /// <returns>Paginated product list</returns>
+    /// </summary> 
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetProducts(
@@ -59,634 +37,55 @@ public class ProductsController(
         [FromQuery] decimal? maxPrice = null,
         [FromQuery] string? sortBy = null)
     {
-        if (page < 1) page = 1;
-        if (pageSize < 1 || pageSize > 100) pageSize = 20;
-
-        // Generate cache key based on parameters to avoid duplicate queries
+        // Generate cache key
         var cacheKey = $"products_{page}_{pageSize}_{search ?? ""}_{type ?? ""}_{brand ?? ""}_{category ?? ""}_{minPrice?.ToString("F2") ?? "0"}_{maxPrice?.ToString("F2") ?? "0"}_{sortBy ?? ""}";
 
-        IActionResult? resultAction;
-
-        if (!_cache.TryGetValue(cacheKey, out resultAction) || resultAction == null)
+        return (await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
-            var result = await _productService.GetProductsAsync(
-                page, pageSize, search, type, brand, category, minPrice, maxPrice, true, sortBy);
+            entry.SetSlidingExpiration(TimeSpan.FromMinutes(5));
+            entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
 
-            var productDtos = _mapper.Map<List<ProductDto>>(result.Items);
-            resultAction = PaginatedResponse(productDtos, result.TotalCount, page, pageSize);
-
-            // Cache for 5 minutes
-            var cacheOptions = new MemoryCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromMinutes(5))
-                .SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
-
-            _cache.Set(cacheKey, resultAction, cacheOptions);
-        }
-
-        return resultAction;
-    }
-
-    /// <summary>
-    /// Gets products for admin management
-    /// </summary>
-    [HttpGet("admin")]
-    [Authorize(Policy = "RequirePermission:products:read")]
-    public async Task<IActionResult> GetAdminProducts(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50,
-        [FromQuery] string? search = null,
-        [FromQuery] string? type = null,
-        [FromQuery] string? brand = null,
-        [FromQuery] string? status = null,
-        [FromQuery] string? productType = null)
-    {
-        var result = await _productService.GetAdminProductsAsync(
-            page, pageSize, search, type, brand, status, productType);
-
-        var productDtos = _mapper.Map<List<ProductDto>>(result.Items);
-
-        return PaginatedResponse(productDtos, result.TotalCount, page, pageSize);
+            var query = new GetProductsQuery(page, pageSize, search, type, brand, category, minPrice, maxPrice, sortBy);
+            var result = await _sender.Send(query);
+            
+            return PaginatedResponse(result.Items, result.TotalCount, result.Page, result.PageSize);
+        }))!;
     }
 
     /// <summary>
     /// Gets specific product by ID
     /// </summary>
-    /// <param name="id">Product ID</param>
-    /// <returns>Product details</returns>
     [HttpGet("{id}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetProduct(int id)
     {
-        var product = await _productService.GetByIdAsync(id);
-        if (product is null)
-            // ErrorResponse usually returns IActionResult directly
-            throw new KeyNotFoundException("Product not found"); 
-            // Or keep return ErrorResponse("Product not found", 404); if I want to keep consistency.
-            // But GlobalExceptionHandler handles exceptions. 
-            // Let's stick to using standard "return NotFound" or throw Exception.
-            // Existing code used "ErrorResponse" which is likely a BaseApiController helper.
-            // I will keep ErrorResponse for logic errors, but unexpected errors go to middleware.
-            // Actually, "try-catch" removal means *unexpected* errors bubble up.
-            // Logic errors like "Not Found" can be handled by logic.
-        if (product is null)
-             return ErrorResponse("Product not found", 404);
-        if (!product.IsActive)
-             return ErrorResponse("Product not found", 404);
-
-        // Load variants if this is a base product
-        if (product.IsBaseProduct)
-        {
-            var variants = await _productService.GetVariantsAsync(id);
-            product.Variants = variants.ToList();
-        }
-
-        // Log product view activity
-        var userId = GetCurrentUserId();
-        if (userId.HasValue)
-        {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-            await _auditLoggingService.LogUserActivityAsync(
-                userId.Value,
-                "product_view",
-                $"User viewed product: {product.Name} (ID: {id})",
-                ipAddress ?? "Unknown",
-                userAgent ?? "Unknown"
-            );
-        }
-
-        // TPT Optimization: Return detailed DTO based on the actual product type
-        // AutoMapper handles polymorphism automatically
-        var productDto = _mapper.Map<ProductDto>(product);
-
+        var query = new GetProductByIdQuery(id) 
+        { 
+            AuthenticatedUserId = GetCurrentUserId() 
+        };
+        var productDto = await _sender.Send(query);
         return SuccessResponse(productDto);
-    }
-
-    /// <summary>
-    /// Gets specific product by slug (searches by name)
-    /// </summary>
-    /// <param name="slug">Product slug</param>
-    /// <returns>Product details</returns>
-    [HttpGet("slug/{slug}")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetProductBySlug(string slug)
-    {
-        if (string.IsNullOrWhiteSpace(slug))
-            return ErrorResponse("Invalid slug", 400);
-
-        // Convert slug back to potential search terms
-        var searchTerms = slug.Replace("-", " ");
-
-        // First try exact search
-        var result = await _productService.GetProductsAsync(
-            page: 1,
-            pageSize: 1,
-            searchTerm: searchTerms,
-            isActive: true);
-
-        Product? product = null;
-
-        if (result.Items.Any())
-        {
-            product = result.Items.First();
-        }
-        else
-        {
-            // Try partial search with individual words
-            var words = searchTerms.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (words.Length > 1)
-            {
-                // Try searching with first few words
-                var partialSearch = string.Join(" ", words.Take(2));
-                result = await _productService.GetProductsAsync(
-                    page: 1,
-                    pageSize: 5,
-                    searchTerm: partialSearch,
-                    isActive: true);
-
-                if (result.Items.Any())
-                {
-                    // Try to find the best match by comparing with the slug
-                    product = result.Items.FirstOrDefault(p =>
-                        GenerateSlugFromName(p.Name).Equals(slug, StringComparison.OrdinalIgnoreCase))
-                        ?? result.Items.First();
-                }
-            }
-        }
-
-        if (product == null)
-            return ErrorResponse("Product not found", 404);
-
-        // Load variants if this is a base product
-        if (product.IsBaseProduct)
-        {
-            var variants = await _productService.GetVariantsAsync(product.Id);
-            product.Variants = variants.ToList();
-        }
-
-        var productDto = _mapper.Map<ProductDto>(product);
-
-        return SuccessResponse(productDto);
-    }
-
-    /// <summary>
-    /// Helper method to generate slug from product name (matches frontend logic)
-    /// </summary>
-    private static string GenerateSlugFromName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            return "product";
-
-        return name.ToLowerInvariant()
-            .Replace(" ", "-")
-            .Replace("&", "and")
-            .Replace("/", "-")
-            .Replace("\\", "-")
-            .Replace("(", "")
-            .Replace(")", "")
-            .Replace("[", "")
-            .Replace("]", "")
-            .Replace("{", "")
-            .Replace("}", "")
-            .Replace(".", "")
-            .Replace(",", "")
-            .Replace(":", "")
-            .Replace(";", "")
-            .Replace("'", "")
-            .Replace("\"", "")
-            .Replace("!", "")
-            .Replace("?", "")
-            .Replace("@", "")
-            .Replace("#", "")
-            .Replace("$", "")
-            .Replace("%", "")
-            .Replace("^", "")
-            .Replace("*", "")
-            .Replace("+", "")
-            .Replace("=", "")
-            .Replace("|", "")
-            .Replace("~", "")
-            .Replace("`", "")
-            .Replace("<", "")
-            .Replace(">", "")
-            .Replace("\t", "")
-            .Replace("\n", "")
-            .Replace("\r", "")
-            .Replace("--", "-")
-            .Replace("---", "-")
-            .Trim('-');
-    }
-
-    /// <summary>
-    /// Gets laptops with specific filtering
-    /// </summary>
-    /// <param name="page">Page number</param>
-    /// <param name="pageSize">Items per page</param>
-    /// <param name="search">Search term</param>
-    /// <param name="brand">Brand filter</param>
-    /// <param name="minPrice">Minimum price</param>
-    /// <param name="maxPrice">Maximum price</param>
-    /// <param name="cpuBrand">CPU brand filter</param>
-    /// <param name="ramCapacity">RAM capacity filter</param>
-    /// <param name="storageType">Storage type filter</param>
-    /// <returns>Paginated laptop list</returns>
-    [HttpGet("laptops")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetLaptops(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        [FromQuery] string? search = null,
-        [FromQuery] string? brand = null,
-        [FromQuery] decimal? minPrice = null,
-        [FromQuery] decimal? maxPrice = null,
-        [FromQuery] string? cpuBrand = null,
-        [FromQuery] int? ramCapacity = null,
-        [FromQuery] string? storageType = null)
-    {
-        var result = await _productService.GetLaptopsAsync(
-            page, pageSize, search, brand, minPrice, maxPrice,
-            cpuBrand, ramCapacity, storageType);
-
-        var laptopDtos = _mapper.Map<List<LaptopDto>>(result.Items);
-
-        return PaginatedResponse(laptopDtos, result.TotalCount, page, pageSize);
-    }
-
-    /// <summary>
-    /// Gets accessories with filtering
-    /// </summary>
-    /// <param name="page">Page number</param>
-    /// <param name="pageSize">Items per page</param>
-    /// <param name="search">Search term</param>
-    /// <param name="accessoryType">Accessory type filter</param>
-    /// <param name="compatibility">Compatibility filter</param>
-    /// <returns>Paginated accessory list</returns>
-    [HttpGet("accessories")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetAccessories(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        [FromQuery] string? search = null,
-        [FromQuery] string? accessoryType = null,
-        [FromQuery] string? compatibility = null)
-    {
-        var result = await _productService.GetAccessoriesAsync(
-            page, pageSize, search, accessoryType, compatibility);
-
-        var accessoryDtos = _mapper.Map<List<AccessoryDto>>(result.Items);
-
-        return PaginatedResponse(accessoryDtos, result.TotalCount, page, pageSize);
-    }
-
-    /// <summary>
-    /// Gets bundles with filtering
-    /// </summary>
-    /// <param name="page">Page number</param>
-    /// <param name="pageSize">Items per page</param>
-    /// <param name="search">Search term</param>
-    /// <param name="bundleType">Bundle type filter</param>
-    /// <returns>Paginated bundle list</returns>
-    [HttpGet("bundles")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetBundles(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        [FromQuery] string? search = null,
-        [FromQuery] string? bundleType = null)
-    {
-        var result = await _productService.GetBundlesAsync(
-            page, pageSize, search, bundleType);
-
-        var bundleDtos = _mapper.Map<List<BundleDto>>(result.Items);
-
-        return PaginatedResponse(bundleDtos, result.TotalCount, page, pageSize);
-    }
-
-    /// <summary>
-    /// Gets featured products
-    /// </summary>
-    /// <param name="count">Number of products to return</param>
-    /// <returns>Featured products</returns>
-    [HttpGet("featured")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetFeaturedProducts([FromQuery] int count = 10)
-    {
-        if (count < 1 || count > 50) count = 10;
-
-        var products = await _productService.GetFeaturedProductsAsync(count);
-        var productDtos = _mapper.Map<List<ProductDto>>(products);
-
-        return SuccessResponse(productDtos);
-    }
-
-    /// <summary>
-    /// Gets related products
-    /// </summary>
-    /// <param name="id">Base product ID</param>
-    /// <param name="count">Number of related products to return</param>
-    /// <returns>Related products</returns>
-    [HttpGet("{id}/related")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetRelatedProducts(int id, [FromQuery] int count = 5)
-    {
-        if (count < 1 || count > 20) count = 5;
-
-        var products = await _productService.GetRelatedProductsAsync(id, count);
-        var productDtos = _mapper.Map<List<ProductDto>>(products);
-
-        return SuccessResponse(productDtos);
-    }
-
-    /// <summary>
-    /// Gets all brands
-    /// </summary>
-    /// <returns>List of brands</returns>
-    [HttpGet("brands")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetBrands()
-    {
-        var brands = await _productService.GetBrandsAsync();
-        return SuccessResponse(brands);
     }
 
     /// <summary>
     /// Creates a new product (Admin only)
     /// </summary>
-    /// <param name="request">Product creation request</param>
-    /// <returns>Created product</returns>
     [HttpPost]
     [Authorize(Policy = "RequirePermission:products:write")]
     public async Task<IActionResult> CreateProduct([FromBody] JsonElement request)
     {
-        // Deserialize to base request first to get ProductType
-        var baseRequest = JsonSerializer.Deserialize<CreateProductRequest>(request.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var userId = GetCurrentUserId();
+        var command = new CreateProductCommand(request) { AuthenticatedUserId = userId };
+        var productDto = await _sender.Send(command);
 
-        if (baseRequest == null || string.IsNullOrEmpty(baseRequest.ProductType))
-        {
-            return ErrorResponse("ProductType is required.", 400);
-        }
-
-        // Check SKU uniqueness
-        if (!await _productService.IsSKUUniqueAsync(baseRequest.SKU))
-            return ErrorResponse("SKU already exists");
-
-        Product product;
-        try
-        {
-            product = MapToProduct(request, baseRequest.ProductType);
-        }
-        catch (ArgumentException ex)
-        {
-            return ErrorResponse(ex.Message, 400);
-        }
-        catch (JsonException ex)
-        {
-            return ErrorResponse($"Invalid JSON for ProductType '{baseRequest.ProductType}': {ex.Message}", 400);
-        }
-
-
-        var createdProduct = await _productService.CreateProductAsync(product);
-        var productDto = _mapper.Map<ProductDto>(createdProduct);
-
-        // Log admin product creation activity
-        var adminUserId = GetCurrentUserId();
-        if (adminUserId.HasValue)
-        {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-            await _auditLoggingService.LogAdminActivityAsync(
-                adminUserId.Value,
-                "product_created",
-                $"Admin created product: {createdProduct.Name} (ID: {createdProduct.Id}, SKU: {createdProduct.SKU})",
-                ipAddress ?? "Unknown",
-                userAgent ?? "Unknown",
-                targetResource: $"Product:{createdProduct.Id}"
-            );
-        }
-
-        return CreatedAtAction(nameof(GetProduct), new { id = createdProduct.Id },
+        return CreatedAtAction(nameof(GetProduct), new { id = productDto.Id },
             SuccessResponse(productDto, "Product created successfully"));
     }
 
-    /// <summary>
-    /// Updates existing product (Admin only)
-    /// </summary>
-    /// <param name="id">Product ID</param>
-    /// <param name="request">Product update request</param>
-    /// <returns>Updated product</returns>
-    [HttpPut("{id}")]
-    [Authorize(Policy = "RequirePermission:products:write")]
-    public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonElement request)
-    {
-        var existingProduct = await _productService.GetByIdWithDetailsAsync(id);
-        if (existingProduct == null)
-            return ErrorResponse("Product not found", 404);
-
-        // Apply updates using the new flexible mapping
-        ApplyProductUpdates(existingProduct, request);
-
-        var updatedProduct = await _productService.UpdateProductAsync(existingProduct);
-
-        // Align base product inventory update with variant behavior when StockQuantity is provided
-        if (request.ValueKind == JsonValueKind.Object && request.TryGetProperty("StockQuantity", out var stockElement))
-        {
-            if (stockElement.TryGetInt32(out var stockQuantity))
-            {
-                var inventory = await _inventoryService.GetInventoryByProductIdAsync(id);
-                if (inventory == null)
-                {
-                    var createRequest = new CoreInventory.CreateInventoryRequest
-                    {
-                        ProductId = id,
-                        QuantityInStock = stockQuantity,
-                        ReorderLevel = 10,
-                        MaxStockLevel = 1000, 
-                        WarehouseLocation = "Main Warehouse",
-                        UnitCost = existingProduct.Price * 0.8m // Estimated
-                    };
-                    await _inventoryService.CreateInventoryAsync(createRequest);
-                }
-                else
-                {
-                    var quantityDifference = stockQuantity - inventory.QuantityInStock;
-                    if (quantityDifference != 0)
-                    {
-                        var adjustmentRequest = new CoreInventory.StockAdjustmentRequest
-                        {
-                            ProductId = id,
-                            Quantity = quantityDifference,
-                            Reference = "PRODUCT_UPDATE",
-                            Notes = $"Base product inventory update: {inventory.QuantityInStock} -> {stockQuantity}",
-                            WarehouseLocation = inventory.WarehouseLocation
-                        };
-                        await _inventoryService.AdjustStockAsync(adjustmentRequest);
-                    }
-                }
-            }
-        }
-
-        var productDto = _mapper.Map<ProductDto>(updatedProduct);
-
-        // Log admin product update activity
-        var adminUserId = GetCurrentUserId();
-        if (adminUserId.HasValue)
-        {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-            await _auditLoggingService.LogAdminActivityAsync(
-                adminUserId.Value,
-                "product_updated",
-                $"Admin updated product: {updatedProduct.Name} (ID: {id})",
-                ipAddress ?? "Unknown",
-                userAgent ?? "Unknown",
-                targetResource: $"Product:{id}"
-            );
-        }
-
-        return SuccessResponse(productDto, "Product updated successfully");
-    }
-
-    /// <summary>
-    /// Deletes product (Admin only)
-    /// </summary>
-    /// <param name="id">Product ID</param>
-    /// <returns>Success status</returns>
-    [HttpDelete("{id}")]
-    [Authorize(Policy = "RequirePermission:products:delete")]
-    public async Task<IActionResult> DeleteProduct(int id)
-    {
-        // Get product info before deletion for logging
-        var existingProduct = await _productService.GetByIdAsync(id);
-        var productName = existingProduct?.Name ?? "Unknown";
-
-        var success = await _productService.DeleteProductAsync(id);
-        if (!success)
-            return ErrorResponse("Product not found", 404);
-
-        // Log admin product deletion activity
-        var adminUserId = GetCurrentUserId();
-        if (adminUserId.HasValue)
-        {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-            await _auditLoggingService.LogAdminActivityAsync(
-                adminUserId.Value,
-                "product_deleted",
-                $"Admin deleted product: {productName} (ID: {id})",
-                ipAddress ?? "Unknown",
-                userAgent ?? "Unknown",
-                targetResource: $"Product:{id}"
-            );
-        }
-
-        return SuccessResponse(new { deleted = true }, "Product deleted successfully");
-    }
-
-    
-    private Product MapToProduct(JsonElement request, string productType)
-    {
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        var rawJson = request.GetRawText();
-
-        return productType.ToLower() switch
-        {
-            "laptop" => JsonSerializer.Deserialize<Laptop>(rawJson, options) ?? throw new JsonException("Failed to deserialize to Laptop."),
-            "accessory" => JsonSerializer.Deserialize<Accessory>(rawJson, options) ?? throw new JsonException("Failed to deserialize to Accessory."),
-            "bundle" => JsonSerializer.Deserialize<Bundle>(rawJson, options) ?? throw new JsonException("Failed to deserialize to Bundle."),
-            _ => throw new ArgumentException("Invalid product type specified.")
-        };
-    }
-
-    private void ApplyProductUpdates(Product product, JsonElement request)
-    {
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        var rawJson = request.GetRawText();
-
-        // Use a temporary JObject to avoid applying nulls over existing values
-        var updateData = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(rawJson, options);
-
-        if (updateData == null) return;
-
-        // Update base product properties
-        if (updateData.TryGetValue(nameof(UpdateProductRequest.Name), out var name) && name.ValueKind == JsonValueKind.String) product.Name = name.GetString()!;
-        if (updateData.TryGetValue(nameof(UpdateProductRequest.Description), out var desc) && desc.ValueKind == JsonValueKind.String) product.Description = desc.GetString()!;
-        if (updateData.TryGetValue(nameof(UpdateProductRequest.Brand), out var brand) && brand.ValueKind == JsonValueKind.String) product.Brand = brand.GetString()!;
-        if (updateData.TryGetValue(nameof(UpdateProductRequest.Model), out var model) && model.ValueKind == JsonValueKind.String) product.Model = model.GetString()!;
-        if (updateData.TryGetValue(nameof(UpdateProductRequest.Price), out var price) && price.TryGetDecimal(out var priceValue)) product.Price = priceValue;
-        if (updateData.TryGetValue(nameof(UpdateProductRequest.IsActive), out var isActive))
-        {
-            if (isActive.ValueKind == JsonValueKind.True) product.IsActive = true;
-            else if (isActive.ValueKind == JsonValueKind.False) product.IsActive = false;
-        }
-
-
-        // Update type-specific properties
-        switch (product)
-        {
-            case Laptop laptop:
-                var laptopUpdate = JsonSerializer.Deserialize<UpdateLaptopRequest>(rawJson, options);
-                if (laptopUpdate == null) break;
-                // This is a bit verbose, but ensures we only update non-null values from the request
-                laptop.Series = laptopUpdate.Series ?? laptop.Series;
-                laptop.CpuBrand = laptopUpdate.CpuBrand ?? laptop.CpuBrand;
-                laptop.CpuModel = laptopUpdate.CpuModel ?? laptop.CpuModel;
-                laptop.CpuGeneration = laptopUpdate.CpuGeneration ?? laptop.CpuGeneration;
-                laptop.CpuCores = laptopUpdate.CpuCores ?? laptop.CpuCores;
-                laptop.CpuBaseClockGHz = laptopUpdate.CpuBaseClockGHz ?? laptop.CpuBaseClockGHz;
-                laptop.CpuBoostClockGHz = laptopUpdate.CpuBoostClockGHz ?? laptop.CpuBoostClockGHz;
-                laptop.CpuCache = laptopUpdate.CpuCache ?? laptop.CpuCache;
-                laptop.RamType = laptopUpdate.RamType ?? laptop.RamType;
-                laptop.RamCapacityGB = laptopUpdate.RamCapacityGB ?? laptop.RamCapacityGB;
-                laptop.RamSlots = laptopUpdate.RamSlots ?? laptop.RamSlots;
-                laptop.RamSpeed = laptopUpdate.RamSpeed ?? laptop.RamSpeed;
-                laptop.RamUpgradeable = laptopUpdate.RamUpgradeable ?? laptop.RamUpgradeable;
-                laptop.StorageType = laptopUpdate.StorageType ?? laptop.StorageType;
-                laptop.StorageCapacityGB = laptopUpdate.StorageCapacityGB ?? laptop.StorageCapacityGB;
-                laptop.StorageInterface = laptopUpdate.StorageInterface ?? laptop.StorageInterface;
-                laptop.NvMeSupport = laptopUpdate.NvMeSupport ?? laptop.NvMeSupport;
-                laptop.GpuType = laptopUpdate.GpuType ?? laptop.GpuType;
-                laptop.GpuBrand = laptopUpdate.GpuBrand ?? laptop.GpuBrand;
-                laptop.GpuModel = laptopUpdate.GpuModel ?? laptop.GpuModel;
-                laptop.GpuVramGB = laptopUpdate.GpuVramGB ?? laptop.GpuVramGB;
-                laptop.DisplaySizeInches = laptopUpdate.DisplaySizeInches ?? laptop.DisplaySizeInches;
-                laptop.DisplayResolution = laptopUpdate.DisplayResolution ?? laptop.DisplayResolution;
-                laptop.DisplayPanelType = laptopUpdate.DisplayPanelType ?? laptop.DisplayPanelType;
-                laptop.DisplayRefreshRateHz = laptopUpdate.DisplayRefreshRateHz ?? laptop.DisplayRefreshRateHz;
-                laptop.DisplayTouchscreen = laptopUpdate.DisplayTouchscreen ?? laptop.DisplayTouchscreen;
-                laptop.BatteryCapacityWh = laptopUpdate.BatteryCapacityWh ?? laptop.BatteryCapacityWh;
-                laptop.WeightKg = laptopUpdate.WeightKg ?? laptop.WeightKg;
-                laptop.Dimensions = laptopUpdate.Dimensions ?? laptop.Dimensions;
-                laptop.Color = laptopUpdate.Color ?? laptop.Color;
-                laptop.Ports = laptopUpdate.Ports ?? laptop.Ports;
-                laptop.WiFi6Support = laptopUpdate.WiFi6Support ?? laptop.WiFi6Support;
-                laptop.BluetoothSupport = laptopUpdate.BluetoothSupport ?? laptop.BluetoothSupport;
-                laptop.BluetoothVersion = laptopUpdate.BluetoothVersion ?? laptop.BluetoothVersion;
-                laptop.WarrantyPeriod = laptopUpdate.WarrantyPeriod ?? laptop.WarrantyPeriod;
-                laptop.TargetAudience = laptopUpdate.TargetAudience ?? laptop.TargetAudience;
-                break;
-
-            case Accessory accessory:
-                var accessoryUpdate = JsonSerializer.Deserialize<UpdateAccessoryRequest>(rawJson, options);
-                if (accessoryUpdate == null) break;
-                accessory.AccessoryType = accessoryUpdate.AccessoryType ?? accessory.AccessoryType;
-                accessory.Compatibility = accessoryUpdate.Compatibility ?? accessory.Compatibility;
-                accessory.Specifications = accessoryUpdate.SpecificationDetails ?? accessory.Specifications;
-                accessory.Color = accessoryUpdate.Color ?? accessory.Color;
-                accessory.Connectivity = accessoryUpdate.Connectivity ?? accessory.Connectivity;
-                break;
-        }
-    }
-
-
-    #region T005 Enhanced Product Catalog Operations
+    #region Enhanced Product Catalog Operations (Refactored)
 
     /// <summary>
     /// Gets laptops with advanced hardware filtering
-    /// Implements T005 requirement for detailed laptop specification filtering
     /// </summary>
     [HttpGet("laptops/advanced")]
     [AllowAnonymous]
@@ -714,21 +113,18 @@ public class ProductsController(
         [FromQuery] bool? touchscreen = null,
         [FromQuery] string? targetAudience = null)
     {
-        if (page < 1) page = 1;
-        if (pageSize < 1 || pageSize > 100) pageSize = 20;
-
-        var result = await _productService.GetLaptopsWithAdvancedFilteringAsync(
+        var query = new GetAdvancedLaptopsQuery(
             page, pageSize, search, brand, minPrice, maxPrice,
             cpuBrand, cpuGeneration, minCpuCores, minRamGB, maxRamGB,
             ramType, storageType, minStorageGB, gpuType, gpuBrand,
             minDisplaySize, maxDisplaySize, displayResolution,
             minRefreshRate, touchscreen, targetAudience);
 
-        var laptopDtos = _mapper.Map<List<LaptopDto>>(result.Items);
+        var result = await _sender.Send(query);
 
-        return SuccessResponse(new
+         return SuccessResponse(new
         {
-            Items = laptopDtos,
+            Items = result.Items,
             TotalCount = result.TotalCount,
             Page = result.Page,
             PageSize = result.PageSize,
@@ -749,17 +145,12 @@ public class ProductsController(
         [FromQuery] string? compatibility = null,
         [FromQuery] int? productId = null)
     {
-        if (page < 1) page = 1;
-        if (pageSize < 1 || pageSize > 100) pageSize = 20;
+        var query = new GetCompatibleAccessoriesQuery(page, pageSize, search, accessoryType, compatibility, productId);
+        var result = await _sender.Send(query);
 
-        var result = await _productService.GetAccessoriesWithCompatibilityAsync(
-            page, pageSize, search, accessoryType, compatibility, productId);
-
-        var accessoryDtos = _mapper.Map<List<AccessoryDto>>(result.Items);
-
-        return SuccessResponse(new
+         return SuccessResponse(new
         {
-            Items = accessoryDtos,
+            Items = result.Items,
             TotalCount = result.TotalCount,
             Page = result.Page,
             PageSize = result.PageSize,
@@ -774,15 +165,10 @@ public class ProductsController(
     [Authorize(Policy = "RequirePermission:products:write")]
     public async Task<IActionResult> CreateBundle([FromBody] CreateBundleRequest request)
     {
-        var bundle = await _productService.CreateBundleAsync(
-            request.Name,
-            request.Description,
-            request.ProductIds,
-            request.DiscountPercentage,
-            request.ValidFrom,
-            request.ValidTo);
+        var command = new CreateBundleCommand(request);
+        var bundleDto = await _sender.Send(command);
 
-        return SuccessResponse(_mapper.Map<BundleDto>(bundle), "Bundle created successfully");
+        return SuccessResponse(bundleDto, "Bundle created successfully");
     }
 
     /// <summary>
@@ -792,9 +178,10 @@ public class ProductsController(
     [Authorize(Policy = "RequirePermission:products:read")]
     public async Task<IActionResult> CalculateBundlePrice([FromBody] CalculateBundlePriceRequest request)
     {
-        var price = await _productService.CalculateBundlePriceAsync(request.ProductIds, request.DiscountPercentage);
+        var query = new CalculateBundlePriceQuery(request);
+        var result = await _sender.Send(query);
 
-        return SuccessResponse(new { CalculatedPrice = price });
+        return SuccessResponse(result);
     }
 
     /// <summary>
@@ -804,7 +191,8 @@ public class ProductsController(
     [AllowAnonymous]
     public async Task<IActionResult> GetProductSpecifications(int id)
     {
-        var specifications = await _productService.GetProductSpecificationsAsync(id);
+        var query = new GetProductSpecificationsQuery(id);
+        var specifications = await _sender.Send(query);
 
         if (!specifications.Any())
             return NotFound("Product not found");
@@ -819,9 +207,10 @@ public class ProductsController(
     [AllowAnonymous]
     public async Task<IActionResult> ValidateCompatibility(int productId, int accessoryId)
     {
-        var isCompatible = await _productService.ValidateProductCompatibilityAsync(productId, accessoryId);
+        var query = new ValidateCompatibilityQuery(productId, accessoryId);
+        var result = await _sender.Send(query);
 
-        return SuccessResponse(new { IsCompatible = isCompatible });
+        return SuccessResponse(result);
     }
 
     /// <summary>
@@ -835,8 +224,8 @@ public class ProductsController(
         if (userId == null)
             return Unauthorized();
 
-        var recommendations = await _productService.GetRecommendedProductsAsync(userId.Value, count);
-        var recommendationDtos = _mapper.Map<IEnumerable<ProductDto>>(recommendations);
+        var query = new GetRecommendationsQuery(userId.Value, count);
+        var recommendationDtos = await _sender.Send(query);
 
         return SuccessResponse(recommendationDtos);
     }
@@ -848,7 +237,8 @@ public class ProductsController(
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> BulkUpdatePricing([FromBody] BulkPricingUpdateRequest request)
     {
-        var success = await _productService.BulkUpdatePricingAsync(request.ProductIds, request.PriceAdjustmentPercentage);
+        var command = new BulkUpdatePricingCommand(request);
+        var success = await _sender.Send(command);
 
         if (success)
             return SuccessResponse<object?>(null, "Pricing updated successfully");
@@ -858,125 +248,34 @@ public class ProductsController(
 
     #endregion
 
-    #region Variant Image Upload Operations
+    #region Variant Image Upload Operations (Refactored)
 
     /// <summary>
     /// Uploads variant images to ImgBB cloud hosting
     /// </summary>
-    /// <param name="id">Base product ID</param>
-    /// <param name="variantId">Variant ID</param>
-    /// <param name="files">Image files to upload</param>
-    /// <returns>Uploaded image URLs and details</returns>
     [HttpPost("{id}/variants/{variantId}/images")]
     [Authorize(Policy = "RequirePermission:products:manage")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadVariantImages(int id, int variantId, IFormFileCollection files)
     {
-        // Debug logging
-        logger.LogInformation("UploadVariantImages called with {FileCount} files for variant {VariantId} of product {ProductId}",
-            files?.Count ?? 0, variantId, id);
+        var command = new UploadVariantImagesCommand(id, variantId, files);
+        var result = await _sender.Send(command);
 
-        if (files != null)
+        if (result.Success)
         {
-            for (int i = 0; i < files.Count; i++)
+            return Ok(new 
             {
-                var file = files[i];
-                logger.LogInformation("File {Index}: {FileName}, Size: {Size} bytes",
-                    i + 1, file.FileName, file.Length);
-            }
+               success = true,
+               message = result.Message,
+               data = result.Data
+            });
         }
-
-        if (files == null || files.Count == 0)
-            return ErrorResponse("No files provided", 400);
-
-        // Verify variant exists and belongs to the base product
-        var variant = await _productService.GetByIdAsync(variantId);
-        if (variant == null || variant.ParentProductId != id)
-            return ErrorResponse("Variant not found", 404);
-
-        var uploadResults = new List<ImageUploadResult>();
-        var productImages = new List<ProductImage>();
-
-        logger.LogInformation("Starting upload of {FileCount} files for variant {VariantId}",
-            files.Count, variantId);
-
-        for (int i = 0; i < files.Count; i++)
+        else
         {
-            var file = files[i];
-            logger.LogInformation("Uploading file {Index}/{Total}: {FileName} ({Size} bytes)",
-                i + 1, files.Count, file.FileName, file.Length);
-
-            // Validate file
-            if (!_imageHostingService.IsValidImage(file.FileName, file.ContentType, file.Length))
-            {
-                return ErrorResponse($"Invalid image file: {file.FileName}", 400);
-            }
-
-            try
-            {
-                // Upload to ImgBB
-                using var stream = file.OpenReadStream();
-                var uploadResult = await _imageHostingService.UploadImageAsync(stream, file.FileName, ImageCategory.Products);
-                uploadResults.Add(uploadResult);
-
-                logger.LogInformation("Successfully uploaded file {Index}/{Total}: {FileName}",
-                    i + 1, files.Count, file.FileName);
-
-                // Prepare ProductImage entity
-                productImages.Add(new ProductImage
-                {
-                    ProductId = variantId,
-                    ImageUrl = uploadResult.Url,
-                    AltText = $"{variant.Name} - Image",
-                    DisplayOrder = productImages.Count + 1,
-                    ImageId = uploadResult.ImageId,
-                    DeleteUrl = uploadResult.DeleteUrl
-                });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to upload image {FileName} for variant {VariantId}", file.FileName, variantId);
-
-                // Cleanup already uploaded images on error
-                foreach (var uploadedResult in uploadResults)
-                {
-                    try
-                    {
-                        await _imageHostingService.DeleteImageAsync(uploadedResult.ImageId);
-                    }
-                    catch (Exception cleanupEx)
-                    {
-                        logger.LogError(cleanupEx, "Failed to cleanup uploaded image {ImageId}", uploadedResult.ImageId);
-                    }
-                }
-
-                return ErrorResponse($"Failed to upload image: {file.FileName}", 500);
-            }
+            return StatusCode(result.StatusCode, new { success = false, message = result.Message });
         }
-
-        // Save all images to database
-        // Save all images to database
-        await _productService.UpdateProductImagesAsync(variantId, productImages);
-
-        logger.LogInformation("Successfully uploaded and saved {ImageCount} images for variant {VariantId}",
-            productImages.Count, variantId);
-
-        return Ok(new
-        {
-            success = true,
-            message = $"Successfully uploaded {productImages.Count} images",
-            data = new
-            {
-                variantId = variantId,
-                uploadedImages = uploadResults.Select((r, idx) => new
-                {
-                    imageId = r.ImageId,
-                    imageUrl = r.Url,
-                    displayOrder = idx + 1,
-                    message = "Upload successful"
-                }).ToList()
-            }
-        });
     }
     #endregion
+
+
 }

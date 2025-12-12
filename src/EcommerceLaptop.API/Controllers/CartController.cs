@@ -1,5 +1,6 @@
 using EcommerceLaptop.Core.DTOs.Cart;
-using EcommerceLaptop.Core.Services;
+using MediatR;
+using EcommerceLaptop.API.Features.Cart;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,10 +13,9 @@ namespace EcommerceLaptop.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class CartController(IShoppingCartService cartService, ILogger<CartController> logger) : ControllerBase
+public class CartController(ISender sender, ILogger<CartController> logger) : BaseApiController(logger)
 {
-    private readonly IShoppingCartService _cartService = cartService;
-    private readonly ILogger<CartController> _logger = logger;
+    private readonly ISender _sender = sender;
 
     /// <summary>
     /// Get current user's cart or guest session cart
@@ -35,7 +35,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var cart = await _cartService.GetCartAsync(userId, sessionId);
+        var query = new GetCartQuery(userId, sessionId);
+        var cart = await _sender.Send(query);
         return Ok(cart);
     }
 
@@ -59,7 +60,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var cart = await _cartService.AddToCartAsync(addToCartDto, userId);
+        var command = new AddToCartCommand(addToCartDto, userId);
+        var cart = await _sender.Send(command);
         return Ok(cart);
     }
 
@@ -83,7 +85,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var cart = await _cartService.UpdateCartItemAsync(updateCartDto, userId);
+        var command = new UpdateCartItemCommand(updateCartDto, userId);
+        var cart = await _sender.Send(command);
         return Ok(cart);
     }
 
@@ -106,7 +109,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var cart = await _cartService.RemoveFromCartAsync(removeFromCartDto, userId);
+        var command = new RemoveFromCartCommand(removeFromCartDto, userId);
+        var cart = await _sender.Send(command);
         return Ok(cart);
     }
 
@@ -136,7 +140,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             SessionId = sessionId 
         };
 
-        var cart = await _cartService.RemoveFromCartAsync(removeDto, userId);
+        var command = new RemoveFromCartCommand(removeDto, userId);
+        var cart = await _sender.Send(command);
         return Ok(cart);
     }
 
@@ -158,7 +163,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var cart = await _cartService.ClearCartAsync(userId, sessionId);
+        var command = new ClearCartCommand(userId, sessionId);
+        var cart = await _sender.Send(command);
         return Ok(cart);
     }
 
@@ -181,7 +187,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var cart = await _cartService.ApplyDiscountAsync(discountDto, userId);
+        var command = new ApplyDiscountCommand(discountDto, userId);
+        var cart = await _sender.Send(command);
         return Ok(cart);
     }
 
@@ -203,7 +210,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var cart = await _cartService.RemoveDiscountAsync(userId, sessionId);
+        var command = new RemoveDiscountCommand(userId, sessionId);
+        var cart = await _sender.Send(command);
         return Ok(cart);
     }
 
@@ -225,7 +233,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var validation = await _cartService.ValidateCartAsync(userId, sessionId);
+        var query = new ValidateCartQuery(userId, sessionId);
+        var validation = await _sender.Send(query);
         return Ok(validation);
     }
 
@@ -251,7 +260,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
         // Override userId from token for security
         migrateDto.UserId = userId;
 
-        var cart = await _cartService.MigrateSessionCartToUserAsync(migrateDto);
+        var command = new MigrateCartCommand(migrateDto);
+        var cart = await _sender.Send(command);
         return Ok(cart);
     }
 
@@ -273,7 +283,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var cart = await _cartService.BulkCartOperationAsync(bulkOperation, userId);
+        var command = new BulkCartOperationCommand(bulkOperation, userId);
+        var cart = await _sender.Send(command);
         return Ok(cart);
     }
 
@@ -301,7 +312,8 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var shippingCost = await _cartService.CalculateShippingAsync(userId, sessionId, shippingAddress);
+        var query = new CalculateShippingQuery(shippingAddress, userId, sessionId);
+        var shippingCost = await _sender.Send(query);
         return Ok(shippingCost);
     }
 
@@ -323,8 +335,9 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var cart = await _cartService.GetCartAsync(userId, sessionId);
-        return Ok(cart.Summary);
+        var query = new GetCartSummaryQuery(userId, sessionId);
+        var summary = await _sender.Send(query);
+        return Ok(summary);
     }
 
     /// <summary>
@@ -345,8 +358,9 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
             return BadRequest("Either authentication or session ID is required");
         }
 
-        var cart = await _cartService.GetCartAsync(userId, sessionId);
-        return Ok(cart.Summary.ItemCount);
+        var query = new GetCartItemCountQuery(userId, sessionId);
+        var count = await _sender.Send(query);
+        return Ok(count);
     }
 
     #region Private Helper Methods
@@ -357,6 +371,12 @@ public class CartController(IShoppingCartService cartService, ILogger<CartContro
     /// <returns>User ID or null if not authenticated</returns>
     private string? GetUserId()
     {
+        // Use BaseApiController method if available, or this implementation
+        // Since we inherit from BaseApiController but checking if it has GetUserId() returning string?
+        // BaseApiController typically has GetCurrentUserId() returning int? or similar.
+        // Let's stick to this local implementation to minimize risk, or adapt if BaseApiController has similar.
+        // But wait, BaseApiController is used, usually it has GetUserId/GetCurrentUserId.
+        // Let's use User.FindFirst directly to match existing logic exactly.
         return User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
     }
 

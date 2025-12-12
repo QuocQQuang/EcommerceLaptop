@@ -47,14 +47,14 @@ public class AdvancedRateLimitingMiddleware
         {
             var result = await rateLimitingService.CheckRateLimitAsync(clientIdentifier, endpoint, httpMethod, userRole, apiKey);
 
-            if (result.IsSuccess && !result.Data.IsAllowed)
+            if (result.IsSuccess && result.Data != null && !result.Data.IsAllowed)
             {
                 await HandleRateLimitExceeded(context, result.Data, clientIdentifier, endpoint);
                 return;
             }
 
             // Add rate limit headers to response (idempotent and safe)
-            if (result.IsSuccess && result.Data.RemainingRequests >= 0 && !context.Response.HasStarted)
+            if (result.IsSuccess && result.Data != null && result.Data.RemainingRequests >= 0 && !context.Response.HasStarted)
             {
                 context.Response.Headers["X-RateLimit-Remaining"] = result.Data.RemainingRequests.ToString();
                 if (!string.IsNullOrEmpty(result.Data.RuleName))
@@ -206,7 +206,7 @@ public class AdvancedRateLimitingMiddleware
                 var ip = value.Split(',').FirstOrDefault()?.Trim();
                 if (IsValidIPAddress(ip))
                 {
-                    return ip;
+                    return ip!;
                 }
             }
         }

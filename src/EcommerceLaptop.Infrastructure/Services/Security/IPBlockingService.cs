@@ -347,7 +347,7 @@ public class IPBlockingService : IIPBlockingService
                 ipAddress: ipAddress,
                 metadata: new Dictionary<string, object> { 
                     { "Endpoint", endpoint }, 
-                    { "Reason", reason }, 
+                    { "Reason", reason ?? "No reason provided" }, 
                     { "WasBlocked", wasBlocked } 
                 }
             );

@@ -4,24 +4,30 @@ using EcommerceLaptop.Core.DTOs.Inventory;
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Core.Interfaces;
+using EcommerceLaptop.Core.Specifications.InventorySpecs;
 
 namespace EcommerceLaptop.Infrastructure.Services;
 
 public class InventoryReportingService : IInventoryReportingService
 {
-    private readonly IInventoryRepository _repository;
+    private readonly IAsyncRepository<Inventory> _inventoryRepository;
+    private readonly IAsyncRepository<InventoryTransaction> _transactionRepository;
     private readonly ILogger<InventoryReportingService> _logger;
 
-    public InventoryReportingService(IInventoryRepository repository, ILogger<InventoryReportingService> logger)
+    public InventoryReportingService(
+        IAsyncRepository<Inventory> inventoryRepository,
+        IAsyncRepository<InventoryTransaction> transactionRepository,
+        ILogger<InventoryReportingService> logger)
     {
-        _repository = repository;
+        _inventoryRepository = inventoryRepository;
+        _transactionRepository = transactionRepository;
         _logger = logger;
     }
 
     public async Task<List<LowStockAlertDto>> GetLowStockAlertsAsync()
     {
         _logger.LogInformation("Getting low stock alerts");
-        var lowStockItems = await _repository.GetLowStockAsync();
+        var lowStockItems = await _inventoryRepository.GetAsync(new LowStockSpecification());
 
         return lowStockItems.Select(inventory => new LowStockAlertDto
         {
@@ -40,7 +46,7 @@ public class InventoryReportingService : IInventoryReportingService
     public async Task<List<ReorderSuggestionDto>> GetReorderSuggestionsAsync()
     {
         _logger.LogInformation("Getting reorder suggestions");
-        var lowStockItems = await _repository.GetLowStockAsync(thresholdMultiplier: 2);
+        var lowStockItems = await _inventoryRepository.GetAsync(new LowStockSpecification(thresholdMultiplier: 2));
 
         return lowStockItems.Select(inventory => new ReorderSuggestionDto
         {
@@ -60,7 +66,7 @@ public class InventoryReportingService : IInventoryReportingService
     public async Task<List<StockAlertDto>> GetStockAlertsAsync(AlertSeverity severity)
     {
         _logger.LogInformation("Getting stock alerts for severity {Severity}", severity);
-        var inventories = await _repository.GetAllAsync();
+        var inventories = await _inventoryRepository.GetAsync(new InventoryWithProductSpecification());
         var alerts = new List<StockAlertDto>();
 
         foreach (var inventory in inventories)
@@ -94,7 +100,7 @@ public class InventoryReportingService : IInventoryReportingService
     public async Task<InventoryReportDto> GenerateInventoryReportAsync(InventoryReportRequest request)
     {
         _logger.LogInformation("Generating inventory report for type {ReportType}", request.ReportType);
-        var inventories = await _repository.GetInventoriesForReportAsync(request);
+        var inventories = await _inventoryRepository.GetAsync(new InventoryReportSpecification(request));
 
         var items = inventories.Select(i => new InventoryItemReportDto
         {
@@ -156,7 +162,7 @@ public class InventoryReportingService : IInventoryReportingService
     public async Task<List<InventoryTransactionDto>> GetInventoryTransactionsAsync(int productId, DateTime? fromDate = null, DateTime? toDate = null)
     {
         _logger.LogInformation("Getting inventory transactions for product {ProductId}", productId);
-        var transactions = await _repository.GetTransactionsAsync(productId, fromDate, toDate);
+        var transactions = await _transactionRepository.GetAsync(new InventoryTransactionSpecification(productId, fromDate, toDate));
 
         return transactions.Select(t => new InventoryTransactionDto
         {
@@ -177,7 +183,7 @@ public class InventoryReportingService : IInventoryReportingService
     public async Task<StockMovementReportDto> GenerateStockMovementReportAsync(DateTime startDate, DateTime endDate)
     {
         _logger.LogInformation("Generating stock movement report from {StartDate} to {EndDate}", startDate, endDate);
-        var transactions = await _repository.GetStockMovementAsync(startDate, endDate);
+        var transactions = await _transactionRepository.GetAsync(new InventoryTransactionSpecification(startDate, endDate));
 
         var movements = transactions.Select(t => new StockMovementItemDto
         {
@@ -214,8 +220,12 @@ public class InventoryReportingService : IInventoryReportingService
     {
         _logger.LogInformation("Calculating inventory KPIs for warehouse: {WarehouseLocation}", warehouseLocation);
         var request = new InventoryReportRequest { WarehouseLocation = warehouseLocation };
-        var inventories = await _repository.GetInventoriesForReportAsync(request);
-        var transactions = await _repository.GetStockMovementAsync(DateTime.MinValue, DateTime.MaxValue);
+        var inventories = await _inventoryRepository.GetAsync(new InventoryReportSpecification(request)); // Filtered by warehouse
+        
+        // Get all transactions? KPI usually needs broad context, but for 'Turnover Ratio' we might want efficient query.
+        // The original code passed MinValue, MaxValue.
+        var transactions = await _transactionRepository.GetAsync(new InventoryTransactionSpecification(DateTime.MinValue, DateTime.MaxValue));
+        
         if (!string.IsNullOrEmpty(warehouseLocation))
         {
             transactions = transactions.Where(t => t.Inventory.WarehouseLocation == warehouseLocation).ToList();
@@ -241,7 +251,7 @@ public class InventoryReportingService : IInventoryReportingService
     public async Task<InventoryHealthScoreDto> GetInventoryHealthScoreAsync()
     {
         _logger.LogInformation("Calculating inventory health score");
-        var inventories = (await _repository.GetAllAsync()).ToList();
+        var inventories = (await _inventoryRepository.GetAsync(new InventoryWithProductSpecification())).ToList();
 
         var totalProducts = inventories.Count;
         var lowStockCount = inventories.Count(i => i.QuantityInStock <= i.ReorderLevel);
@@ -318,25 +328,25 @@ public class InventoryReportingService : IInventoryReportingService
         return averageInventory > 0 ? totalSales / (decimal)averageInventory : 0;
     }
 
-    private decimal CalculateFillRate(IList<Inventory> inventories)
+    private decimal CalculateFillRate(IReadOnlyList<Inventory> inventories)
     {
         var availableProducts = inventories.Count(i => i.QuantityInStock > 0);
         return inventories.Count > 0 ? (decimal)availableProducts / inventories.Count * 100 : 0;
     }
 
-    private decimal CalculateStockoutPercentage(IList<Inventory> inventories)
+    private decimal CalculateStockoutPercentage(IReadOnlyList<Inventory> inventories)
     {
         var stockoutProducts = inventories.Count(i => i.QuantityInStock == 0);
         return inventories.Count > 0 ? (decimal)stockoutProducts / inventories.Count * 100 : 0;
     }
 
-    private decimal CalculateServiceLevel(IList<Inventory> inventories)
+    private decimal CalculateServiceLevel(IReadOnlyList<Inventory> inventories)
     {
         var adequateStockProducts = inventories.Count(i => i.QuantityInStock > i.ReorderLevel);
         return inventories.Count > 0 ? (decimal)adequateStockProducts / inventories.Count * 100 : 0;
     }
 
-    private int CalculateDaysOfInventoryOnHand(IList<Inventory> inventories)
+    private int CalculateDaysOfInventoryOnHand(IReadOnlyList<Inventory> inventories)
     {
         if (!inventories.Any()) return 0;
         var averageStock = inventories.Average(i => i.QuantityInStock);
@@ -350,28 +360,28 @@ public class InventoryReportingService : IInventoryReportingService
         return deadStockItems.Sum(i => i.QuantityInStock * 50m);
     }
 
-    private double CalculateStockLevelScore(IList<Inventory> inventories)
+    private double CalculateStockLevelScore(IReadOnlyList<Inventory> inventories)
     {
         if (!inventories.Any()) return 100.0;
         var optimalCount = inventories.Count(i => i.QuantityInStock > i.ReorderLevel && i.QuantityInStock <= i.MaxStockLevel * 0.8m);
         return (double)optimalCount / inventories.Count * 100;
     }
 
-    private double CalculateTurnoverScore(IList<Inventory> inventories)
+    private double CalculateTurnoverScore(IReadOnlyList<Inventory> inventories)
     {
         if (!inventories.Any()) return 100.0;
         var averageUtilization = inventories.Average(i => (double)i.QuantityInStock / Math.Max(i.MaxStockLevel, 1));
         return Math.Min(100, averageUtilization * 100);
     }
 
-    private double CalculateWarehouseEfficiencyScore(IList<Inventory> inventories)
+    private double CalculateWarehouseEfficiencyScore(IReadOnlyList<Inventory> inventories)
     {
         if (!inventories.Any()) return 100.0;
         var stockedItems = inventories.Count(i => i.QuantityInStock > 0);
         return (double)stockedItems / inventories.Count * 100;
     }
 
-    private List<string> GenerateHealthRecommendations(IList<Inventory> inventories)
+    private List<string> GenerateHealthRecommendations(IReadOnlyList<Inventory> inventories)
     {
         var recommendations = new List<string>();
         var lowStockCount = inventories.Count(i => i.QuantityInStock <= i.ReorderLevel);
@@ -383,7 +393,7 @@ public class InventoryReportingService : IInventoryReportingService
         return recommendations;
     }
 
-    private List<string> GenerateCriticalIssues(IList<Inventory> inventories)
+    private List<string> GenerateCriticalIssues(IReadOnlyList<Inventory> inventories)
     {
         var issues = new List<string>();
         var outOfStockCount = inventories.Count(i => i.QuantityInStock == 0);

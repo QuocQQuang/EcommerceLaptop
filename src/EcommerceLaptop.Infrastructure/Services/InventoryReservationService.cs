@@ -11,16 +11,10 @@ using System.Threading.Tasks;
 
 namespace EcommerceLaptop.Infrastructure.Services;
 
-public class InventoryReservationService : IInventoryReservationService
+public class InventoryReservationService(ApplicationDbContext context, ILogger<InventoryReservationService> logger) : IInventoryReservationService
 {
-    private readonly ApplicationDbContext _context;
-    private readonly ILogger<InventoryReservationService> _logger;
-
-    public InventoryReservationService(ApplicationDbContext context, ILogger<InventoryReservationService> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
+    private readonly ApplicationDbContext _context = context;
+    private readonly ILogger<InventoryReservationService> _logger = logger;
 
     /// <summary>
     /// Internal method to reserve inventory without managing transactions

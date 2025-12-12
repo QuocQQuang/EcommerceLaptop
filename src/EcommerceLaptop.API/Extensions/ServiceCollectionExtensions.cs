@@ -9,10 +9,11 @@ using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Core.Services.Payment;
 using EcommerceLaptop.Core.Validators;
 using EcommerceLaptop.Infrastructure.Data;
-using EcommerceLaptop.Infrastructure.Repositories;
+
 using EcommerceLaptop.Infrastructure.Services;
 using EcommerceLaptop.Infrastructure.Services.Payment;
 using EcommerceLaptop.Infrastructure.Services.Security;
+using EcommerceLaptop.Infrastructure.Repositories;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -328,7 +329,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         // Business Services
-        services.AddScoped<IProductService, ProductService>();
+
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IBrandService, BrandService>();
@@ -337,8 +338,8 @@ public static class ServiceCollectionExtensions
         
         // Inventory Management
         services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
-        services.AddScoped<IProductRepository, ProductRepository>();
-        services.AddScoped<IInventoryRepository, InventoryRepository>();
+
+
         
         services.AddScoped<IStockManagementService, StockManagementService>();
         services.AddScoped<IAssetTrackingService, AssetTrackingService>();
