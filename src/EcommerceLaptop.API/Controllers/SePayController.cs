@@ -435,7 +435,7 @@ public class SePayController(
 
         var config = new
         {
-            environment = environment.ToLower(),
+            environment = (environment ?? "production").ToLower(),
             qrBaseUrl = "https://qr.sepay.vn/img",
             defaultAccount = defaultAccount != null ? new
             {

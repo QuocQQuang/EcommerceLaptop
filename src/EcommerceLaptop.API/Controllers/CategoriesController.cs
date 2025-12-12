@@ -106,7 +106,7 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
         {
             Name = request.Name,
             Slug = request.Slug,
-            Description = request.Description,
+            Description = request.Description ?? string.Empty,
             ImageUrl = request.ImageUrl,
             IsActive = request.IsActive,
             ParentId = request.ParentId,
@@ -133,7 +133,7 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
             Id = id,
             Name = request.Name,
             Slug = request.Slug,
-            Description = request.Description,
+            Description = request.Description ?? string.Empty,
             ImageUrl = request.ImageUrl,
             IsActive = request.IsActive,
             ParentId = request.ParentId,

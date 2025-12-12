@@ -1,62 +1,50 @@
 namespace EcommerceLaptop.Core.DTOs;
 
-public class ReviewDto
-{
-    public int Id { get; set; }
-    public int ProductId { get; set; }
-    public int UserId { get; set; }
-    public string UserName { get; set; } = string.Empty;
-    public string UserEmail { get; set; } = string.Empty;
-    public string? UserProfilePictureUrl { get; set; }
-    public int Rating { get; set; } // 1-5 stars
-    public string Title { get; set; } = string.Empty;
-    public string Comment { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public bool IsVerifiedPurchase { get; set; }
-    public bool CanEdit { get; set; } // Computed property based on current user
-    public bool CanDelete { get; set; } // Computed property based on current user/admin
-}
+public record ReviewDto(
+    int Id,
+    int ProductId,
+    int UserId,
+    string UserName,
+    string UserEmail,
+    string? UserProfilePictureUrl,
+    int Rating,
+    string Title,
+    string Comment,
+    DateTime CreatedAt,
+    bool IsVerifiedPurchase,
+    bool CanEdit,
+    bool CanDelete);
 
-public class CreateReviewDto
-{
-    public int ProductId { get; set; }
-    public int Rating { get; set; } // 1-5 stars
-    public string Title { get; set; } = string.Empty;
-    public string Comment { get; set; } = string.Empty;
-}
+public record CreateReviewDto(
+    int ProductId,
+    int Rating,
+    string Title,
+    string Comment);
 
-public class UpdateReviewDto
-{
-    public int Rating { get; set; } // 1-5 stars
-    public string Title { get; set; } = string.Empty;
-    public string Comment { get; set; } = string.Empty;
-}
+public record UpdateReviewDto(
+    int Rating,
+    string Title,
+    string Comment);
 
-public class ReviewSummaryDto
-{
-    public int ProductId { get; set; }
-    public int TotalReviews { get; set; }
-    public double AverageRating { get; set; }
-    public Dictionary<int, int> RatingDistribution { get; set; } = new(); // Rating (1-5) -> Count
-    public int VerifiedPurchaseCount { get; set; }
-}
+public record ReviewSummaryDto(
+    int ProductId,
+    int TotalReviews,
+    double AverageRating,
+    Dictionary<int, int> RatingDistribution,
+    int VerifiedPurchaseCount);
 
-public class ReviewsPagedDto
-{
-    public List<ReviewDto> Reviews { get; set; } = new();
-    public int TotalCount { get; set; }
-    public int Page { get; set; }
-    public int PageSize { get; set; }
-    public int TotalPages { get; set; }
-    public ReviewSummaryDto Summary { get; set; } = null!;
-}
+public record ReviewsPagedDto(
+    List<ReviewDto> Reviews,
+    int TotalCount,
+    int Page,
+    int PageSize,
+    int TotalPages,
+    ReviewSummaryDto Summary);
 
-public class ReviewFilterDto
-{
-    public int? Rating { get; set; } // Filter by specific rating
-    public bool? VerifiedPurchaseOnly { get; set; }
-    public string SortBy { get; set; } = "CreatedAt"; // CreatedAt, Rating, Helpful
-    public string SortOrder { get; set; } = "DESC"; // ASC, DESC
-    public int Page { get; set; } = 1;
-    public int PageSize { get; set; } = 10;
-}
+public record ReviewFilterDto(
+    int? Rating = null,
+    bool? VerifiedPurchaseOnly = null,
+    string SortBy = "CreatedAt",
+    string SortOrder = "DESC",
+    int Page = 1,
+    int PageSize = 10);

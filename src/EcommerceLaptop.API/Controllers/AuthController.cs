@@ -299,13 +299,12 @@ public class AuthController(
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
-        request.IpAddress = ipAddress;
-        request.UserAgent = userAgent;
+        var requestWithContext = request with { IpAddress = ipAddress, UserAgent = userAgent };
 
         _logger.LogInformation(" UNIFIED REGISTER ATTEMPT - Email: {Email} | Context: {Context} | IP: {IP}",
-            request.Email, context, ipAddress);
+            requestWithContext.Email, context, ipAddress);
 
-        var result = await _authService.RegisterAsync(request);
+        var result = await _authService.RegisterAsync(requestWithContext);
 
         if (result == null || !result.Success)
         {
@@ -455,12 +454,12 @@ public class AuthController(
         var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
         // Set IP address in request
-        request.IpAddress = ipAddress;
+        var requestWithIp = request with { IpAddress = ipAddress };
 
         _logger.LogInformation(" UNIFIED RESET PASSWORD - Email: {Email}, Token: {Token}, IP: {IP}",
-            request.Email, request.Token, ipAddress);
+            requestWithIp.Email, requestWithIp.Token, ipAddress);
 
-        var (success, message) = await _authService.ResetPasswordAsync(request);
+        var (success, message) = await _authService.ResetPasswordAsync(requestWithIp);
 
         if (success)
         {

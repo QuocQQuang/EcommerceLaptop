@@ -48,17 +48,12 @@ public class ReviewsController(IReviewService reviewService, ILogger<ReviewsCont
             PageSize = Math.Min(pageSize, 50) // Limit max page size
         };
 
-        var result = await _reviewService.GetProductReviewsAsync(productId, filter);
-
-        // Set permission flags based on current user
         var currentUserId = GetCurrentUserId();
         var isAdmin = IsAdmin();
 
-        foreach (var review in result.Reviews)
-        {
-            review.CanEdit = currentUserId.HasValue && review.UserId == currentUserId.Value;
-            review.CanDelete = currentUserId.HasValue && (review.UserId == currentUserId.Value || isAdmin);
-        }
+        var result = await _reviewService.GetProductReviewsAsync(productId, filter, currentUserId, isAdmin);
+
+
 
         return Ok(new { success = true, data = result });
     }

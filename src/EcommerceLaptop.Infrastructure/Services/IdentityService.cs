@@ -66,95 +66,91 @@ public class IdentityService : IIdentityService
                         }
                     );
                     _logger.LogWarning(" AUTH BLOCKED - IP blocked: {IP}", ipAddress);
-                    return new UnifiedAuthResult
-                    {
-                        Success = false,
-                        ErrorMessage = "a ch IP ca bn ang b kha tm thi do ng nhp sai qu nhiu. Vui lng th li sau.",
-                        Context = context
-                    };
-                }
+                    return new UnifiedAuthResult(
+                    false,
+                    "a ch IP ca bn ang b kha tm thi do ng nhp sai qu nhiu. Vui lng th li sau.",
+                    null, null, default, 0, null, context
+                );
             }
-
-            var user = await _context.Users
-                .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
-                    .ThenInclude(r => r.RolePermissions)
-                    .ThenInclude(rp => rp.Permission)
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower() && u.IsActive);
-
-            if (user == null || !IsValidUserTypeForContext(user, context))
-            {
-                _logger.LogWarning(" AUTH FAILED - Invalid user or context: {Email} | Context: {Context}",
-                    email, context);
-                return new UnifiedAuthResult
-                {
-                    Success = false,
-                    ErrorMessage = "Invalid email or password",
-                    Context = context
-                };
-            }
-
-            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-            {
-                await HandleFailedLogin(user, ipAddress, userAgent);
-                _logger.LogWarning(" AUTH FAILED - Invalid password: {Email} | Context: {Context}",
-                    email, context);
-
-                return new UnifiedAuthResult
-                {
-                    Success = false,
-                    ErrorMessage = "Invalid email or password",
-                    Context = context
-                };
-            }
-
-            (string accessToken, RefreshToken refreshToken) = await _tokenService.GenerateTokensAsync(user, context);
-
-            await UpdateSuccessfulLogin(user, ipAddress, userAgent);
-
-            var permissions = new List<AdminPermissionDto>();
-            var isAdmin = user.UserRoles.Any(ur => ur.Role.IsAdminRole);
-            if (isAdmin)
-            {
-                permissions = user.UserRoles
-                    .SelectMany(ur => ur.Role.RolePermissions)
-                    .Select(rp => new AdminPermissionDto
-                    {
-                        Id = rp.Permission.Id,
-                        Name = rp.Permission.Name,
-                        Description = rp.Permission.Description,
-                        Module = rp.Permission.Module,
-                        Action = rp.Permission.Action
-                    }).ToList();
-            }
-
-            var unifiedUser = MapToUnifiedUserDto(user, permissions);
-
-            _logger.LogInformation(" AUTH SUCCESS - {Email} | Context: {Context} | UserType: {UserType}",
-                email, context, isAdmin ? "Admin" : "Customer");
-
-            return new UnifiedAuthResult
-            {
-                Success = true,
-                AccessToken = accessToken,
-                RefreshToken = refreshToken.Token,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(30),
-                ExpiresIn = 30 * 60,
-                User = unifiedUser,
-                Context = context
-            };
         }
-        catch (Exception ex)
+
+        var user = await _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .ThenInclude(r => r.RolePermissions)
+                .ThenInclude(rp => rp.Permission)
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower() && u.IsActive);
+
+        if (user == null || !IsValidUserTypeForContext(user, context))
         {
-            _logger.LogError(ex, " AUTH ERROR - {Email} | Context: {Context}", email, context);
-            return new UnifiedAuthResult
-            {
-                Success = false,
-                ErrorMessage = "An error occurred during authentication",
-                Context = context
-            };
+            _logger.LogWarning(" AUTH FAILED - Invalid user or context: {Email} | Context: {Context}",
+                email, context);
+            return new UnifiedAuthResult(
+                false,
+                "Invalid email or password",
+                null, null, default, 0, null, context
+            );
         }
+
+        if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        {
+            await HandleFailedLogin(user, ipAddress, userAgent);
+            _logger.LogWarning(" AUTH FAILED - Invalid password: {Email} | Context: {Context}",
+                email, context);
+
+            return new UnifiedAuthResult(
+                false,
+                "Invalid email or password",
+                null, null, default, 0, null, context
+            );
+        }
+
+        (string accessToken, RefreshToken refreshToken) = await _tokenService.GenerateTokensAsync(user, context);
+
+        await UpdateSuccessfulLogin(user, ipAddress, userAgent);
+
+        var permissions = new List<AdminPermissionDto>();
+        var isAdmin = user.UserRoles.Any(ur => ur.Role.IsAdminRole);
+        if (isAdmin)
+        {
+            permissions = user.UserRoles
+                .SelectMany(ur => ur.Role.RolePermissions)
+                .Select(rp => new AdminPermissionDto
+                {
+                    Id = rp.Permission.Id,
+                    Name = rp.Permission.Name,
+                    Description = rp.Permission.Description,
+                    Module = rp.Permission.Module,
+                    Action = rp.Permission.Action
+                }).ToList();
+        }
+
+        var unifiedUser = MapToUnifiedUserDto(user, permissions);
+
+        _logger.LogInformation(" AUTH SUCCESS - {Email} | Context: {Context} | UserType: {UserType}",
+            email, context, isAdmin ? "Admin" : "Customer");
+
+        return new UnifiedAuthResult(
+            true,
+            null,
+            accessToken,
+            refreshToken.Token,
+            DateTime.UtcNow.AddMinutes(30),
+            30 * 60,
+            unifiedUser,
+            context
+        );
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, " AUTH ERROR - {Email} | Context: {Context}", email, context);
+        return new UnifiedAuthResult(
+            false,
+            "An error occurred during authentication",
+            null, null, default, 0, null, context
+        );
+    }
+}
 
     public async Task<UnifiedRefreshResult?> RefreshTokenAsync(string refreshToken, AuthContext context, string? ipAddress = null, string? userAgent = null)
     {
@@ -167,30 +163,30 @@ public class IdentityService : IIdentityService
             if (newAccessToken == null || newRefreshToken == null)
             {
                 _logger.LogWarning(" UNIFIED REFRESH FAILED - Invalid refresh token | Context: {Context}", context);
-                return new UnifiedRefreshResult
-                {
-                    Success = false,
-                    ErrorMessage = "Invalid refresh token"
-                };
+                return new UnifiedRefreshResult(
+                    false,
+                    "Invalid refresh token",
+                    null, null, default, 0
+                );
             }
 
-            return new UnifiedRefreshResult
-            {
-                Success = true,
-                AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken.Token,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(30),
-                ExpiresIn = 30 * 60
-            };
+            return new UnifiedRefreshResult(
+                true,
+                null,
+                newAccessToken,
+                newRefreshToken.Token,
+                DateTime.UtcNow.AddMinutes(30),
+                30 * 60
+            );
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, " UNIFIED REFRESH ERROR - Context: {Context}", context);
-            return new UnifiedRefreshResult
-            {
-                Success = false,
-                ErrorMessage = "An error occurred during token refresh"
-            };
+            return new UnifiedRefreshResult(
+                false,
+                "An error occurred during token refresh",
+                null, null, default, 0
+            );
         }
     }
 
@@ -222,18 +218,18 @@ public class IdentityService : IIdentityService
 
             if (request.Password != request.ConfirmPassword)
             {
-                return new UnifiedAuthResult { Success = false, ErrorMessage = "Passwords do not match" };
+                return new UnifiedAuthResult(false, "Passwords do not match", null, null, default, 0, null, context);
             }
 
             if (!request.AcceptTerms)
             {
-                return new UnifiedAuthResult { Success = false, ErrorMessage = "Bn phi ng  vi iu khon v iu kin" };
+                return new UnifiedAuthResult(false, "Bn phi ng  vi iu khon v iu kin", null, null, default, 0, null, context);
             }
 
             var passwordValidation = ValidatePasswordStrength(request.Password);
             if (!passwordValidation.IsValid)
             {
-                return new UnifiedAuthResult { Success = false, ErrorMessage = passwordValidation.ErrorMessage };
+                return new UnifiedAuthResult(false, passwordValidation.ErrorMessage, null, null, default, 0, null, context);
             }
 
             var existingUser = await _context.Users
@@ -241,7 +237,7 @@ public class IdentityService : IIdentityService
 
             if (existingUser != null)
             {
-                return new UnifiedAuthResult { Success = false, ErrorMessage = "User with this email already exists" };
+                return new UnifiedAuthResult(false, "User with this email already exists", null, null, default, 0, null, context);
             }
 
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -293,28 +289,39 @@ public class IdentityService : IIdentityService
                 _logger.LogWarning(ex, " Failed to send email confirmation for {Email}", user.Email);
             }
 
-            return new UnifiedAuthResult
-            {
-                Success = true,
-                AccessToken = accessToken,
-                RefreshToken = refreshToken.Token,
-                ExpiresAt = refreshToken.ExpiresAt,
-                User = new UnifiedUserDto
-                {
-                    Id = user.Id,
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    UserType = user.UserType == "Admin" ? UserType.Admin : UserType.Customer,
-                    IsActive = user.IsActive,
-                    CreatedAt = user.CreatedAt
-                }
-            };
+            return new UnifiedAuthResult(
+                true,
+                null,
+                accessToken,
+                refreshToken.Token,
+                refreshToken.ExpiresAt,
+                30 * 60, // Assuming standard expiry
+                new UnifiedUserDto(
+                    user.Id,
+                    user.Email,
+                    user.FirstName,
+                    user.LastName,
+                    user.PhoneNumber,
+                    user.ProfilePictureUrl,
+                    user.IsActive,
+                    user.EmailConfirmed,
+                    user.CreatedAt,
+                    null,
+                    null,
+                    user.UserType == "Admin" ? UserType.Admin : UserType.Customer,
+                    new List<RoleDto>(),
+                    new List<AdminPermissionDto>(),
+                    0,
+                    null,
+                    null
+                ),
+                context
+            );
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, " Registration failed for {Email}", request.Email);
-            return new UnifiedAuthResult { Success = false, ErrorMessage = "Registration failed" };
+            return new UnifiedAuthResult(false, "Registration failed", null, null, default, 0, null, request.Context ?? AuthContext.Customer);
         }
     }
 
@@ -542,32 +549,31 @@ public class IdentityService : IIdentityService
 
     private UnifiedUserDto MapToUnifiedUserDto(User user, List<AdminPermissionDto> permissions)
     {
-        return new UnifiedUserDto
-        {
-            Id = user.Id,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            PhoneNumber = user.PhoneNumber,
-            Avatar = user.ProfilePictureUrl,
-            IsActive = user.IsActive,
-            IsEmailVerified = user.EmailConfirmed,
-            CreatedAt = user.CreatedAt,
-            LastLoginAt = user.LastLoginAt,
-            LastLoginIP = user.LastLoginIP,
-            UserType = user.UserRoles.Any(ur => ur.Role.IsAdminRole) ? UserType.Admin : UserType.Customer,
-            Roles = user.UserRoles.Select(ur => new RoleDto
-            {
-                Id = ur.Role.Id,
-                Name = ur.Role.Name,
-                Description = ur.Role.Description,
-                IsAdminRole = ur.Role.IsAdminRole
-            }).ToList(),
-            Permissions = permissions,
-            FailedLoginAttempts = user.FailedLoginAttempts,
-            LockedUntil = user.LockedUntil,
-            Notes = user.Notes
-        };
+        return new UnifiedUserDto(
+            user.Id,
+            user.Email,
+            user.FirstName,
+            user.LastName,
+            user.PhoneNumber,
+            user.ProfilePictureUrl,
+            user.IsActive,
+            user.EmailConfirmed,
+            user.CreatedAt,
+            user.LastLoginAt,
+            user.LastLoginIP,
+            user.UserRoles.Any(ur => ur.Role.IsAdminRole) ? UserType.Admin : UserType.Customer,
+            user.UserRoles.Select(ur => new RoleDto(
+                ur.Role.Id,
+                ur.Role.Name,
+                ur.Role.Description,
+                ur.Role.IsAdminRole,
+                new List<AdminPermissionDto>() // Permissions not loaded deep here in original
+            )).ToList(),
+            permissions,
+            user.FailedLoginAttempts,
+            user.LockedUntil,
+            user.Notes
+        );
     }
 
     private async Task HandleFailedLogin(User user, string? ipAddress, string? userAgent)

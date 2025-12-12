@@ -306,9 +306,9 @@ public class SecurityController : ControllerBase
 
         var rule = new RateLimitRule
         {
-            Name = request.Name,
-            Endpoint = request.Endpoint,
-            HttpMethod = request.HttpMethod,
+            Name = request.Name ?? string.Empty,
+            Endpoint = request.Endpoint ?? string.Empty,
+            HttpMethod = request.HttpMethod ?? "ALL",
             RequestsPerMinute = request.RequestsPerMinute,
             RequestsPerHour = request.RequestsPerHour,
             RequestsPerDay = request.RequestsPerDay,
@@ -636,7 +636,7 @@ public class SecurityController : ControllerBase
             return BadRequest(new { error = result.ErrorMessage });
 
         // Approximate total for pagination (for accurate count, add DB index and separate count query if needed)
-        var estimatedTotal = result.Data.Count * 10; // Conservative estimate; adjust based on data size
+        var estimatedTotal = (result.Data?.Count ?? 0) * 10; // Conservative estimate; adjust based on data size
         return Ok(new
         {
             items = result.Data,

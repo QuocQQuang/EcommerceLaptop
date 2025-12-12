@@ -15,7 +15,7 @@ public class ReviewService : IReviewService
         _context = context;
     }
 
-    public async Task<ReviewsPagedDto> GetProductReviewsAsync(int productId, ReviewFilterDto filter)
+    public async Task<ReviewsPagedDto> GetProductReviewsAsync(int productId, ReviewFilterDto filter, int? currentUserId = null, bool isAdmin = false)
     {
         var query = _context.Reviews
             .Include(r => r.User)
@@ -49,35 +49,33 @@ public class ReviewService : IReviewService
         var reviews = await query
             .Skip((filter.Page - 1) * filter.PageSize)
             .Take(filter.PageSize)
-            .Select(r => new ReviewDto
-            {
-                Id = r.Id,
-                ProductId = r.ProductId,
-                UserId = r.UserId,
-                UserName = $"{r.User.FirstName} {r.User.LastName}",
-                UserEmail = r.User.Email,
-                UserProfilePictureUrl = r.User.ProfilePictureUrl,
-                Rating = r.Rating,
-                Title = r.Title,
-                Comment = r.Comment,
-                CreatedAt = r.CreatedAt,
-                IsVerifiedPurchase = r.IsVerifiedPurchase,
-                CanEdit = false, // Will be set based on current user
-                CanDelete = false // Will be set based on current user
-            })
+            .Select(r => new ReviewDto(
+                r.Id,
+                r.ProductId,
+                r.UserId,
+                $"{r.User.FirstName} {r.User.LastName}",
+                r.User.Email,
+                r.User.ProfilePictureUrl,
+                r.Rating,
+                r.Title,
+                r.Comment,
+                r.CreatedAt,
+                r.IsVerifiedPurchase,
+                currentUserId.HasValue && (r.UserId == currentUserId.Value),
+                currentUserId.HasValue && (r.UserId == currentUserId.Value || isAdmin)
+            ))
             .ToListAsync();
 
         var summary = await GetProductReviewSummaryAsync(productId);
 
-        return new ReviewsPagedDto
-        {
-            Reviews = reviews,
-            TotalCount = totalCount,
-            Page = filter.Page,
-            PageSize = filter.PageSize,
-            TotalPages = totalPages,
-            Summary = summary
-        };
+        return new ReviewsPagedDto(
+            reviews,
+            totalCount,
+            filter.Page,
+            filter.PageSize,
+            totalPages,
+            summary
+        );
     }
 
     public async Task<ReviewDto?> GetReviewByIdAsync(int reviewId, int? currentUserId = null)
@@ -88,22 +86,21 @@ public class ReviewService : IReviewService
 
         if (review == null) return null;
 
-        return new ReviewDto
-        {
-            Id = review.Id,
-            ProductId = review.ProductId,
-            UserId = review.UserId,
-            UserName = $"{review.User.FirstName} {review.User.LastName}",
-            UserEmail = review.User.Email,
-            UserProfilePictureUrl = review.User.ProfilePictureUrl,
-            Rating = review.Rating,
-            Title = review.Title,
-            Comment = review.Comment,
-            CreatedAt = review.CreatedAt,
-            IsVerifiedPurchase = review.IsVerifiedPurchase,
-            CanEdit = currentUserId.HasValue && (review.UserId == currentUserId.Value),
-            CanDelete = currentUserId.HasValue && (review.UserId == currentUserId.Value)
-        };
+        return new ReviewDto(
+            review.Id,
+            review.ProductId,
+            review.UserId,
+            $"{review.User.FirstName} {review.User.LastName}",
+            review.User.Email,
+            review.User.ProfilePictureUrl,
+            review.Rating,
+            review.Title,
+            review.Comment,
+            review.CreatedAt,
+            review.IsVerifiedPurchase,
+            currentUserId.HasValue && (review.UserId == currentUserId.Value),
+            currentUserId.HasValue && (review.UserId == currentUserId.Value)
+        );
     }
 
     public async Task<ReviewSummaryDto> GetProductReviewSummaryAsync(int productId)
@@ -122,14 +119,13 @@ public class ReviewService : IReviewService
             ratingDistribution[i] = reviews.Count(r => r.Rating == i);
         }
 
-        return new ReviewSummaryDto
-        {
-            ProductId = productId,
-            TotalReviews = totalReviews,
-            AverageRating = Math.Round(averageRating, 1),
-            RatingDistribution = ratingDistribution,
-            VerifiedPurchaseCount = verifiedPurchaseCount
-        };
+        return new ReviewSummaryDto(
+            productId,
+            totalReviews,
+            Math.Round(averageRating, 1),
+            ratingDistribution,
+            verifiedPurchaseCount
+        );
     }
 
     public async Task<ReviewDto> CreateReviewAsync(CreateReviewDto createReviewDto, int userId)
@@ -232,21 +228,21 @@ public class ReviewService : IReviewService
             .OrderByDescending(r => r.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(r => new ReviewDto
-            {
-                Id = r.Id,
-                ProductId = r.ProductId,
-                UserId = r.UserId,
-                UserName = "", // Not needed for user's own reviews
-                UserEmail = "",
-                Rating = r.Rating,
-                Title = r.Title,
-                Comment = r.Comment,
-                CreatedAt = r.CreatedAt,
-                IsVerifiedPurchase = r.IsVerifiedPurchase,
-                CanEdit = true,
-                CanDelete = true
-            })
+            .Select(r => new ReviewDto(
+                r.Id,
+                r.ProductId,
+                r.UserId,
+                "", // UserName (not needed)
+                "", // UserEmail
+                null, // ProfilePictureUrl
+                r.Rating,
+                r.Title,
+                r.Comment,
+                r.CreatedAt,
+                r.IsVerifiedPurchase,
+                true, // CanEdit
+                true  // CanDelete
+            ))
             .ToListAsync();
     }
 

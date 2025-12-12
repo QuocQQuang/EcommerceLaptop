@@ -258,31 +258,30 @@ public class AccountService : IAccountService
 
     private UnifiedUserDto MapToUnifiedUserDto(User user, List<AdminPermissionDto> permissions)
     {
-        return new UnifiedUserDto
-        {
-            Id = user.Id,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            PhoneNumber = user.PhoneNumber,
-            Avatar = user.ProfilePictureUrl,
-            IsActive = user.IsActive,
-            IsEmailVerified = user.EmailConfirmed,
-            CreatedAt = user.CreatedAt,
-            LastLoginAt = user.LastLoginAt,
-            LastLoginIP = user.LastLoginIP,
-            UserType = user.UserRoles.Any(ur => ur.Role.IsAdminRole) ? UserType.Admin : UserType.Customer,
-            Roles = user.UserRoles.Select(ur => new RoleDto
-            {
-                Id = ur.Role.Id,
-                Name = ur.Role.Name,
-                Description = ur.Role.Description,
-                IsAdminRole = ur.Role.IsAdminRole
-            }).ToList(),
-            Permissions = permissions,
-            FailedLoginAttempts = user.FailedLoginAttempts,
-            LockedUntil = user.LockedUntil,
-            Notes = user.Notes
-        };
+        return new UnifiedUserDto(
+            user.Id,
+            user.Email,
+            user.FirstName,
+            user.LastName,
+            user.PhoneNumber,
+            user.ProfilePictureUrl,
+            user.IsActive,
+            user.EmailConfirmed,
+            user.CreatedAt,
+            user.LastLoginAt,
+            user.LastLoginIP,
+            user.UserRoles.Any(ur => ur.Role.IsAdminRole) ? UserType.Admin : UserType.Customer,
+            user.UserRoles.Select(ur => new RoleDto(
+                ur.Role.Id,
+                ur.Role.Name,
+                ur.Role.Description,
+                ur.Role.IsAdminRole,
+                new List<AdminPermissionDto>()
+            )).ToList(),
+            permissions,
+            user.FailedLoginAttempts,
+            user.LockedUntil,
+            user.Notes
+        );
     }
 }

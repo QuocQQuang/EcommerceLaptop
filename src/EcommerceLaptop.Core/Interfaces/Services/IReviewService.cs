@@ -5,7 +5,7 @@ namespace EcommerceLaptop.Core.Interfaces.Services;
 
 public interface IReviewService
 {
-    Task<ReviewsPagedDto> GetProductReviewsAsync(int productId, ReviewFilterDto filter);
+    Task<ReviewsPagedDto> GetProductReviewsAsync(int productId, ReviewFilterDto filter, int? currentUserId = null, bool isAdmin = false);
     Task<ReviewDto?> GetReviewByIdAsync(int reviewId, int? currentUserId = null);
     Task<ReviewSummaryDto> GetProductReviewSummaryAsync(int productId);
     Task<ReviewDto> CreateReviewAsync(CreateReviewDto createReviewDto, int userId);

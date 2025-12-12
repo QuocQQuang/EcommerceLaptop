@@ -95,7 +95,7 @@ public class RefundController(IRefundService refundService, ILogger<RefundContro
         if (!result.IsSuccess)
             return BadRequest(new { error = result.ErrorMessage });
 
-        return CreatedAtAction(nameof(GetRefund), new { id = result.Data.Id }, result.Data);
+        return CreatedAtAction(nameof(GetRefund), new { id = result.Data?.Id }, result.Data);
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ public class RefundController(IRefundService refundService, ILogger<RefundContro
         if (format.ToLower() == "csv")
         {
             // Convert to CSV and return as file
-            var csvContent = ConvertToCSV(result.Data);
+            var csvContent = ConvertToCSV(result.Data ?? new List<RefundReportItem>());
             var fileName = $"refund-report-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
             
             return File(System.Text.Encoding.UTF8.GetBytes(csvContent), 

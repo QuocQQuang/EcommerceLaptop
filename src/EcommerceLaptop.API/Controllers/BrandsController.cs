@@ -118,7 +118,7 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
         if (!result.IsSuccess)
             return BadRequest(new { error = result.ErrorMessage });
 
-        return CreatedAtAction(nameof(GetBrand), new { id = result.Data.Id }, result.Data);
+        return CreatedAtAction(nameof(GetBrand), new { id = result.Data?.Id }, result.Data);
     }
 
     /// <summary>

@@ -139,37 +139,32 @@ public class CustomerManagementService : ICustomerManagementService
             var customers = await query
                 .Skip((parameters.Page - 1) * parameters.PageSize)
                 .Take(parameters.PageSize)
-                .Select(u => new CustomerManagementDto
-                {
-                    Id = u.Id,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Email = u.Email,
-                    MaskedEmail = MaskEmail(u.Email),
-                    PhoneNumber = u.PhoneNumber,
-                    MaskedPhoneNumber = MaskPhoneNumber(u.PhoneNumber),
-                    IsActive = u.IsActive,
-                    EmailConfirmed = u.EmailConfirmed,
-                    CreatedAt = u.CreatedAt,
-                    LastLoginAt = u.LastLoginAt,
-                    TotalOrders = u.Orders.Count,
-                    TotalSpent = u.TotalSpent,
-                    LastOrderDate = u.Orders.OrderByDescending(o => o.CreatedAt).FirstOrDefault()!.CreatedAt,
-                    VipTierId = u.VipTierId,
-                    VipTierName = u.VipTier != null ? u.VipTier.Name : null,
-                    FailedLoginAttempts = u.FailedLoginAttempts,
-                    LockedUntil = u.LockedUntil
-                })
+                .Select(u => new CustomerManagementDto(
+                    u.Id,
+                    u.FirstName,
+                    u.LastName,
+                    $"{u.FirstName} {u.LastName}".Trim(),
+                    u.Email,
+                    MaskEmail(u.Email),
+                    u.PhoneNumber,
+                    MaskPhoneNumber(u.PhoneNumber),
+                    u.IsActive,
+                    u.EmailConfirmed,
+                    u.CreatedAt,
+                    u.LastLoginAt,
+                    u.Orders.Count,
+                    u.TotalSpent,
+                    u.Orders.OrderByDescending(o => o.CreatedAt).Select(o => (DateTime?)o.CreatedAt).FirstOrDefault(),
+                    u.VipTierId,
+                    u.VipTier != null ? u.VipTier.Name : null,
+                    u.FailedLoginAttempts,
+                    u.LockedUntil,
+                    true, // CanViewDetails
+                    true, // CanEdit
+                    true, // CanDelete
+                    true  // CanViewPersonalData
+                ))
                 .ToListAsync();
-
-            // Set permission flags (this would be set based on requester's permissions)
-            foreach (var customer in customers)
-            {
-                customer.CanViewDetails = true; // Set based on actual permissions
-                customer.CanEdit = true; // Set based on actual permissions
-                customer.CanDelete = true; // Set based on actual permissions
-                customer.CanViewPersonalData = true; // Set based on actual permissions
-            }
 
             return new PagedResult<CustomerManagementDto>
             {
@@ -221,84 +216,88 @@ public class CustomerManagementService : ICustomerManagementService
             var canDelete = await _authService.HasPermissionAsync(requesterUserId, CUSTOMERS_DELETE);
 
             // Build detailed DTO with permission-based filtering
-            var customerDetail = new CustomerDetailDto
-            {
-                Id = customer.Id,
-                FirstName = customer.FirstName,
-                LastName = customer.LastName,
-                Email = customer.Email,
-                PhoneNumber = customer.PhoneNumber,
-                DateOfBirth = null, // TODO: Add DateOfBirth to User entity if needed
-                Gender = null, // TODO: Add Gender to User entity if needed
-                ProfilePictureUrl = customer.ProfilePictureUrl,
-                IsActive = customer.IsActive,
-                EmailConfirmed = customer.EmailConfirmed,
-                CreatedAt = customer.CreatedAt,
-                UpdatedAt = customer.UpdatedAt,
-                LastLoginAt = customer.LastLoginAt,
-                LastLoginIP = canViewSecurityInfo ? customer.LastLoginIP : null,
-                FailedLoginAttempts = canViewSecurityInfo ? customer.FailedLoginAttempts : 0,
-                LockedUntil = canViewSecurityInfo ? customer.LockedUntil : null,
-                LastPasswordChangeDate = canViewSecurityInfo ? customer.LastPasswordChangeDate : null,
-                VipTierId = customer.VipTierId,
-                VipTierName = customer.VipTier?.Name,
-                TotalSpent = customer.TotalSpent,
-                VipTierUpdatedAt = customer.VipTierUpdatedAt,
-                TotalOrders = customer.Orders.Count,
-                CompletedOrders = customer.Orders.Count(o => o.Status == OrderStatus.Delivered),
-                CancelledOrders = customer.Orders.Count(o => o.Status == OrderStatus.Cancelled),
-                FirstOrderDate = customer.Orders.OrderBy(o => o.CreatedAt).FirstOrDefault()?.CreatedAt,
-                LastOrderDate = customer.Orders.OrderByDescending(o => o.CreatedAt).FirstOrDefault()?.CreatedAt,
-                AverageOrderValue = customer.Orders.Any() ? customer.Orders.Average(o => o.TotalAmount) : 0,
-                Notes = canEdit ? customer.Notes : null,
-                NotesUpdatedAt = null, // TODO: Add NotesUpdatedAt to User entity if needed
-                CanEdit = canEdit,
-                CanDelete = canDelete,
-                CanViewOrderHistory = canViewDetails,
-                CanViewPersonalData = canViewPersonalData,
-                CanViewSecurityInfo = canViewSecurityInfo
-            };
-
-            // Add addresses with privacy filtering
+            // Prepare addresses with privacy filtering
+            List<CustomerAddressDto> addresses;
             if (canViewPersonalData)
             {
-                customerDetail.Addresses = customer.Addresses.Select(a => new CustomerAddressDto
-                {
-                    Id = a.Id,
-                    Street = a.Street,
-                    City = a.City,
-                    District = a.District,
-                    Ward = a.Ward,
-                    ZipCode = null, // TODO: Add ZipCode to Address entity if needed
-                    IsDefault = a.IsDefault,
-                    CreatedAt = a.CreatedAt,
-                    IsFullDataVisible = true
-                }).ToList();
+                addresses = customer.Addresses.Select(a => new CustomerAddressDto(
+                    a.Id,
+                    a.Street,
+                    a.City,
+                    a.District,
+                    a.Ward,
+                    null, // ZipCode
+                    a.IsDefault,
+                    a.CreatedAt,
+                    null, // MaskedStreet
+                    true  // IsFullDataVisible
+                )).ToList();
             }
             else
             {
-                customerDetail.Addresses = customer.Addresses.Select(a => new CustomerAddressDto
-                {
-                    Id = a.Id,
-                    MaskedStreet = MaskAddress(a.Street),
-                    City = a.City,
-                    District = a.District,
-                    Ward = a.Ward,
-                    IsDefault = a.IsDefault,
-                    CreatedAt = a.CreatedAt,
-                    IsFullDataVisible = false
-                }).ToList();
+                addresses = customer.Addresses.Select(a => new CustomerAddressDto(
+                    a.Id,
+                    "", // Street (hidden)
+                    a.City,
+                    a.District,
+                    a.Ward,
+                    null, // ZipCode
+                    a.IsDefault,
+                    a.CreatedAt,
+                    MaskAddress(a.Street), // MaskedStreet
+                    false // IsFullDataVisible
+                )).ToList();
             }
 
-            // Add recent activities
-            customerDetail.RecentActivities = customer.ActivityLogs.Select(al => new CustomerRecentActivityDto
-            {
-                ActivityDate = al.CreatedAt,
-                ActivityType = al.Action,
-                Description = al.Description,
-                IpAddress = canViewSecurityInfo ? al.IPAddress : null,
-                UserAgent = canViewSecurityInfo ? al.UserAgent : null
-            }).ToList();
+            // Prepare recent activities
+            var recentActivities = customer.ActivityLogs.Select(al => new CustomerRecentActivityDto(
+                al.CreatedAt,
+                al.Action,
+                al.Description,
+                canViewSecurityInfo ? al.IPAddress : null,
+                canViewSecurityInfo ? al.UserAgent : null
+            )).ToList();
+
+            // Build detailed DTO with permission-based filtering
+            var customerDetail = new CustomerDetailDto(
+                customer.Id,
+                customer.FirstName,
+                customer.LastName,
+                customer.Email,
+                customer.PhoneNumber,
+                null, // DateOfBirth
+                null, // Gender
+                customer.ProfilePictureUrl,
+                customer.IsActive,
+                customer.EmailConfirmed,
+                customer.CreatedAt,
+                customer.UpdatedAt,
+                customer.LastLoginAt,
+                canViewSecurityInfo ? customer.LastLoginIP : null,
+                canViewSecurityInfo ? customer.FailedLoginAttempts : 0,
+                canViewSecurityInfo ? customer.LockedUntil : null,
+                canViewSecurityInfo ? customer.LastPasswordChangeDate : null,
+                customer.VipTierId,
+                customer.VipTier?.Name,
+                customer.TotalSpent,
+                customer.VipTierUpdatedAt,
+                customer.Orders.Count,
+                customer.Orders.Count(o => o.Status == OrderStatus.Delivered),
+                customer.Orders.Count(o => o.Status == OrderStatus.Cancelled),
+                customer.Orders.OrderBy(o => o.CreatedAt).Select(o => (DateTime?)o.CreatedAt).FirstOrDefault(),
+                customer.Orders.OrderByDescending(o => o.CreatedAt).Select(o => (DateTime?)o.CreatedAt).FirstOrDefault(),
+                customer.Orders.Any() ? customer.Orders.Average(o => o.TotalAmount) : 0,
+                addresses,
+                recentActivities,
+                canEdit ? customer.Notes : null,
+                null, // NotesUpdatedAt
+                null, // NotesUpdatedBy
+                canEdit,
+                canDelete,
+                canViewDetails,
+                canViewPersonalData,
+                canViewSecurityInfo
+            );
 
             // Log access for audit
             await _auditLoggingService.LogEventAsync(
@@ -526,43 +525,44 @@ public class CustomerManagementService : ICustomerManagementService
 
             var orders = customer.Orders.ToList();
 
-            var orderHistory = new CustomerOrderHistoryDto
-            {
-                CustomerId = customerId,
-                TotalOrders = orders.Count,
-                TotalSpent = orders.Sum(o => o.TotalAmount),
-                AverageOrderValue = orders.Any() ? orders.Average(o => o.TotalAmount) : 0,
-                FirstOrderDate = orders.OrderBy(o => o.CreatedAt).FirstOrDefault()?.CreatedAt,
-                LastOrderDate = orders.OrderByDescending(o => o.CreatedAt).FirstOrDefault()?.CreatedAt,
-                PendingOrders = orders.Count(o => o.Status == OrderStatus.Pending),
-                CompletedOrders = orders.Count(o => o.Status == OrderStatus.Delivered),
-                CancelledOrders = orders.Count(o => o.Status == OrderStatus.Cancelled),
-                RefundedOrders = orders.Count(o => o.Status == OrderStatus.Refunded),
-                RecentOrders = orders.OrderByDescending(o => o.CreatedAt)
-                    .Take(10)
-                    .Select(o => new CustomerOrderSummaryDto
-                    {
-                        OrderId = o.Id,
-                        OrderNumber = o.OrderNumber,
-                        OrderDate = o.CreatedAt,
-                        Total = o.TotalAmount,
-                        Status = o.Status.ToString(),
-                        ItemCount = o.OrderItems.Count
-                    }).ToList(),
-                MonthlySpending = orders
-                    .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
-                    .Select(g => new MonthlySpendingDto
-                    {
-                        Year = g.Key.Year,
-                        Month = g.Key.Month,
-                        Amount = g.Sum(o => o.TotalAmount),
-                        OrderCount = g.Count()
-                    })
-                    .OrderByDescending(m => m.Year)
-                    .ThenByDescending(m => m.Month)
-                    .Take(12)
-                    .ToList()
-            };
+            var recentOrders = orders.OrderByDescending(o => o.CreatedAt)
+                .Take(10)
+                .Select(o => new CustomerOrderSummaryDto(
+                    o.Id,
+                    o.OrderNumber,
+                    o.CreatedAt,
+                    o.TotalAmount,
+                    o.Status.ToString(),
+                    o.OrderItems.Count
+                )).ToList();
+
+            var monthlySpending = orders
+                .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
+                .Select(g => new MonthlySpendingDto(
+                    g.Key.Year,
+                    g.Key.Month,
+                    g.Sum(o => o.TotalAmount),
+                    g.Count()
+                ))
+                .OrderByDescending(m => m.Year)
+                .ThenByDescending(m => m.Month)
+                .Take(12)
+                .ToList();
+
+            var orderHistory = new CustomerOrderHistoryDto(
+                customerId,
+                orders.Count,
+                orders.Sum(o => o.TotalAmount),
+                orders.Any() ? orders.Average(o => o.TotalAmount) : 0,
+                orders.OrderBy(o => o.CreatedAt).FirstOrDefault()?.CreatedAt,
+                orders.OrderByDescending(o => o.CreatedAt).FirstOrDefault()?.CreatedAt,
+                orders.Count(o => o.Status == OrderStatus.Pending),
+                orders.Count(o => o.Status == OrderStatus.Delivered),
+                orders.Count(o => o.Status == OrderStatus.Cancelled),
+                orders.Count(o => o.Status == OrderStatus.Refunded),
+                recentOrders,
+                monthlySpending
+            );
 
             return orderHistory;
         }
@@ -583,72 +583,84 @@ public class CustomerManagementService : ICustomerManagementService
             var thisMonth = new DateTime(now.Year, now.Month, 1);
             var thirtyDaysAgo = now.AddDays(-30);
 
-            var stats = new CustomerStatisticsDto
-            {
-                TotalCustomers = await _context.Users
-                    .CountAsync(u => !u.IsAdminRole),
+            // Calculate statistics
+            var totalCustomers = await _context.Users
+                .CountAsync(u => !u.IsAdminRole);
 
-                ActiveCustomers = await _context.Users
-                    .CountAsync(u => !u.IsAdminRole && u.IsActive),
+            var activeCustomers = await _context.Users
+                .CountAsync(u => !u.IsAdminRole && u.IsActive);
 
-                NewCustomersThisMonth = await _context.Users
-                    .CountAsync(u => !u.IsAdminRole && u.CreatedAt >= thisMonth),
+            var newCustomersThisMonth = await _context.Users
+                .CountAsync(u => !u.IsAdminRole && u.CreatedAt >= thisMonth);
 
-                NewCustomersToday = await _context.Users
-                    .CountAsync(u => !u.IsAdminRole && u.CreatedAt >= today),
+            var newCustomersToday = await _context.Users
+                .CountAsync(u => !u.IsAdminRole && u.CreatedAt >= today);
 
-                EmailVerifiedCustomers = await _context.Users
-                    .CountAsync(u => !u.IsAdminRole && u.EmailConfirmed),
+            var emailVerifiedCustomers = await _context.Users
+                .CountAsync(u => !u.IsAdminRole && u.EmailConfirmed);
 
-                UnverifiedCustomers = await _context.Users
-                    .CountAsync(u => !u.IsAdminRole && !u.EmailConfirmed),
+            var unverifiedCustomers = await _context.Users
+                .CountAsync(u => !u.IsAdminRole && !u.EmailConfirmed);
 
-                CustomersLoggedInToday = await _context.Users
-                    .CountAsync(u => !u.IsAdminRole &&
-                        u.LastLoginAt.HasValue && u.LastLoginAt.Value >= today),
+            var customersLoggedInToday = await _context.Users
+                .CountAsync(u => !u.IsAdminRole &&
+                    u.LastLoginAt.HasValue && u.LastLoginAt.Value >= today);
 
-                CustomersLoggedInThisWeek = await _context.Users
-                    .CountAsync(u => !u.IsAdminRole &&
-                        u.LastLoginAt.HasValue && u.LastLoginAt.Value >= now.AddDays(-7)),
+            var customersLoggedInThisWeek = await _context.Users
+                .CountAsync(u => !u.IsAdminRole &&
+                    u.LastLoginAt.HasValue && u.LastLoginAt.Value >= now.AddDays(-7));
 
-                InactiveCustomers30Days = await _context.Users
-                    .CountAsync(u => !u.IsAdminRole &&
-                        (!u.LastLoginAt.HasValue || u.LastLoginAt.Value < thirtyDaysAgo))
-            };
+            var inactiveCustomers30Days = await _context.Users
+                .CountAsync(u => !u.IsAdminRole &&
+                    (!u.LastLoginAt.HasValue || u.LastLoginAt.Value < thirtyDaysAgo));
 
             // Calculate average customer value
             var totalSpent = await _context.Users
                 .Where(u => !u.IsAdminRole)
                 .SumAsync(u => u.TotalSpent);
-            stats.AverageCustomerValue = stats.TotalCustomers > 0 ? totalSpent / stats.TotalCustomers : 0;
+            
+            var averageCustomerValue = totalCustomers > 0 ? totalSpent / totalCustomers : 0;
 
             // Get VIP tier statistics
-            stats.VipTierStats = await _context.UserVipTiers
+            var vipTierStats = await _context.UserVipTiers
                 .Include(vt => vt.Users)
-                .Select(vt => new VipTierStatDto
-                {
-                    TierId = vt.Id,
-                    TierName = vt.Name,
-                    CustomerCount = vt.Users.Count(u => !u.IsAdminRole),
-                    TotalSpent = vt.Users.Where(u => !u.IsAdminRole).Sum(u => u.TotalSpent),
-                    AverageSpent = vt.Users.Any(u => !u.IsAdminRole)
+                .Select(vt => new VipTierStatDto(
+                    vt.Id,
+                    vt.Name,
+                    vt.Users.Count(u => !u.IsAdminRole),
+                    vt.Users.Where(u => !u.IsAdminRole).Sum(u => u.TotalSpent),
+                    vt.Users.Any(u => !u.IsAdminRole)
                         ? vt.Users.Where(u => !u.IsAdminRole).Average(u => u.TotalSpent)
                         : 0
-                })
+                ))
                 .ToListAsync();
 
             // Get registration trends (last 30 days)
-            stats.RegistrationTrends = await _context.Users
+            var registrationTrends = await _context.Users
                 .Where(u => !u.IsAdminRole && u.CreatedAt >= thirtyDaysAgo)
                 .GroupBy(u => u.CreatedAt.Date)
-                .Select(g => new CustomerRegistrationTrendDto
-                {
-                    Date = g.Key,
-                    NewRegistrations = g.Count(),
-                    EmailVerifications = g.Count(u => u.EmailConfirmed)
-                })
+                .Select(g => new CustomerRegistrationTrendDto(
+                    g.Key,
+                    g.Count(),
+                    g.Count(u => u.EmailConfirmed)
+                ))
                 .OrderBy(t => t.Date)
                 .ToListAsync();
+
+            var stats = new CustomerStatisticsDto(
+                totalCustomers,
+                activeCustomers,
+                newCustomersThisMonth,
+                newCustomersToday,
+                averageCustomerValue,
+                emailVerifiedCustomers,
+                unverifiedCustomers,
+                vipTierStats,
+                registrationTrends,
+                customersLoggedInToday,
+                customersLoggedInThisWeek,
+                inactiveCustomers30Days
+            );
 
             return stats;
         }
@@ -695,12 +707,11 @@ public class CustomerManagementService : ICustomerManagementService
                 null, new { Format = format, Parameters = parameters },
                 requesterUserId.ToString(), null, null, null, null);
 
-            return new ExportResult
-            {
-                Data = data,
-                FileName = fileName,
-                ContentType = contentType
-            };
+            return new ExportResult(
+                data,
+                fileName,
+                contentType
+            );
         }
         catch (Exception ex)
         {
@@ -794,18 +805,18 @@ public class CustomerManagementService : ICustomerManagementService
             var logs = await query
                 .Skip((parameters.Page - 1) * parameters.PageSize)
                 .Take(parameters.PageSize)
-                .Select(al => new CustomerActivityLogDto
-                {
-                    Id = al.Id,
-                    CustomerId = al.UserId,
-                    Action = al.Action,
-                    Description = al.Description,
-                    CreatedAt = al.CreatedAt,
-                    IpAddress = al.IPAddress,
-                    UserAgent = al.UserAgent,
-                    EntityType = al.EntityType,
-                    EntityId = al.EntityId
-                })
+                .Select(al => new CustomerActivityLogDto(
+                    al.Id,
+                    al.UserId,
+                    al.Action,
+                    al.Description,
+                    al.CreatedAt,
+                    al.IPAddress,
+                    al.UserAgent,
+                    al.EntityId, // Assuming EntityType/EntityId mapping
+                    null, // Metadata - adjust if available
+                    null // Metadata
+                ))
                 .ToListAsync();
 
             return new PagedResult<CustomerActivityLogDto>

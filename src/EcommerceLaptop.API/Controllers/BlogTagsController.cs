@@ -84,7 +84,7 @@ public class BlogTagsController(IBlogService blogService, ILogger<BlogTagsContro
         if (!result.IsSuccess)
             return BadRequest(new { error = result.ErrorMessage });
 
-        return CreatedAtAction(nameof(GetBlogTag), new { id = result.Data.Id }, result.Data);
+        return CreatedAtAction(nameof(GetBlogTag), new { id = result.Data?.Id }, result.Data);
     }
 
     /// <summary>
