@@ -12,16 +12,10 @@ namespace EcommerceLaptop.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class CartController : ControllerBase
+public class CartController(IShoppingCartService cartService, ILogger<CartController> logger) : ControllerBase
 {
-    private readonly IShoppingCartService _cartService;
-    private readonly ILogger<CartController> _logger;
-
-    public CartController(IShoppingCartService cartService, ILogger<CartController> logger)
-    {
-        _cartService = cartService;
-        _logger = logger;
-    }
+    private readonly IShoppingCartService _cartService = cartService;
+    private readonly ILogger<CartController> _logger = logger;
 
     /// <summary>
     /// Get current user's cart or guest session cart
@@ -34,23 +28,15 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartResponseDto>> GetCart([FromQuery] string? sessionId = null)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
         {
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
+            return BadRequest("Either authentication or session ID is required");
+        }
 
-            var cart = await _cartService.GetCartAsync(userId, sessionId);
-            return Ok(cart);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting cart for user {UserId} or session {SessionId}", GetUserId(), sessionId);
-            return StatusCode(500, "An error occurred while retrieving the cart");
-        }
+        var cart = await _cartService.GetCartAsync(userId, sessionId);
+        return Ok(cart);
     }
 
     /// <summary>
@@ -66,38 +52,15 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartResponseDto>> AddToCart([FromBody] AddToCartDto addToCartDto)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(addToCartDto.SessionId))
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest("Either authentication or session ID is required");
+        }
 
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(addToCartDto.SessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
-
-            var cart = await _cartService.AddToCartAsync(addToCartDto, userId);
-            return Ok(cart);
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Invalid argument when adding to cart: {@AddToCartDto}", addToCartDto);
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogWarning(ex, "Invalid operation when adding to cart: {@AddToCartDto}", addToCartDto);
-            return Conflict(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding item to cart: {@AddToCartDto}", addToCartDto);
-            return StatusCode(500, "An error occurred while adding the item to cart");
-        }
+        var cart = await _cartService.AddToCartAsync(addToCartDto, userId);
+        return Ok(cart);
     }
 
     /// <summary>
@@ -113,38 +76,15 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartResponseDto>> UpdateCartItem([FromBody] UpdateCartItemDto updateCartDto)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(updateCartDto.SessionId))
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest("Either authentication or session ID is required");
+        }
 
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(updateCartDto.SessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
-
-            var cart = await _cartService.UpdateCartItemAsync(updateCartDto, userId);
-            return Ok(cart);
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Invalid argument when updating cart item: {@UpdateCartDto}", updateCartDto);
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogWarning(ex, "Invalid operation when updating cart item: {@UpdateCartDto}", updateCartDto);
-            return Conflict(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating cart item: {@UpdateCartDto}", updateCartDto);
-            return StatusCode(500, "An error occurred while updating the cart item");
-        }
+        var cart = await _cartService.UpdateCartItemAsync(updateCartDto, userId);
+        return Ok(cart);
     }
 
     /// <summary>
@@ -159,33 +99,15 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartResponseDto>> RemoveFromCart([FromBody] RemoveFromCartDto removeFromCartDto)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(removeFromCartDto.SessionId))
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest("Either authentication or session ID is required");
+        }
 
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(removeFromCartDto.SessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
-
-            var cart = await _cartService.RemoveFromCartAsync(removeFromCartDto, userId);
-            return Ok(cart);
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Invalid argument when removing from cart: {@RemoveFromCartDto}", removeFromCartDto);
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing item from cart: {@RemoveFromCartDto}", removeFromCartDto);
-            return StatusCode(500, "An error occurred while removing the item from cart");
-        }
+        var cart = await _cartService.RemoveFromCartAsync(removeFromCartDto, userId);
+        return Ok(cart);
     }
 
     /// <summary>
@@ -201,34 +123,21 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartResponseDto>> RemoveCartItem(int cartItemId, [FromQuery] string? sessionId = null)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
         {
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
+            return BadRequest("Either authentication or session ID is required");
+        }
 
-            var removeDto = new RemoveFromCartDto 
-            { 
-                CartItemId = cartItemId, 
-                SessionId = sessionId 
-            };
+        var removeDto = new RemoveFromCartDto 
+        { 
+            CartItemId = cartItemId, 
+            SessionId = sessionId 
+        };
 
-            var cart = await _cartService.RemoveFromCartAsync(removeDto, userId);
-            return Ok(cart);
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Invalid argument when removing cart item {CartItemId}", cartItemId);
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing cart item {CartItemId}", cartItemId);
-            return StatusCode(500, "An error occurred while removing the cart item");
-        }
+        var cart = await _cartService.RemoveFromCartAsync(removeDto, userId);
+        return Ok(cart);
     }
 
     /// <summary>
@@ -242,23 +151,15 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartResponseDto>> ClearCart([FromQuery] string? sessionId = null)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
         {
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
+            return BadRequest("Either authentication or session ID is required");
+        }
 
-            var cart = await _cartService.ClearCartAsync(userId, sessionId);
-            return Ok(cart);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error clearing cart for user {UserId} or session {SessionId}", GetUserId(), sessionId);
-            return StatusCode(500, "An error occurred while clearing the cart");
-        }
+        var cart = await _cartService.ClearCartAsync(userId, sessionId);
+        return Ok(cart);
     }
 
     /// <summary>
@@ -273,33 +174,15 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartResponseDto>> ApplyDiscount([FromBody] ApplyDiscountDto discountDto)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(discountDto.SessionId))
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest("Either authentication or session ID is required");
+        }
 
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(discountDto.SessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
-
-            var cart = await _cartService.ApplyDiscountAsync(discountDto, userId);
-            return Ok(cart);
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Invalid discount code: {@DiscountDto}", discountDto);
-            return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error applying discount: {@DiscountDto}", discountDto);
-            return StatusCode(500, "An error occurred while applying the discount");
-        }
+        var cart = await _cartService.ApplyDiscountAsync(discountDto, userId);
+        return Ok(cart);
     }
 
     /// <summary>
@@ -313,23 +196,15 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartResponseDto>> RemoveDiscount([FromQuery] string? sessionId = null)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
         {
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
+            return BadRequest("Either authentication or session ID is required");
+        }
 
-            var cart = await _cartService.RemoveDiscountAsync(userId, sessionId);
-            return Ok(cart);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing discount for user {UserId} or session {SessionId}", GetUserId(), sessionId);
-            return StatusCode(500, "An error occurred while removing the discount");
-        }
+        var cart = await _cartService.RemoveDiscountAsync(userId, sessionId);
+        return Ok(cart);
     }
 
     /// <summary>
@@ -343,23 +218,15 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartValidationDto>> ValidateCart([FromQuery] string? sessionId = null)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
         {
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
+            return BadRequest("Either authentication or session ID is required");
+        }
 
-            var validation = await _cartService.ValidateCartAsync(userId, sessionId);
-            return Ok(validation);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error validating cart for user {UserId} or session {SessionId}", GetUserId(), sessionId);
-            return StatusCode(500, "An error occurred while validating the cart");
-        }
+        var validation = await _cartService.ValidateCartAsync(userId, sessionId);
+        return Ok(validation);
     }
 
     /// <summary>
@@ -375,30 +242,17 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartResponseDto>> MigrateSessionCart([FromBody] MigrateCartDto migrateDto)
     {
-        try
+        var userId = GetUserId();
+        if (string.IsNullOrEmpty(userId))
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var userId = GetUserId();
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
-
-            // Override userId from token for security
-            migrateDto.UserId = userId;
-
-            var cart = await _cartService.MigrateSessionCartToUserAsync(migrateDto);
-            return Ok(cart);
+            return Unauthorized();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error migrating cart: {@MigrateDto}", migrateDto);
-            return StatusCode(500, "An error occurred while migrating the cart");
-        }
+
+        // Override userId from token for security
+        migrateDto.UserId = userId;
+
+        var cart = await _cartService.MigrateSessionCartToUserAsync(migrateDto);
+        return Ok(cart);
     }
 
     /// <summary>
@@ -412,28 +266,15 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartResponseDto>> BulkCartOperation([FromBody] BulkCartOperationDto bulkOperation)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(bulkOperation.SessionId))
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(bulkOperation.SessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
-
-            var cart = await _cartService.BulkCartOperationAsync(bulkOperation, userId);
-            return Ok(cart);
+            return BadRequest("Either authentication or session ID is required");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error performing bulk cart operation: {@BulkOperation}", bulkOperation);
-            return StatusCode(500, "An error occurred while performing bulk cart operations");
-        }
+
+        var cart = await _cartService.BulkCartOperationAsync(bulkOperation, userId);
+        return Ok(cart);
     }
 
     /// <summary>
@@ -448,28 +289,20 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<decimal>> CalculateShipping([FromBody] string shippingAddress, [FromQuery] string? sessionId = null)
     {
-        try
+        if (string.IsNullOrWhiteSpace(shippingAddress))
         {
-            if (string.IsNullOrWhiteSpace(shippingAddress))
-            {
-                return BadRequest("Shipping address is required");
-            }
-
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
-
-            var shippingCost = await _cartService.CalculateShippingAsync(userId, sessionId, shippingAddress);
-            return Ok(shippingCost);
+            return BadRequest("Shipping address is required");
         }
-        catch (Exception ex)
+
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
         {
-            _logger.LogError(ex, "Error calculating shipping for user {UserId} or session {SessionId}", GetUserId(), sessionId);
-            return StatusCode(500, "An error occurred while calculating shipping");
+            return BadRequest("Either authentication or session ID is required");
         }
+
+        var shippingCost = await _cartService.CalculateShippingAsync(userId, sessionId, shippingAddress);
+        return Ok(shippingCost);
     }
 
     /// <summary>
@@ -483,23 +316,15 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CartSummaryDto>> GetCartSummary([FromQuery] string? sessionId = null)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
         {
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
+            return BadRequest("Either authentication or session ID is required");
+        }
 
-            var cart = await _cartService.GetCartAsync(userId, sessionId);
-            return Ok(cart.Summary);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting cart summary for user {UserId} or session {SessionId}", GetUserId(), sessionId);
-            return StatusCode(500, "An error occurred while retrieving the cart summary");
-        }
+        var cart = await _cartService.GetCartAsync(userId, sessionId);
+        return Ok(cart.Summary);
     }
 
     /// <summary>
@@ -513,23 +338,15 @@ public class CartController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<int>> GetCartItemCount([FromQuery] string? sessionId = null)
     {
-        try
+        var userId = GetUserId();
+        
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
         {
-            var userId = GetUserId();
-            
-            if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
-            {
-                return BadRequest("Either authentication or session ID is required");
-            }
+            return BadRequest("Either authentication or session ID is required");
+        }
 
-            var cart = await _cartService.GetCartAsync(userId, sessionId);
-            return Ok(cart.Summary.ItemCount);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting cart count for user {UserId} or session {SessionId}", GetUserId(), sessionId);
-            return StatusCode(500, "An error occurred while retrieving the cart count");
-        }
+        var cart = await _cartService.GetCartAsync(userId, sessionId);
+        return Ok(cart.Summary.ItemCount);
     }
 
     #region Private Helper Methods

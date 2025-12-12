@@ -13,16 +13,10 @@ namespace EcommerceLaptop.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [AllowAnonymous]
-public class BlogController : ControllerBase
+public class BlogController(IBlogService blogService, ILogger<BlogController> logger) : ControllerBase
 {
-    private readonly IBlogService _blogService;
-    private readonly ILogger<BlogController> _logger;
-
-    public BlogController(IBlogService blogService, ILogger<BlogController> logger)
-    {
-        _blogService = blogService;
-        _logger = logger;
-    }
+    private readonly IBlogService _blogService = blogService;
+    private readonly ILogger<BlogController> _logger = logger;
 
     #region Blog Posts
 
@@ -38,26 +32,18 @@ public class BlogController : ControllerBase
         [FromQuery] bool? isPublished = null,
         [FromQuery] bool? isFeatured = null)
     {
-        try
+        // For public access, only show published posts unless admin
+        if (!User.IsInRole("Admin") && !isPublished.HasValue)
         {
-            // For public access, only show published posts unless admin
-            if (!User.IsInRole("Admin") && !isPublished.HasValue)
-            {
-                isPublished = true;
-            }
-
-            var result = await _blogService.GetBlogPostsAsync(pageNumber, pageSize, categoryId, searchTerm, isPublished, isFeatured);
-
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return Ok(result.Data);
+            isPublished = true;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting blog posts");
-            return StatusCode(500, new { error = "Error retrieving blog posts" });
-        }
+
+        var result = await _blogService.GetBlogPostsAsync(pageNumber, pageSize, categoryId, searchTerm, isPublished, isFeatured);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
+
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -66,33 +52,25 @@ public class BlogController : ControllerBase
     [HttpGet("posts/{id:int}")]
     public async Task<IActionResult> GetBlogPostById(int id)
     {
-        try
+        var result = await _blogService.GetBlogPostByIdAsync(id);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
+
+        if (result.Data == null)
+            return NotFound(new { error = "Blog post not found" });
+
+        // Check if user can view unpublished posts
+        if (result.Data.Status != "published" && !User.IsInRole("Admin"))
+            return NotFound(new { error = "Blog post not found" });
+
+        // Increment view count for published posts
+        if (result.Data.Status == "published")
         {
-            var result = await _blogService.GetBlogPostByIdAsync(id);
-
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            if (result.Data == null)
-                return NotFound(new { error = "Blog post not found" });
-
-            // Check if user can view unpublished posts
-            if (result.Data.Status != "published" && !User.IsInRole("Admin"))
-                return NotFound(new { error = "Blog post not found" });
-
-            // Increment view count for published posts
-            if (result.Data.Status == "published")
-            {
-                await _blogService.IncrementViewCountAsync(id);
-            }
-
-            return Ok(result.Data);
+            await _blogService.IncrementViewCountAsync(id);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting blog post {Id}", id);
-            return StatusCode(500, new { error = "Error retrieving blog post" });
-        }
+
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -101,33 +79,25 @@ public class BlogController : ControllerBase
     [HttpGet("posts/slug/{slug}")]
     public async Task<IActionResult> GetBlogPostBySlug(string slug)
     {
-        try
+        var result = await _blogService.GetBlogPostBySlugAsync(slug);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
+
+        if (result.Data == null)
+            return NotFound(new { error = "Blog post not found" });
+
+        // Check if user can view unpublished posts
+        if (result.Data.Status != "published" && !User.IsInRole("Admin"))
+            return NotFound(new { error = "Blog post not found" });
+
+        // Increment view count for published posts
+        if (result.Data.Status == "published")
         {
-            var result = await _blogService.GetBlogPostBySlugAsync(slug);
-
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            if (result.Data == null)
-                return NotFound(new { error = "Blog post not found" });
-
-            // Check if user can view unpublished posts
-            if (result.Data.Status != "published" && !User.IsInRole("Admin"))
-                return NotFound(new { error = "Blog post not found" });
-
-            // Increment view count for published posts
-            if (result.Data.Status == "published")
-            {
-                await _blogService.IncrementViewCountAsync(result.Data.Id);
-            }
-
-            return Ok(result.Data);
+            await _blogService.IncrementViewCountAsync(result.Data.Id);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting blog post by slug {Slug}", slug);
-            return StatusCode(500, new { error = "Error retrieving blog post" });
-        }
+
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -136,20 +106,12 @@ public class BlogController : ControllerBase
     [HttpPost("posts/{id:int}/like")]
     public async Task<IActionResult> LikeBlogPost(int id)
     {
-        try
-        {
-            var result = await _blogService.LikeBlogPostAsync(id);
+        var result = await _blogService.LikeBlogPostAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { likeCount = result.Data });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error liking blog post {Id}", id);
-            return StatusCode(500, new { error = "Error liking blog post" });
-        }
+        return Ok(new { likeCount = result.Data });
     }
 
     /// <summary>
@@ -158,20 +120,12 @@ public class BlogController : ControllerBase
     [HttpPost("posts/{id:int}/unlike")]
     public async Task<IActionResult> UnlikeBlogPost(int id)
     {
-        try
-        {
-            var result = await _blogService.UnlikeBlogPostAsync(id);
+        var result = await _blogService.UnlikeBlogPostAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { likeCount = result.Data });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unliking blog post {Id}", id);
-            return StatusCode(500, new { error = "Error unliking blog post" });
-        }
+        return Ok(new { likeCount = result.Data });
     }
 
     /// <summary>
@@ -180,44 +134,36 @@ public class BlogController : ControllerBase
     [HttpPost("posts")]
     public async Task<IActionResult> CreateBlogPost([FromBody] CreateBlogPostRequest request)
     {
-        try
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        var userId = 1; // Default system admin ID
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var parsedId))
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            var userId = 1; // Default system admin ID
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var parsedId))
-            {
-                userId = parsedId;
-            }
-
-            var blogPost = new BlogPost
-            {
-                Title = request.Title,
-                Excerpt = request.Excerpt,
-                Content = request.Content,
-                FeaturedImageUrl = request.FeaturedImageUrl,
-                MetaTitle = request.MetaTitle,
-                MetaDescription = request.MetaDescription,
-                Status = request.IsPublished ? "published" : "draft",
-                IsFeatured = request.IsFeatured ?? false,
-                CategoryId = request.CategoryId,
-                AuthorId = userId
-            };
-
-            var result = await _blogService.CreateBlogPostAsync(blogPost, request.TagIds);
-
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return CreatedAtAction(nameof(GetBlogPostById), new { id = result.Data!.Id }, result.Data);
+            userId = parsedId;
         }
-        catch (Exception ex)
+
+        var blogPost = new BlogPost
         {
-            _logger.LogError(ex, "Error creating blog post");
-            return StatusCode(500, new { error = "Error creating blog post" });
-        }
+            Title = request.Title,
+            Excerpt = request.Excerpt,
+            Content = request.Content,
+            FeaturedImageUrl = request.FeaturedImageUrl,
+            MetaTitle = request.MetaTitle,
+            MetaDescription = request.MetaDescription,
+            Status = request.IsPublished ? "published" : "draft",
+            IsFeatured = request.IsFeatured ?? false,
+            CategoryId = request.CategoryId,
+            AuthorId = userId
+        };
+
+        var result = await _blogService.CreateBlogPostAsync(blogPost, request.TagIds);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
+
+        return CreatedAtAction(nameof(GetBlogPostById), new { id = result.Data!.Id }, result.Data);
     }
 
     /// <summary>
@@ -226,23 +172,15 @@ public class BlogController : ControllerBase
     [HttpPatch("posts/{id:int}")]
     public async Task<IActionResult> UpdateBlogPost(int id, [FromBody] UpdateBlogPostRequest request)
     {
-        try
-        {
-            var result = await _blogService.UpdateBlogPostAsync(id, request, User);
+        var result = await _blogService.UpdateBlogPostAsync(id, request, User);
 
-            if (!result.IsSuccess)
-            {
-                if (result.ErrorMessage == "Blog post not found") return NotFound(new { error = result.ErrorMessage });
-                return BadRequest(new { error = result.ErrorMessage });
-            }
-
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
+        if (!result.IsSuccess)
         {
-            _logger.LogError(ex, "Error updating blog post {Id}", id);
-            return StatusCode(500, new { error = "Error updating blog post" });
+            if (result.ErrorMessage == "Blog post not found") return NotFound(new { error = result.ErrorMessage });
+            return BadRequest(new { error = result.ErrorMessage });
         }
+
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -251,20 +189,12 @@ public class BlogController : ControllerBase
     [HttpDelete("posts/{id:int}")]
     public async Task<IActionResult> DeleteBlogPost(int id)
     {
-        try
-        {
-            var result = await _blogService.DeleteBlogPostAsync(id);
+        var result = await _blogService.DeleteBlogPostAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { success = true });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting blog post {Id}", id);
-            return StatusCode(500, new { error = "Error deleting blog post" });
-        }
+        return Ok(new { success = true });
     }
 
     /// <summary>
@@ -273,20 +203,12 @@ public class BlogController : ControllerBase
     [HttpPatch("posts/{id:int}/publish")]
     public async Task<IActionResult> PublishBlogPost(int id)
     {
-        try
-        {
-            var result = await _blogService.PublishBlogPostAsync(id);
+        var result = await _blogService.PublishBlogPostAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { success = true });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error publishing blog post {Id}", id);
-            return StatusCode(500, new { error = "Error publishing blog post" });
-        }
+        return Ok(new { success = true });
     }
 
     /// <summary>
@@ -295,20 +217,12 @@ public class BlogController : ControllerBase
     [HttpPatch("posts/{id:int}/unpublish")]
     public async Task<IActionResult> UnpublishBlogPost(int id)
     {
-        try
-        {
-            var result = await _blogService.UnpublishBlogPostAsync(id);
+        var result = await _blogService.UnpublishBlogPostAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { success = true });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unpublishing blog post {Id}", id);
-            return StatusCode(500, new { error = "Error unpublishing blog post" });
-        }
+        return Ok(new { success = true });
     }
 
     #endregion
@@ -321,20 +235,12 @@ public class BlogController : ControllerBase
     [HttpGet("categories")]
     public async Task<IActionResult> GetBlogCategories([FromQuery] bool? activeOnly = true)
     {
-        try
-        {
-            var result = await _blogService.GetBlogCategoriesAsync(activeOnly ?? true);
+        var result = await _blogService.GetBlogCategoriesAsync(activeOnly ?? true);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting blog categories");
-            return StatusCode(500, new { error = "Error retrieving blog categories" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -343,22 +249,14 @@ public class BlogController : ControllerBase
     [HttpGet("categories/all")]
     public async Task<IActionResult> GetAllBlogCategories()
     {
-        try
-        {
-            var result = await _blogService.GetBlogCategoriesAsync(activeOnly: true);
+        var result = await _blogService.GetBlogCategoriesAsync(activeOnly: true);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            // Flatten to list for dropdown
-            var allCategories = result.Data ?? new List<BlogCategory>();
-            return Ok(allCategories);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting all blog categories");
-            return StatusCode(500, new { error = "Error retrieving all blog categories" });
-        }
+        // Flatten to list for dropdown
+        var allCategories = result.Data ?? new List<BlogCategory>();
+        return Ok(allCategories);
     }
 
     /// <summary>
@@ -367,23 +265,15 @@ public class BlogController : ControllerBase
     [HttpGet("categories/{id:int}")]
     public async Task<IActionResult> GetBlogCategoryById(int id)
     {
-        try
-        {
-            var result = await _blogService.GetBlogCategoryByIdAsync(id);
+        var result = await _blogService.GetBlogCategoryByIdAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (result.Data == null)
-                return NotFound(new { error = "Blog category not found" });
+        if (result.Data == null)
+            return NotFound(new { error = "Blog category not found" });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting blog category {Id}", id);
-            return StatusCode(500, new { error = "Error retrieving blog category" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -392,23 +282,15 @@ public class BlogController : ControllerBase
     [HttpGet("categories/slug/{slug}")]
     public async Task<IActionResult> GetBlogCategoryBySlug(string slug)
     {
-        try
-        {
-            var result = await _blogService.GetBlogCategoryBySlugAsync(slug);
+        var result = await _blogService.GetBlogCategoryBySlugAsync(slug);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (result.Data == null)
-                return NotFound(new { error = "Blog category not found" });
+        if (result.Data == null)
+            return NotFound(new { error = "Blog category not found" });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting blog category by slug {Slug}", slug);
-            return StatusCode(500, new { error = "Error retrieving blog category" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -417,34 +299,26 @@ public class BlogController : ControllerBase
     [HttpPost("categories")]
     public async Task<IActionResult> CreateBlogCategory([FromBody] BlogCategoryRequest request)
     {
-        try
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var category = new BlogCategory
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            Name = request.Name,
+            Slug = request.Slug,
+            Description = request.Description,
+            MetaTitle = request.MetaTitle,
+            MetaDescription = request.MetaDescription,
+            IsActive = request.IsActive,
+            SortOrder = request.SortOrder
+        };
 
-            var category = new BlogCategory
-            {
-                Name = request.Name,
-                Slug = request.Slug,
-                Description = request.Description,
-                MetaTitle = request.MetaTitle,
-                MetaDescription = request.MetaDescription,
-                IsActive = request.IsActive,
-                SortOrder = request.SortOrder
-            };
+        var result = await _blogService.CreateBlogCategoryAsync(category);
 
-            var result = await _blogService.CreateBlogCategoryAsync(category);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return CreatedAtAction(nameof(GetBlogCategoryById), new { id = result.Data!.Id }, result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating blog category");
-            return StatusCode(500, new { error = "Error creating blog category" });
-        }
+        return CreatedAtAction(nameof(GetBlogCategoryById), new { id = result.Data!.Id }, result.Data);
     }
 
     /// <summary>
@@ -453,35 +327,27 @@ public class BlogController : ControllerBase
     [HttpPut("categories/{id:int}")]
     public async Task<IActionResult> UpdateBlogCategory(int id, [FromBody] BlogCategoryRequest request)
     {
-        try
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var category = new BlogCategory
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            Id = id,
+            Name = request.Name,
+            Slug = request.Slug,
+            Description = request.Description,
+            MetaTitle = request.MetaTitle,
+            MetaDescription = request.MetaDescription,
+            IsActive = request.IsActive,
+            SortOrder = request.SortOrder
+        };
 
-            var category = new BlogCategory
-            {
-                Id = id,
-                Name = request.Name,
-                Slug = request.Slug,
-                Description = request.Description,
-                MetaTitle = request.MetaTitle,
-                MetaDescription = request.MetaDescription,
-                IsActive = request.IsActive,
-                SortOrder = request.SortOrder
-            };
+        var result = await _blogService.UpdateBlogCategoryAsync(category);
 
-            var result = await _blogService.UpdateBlogCategoryAsync(category);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating blog category {Id}", id);
-            return StatusCode(500, new { error = "Error updating blog category" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -490,20 +356,12 @@ public class BlogController : ControllerBase
     [HttpDelete("categories/{id:int}")]
     public async Task<IActionResult> DeleteBlogCategory(int id)
     {
-        try
-        {
-            var result = await _blogService.DeleteBlogCategoryAsync(id);
+        var result = await _blogService.DeleteBlogCategoryAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { success = true });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting blog category {Id}", id);
-            return StatusCode(500, new { error = "Error deleting blog category" });
-        }
+        return Ok(new { success = true });
     }
 
     #endregion
@@ -520,26 +378,18 @@ public class BlogController : ControllerBase
         [FromQuery] int pageSize = 10,
         [FromQuery] bool? isApproved = null)
     {
-        try
+        // For public access, only show approved comments unless admin
+        if (!User.IsInRole("Admin") && !isApproved.HasValue)
         {
-            // For public access, only show approved comments unless admin
-            if (!User.IsInRole("Admin") && !isApproved.HasValue)
-            {
-                isApproved = true;
-            }
-
-            var result = await _blogService.GetBlogCommentsAsync(blogPostId, pageNumber, pageSize, isApproved);
-
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return Ok(result.Data);
+            isApproved = true;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting blog comments for post {BlogPostId}", blogPostId);
-            return StatusCode(500, new { error = "Error retrieving blog comments" });
-        }
+
+        var result = await _blogService.GetBlogCommentsAsync(blogPostId, pageNumber, pageSize, isApproved);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
+
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -548,40 +398,32 @@ public class BlogController : ControllerBase
     [HttpPost("posts/{blogPostId:int}/comments")]
     public async Task<IActionResult> CreateBlogComment(int blogPostId, [FromBody] CreateBlogCommentRequest request)
     {
-        try
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        int? userId = null;
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            int? userId = null;
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
-            {
-                userId = id;
-            }
-
-            var comment = new BlogComment
-            {
-                Content = request.Content,
-                AuthorName = request.AuthorName,
-                AuthorEmail = request.AuthorEmail,
-                AuthorWebsite = request.AuthorWebsite,
-                BlogPostId = blogPostId,
-                UserId = userId
-            };
-
-            var result = await _blogService.CreateBlogCommentAsync(comment);
-
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return Created(string.Empty, result.Data);
+            userId = id;
         }
-        catch (Exception ex)
+
+        var comment = new BlogComment
         {
-            _logger.LogError(ex, "Error creating blog comment");
-            return StatusCode(500, new { error = "Error creating blog comment" });
-        }
+            Content = request.Content,
+            AuthorName = request.AuthorName,
+            AuthorEmail = request.AuthorEmail,
+            AuthorWebsite = request.AuthorWebsite,
+            BlogPostId = blogPostId,
+            UserId = userId
+        };
+
+        var result = await _blogService.CreateBlogCommentAsync(comment);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
+
+        return Created(string.Empty, result.Data);
     }
 
     /// <summary>
@@ -590,20 +432,12 @@ public class BlogController : ControllerBase
     [HttpPatch("comments/{id:int}/approve")]
     public async Task<IActionResult> ApproveBlogComment(int id)
     {
-        try
-        {
-            var result = await _blogService.ApproveBlogCommentAsync(id);
+        var result = await _blogService.ApproveBlogCommentAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { success = true });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error approving blog comment {Id}", id);
-            return StatusCode(500, new { error = "Error approving blog comment" });
-        }
+        return Ok(new { success = true });
     }
 
     /// <summary>
@@ -612,20 +446,12 @@ public class BlogController : ControllerBase
     [HttpDelete("comments/{id:int}")]
     public async Task<IActionResult> DeleteBlogComment(int id)
     {
-        try
-        {
-            var result = await _blogService.DeleteBlogCommentAsync(id);
+        var result = await _blogService.DeleteBlogCommentAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { success = true });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting blog comment {Id}", id);
-            return StatusCode(500, new { error = "Error deleting blog comment" });
-        }
+        return Ok(new { success = true });
     }
 
     #endregion
@@ -638,20 +464,12 @@ public class BlogController : ControllerBase
     [HttpGet("statistics")]
     public async Task<IActionResult> GetBlogStatistics()
     {
-        try
-        {
-            var result = await _blogService.GetBlogStatisticsAsync();
+        var result = await _blogService.GetBlogStatisticsAsync();
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting blog statistics");
-            return StatusCode(500, new { error = "Error retrieving blog statistics" });
-        }
+        return Ok(result.Data);
     }
 
     #endregion

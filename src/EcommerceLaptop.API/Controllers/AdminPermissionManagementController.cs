@@ -14,15 +14,9 @@ namespace EcommerceLaptop.API.Controllers;
 [ApiController]
 [Route("api/admin/permissions")]
 [Authorize]
-public class AdminPermissionManagementController : BaseApiController
+public class AdminPermissionManagementController(IAuthService authService, ILogger<AdminPermissionManagementController> logger) : BaseApiController(logger)
 {
-    private readonly IAuthService _authService;
-
-    public AdminPermissionManagementController(IAuthService authService, ILogger<AdminPermissionManagementController> logger)
-        : base(logger)
-    {
-        _authService = authService;
-    }
+    private readonly IAuthService _authService = authService;
 
     /// <summary>
     /// Extract admin user ID from JWT token claims
@@ -59,15 +53,8 @@ public class AdminPermissionManagementController : BaseApiController
     [RequireAdminPermission("security:read")]
     public async Task<IActionResult> GetAllPermissions()
     {
-        try
-        {
-            var permissions = await _authService.GetAllPermissionsAsync();
-            return SuccessResponse(permissions, "Permissions retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetAllPermissions));
-        }
+        var permissions = await _authService.GetAllPermissionsAsync();
+        return Ok(new { data = permissions, message = "Permissions retrieved successfully" });
     }
 
     /// <summary>
@@ -78,15 +65,8 @@ public class AdminPermissionManagementController : BaseApiController
     [RequireAdminPermission("security:read")]
     public async Task<IActionResult> GetAllPermissionsAlternate()
     {
-        try
-        {
-            var permissions = await _authService.GetAllPermissionsAsync();
-            return SuccessResponse(permissions, "Permissions retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetAllPermissionsAlternate));
-        }
+        var permissions = await _authService.GetAllPermissionsAsync();
+        return Ok(new { data = permissions, message = "Permissions retrieved successfully" });
     }
 
     /// <summary>
@@ -96,18 +76,11 @@ public class AdminPermissionManagementController : BaseApiController
     [RequireAdminPermission("security:read")]
     public async Task<IActionResult> GetPermissionsGrouped()
     {
-        try
-        {
-            var permissions = await _authService.GetAllPermissionsAsync();
-            var grouped = permissions.GroupBy(p => p.Name.Split(':')[0])
-                                   .ToDictionary(g => g.Key, g => g.AsEnumerable());
+        var permissions = await _authService.GetAllPermissionsAsync();
+        var grouped = permissions.GroupBy(p => p.Name.Split(':')[0])
+                               .ToDictionary(g => g.Key, g => g.AsEnumerable());
 
-            return SuccessResponse(grouped, "Grouped permissions retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetPermissionsGrouped));
-        }
+        return Ok(new { data = grouped, message = "Grouped permissions retrieved successfully" });
     }
 
     /// <summary>
@@ -118,25 +91,17 @@ public class AdminPermissionManagementController : BaseApiController
     [RequireAdminPermission("security:read")]
     public async Task<IActionResult> GetMyPermissions()
     {
-        try
+        var adminUserId = GetCurrentAdminUserId();
+
+        if (adminUserId == null)
         {
-            var adminUserId = GetCurrentAdminUserId();
-
-            if (adminUserId == null)
-            {
-                _logger.LogWarning(" MY-PERMISSIONS - Unable to identify admin user");
-                return ErrorResponse("Unable to identify admin user", 401);
-            }
-
-            var permissions = await _authService.GetUserPermissionsAsync(adminUserId.Value);
-
-            return SuccessResponse(permissions, "User permissions retrieved successfully");
+            _logger.LogWarning(" MY-PERMISSIONS - Unable to identify admin user");
+            return Unauthorized(new { error = "Unable to identify admin user" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Exception in GetMyPermissions: {Message}", ex.Message);
-            return HandleException(ex, nameof(GetMyPermissions));
-        }
+
+        var permissions = await _authService.GetUserPermissionsAsync(adminUserId.Value);
+
+        return Ok(new { data = permissions, message = "User permissions retrieved successfully" });
     }
 
     /// <summary>
@@ -145,23 +110,15 @@ public class AdminPermissionManagementController : BaseApiController
     [HttpGet("check/{permission}")]
     public async Task<IActionResult> CheckPermission(string permission)
     {
-        try
+        var adminUserId = GetCurrentAdminUserId();
+        if (adminUserId == null)
         {
-            var adminUserId = GetCurrentAdminUserId();
-            if (adminUserId == null)
-            {
-                return ErrorResponse("Unable to identify admin user", 401);
-            }
-
-            var hasPermission = await _authService.HasPermissionAsync(adminUserId.Value, permission);
-
-            return SuccessResponse(hasPermission, hasPermission ?
-                "Permission granted" : "Permission denied");
+            return Unauthorized(new { error = "Unable to identify admin user" });
         }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(CheckPermission));
-        }
+
+        var hasPermission = await _authService.HasPermissionAsync(adminUserId.Value, permission);
+
+        return Ok(new { data = hasPermission, message = hasPermission ? "Permission granted" : "Permission denied" });
     }
 
     /// <summary>
@@ -172,15 +129,8 @@ public class AdminPermissionManagementController : BaseApiController
     [RequireAdminPermission("roles:read")]
     public async Task<IActionResult> GetRolePermissionMappings()
     {
-        try
-        {
-            var mappings = await _authService.GetRolePermissionMappingsAsync();
-            return SuccessResponse(mappings, "Role permission mappings retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetRolePermissionMappings));
-        }
+        var mappings = await _authService.GetRolePermissionMappingsAsync();
+        return Ok(new { data = mappings, message = "Role permission mappings retrieved successfully" });
     }
 
     /// <summary>
@@ -191,15 +141,8 @@ public class AdminPermissionManagementController : BaseApiController
     [RequireAdminPermission("security:manage")]
     public async Task<IActionResult> SyncPermissions()
     {
-        try
-        {
-            await _authService.SyncPermissionsAsync();
-            return SuccessResponse(new { synced = true }, "Permissions synchronized successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(SyncPermissions));
-        }
+        await _authService.SyncPermissionsAsync();
+        return Ok(new { data = new { synced = true }, message = "Permissions synchronized successfully" });
     }
 
     /// <summary>
@@ -210,28 +153,21 @@ public class AdminPermissionManagementController : BaseApiController
     [RequireAdminPermission("security:read")]
     public IActionResult GetPermissionSchema()
     {
-        try
+        var schema = new
         {
-            var schema = new
+            Format = "module:action",
+            ValidModules = new[] { "dashboard", "users", "roles", "products", "orders", "promotions", "settings", "logs", "security" },
+            ValidActions = new[] { "read", "write", "delete", "manage", "view" },
+            Examples = new[] { "users:read", "products:write", "settings:manage" },
+            SuperAdminPermissions = new[] { "system:super-admin", "admin:*", "*" },
+            Constraints = new
             {
-                Format = "module:action",
-                ValidModules = new[] { "dashboard", "users", "roles", "products", "orders", "promotions", "settings", "logs", "security" },
-                ValidActions = new[] { "read", "write", "delete", "manage", "view" },
-                Examples = new[] { "users:read", "products:write", "settings:manage" },
-                SuperAdminPermissions = new[] { "system:super-admin", "admin:*", "*" },
-                Constraints = new
-                {
-                    MaxLength = 50,
-                    Pattern = @"^[a-z]+:[a-z\*]+$",
-                    CaseSensitive = true
-                }
-            };
+                MaxLength = 50,
+                Pattern = @"^[a-z]+:[a-z\*]+$",
+                CaseSensitive = true
+            }
+        };
 
-            return SuccessResponse(schema, "Permission schema retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetPermissionSchema));
-        }
+        return Ok(new { data = schema, message = "Permission schema retrieved successfully" });
     }
 }

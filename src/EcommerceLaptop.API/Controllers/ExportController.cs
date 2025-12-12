@@ -7,16 +7,11 @@ namespace EcommerceLaptop.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ExportController : BaseApiController
+public class ExportController(
+    IReportingService reportingService,
+    ILogger<ExportController> logger) : BaseApiController(logger)
 {
-    private readonly IReportingService _reportingService;
-
-    public ExportController(
-        IReportingService reportingService,
-        ILogger<ExportController> logger) : base(logger)
-    {
-        _reportingService = reportingService;
-    }
+    private readonly IReportingService _reportingService = reportingService;
 
     /// <summary>
     /// Xut ha n PDF vi ch k s (Admin only)
@@ -25,24 +20,8 @@ public class ExportController : BaseApiController
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportInvoicePdf(int orderId, bool includeDigitalSignature = true)
     {
-        try
-        {
-            var result = await _reportingService.ExportInvoicePdfAsync(orderId, includeDigitalSignature);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting invoice PDF for order {OrderId}", orderId);
-            return StatusCode(500, new { message = "Li khi xut ha n PDF" });
-        }
+        var result = await _reportingService.ExportInvoicePdfAsync(orderId, includeDigitalSignature);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     /// <summary>
@@ -52,24 +31,8 @@ public class ExportController : BaseApiController
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportInvoiceXml(int orderId)
     {
-        try
-        {
-            var result = await _reportingService.ExportInvoiceXmlAsync(orderId);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting invoice XML for order {OrderId}", orderId);
-            return StatusCode(500, new { message = "Li khi xut ha n XML" });
-        }
+        var result = await _reportingService.ExportInvoiceXmlAsync(orderId);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     /// <summary>
@@ -85,16 +48,8 @@ public class ExportController : BaseApiController
         DateTime? startDate = null,
         DateTime? endDate = null)
     {
-        try
-        {
-            var result = await _reportingService.ExportOrdersToExcelAsync(page, pageSize, search, status, startDate, endDate);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting orders to Excel");
-            return StatusCode(500, new { message = "Li khi xut danh sch n hng" });
-        }
+        var result = await _reportingService.ExportOrdersToExcelAsync(page, pageSize, search, status, startDate, endDate);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     /// <summary>
@@ -110,16 +65,8 @@ public class ExportController : BaseApiController
         int? brandId = null,
         bool? isActive = null)
     {
-        try
-        {
-            var result = await _reportingService.ExportProductsToExcelAsync(page, pageSize, search, categoryId, brandId, isActive);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting products to Excel");
-            return StatusCode(500, new { message = "Li khi xut danh sch sn phm" });
-        }
+        var result = await _reportingService.ExportProductsToExcelAsync(page, pageSize, search, categoryId, brandId, isActive);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     /// <summary>
@@ -131,20 +78,8 @@ public class ExportController : BaseApiController
         [FromQuery] DateTime startDate,
         [FromQuery] DateTime endDate)
     {
-        try
-        {
-            var result = await _reportingService.ExportRevenueReportToExcelAsync(startDate, endDate);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting revenue report to Excel");
-            return StatusCode(500, new { message = "Li khi xut bo co doanh thu" });
-        }
+        var result = await _reportingService.ExportRevenueReportToExcelAsync(startDate, endDate);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     /// <summary>
@@ -154,16 +89,8 @@ public class ExportController : BaseApiController
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ExportInventoryReportToExcel()
     {
-        try
-        {
-            var result = await _reportingService.ExportInventoryReportToExcelAsync();
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting inventory report to Excel");
-            return StatusCode(500, new { message = "Li khi xut bo co tn kho" });
-        }
+        var result = await _reportingService.ExportInventoryReportToExcelAsync();
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     /// <summary>
@@ -178,16 +105,8 @@ public class ExportController : BaseApiController
         bool? isActive = null,
         int? vipLevel = null)
     {
-        try
-        {
-            var result = await _reportingService.ExportUsersToExcelAsync(page, pageSize, search, isActive, vipLevel);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting users to Excel");
-            return StatusCode(500, new { message = "Li khi xut danh sch khch hng" });
-        }
+        var result = await _reportingService.ExportUsersToExcelAsync(page, pageSize, search, isActive, vipLevel);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     #region Customer Export Endpoints
@@ -199,30 +118,14 @@ public class ExportController : BaseApiController
     [Authorize]
     public async Task<IActionResult> ExportCustomerInvoicePdf(int orderId, bool includeDigitalSignature = false)
     {
-        try
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue)
         {
-            var userId = GetCurrentUserId();
-            if (!userId.HasValue)
-            {
-                return Unauthorized(new { message = "Vui lng ng nhp  xut ha n" });
-            }
+            return Unauthorized(new { message = "Vui lng ng nhp  xut ha n" });
+        }
 
-            var result = await _reportingService.ExportCustomerInvoicePdfAsync(orderId, userId.Value, includeDigitalSignature);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting customer invoice PDF for order {OrderId}", orderId);
-            return StatusCode(500, new { message = "Li khi xut ha n PDF" });
-        }
+        var result = await _reportingService.ExportCustomerInvoicePdfAsync(orderId, userId.Value, includeDigitalSignature);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     /// <summary>
@@ -232,30 +135,14 @@ public class ExportController : BaseApiController
     [Authorize] 
     public async Task<IActionResult> ExportCustomerInvoiceXml(int orderId)
     {
-        try
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue)
         {
-            var userId = GetCurrentUserId();
-            if (!userId.HasValue)
-            {
-                return Unauthorized(new { message = "Vui lng ng nhp  xut ha n" });
-            }
+            return Unauthorized(new { message = "Vui lng ng nhp  xut ha n" });
+        }
 
-            var result = await _reportingService.ExportCustomerInvoiceXmlAsync(orderId, userId.Value);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting customer invoice XML for order {OrderId}", orderId);
-            return StatusCode(500, new { message = "Li khi xut ha n XML" });
-        }
+        var result = await _reportingService.ExportCustomerInvoiceXmlAsync(orderId, userId.Value);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     /// <summary>
@@ -272,16 +159,8 @@ public class ExportController : BaseApiController
         DateTime? startDate = null,
         DateTime? endDate = null)
     {
-        try
-        {
-            var result = await _reportingService.ExportSecurityEventsToExcelAsync(page, pageSize, search, eventType, severity, startDate, endDate);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting security events to Excel");
-            return StatusCode(500, new { message = "Li khi xut danh sch s kin bo mt" });
-        }
+        var result = await _reportingService.ExportSecurityEventsToExcelAsync(page, pageSize, search, eventType, severity, startDate, endDate);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     /// <summary>
@@ -296,16 +175,8 @@ public class ExportController : BaseApiController
         string? type = null,
         bool? isActive = null)
     {
-        try
-        {
-            var result = await _reportingService.ExportIPBlockRulesToExcelAsync(page, pageSize, search, type, isActive);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting IP block rules to Excel");
-            return StatusCode(500, new { message = "Li khi xut danh sch IP Block Rules" });
-        }
+        var result = await _reportingService.ExportIPBlockRulesToExcelAsync(page, pageSize, search, type, isActive);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     /// <summary>
@@ -319,16 +190,8 @@ public class ExportController : BaseApiController
         string? search = null,
         bool? isActive = null)
     {
-        try
-        {
-            var result = await _reportingService.ExportRateLimitRulesToExcelAsync(page, pageSize, search, isActive);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting rate limit rules to Excel");
-            return StatusCode(500, new { message = "Li khi xut danh sch Rate Limit Rules" });
-        }
+        var result = await _reportingService.ExportRateLimitRulesToExcelAsync(page, pageSize, search, isActive);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     /// <summary>
@@ -340,16 +203,8 @@ public class ExportController : BaseApiController
         [FromQuery] DateTime? startDate = null,
         [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var result = await _reportingService.ExportSecurityReportToExcelAsync(startDate, endDate);
-            return File(result.FileContent, result.ContentType, result.FileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting security report to Excel");
-            return StatusCode(500, new { message = "Li khi xut bo co bo mt tng hp" });
-        }
+        var result = await _reportingService.ExportSecurityReportToExcelAsync(startDate, endDate);
+        return File(result.FileContent, result.ContentType, result.FileName);
     }
 
     #endregion

@@ -10,14 +10,9 @@ namespace EcommerceLaptop.API.Controllers;
 [ApiController]
 [Route("api/admin/[controller]")]
 [RequireAdmin]
-public class AdminTestController : ControllerBase
+public class AdminTestController(ILogger<AdminTestController> logger) : ControllerBase
 {
-    private readonly ILogger<AdminTestController> _logger;
-
-    public AdminTestController(ILogger<AdminTestController> logger)
-    {
-        _logger = logger;
-    }
+    private readonly ILogger<AdminTestController> _logger = logger;
 
     /// <summary>
     /// Test basic admin access (any admin can access)

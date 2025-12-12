@@ -18,32 +18,22 @@ namespace EcommerceLaptop.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController : BaseApiController
+public class ProductsController(
+    IProductService productService,
+    IImageHostingService imageHostingService,
+    IAuditLoggingService auditLoggingService,
+    ILogger<ProductsController> logger,
+    IMemoryCache cache,
+    IInventoryService inventoryService,
+    IMapper mapper)
+    : BaseApiController(logger)
 {
-    private readonly IProductService _productService;
-    private readonly IMemoryCache _cache;
-    private readonly IImageHostingService _imageHostingService;
-    private readonly IAuditLoggingService _auditLoggingService;
-    private readonly IInventoryService _inventoryService;
-    private readonly IMapper _mapper;
-
-    public ProductsController(
-        IProductService productService, 
-        IImageHostingService imageHostingService, 
-        IAuditLoggingService auditLoggingService, 
-        ILogger<ProductsController> logger, 
-        IMemoryCache cache, 
-        IInventoryService inventoryService,
-        IMapper mapper)
-        : base(logger)
-    {
-        _productService = productService;
-        _imageHostingService = imageHostingService;
-        _auditLoggingService = auditLoggingService;
-        _cache = cache;
-        _inventoryService = inventoryService;
-        _mapper = mapper;
-    }
+    private readonly IProductService _productService = productService;
+    private readonly IMemoryCache _cache = cache;
+    private readonly IImageHostingService _imageHostingService = imageHostingService;
+    private readonly IAuditLoggingService _auditLoggingService = auditLoggingService;
+    private readonly IInventoryService _inventoryService = inventoryService;
+    private readonly IMapper _mapper = mapper;
 
     /// <summary>
     /// Gets paginated list of products with filtering
@@ -69,38 +59,31 @@ public class ProductsController : BaseApiController
         [FromQuery] decimal? maxPrice = null,
         [FromQuery] string? sortBy = null)
     {
-        try
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+        // Generate cache key based on parameters to avoid duplicate queries
+        var cacheKey = $"products_{page}_{pageSize}_{search ?? ""}_{type ?? ""}_{brand ?? ""}_{category ?? ""}_{minPrice?.ToString("F2") ?? "0"}_{maxPrice?.ToString("F2") ?? "0"}_{sortBy ?? ""}";
+
+        IActionResult? resultAction;
+
+        if (!_cache.TryGetValue(cacheKey, out resultAction) || resultAction == null)
         {
-            if (page < 1) page = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 20;
+            var result = await _productService.GetProductsAsync(
+                page, pageSize, search, type, brand, category, minPrice, maxPrice, true, sortBy);
 
-            // Generate cache key based on parameters to avoid duplicate queries
-            var cacheKey = $"products_{page}_{pageSize}_{search ?? ""}_{type ?? ""}_{brand ?? ""}_{category ?? ""}_{minPrice?.ToString("F2") ?? "0"}_{maxPrice?.ToString("F2") ?? "0"}_{sortBy ?? ""}";
+            var productDtos = _mapper.Map<List<ProductDto>>(result.Items);
+            resultAction = PaginatedResponse(productDtos, result.TotalCount, page, pageSize);
 
-            IActionResult? resultAction;
+            // Cache for 5 minutes
+            var cacheOptions = new MemoryCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
 
-            if (!_cache.TryGetValue(cacheKey, out resultAction) || resultAction == null)
-            {
-                var result = await _productService.GetProductsAsync(
-                    page, pageSize, search, type, brand, category, minPrice, maxPrice, true, sortBy);
-
-                var productDtos = _mapper.Map<List<ProductDto>>(result.Items);
-                resultAction = PaginatedResponse(productDtos, result.TotalCount, page, pageSize);
-
-                // Cache for 5 minutes
-                var cacheOptions = new MemoryCacheEntryOptions()
-                    .SetSlidingExpiration(TimeSpan.FromMinutes(5))
-                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
-
-                _cache.Set(cacheKey, resultAction, cacheOptions);
-            }
-
-            return resultAction;
+            _cache.Set(cacheKey, resultAction, cacheOptions);
         }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetProducts));
-        }
+
+        return resultAction;
     }
 
     /// <summary>
@@ -117,19 +100,12 @@ public class ProductsController : BaseApiController
         [FromQuery] string? status = null,
         [FromQuery] string? productType = null)
     {
-        try
-        {
-            var result = await _productService.GetAdminProductsAsync(
-                page, pageSize, search, type, brand, status, productType);
+        var result = await _productService.GetAdminProductsAsync(
+            page, pageSize, search, type, brand, status, productType);
 
-            var productDtos = _mapper.Map<List<ProductDto>>(result.Items);
+        var productDtos = _mapper.Map<List<ProductDto>>(result.Items);
 
-            return PaginatedResponse(productDtos, result.TotalCount, page, pageSize);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetAdminProducts));
-        }
+        return PaginatedResponse(productDtos, result.TotalCount, page, pageSize);
     }
 
     /// <summary>
@@ -141,47 +117,50 @@ public class ProductsController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> GetProduct(int id)
     {
-        try
+        var product = await _productService.GetByIdAsync(id);
+        if (product is null)
+            // ErrorResponse usually returns IActionResult directly
+            throw new KeyNotFoundException("Product not found"); 
+            // Or keep return ErrorResponse("Product not found", 404); if I want to keep consistency.
+            // But GlobalExceptionHandler handles exceptions. 
+            // Let's stick to using standard "return NotFound" or throw Exception.
+            // Existing code used "ErrorResponse" which is likely a BaseApiController helper.
+            // I will keep ErrorResponse for logic errors, but unexpected errors go to middleware.
+            // Actually, "try-catch" removal means *unexpected* errors bubble up.
+            // Logic errors like "Not Found" can be handled by logic.
+        if (product is null)
+             return ErrorResponse("Product not found", 404);
+        if (!product.IsActive)
+             return ErrorResponse("Product not found", 404);
+
+        // Load variants if this is a base product
+        if (product.IsBaseProduct)
         {
-            var product = await _productService.GetByIdAsync(id);
-            if (product is null)
-                return ErrorResponse("Product not found", 404);
-            if (!product.IsActive)
-                return ErrorResponse("Product not found", 404);
-
-            // Load variants if this is a base product
-            if (product.IsBaseProduct)
-            {
-                var variants = await _productService.GetVariantsAsync(id);
-                product.Variants = variants.ToList();
-            }
-
-            // Log product view activity
-            var userId = GetCurrentUserId();
-            if (userId.HasValue)
-            {
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-                await _auditLoggingService.LogUserActivityAsync(
-                    userId.Value,
-                    "product_view",
-                    $"User viewed product: {product.Name} (ID: {id})",
-                    ipAddress ?? "Unknown",
-                    userAgent ?? "Unknown"
-                );
-            }
-
-            // TPT Optimization: Return detailed DTO based on the actual product type
-            // AutoMapper handles polymorphism automatically
-            var productDto = _mapper.Map<ProductDto>(product);
-
-            return SuccessResponse(productDto);
+            var variants = await _productService.GetVariantsAsync(id);
+            product.Variants = variants.ToList();
         }
-        catch (Exception ex)
+
+        // Log product view activity
+        var userId = GetCurrentUserId();
+        if (userId.HasValue)
         {
-            return HandleException(ex, nameof(GetProduct));
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+            await _auditLoggingService.LogUserActivityAsync(
+                userId.Value,
+                "product_view",
+                $"User viewed product: {product.Name} (ID: {id})",
+                ipAddress ?? "Unknown",
+                userAgent ?? "Unknown"
+            );
         }
+
+        // TPT Optimization: Return detailed DTO based on the actual product type
+        // AutoMapper handles polymorphism automatically
+        var productDto = _mapper.Map<ProductDto>(product);
+
+        return SuccessResponse(productDto);
     }
 
     /// <summary>
@@ -193,69 +172,62 @@ public class ProductsController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> GetProductBySlug(string slug)
     {
-        try
+        if (string.IsNullOrWhiteSpace(slug))
+            return ErrorResponse("Invalid slug", 400);
+
+        // Convert slug back to potential search terms
+        var searchTerms = slug.Replace("-", " ");
+
+        // First try exact search
+        var result = await _productService.GetProductsAsync(
+            page: 1,
+            pageSize: 1,
+            searchTerm: searchTerms,
+            isActive: true);
+
+        Product? product = null;
+
+        if (result.Items.Any())
         {
-            if (string.IsNullOrWhiteSpace(slug))
-                return ErrorResponse("Invalid slug", 400);
-
-            // Convert slug back to potential search terms
-            var searchTerms = slug.Replace("-", " ");
-
-            // First try exact search
-            var result = await _productService.GetProductsAsync(
-                page: 1,
-                pageSize: 1,
-                searchTerm: searchTerms,
-                isActive: true);
-
-            Product? product = null;
-
-            if (result.Items.Any())
+            product = result.Items.First();
+        }
+        else
+        {
+            // Try partial search with individual words
+            var words = searchTerms.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length > 1)
             {
-                product = result.Items.First();
-            }
-            else
-            {
-                // Try partial search with individual words
-                var words = searchTerms.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                if (words.Length > 1)
+                // Try searching with first few words
+                var partialSearch = string.Join(" ", words.Take(2));
+                result = await _productService.GetProductsAsync(
+                    page: 1,
+                    pageSize: 5,
+                    searchTerm: partialSearch,
+                    isActive: true);
+
+                if (result.Items.Any())
                 {
-                    // Try searching with first few words
-                    var partialSearch = string.Join(" ", words.Take(2));
-                    result = await _productService.GetProductsAsync(
-                        page: 1,
-                        pageSize: 5,
-                        searchTerm: partialSearch,
-                        isActive: true);
-
-                    if (result.Items.Any())
-                    {
-                        // Try to find the best match by comparing with the slug
-                        product = result.Items.FirstOrDefault(p =>
-                            GenerateSlugFromName(p.Name).Equals(slug, StringComparison.OrdinalIgnoreCase))
-                            ?? result.Items.First();
-                    }
+                    // Try to find the best match by comparing with the slug
+                    product = result.Items.FirstOrDefault(p =>
+                        GenerateSlugFromName(p.Name).Equals(slug, StringComparison.OrdinalIgnoreCase))
+                        ?? result.Items.First();
                 }
             }
-
-            if (product == null)
-                return ErrorResponse("Product not found", 404);
-
-            // Load variants if this is a base product
-            if (product.IsBaseProduct)
-            {
-                var variants = await _productService.GetVariantsAsync(product.Id);
-                product.Variants = variants.ToList();
-            }
-
-            var productDto = _mapper.Map<ProductDto>(product);
-
-            return SuccessResponse(productDto);
         }
-        catch (Exception ex)
+
+        if (product == null)
+            return ErrorResponse("Product not found", 404);
+
+        // Load variants if this is a base product
+        if (product.IsBaseProduct)
         {
-            return HandleException(ex, nameof(GetProductBySlug));
+            var variants = await _productService.GetVariantsAsync(product.Id);
+            product.Variants = variants.ToList();
         }
+
+        var productDto = _mapper.Map<ProductDto>(product);
+
+        return SuccessResponse(productDto);
     }
 
     /// <summary>
@@ -332,20 +304,13 @@ public class ProductsController : BaseApiController
         [FromQuery] int? ramCapacity = null,
         [FromQuery] string? storageType = null)
     {
-        try
-        {
-            var result = await _productService.GetLaptopsAsync(
-                page, pageSize, search, brand, minPrice, maxPrice,
-                cpuBrand, ramCapacity, storageType);
+        var result = await _productService.GetLaptopsAsync(
+            page, pageSize, search, brand, minPrice, maxPrice,
+            cpuBrand, ramCapacity, storageType);
 
-            var laptopDtos = _mapper.Map<List<LaptopDto>>(result.Items);
+        var laptopDtos = _mapper.Map<List<LaptopDto>>(result.Items);
 
-            return PaginatedResponse(laptopDtos, result.TotalCount, page, pageSize);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetLaptops));
-        }
+        return PaginatedResponse(laptopDtos, result.TotalCount, page, pageSize);
     }
 
     /// <summary>
@@ -366,19 +331,12 @@ public class ProductsController : BaseApiController
         [FromQuery] string? accessoryType = null,
         [FromQuery] string? compatibility = null)
     {
-        try
-        {
-            var result = await _productService.GetAccessoriesAsync(
-                page, pageSize, search, accessoryType, compatibility);
+        var result = await _productService.GetAccessoriesAsync(
+            page, pageSize, search, accessoryType, compatibility);
 
-            var accessoryDtos = _mapper.Map<List<AccessoryDto>>(result.Items);
+        var accessoryDtos = _mapper.Map<List<AccessoryDto>>(result.Items);
 
-            return PaginatedResponse(accessoryDtos, result.TotalCount, page, pageSize);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetAccessories));
-        }
+        return PaginatedResponse(accessoryDtos, result.TotalCount, page, pageSize);
     }
 
     /// <summary>
@@ -397,19 +355,12 @@ public class ProductsController : BaseApiController
         [FromQuery] string? search = null,
         [FromQuery] string? bundleType = null)
     {
-        try
-        {
-            var result = await _productService.GetBundlesAsync(
-                page, pageSize, search, bundleType);
+        var result = await _productService.GetBundlesAsync(
+            page, pageSize, search, bundleType);
 
-            var bundleDtos = _mapper.Map<List<BundleDto>>(result.Items);
+        var bundleDtos = _mapper.Map<List<BundleDto>>(result.Items);
 
-            return PaginatedResponse(bundleDtos, result.TotalCount, page, pageSize);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetBundles));
-        }
+        return PaginatedResponse(bundleDtos, result.TotalCount, page, pageSize);
     }
 
     /// <summary>
@@ -421,19 +372,12 @@ public class ProductsController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> GetFeaturedProducts([FromQuery] int count = 10)
     {
-        try
-        {
-            if (count < 1 || count > 50) count = 10;
+        if (count < 1 || count > 50) count = 10;
 
-            var products = await _productService.GetFeaturedProductsAsync(count);
-            var productDtos = _mapper.Map<List<ProductDto>>(products);
+        var products = await _productService.GetFeaturedProductsAsync(count);
+        var productDtos = _mapper.Map<List<ProductDto>>(products);
 
-            return SuccessResponse(productDtos);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetFeaturedProducts));
-        }
+        return SuccessResponse(productDtos);
     }
 
     /// <summary>
@@ -446,19 +390,12 @@ public class ProductsController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> GetRelatedProducts(int id, [FromQuery] int count = 5)
     {
-        try
-        {
-            if (count < 1 || count > 20) count = 5;
+        if (count < 1 || count > 20) count = 5;
 
-            var products = await _productService.GetRelatedProductsAsync(id, count);
-            var productDtos = _mapper.Map<List<ProductDto>>(products);
+        var products = await _productService.GetRelatedProductsAsync(id, count);
+        var productDtos = _mapper.Map<List<ProductDto>>(products);
 
-            return SuccessResponse(productDtos);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetRelatedProducts));
-        }
+        return SuccessResponse(productDtos);
     }
 
     /// <summary>
@@ -469,15 +406,8 @@ public class ProductsController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> GetBrands()
     {
-        try
-        {
-            var brands = await _productService.GetBrandsAsync();
-            return SuccessResponse(brands);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetBrands));
-        }
+        var brands = await _productService.GetBrandsAsync();
+        return SuccessResponse(brands);
     }
 
     /// <summary>
@@ -489,65 +419,55 @@ public class ProductsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:write")]
     public async Task<IActionResult> CreateProduct([FromBody] JsonElement request)
     {
+        // Deserialize to base request first to get ProductType
+        var baseRequest = JsonSerializer.Deserialize<CreateProductRequest>(request.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        if (baseRequest == null || string.IsNullOrEmpty(baseRequest.ProductType))
+        {
+            return ErrorResponse("ProductType is required.", 400);
+        }
+
+        // Check SKU uniqueness
+        if (!await _productService.IsSKUUniqueAsync(baseRequest.SKU))
+            return ErrorResponse("SKU already exists");
+
+        Product product;
         try
         {
-            // Deserialize to base request first to get ProductType
-            var baseRequest = JsonSerializer.Deserialize<CreateProductRequest>(request.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            if (baseRequest == null || string.IsNullOrEmpty(baseRequest.ProductType))
-            {
-                return ErrorResponse("ProductType is required.", 400);
-            }
-
-            var modelStateErrors = ValidateModelState();
-            if (modelStateErrors != null) return modelStateErrors;
-
-            // Check SKU uniqueness
-            if (!await _productService.IsSKUUniqueAsync(baseRequest.SKU))
-                return ErrorResponse("SKU already exists");
-
-            Product product;
-            try
-            {
-                product = MapToProduct(request, baseRequest.ProductType);
-            }
-            catch (ArgumentException ex)
-            {
-                return ErrorResponse(ex.Message, 400);
-            }
-            catch (JsonException ex)
-            {
-                return ErrorResponse($"Invalid JSON for ProductType '{baseRequest.ProductType}': {ex.Message}", 400);
-            }
-
-
-            var createdProduct = await _productService.CreateProductAsync(product);
-            var productDto = _mapper.Map<ProductDto>(createdProduct);
-
-            // Log admin product creation activity
-            var adminUserId = GetCurrentUserId();
-            if (adminUserId.HasValue)
-            {
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-                await _auditLoggingService.LogAdminActivityAsync(
-                    adminUserId.Value,
-                    "product_created",
-                    $"Admin created product: {createdProduct.Name} (ID: {createdProduct.Id}, SKU: {createdProduct.SKU})",
-                    ipAddress ?? "Unknown",
-                    userAgent ?? "Unknown",
-                    targetResource: $"Product:{createdProduct.Id}"
-                );
-            }
-
-            return CreatedAtAction(nameof(GetProduct), new { id = createdProduct.Id },
-                SuccessResponse(productDto, "Product created successfully"));
+            product = MapToProduct(request, baseRequest.ProductType);
         }
-        catch (Exception ex)
+        catch (ArgumentException ex)
         {
-            return HandleException(ex, nameof(CreateProduct));
+            return ErrorResponse(ex.Message, 400);
         }
+        catch (JsonException ex)
+        {
+            return ErrorResponse($"Invalid JSON for ProductType '{baseRequest.ProductType}': {ex.Message}", 400);
+        }
+
+
+        var createdProduct = await _productService.CreateProductAsync(product);
+        var productDto = _mapper.Map<ProductDto>(createdProduct);
+
+        // Log admin product creation activity
+        var adminUserId = GetCurrentUserId();
+        if (adminUserId.HasValue)
+        {
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+            await _auditLoggingService.LogAdminActivityAsync(
+                adminUserId.Value,
+                "product_created",
+                $"Admin created product: {createdProduct.Name} (ID: {createdProduct.Id}, SKU: {createdProduct.SKU})",
+                ipAddress ?? "Unknown",
+                userAgent ?? "Unknown",
+                targetResource: $"Product:{createdProduct.Id}"
+            );
+        }
+
+        return CreatedAtAction(nameof(GetProduct), new { id = createdProduct.Id },
+            SuccessResponse(productDto, "Product created successfully"));
     }
 
     /// <summary>
@@ -560,83 +480,73 @@ public class ProductsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:write")]
     public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonElement request)
     {
-        try
+        var existingProduct = await _productService.GetByIdWithDetailsAsync(id);
+        if (existingProduct == null)
+            return ErrorResponse("Product not found", 404);
+
+        // Apply updates using the new flexible mapping
+        ApplyProductUpdates(existingProduct, request);
+
+        var updatedProduct = await _productService.UpdateProductAsync(existingProduct);
+
+        // Align base product inventory update with variant behavior when StockQuantity is provided
+        if (request.ValueKind == JsonValueKind.Object && request.TryGetProperty("StockQuantity", out var stockElement))
         {
-            var modelStateErrors = ValidateModelState();
-            if (modelStateErrors != null) return modelStateErrors;
-
-            var existingProduct = await _productService.GetByIdWithDetailsAsync(id);
-            if (existingProduct == null)
-                return ErrorResponse("Product not found", 404);
-
-            // Apply updates using the new flexible mapping
-            ApplyProductUpdates(existingProduct, request);
-
-            var updatedProduct = await _productService.UpdateProductAsync(existingProduct);
-
-            // Align base product inventory update with variant behavior when StockQuantity is provided
-            if (request.ValueKind == JsonValueKind.Object && request.TryGetProperty("StockQuantity", out var stockElement))
+            if (stockElement.TryGetInt32(out var stockQuantity))
             {
-                if (stockElement.TryGetInt32(out var stockQuantity))
+                var inventory = await _inventoryService.GetInventoryByProductIdAsync(id);
+                if (inventory == null)
                 {
-                    var inventory = await _inventoryService.GetInventoryByProductIdAsync(id);
-                    if (inventory == null)
+                    var createRequest = new CoreInventory.CreateInventoryRequest
                     {
-                        var createRequest = new CoreInventory.CreateInventoryRequest
+                        ProductId = id,
+                        QuantityInStock = stockQuantity,
+                        ReorderLevel = 10,
+                        MaxStockLevel = 1000, 
+                        WarehouseLocation = "Main Warehouse",
+                        UnitCost = existingProduct.Price * 0.8m // Estimated
+                    };
+                    await _inventoryService.CreateInventoryAsync(createRequest);
+                }
+                else
+                {
+                    var quantityDifference = stockQuantity - inventory.QuantityInStock;
+                    if (quantityDifference != 0)
+                    {
+                        var adjustmentRequest = new CoreInventory.StockAdjustmentRequest
                         {
                             ProductId = id,
-                            QuantityInStock = stockQuantity,
-                            ReorderLevel = 10,
-                            MaxStockLevel = 1000, 
-                            WarehouseLocation = "Main Warehouse",
-                            UnitCost = existingProduct.Price * 0.8m // Estimated
+                            Quantity = quantityDifference,
+                            Reference = "PRODUCT_UPDATE",
+                            Notes = $"Base product inventory update: {inventory.QuantityInStock} -> {stockQuantity}",
+                            WarehouseLocation = inventory.WarehouseLocation
                         };
-                        await _inventoryService.CreateInventoryAsync(createRequest);
-                    }
-                    else
-                    {
-                        var quantityDifference = stockQuantity - inventory.QuantityInStock;
-                        if (quantityDifference != 0)
-                        {
-                            var adjustmentRequest = new CoreInventory.StockAdjustmentRequest
-                            {
-                                ProductId = id,
-                                Quantity = quantityDifference,
-                                Reference = "PRODUCT_UPDATE",
-                                Notes = $"Base product inventory update: {inventory.QuantityInStock} -> {stockQuantity}",
-                                WarehouseLocation = inventory.WarehouseLocation
-                            };
-                            await _inventoryService.AdjustStockAsync(adjustmentRequest);
-                        }
+                        await _inventoryService.AdjustStockAsync(adjustmentRequest);
                     }
                 }
             }
-
-            var productDto = _mapper.Map<ProductDto>(updatedProduct);
-
-            // Log admin product update activity
-            var adminUserId = GetCurrentUserId();
-            if (adminUserId.HasValue)
-            {
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-                await _auditLoggingService.LogAdminActivityAsync(
-                    adminUserId.Value,
-                    "product_updated",
-                    $"Admin updated product: {updatedProduct.Name} (ID: {id})",
-                    ipAddress ?? "Unknown",
-                    userAgent ?? "Unknown",
-                    targetResource: $"Product:{id}"
-                );
-            }
-
-            return SuccessResponse(productDto, "Product updated successfully");
         }
-        catch (Exception ex)
+
+        var productDto = _mapper.Map<ProductDto>(updatedProduct);
+
+        // Log admin product update activity
+        var adminUserId = GetCurrentUserId();
+        if (adminUserId.HasValue)
         {
-            return HandleException(ex, nameof(UpdateProduct));
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+            await _auditLoggingService.LogAdminActivityAsync(
+                adminUserId.Value,
+                "product_updated",
+                $"Admin updated product: {updatedProduct.Name} (ID: {id})",
+                ipAddress ?? "Unknown",
+                userAgent ?? "Unknown",
+                targetResource: $"Product:{id}"
+            );
         }
+
+        return SuccessResponse(productDto, "Product updated successfully");
     }
 
     /// <summary>
@@ -648,39 +558,32 @@ public class ProductsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:delete")]
     public async Task<IActionResult> DeleteProduct(int id)
     {
-        try
+        // Get product info before deletion for logging
+        var existingProduct = await _productService.GetByIdAsync(id);
+        var productName = existingProduct?.Name ?? "Unknown";
+
+        var success = await _productService.DeleteProductAsync(id);
+        if (!success)
+            return ErrorResponse("Product not found", 404);
+
+        // Log admin product deletion activity
+        var adminUserId = GetCurrentUserId();
+        if (adminUserId.HasValue)
         {
-            // Get product info before deletion for logging
-            var existingProduct = await _productService.GetByIdAsync(id);
-            var productName = existingProduct?.Name ?? "Unknown";
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
-            var success = await _productService.DeleteProductAsync(id);
-            if (!success)
-                return ErrorResponse("Product not found", 404);
-
-            // Log admin product deletion activity
-            var adminUserId = GetCurrentUserId();
-            if (adminUserId.HasValue)
-            {
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-                await _auditLoggingService.LogAdminActivityAsync(
-                    adminUserId.Value,
-                    "product_deleted",
-                    $"Admin deleted product: {productName} (ID: {id})",
-                    ipAddress ?? "Unknown",
-                    userAgent ?? "Unknown",
-                    targetResource: $"Product:{id}"
-                );
-            }
-
-            return SuccessResponse(new { deleted = true }, "Product deleted successfully");
+            await _auditLoggingService.LogAdminActivityAsync(
+                adminUserId.Value,
+                "product_deleted",
+                $"Admin deleted product: {productName} (ID: {id})",
+                ipAddress ?? "Unknown",
+                userAgent ?? "Unknown",
+                targetResource: $"Product:{id}"
+            );
         }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(DeleteProduct));
-        }
+
+        return SuccessResponse(new { deleted = true }, "Product deleted successfully");
     }
 
     
@@ -811,34 +714,26 @@ public class ProductsController : BaseApiController
         [FromQuery] bool? touchscreen = null,
         [FromQuery] string? targetAudience = null)
     {
-        try
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+        var result = await _productService.GetLaptopsWithAdvancedFilteringAsync(
+            page, pageSize, search, brand, minPrice, maxPrice,
+            cpuBrand, cpuGeneration, minCpuCores, minRamGB, maxRamGB,
+            ramType, storageType, minStorageGB, gpuType, gpuBrand,
+            minDisplaySize, maxDisplaySize, displayResolution,
+            minRefreshRate, touchscreen, targetAudience);
+
+        var laptopDtos = _mapper.Map<List<LaptopDto>>(result.Items);
+
+        return SuccessResponse(new
         {
-            if (page < 1) page = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 20;
-
-            var result = await _productService.GetLaptopsWithAdvancedFilteringAsync(
-                page, pageSize, search, brand, minPrice, maxPrice,
-                cpuBrand, cpuGeneration, minCpuCores, minRamGB, maxRamGB,
-                ramType, storageType, minStorageGB, gpuType, gpuBrand,
-                minDisplaySize, maxDisplaySize, displayResolution,
-                minRefreshRate, touchscreen, targetAudience);
-
-            var laptopDtos = _mapper.Map<List<LaptopDto>>(result.Items);
-
-            return SuccessResponse(new
-            {
-                Items = laptopDtos,
-                TotalCount = result.TotalCount,
-                Page = result.Page,
-                PageSize = result.PageSize,
-                TotalPages = (int)Math.Ceiling((double)result.TotalCount / result.PageSize)
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting advanced laptop filters");
-            return ErrorResponse("Failed to retrieve laptops");
-        }
+            Items = laptopDtos,
+            TotalCount = result.TotalCount,
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalPages = (int)Math.Ceiling((double)result.TotalCount / result.PageSize)
+        });
     }
 
     /// <summary>
@@ -854,30 +749,22 @@ public class ProductsController : BaseApiController
         [FromQuery] string? compatibility = null,
         [FromQuery] int? productId = null)
     {
-        try
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+        var result = await _productService.GetAccessoriesWithCompatibilityAsync(
+            page, pageSize, search, accessoryType, compatibility, productId);
+
+        var accessoryDtos = _mapper.Map<List<AccessoryDto>>(result.Items);
+
+        return SuccessResponse(new
         {
-            if (page < 1) page = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 20;
-
-            var result = await _productService.GetAccessoriesWithCompatibilityAsync(
-                page, pageSize, search, accessoryType, compatibility, productId);
-
-            var accessoryDtos = _mapper.Map<List<AccessoryDto>>(result.Items);
-
-            return SuccessResponse(new
-            {
-                Items = accessoryDtos,
-                TotalCount = result.TotalCount,
-                Page = result.Page,
-                PageSize = result.PageSize,
-                TotalPages = (int)Math.Ceiling((double)result.TotalCount / result.PageSize)
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting compatible accessories");
-            return ErrorResponse("Failed to retrieve accessories");
-        }
+            Items = accessoryDtos,
+            TotalCount = result.TotalCount,
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalPages = (int)Math.Ceiling((double)result.TotalCount / result.PageSize)
+        });
     }
 
     /// <summary>
@@ -887,30 +774,15 @@ public class ProductsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:write")]
     public async Task<IActionResult> CreateBundle([FromBody] CreateBundleRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        var bundle = await _productService.CreateBundleAsync(
+            request.Name,
+            request.Description,
+            request.ProductIds,
+            request.DiscountPercentage,
+            request.ValidFrom,
+            request.ValidTo);
 
-            var bundle = await _productService.CreateBundleAsync(
-                request.Name,
-                request.Description,
-                request.ProductIds,
-                request.DiscountPercentage,
-                request.ValidFrom,
-                request.ValidTo);
-
-            return SuccessResponse(_mapper.Map<BundleDto>(bundle), "Bundle created successfully");
-        }
-        catch (ArgumentException ex)
-        {
-            return ErrorResponse(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating bundle");
-            return ErrorResponse("Failed to create bundle");
-        }
+        return SuccessResponse(_mapper.Map<BundleDto>(bundle), "Bundle created successfully");
     }
 
     /// <summary>
@@ -920,20 +792,9 @@ public class ProductsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:read")]
     public async Task<IActionResult> CalculateBundlePrice([FromBody] CalculateBundlePriceRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        var price = await _productService.CalculateBundlePriceAsync(request.ProductIds, request.DiscountPercentage);
 
-            var price = await _productService.CalculateBundlePriceAsync(request.ProductIds, request.DiscountPercentage);
-
-            return SuccessResponse(new { CalculatedPrice = price });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating bundle price");
-            return ErrorResponse("Failed to calculate bundle price");
-        }
+        return SuccessResponse(new { CalculatedPrice = price });
     }
 
     /// <summary>
@@ -943,20 +804,12 @@ public class ProductsController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> GetProductSpecifications(int id)
     {
-        try
-        {
-            var specifications = await _productService.GetProductSpecificationsAsync(id);
+        var specifications = await _productService.GetProductSpecificationsAsync(id);
 
-            if (!specifications.Any())
-                return NotFound("Product not found");
+        if (!specifications.Any())
+            return NotFound("Product not found");
 
-            return SuccessResponse(specifications);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting product specifications for ID: {ProductId}", id);
-            return ErrorResponse("Failed to retrieve product specifications");
-        }
+        return SuccessResponse(specifications);
     }
 
     /// <summary>
@@ -966,17 +819,9 @@ public class ProductsController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> ValidateCompatibility(int productId, int accessoryId)
     {
-        try
-        {
-            var isCompatible = await _productService.ValidateProductCompatibilityAsync(productId, accessoryId);
+        var isCompatible = await _productService.ValidateProductCompatibilityAsync(productId, accessoryId);
 
-            return SuccessResponse(new { IsCompatible = isCompatible });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error validating compatibility between {ProductId} and {AccessoryId}", productId, accessoryId);
-            return ErrorResponse("Failed to validate compatibility");
-        }
+        return SuccessResponse(new { IsCompatible = isCompatible });
     }
 
     /// <summary>
@@ -986,22 +831,14 @@ public class ProductsController : BaseApiController
     [Authorize]
     public async Task<IActionResult> GetRecommendations([FromQuery] int count = 5)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
+        var userId = GetCurrentUserId();
+        if (userId == null)
+            return Unauthorized();
 
-            var recommendations = await _productService.GetRecommendedProductsAsync(userId.Value, count);
-            var recommendationDtos = _mapper.Map<IEnumerable<ProductDto>>(recommendations);
+        var recommendations = await _productService.GetRecommendedProductsAsync(userId.Value, count);
+        var recommendationDtos = _mapper.Map<IEnumerable<ProductDto>>(recommendations);
 
-            return SuccessResponse(recommendationDtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting recommendations");
-            return ErrorResponse("Failed to retrieve recommendations");
-        }
+        return SuccessResponse(recommendationDtos);
     }
 
     /// <summary>
@@ -1011,23 +848,12 @@ public class ProductsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> BulkUpdatePricing([FromBody] BulkPricingUpdateRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        var success = await _productService.BulkUpdatePricingAsync(request.ProductIds, request.PriceAdjustmentPercentage);
 
-            var success = await _productService.BulkUpdatePricingAsync(request.ProductIds, request.PriceAdjustmentPercentage);
-
-            if (success)
-                return SuccessResponse<object?>(null, "Pricing updated successfully");
-            else
-                return ErrorResponse("Failed to update pricing");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating bulk pricing");
+        if (success)
+            return SuccessResponse<object?>(null, "Pricing updated successfully");
+        else
             return ErrorResponse("Failed to update pricing");
-        }
     }
 
     #endregion
@@ -1046,119 +872,111 @@ public class ProductsController : BaseApiController
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadVariantImages(int id, int variantId, IFormFileCollection files)
     {
-        try
+        // Debug logging
+        logger.LogInformation("UploadVariantImages called with {FileCount} files for variant {VariantId} of product {ProductId}",
+            files?.Count ?? 0, variantId, id);
+
+        if (files != null)
         {
-            // Debug logging
-            _logger.LogInformation("UploadVariantImages called with {FileCount} files for variant {VariantId} of product {ProductId}",
-                files?.Count ?? 0, variantId, id);
-
-            if (files != null)
-            {
-                for (int i = 0; i < files.Count; i++)
-                {
-                    var file = files[i];
-                    _logger.LogInformation("File {Index}: {FileName}, Size: {Size} bytes",
-                        i + 1, file.FileName, file.Length);
-                }
-            }
-
-            if (files == null || files.Count == 0)
-                return ErrorResponse("No files provided", 400);
-
-            // Verify variant exists and belongs to the base product
-            var variant = await _productService.GetByIdAsync(variantId);
-            if (variant == null || variant.ParentProductId != id)
-                return ErrorResponse("Variant not found", 404);
-
-            var uploadResults = new List<ImageUploadResult>();
-            var productImages = new List<ProductImage>();
-
-            _logger.LogInformation("Starting upload of {FileCount} files for variant {VariantId}",
-                files.Count, variantId);
-
             for (int i = 0; i < files.Count; i++)
             {
                 var file = files[i];
-                _logger.LogInformation("Uploading file {Index}/{Total}: {FileName} ({Size} bytes)",
-                    i + 1, files.Count, file.FileName, file.Length);
+                logger.LogInformation("File {Index}: {FileName}, Size: {Size} bytes",
+                    i + 1, file.FileName, file.Length);
+            }
+        }
 
-                // Validate file
-                if (!_imageHostingService.IsValidImage(file.FileName, file.ContentType, file.Length))
-                {
-                    return ErrorResponse($"Invalid image file: {file.FileName}", 400);
-                }
+        if (files == null || files.Count == 0)
+            return ErrorResponse("No files provided", 400);
 
-                try
-                {
-                    // Upload to ImgBB
-                    using var stream = file.OpenReadStream();
-                    var uploadResult = await _imageHostingService.UploadImageAsync(stream, file.FileName, ImageCategory.Products);
-                    uploadResults.Add(uploadResult);
+        // Verify variant exists and belongs to the base product
+        var variant = await _productService.GetByIdAsync(variantId);
+        if (variant == null || variant.ParentProductId != id)
+            return ErrorResponse("Variant not found", 404);
 
-                    _logger.LogInformation("Successfully uploaded file {Index}/{Total}: {FileName}",
-                        i + 1, files.Count, file.FileName);
+        var uploadResults = new List<ImageUploadResult>();
+        var productImages = new List<ProductImage>();
 
-                    // Prepare ProductImage entity
-                    productImages.Add(new ProductImage
-                    {
-                        ProductId = variantId,
-                        ImageUrl = uploadResult.Url,
-                        AltText = $"{variant.Name} - Image",
-                        DisplayOrder = productImages.Count + 1,
-                        ImageId = uploadResult.ImageId,
-                        DeleteUrl = uploadResult.DeleteUrl
-                    });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to upload image {FileName} for variant {VariantId}", file.FileName, variantId);
+        logger.LogInformation("Starting upload of {FileCount} files for variant {VariantId}",
+            files.Count, variantId);
 
-                    // Cleanup already uploaded images on error
-                    foreach (var uploadedResult in uploadResults)
-                    {
-                        try
-                        {
-                            await _imageHostingService.DeleteImageAsync(uploadedResult.ImageId);
-                        }
-                        catch (Exception cleanupEx)
-                        {
-                            _logger.LogError(cleanupEx, "Failed to cleanup uploaded image {ImageId}", uploadedResult.ImageId);
-                        }
-                    }
+        for (int i = 0; i < files.Count; i++)
+        {
+            var file = files[i];
+            logger.LogInformation("Uploading file {Index}/{Total}: {FileName} ({Size} bytes)",
+                i + 1, files.Count, file.FileName, file.Length);
 
-                    return ErrorResponse($"Failed to upload image: {file.FileName}", 500);
-                }
+            // Validate file
+            if (!_imageHostingService.IsValidImage(file.FileName, file.ContentType, file.Length))
+            {
+                return ErrorResponse($"Invalid image file: {file.FileName}", 400);
             }
 
-            // Save all images to database
-            // Save all images to database
-            await _productService.UpdateProductImagesAsync(variantId, productImages);
-
-            _logger.LogInformation("Successfully uploaded and saved {ImageCount} images for variant {VariantId}",
-                productImages.Count, variantId);
-
-            return Ok(new
+            try
             {
-                success = true,
-                message = $"Successfully uploaded {productImages.Count} images",
-                data = new
+                // Upload to ImgBB
+                using var stream = file.OpenReadStream();
+                var uploadResult = await _imageHostingService.UploadImageAsync(stream, file.FileName, ImageCategory.Products);
+                uploadResults.Add(uploadResult);
+
+                logger.LogInformation("Successfully uploaded file {Index}/{Total}: {FileName}",
+                    i + 1, files.Count, file.FileName);
+
+                // Prepare ProductImage entity
+                productImages.Add(new ProductImage
                 {
-                    variantId = variantId,
-                    uploadedImages = uploadResults.Select((r, idx) => new
+                    ProductId = variantId,
+                    ImageUrl = uploadResult.Url,
+                    AltText = $"{variant.Name} - Image",
+                    DisplayOrder = productImages.Count + 1,
+                    ImageId = uploadResult.ImageId,
+                    DeleteUrl = uploadResult.DeleteUrl
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to upload image {FileName} for variant {VariantId}", file.FileName, variantId);
+
+                // Cleanup already uploaded images on error
+                foreach (var uploadedResult in uploadResults)
+                {
+                    try
                     {
-                        imageId = r.ImageId,
-                        imageUrl = r.Url,
-                        displayOrder = idx + 1,
-                        message = "Upload successful"
-                    }).ToList()
+                        await _imageHostingService.DeleteImageAsync(uploadedResult.ImageId);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        logger.LogError(cleanupEx, "Failed to cleanup uploaded image {ImageId}", uploadedResult.ImageId);
+                    }
                 }
-            });
+
+                return ErrorResponse($"Failed to upload image: {file.FileName}", 500);
+            }
         }
-        catch (Exception ex)
+
+        // Save all images to database
+        // Save all images to database
+        await _productService.UpdateProductImagesAsync(variantId, productImages);
+
+        logger.LogInformation("Successfully uploaded and saved {ImageCount} images for variant {VariantId}",
+            productImages.Count, variantId);
+
+        return Ok(new
         {
-            _logger.LogError(ex, "Error in UploadVariantImages for variant {VariantId}", variantId);
-            return HandleException(ex, nameof(UploadVariantImages));
-        }
+            success = true,
+            message = $"Successfully uploaded {productImages.Count} images",
+            data = new
+            {
+                variantId = variantId,
+                uploadedImages = uploadResults.Select((r, idx) => new
+                {
+                    imageId = r.ImageId,
+                    imageUrl = r.Url,
+                    displayOrder = idx + 1,
+                    message = "Upload successful"
+                }).ToList()
+            }
+        });
     }
     #endregion
 }

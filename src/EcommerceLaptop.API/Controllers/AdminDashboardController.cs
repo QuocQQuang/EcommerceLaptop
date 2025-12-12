@@ -14,18 +14,11 @@ namespace EcommerceLaptop.API.Controllers;
 [Route("api/admin/dashboard")]
 [Route("admin/dashboard")]
 [RequireAdmin]
-public class AdminDashboardController : BaseApiController
+public class AdminDashboardController(
+    IAdminDashboardService dashboardService,
+    ILogger<AdminDashboardController> logger) : BaseApiController(logger)
 {
-    private readonly ILogger<AdminDashboardController> _logger;
-    private readonly IAdminDashboardService _dashboardService;
-
-    public AdminDashboardController(
-        IAdminDashboardService dashboardService,
-        ILogger<AdminDashboardController> logger) : base(logger)
-    {
-        _dashboardService = dashboardService;
-        _logger = logger;
-    }
+    private readonly IAdminDashboardService _dashboardService = dashboardService;
 
     /// <summary>
     /// Get combined dashboard overview (KPIs, sales trends, recent orders)
@@ -39,40 +32,28 @@ public class AdminDashboardController : BaseApiController
         [FromQuery] string? dateFrom = null,
         [FromQuery] string? dateTo = null)
     {
-        try
+        var fromDate = string.IsNullOrEmpty(dateFrom) ? DateTime.Today.AddDays(-30) : DateTime.Parse(dateFrom);
+        var toDate = string.IsNullOrEmpty(dateTo) ? DateTime.Today.AddDays(1) : DateTime.Parse(dateTo);
+
+        var kpisTask = _dashboardService.GetDashboardKpisAsync(fromDate, toDate);
+        var salesTrendTask = _dashboardService.GetSalesTrendAsync(30);
+        var recentOrdersTask = _dashboardService.GetRecentOrdersAsync(1, 10);
+
+        await Task.WhenAll(kpisTask, salesTrendTask, recentOrdersTask);
+
+        var overview = new
         {
-            var fromDate = string.IsNullOrEmpty(dateFrom) ? DateTime.Today.AddDays(-30) : DateTime.Parse(dateFrom);
-            var toDate = string.IsNullOrEmpty(dateTo) ? DateTime.Today.AddDays(1) : DateTime.Parse(dateTo);
+            kpis = kpisTask.Result,
+            salesTrends = salesTrendTask.Result,
+            recentOrders = recentOrdersTask.Result.Items
+        };
 
-            var kpisTask = _dashboardService.GetDashboardKpisAsync(fromDate, toDate);
-            var salesTrendTask = _dashboardService.GetSalesTrendAsync(30);
-            var recentOrdersTask = _dashboardService.GetRecentOrdersAsync(1, 10);
-
-            await Task.WhenAll(kpisTask, salesTrendTask, recentOrdersTask);
-
-            var overview = new
-            {
-                kpis = kpisTask.Result,
-                salesTrends = salesTrendTask.Result,
-                recentOrders = recentOrdersTask.Result.Items
-            };
-
-            return Ok(new
-            {
-                success = true,
-                data = overview,
-                message = "Dashboard overview retrieved successfully"
-            });
-        }
-        catch (FormatException)
+        return Ok(new
         {
-            return BadRequest(new { message = "Invalid date format. Use ISO format (YYYY-MM-DD)" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving dashboard overview");
-            return StatusCode(500, new { message = "Error retrieving dashboard overview" });
-        }
+            success = true,
+            data = overview,
+            message = "Dashboard overview retrieved successfully"
+        });
     }
 
     /// <summary>
@@ -87,29 +68,17 @@ public class AdminDashboardController : BaseApiController
         [FromQuery] string? dateFrom = null,
         [FromQuery] string? dateTo = null)
     {
-        try
-        {
-            var fromDate = string.IsNullOrEmpty(dateFrom) ? DateTime.Today : DateTime.Parse(dateFrom);
-            var toDate = string.IsNullOrEmpty(dateTo) ? DateTime.Today.AddDays(1) : DateTime.Parse(dateTo);
+        var fromDate = string.IsNullOrEmpty(dateFrom) ? DateTime.Today : DateTime.Parse(dateFrom);
+        var toDate = string.IsNullOrEmpty(dateTo) ? DateTime.Today.AddDays(1) : DateTime.Parse(dateTo);
 
-            var kpis = await _dashboardService.GetDashboardKpisAsync(fromDate, toDate);
+        var kpis = await _dashboardService.GetDashboardKpisAsync(fromDate, toDate);
 
-            return Ok(new
-            {
-                success = true,
-                data = kpis,
-                message = "Dashboard KPIs retrieved successfully"
-            });
-        }
-        catch (FormatException)
+        return Ok(new
         {
-            return BadRequest(new { message = "Invalid date format. Use ISO format (YYYY-MM-DD)" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving dashboard KPIs");
-            return StatusCode(500, new { message = "Error retrieving dashboard data" });
-        }
+            success = true,
+            data = kpis,
+            message = "Dashboard KPIs retrieved successfully"
+        });
     }
 
     /// <summary>
@@ -121,27 +90,19 @@ public class AdminDashboardController : BaseApiController
     [RequireAdminPermission(AdminPermissions.DashboardRead)]
     public async Task<IActionResult> GetSalesTrend([FromQuery] int days = 7)
     {
-        try
+        if (days <= 0 || days > 365)
         {
-            if (days <= 0 || days > 365)
-            {
-                return BadRequest(new { message = "Days must be between 1 and 365" });
-            }
-
-            var salesTrend = await _dashboardService.GetSalesTrendAsync(days);
-
-            return Ok(new
-            {
-                success = true,
-                data = salesTrend,
-                message = "Sales trend data retrieved successfully"
-            });
+            return BadRequest(new { message = "Days must be between 1 and 365" });
         }
-        catch (Exception ex)
+
+        var salesTrend = await _dashboardService.GetSalesTrendAsync(days);
+
+        return Ok(new
         {
-            _logger.LogError(ex, "Error retrieving sales trend data for {Days} days", days);
-            return StatusCode(500, new { message = "Error retrieving sales trend data" });
-        }
+            success = true,
+            data = salesTrend,
+            message = "Sales trend data retrieved successfully"
+        });
     }
 
     /// <summary>
@@ -158,34 +119,26 @@ public class AdminDashboardController : BaseApiController
         [FromQuery] int limit = 10,
         [FromQuery] string? status = null)
     {
-        try
+        if (page <= 0) page = 1;
+        if (limit <= 0 || limit > 100) limit = 10;
+
+        var recentOrders = await _dashboardService.GetRecentOrdersAsync(page, limit, status);
+
+        return Ok(new
         {
-            if (page <= 0) page = 1;
-            if (limit <= 0 || limit > 100) limit = 10;
-
-            var recentOrders = await _dashboardService.GetRecentOrdersAsync(page, limit, status);
-
-            return Ok(new
+            success = true,
+            data = recentOrders.Items,
+            pagination = new
             {
-                success = true,
-                data = recentOrders.Items,
-                pagination = new
-                {
-                    page,
-                    limit,
-                    totalItems = recentOrders.TotalItems,
-                    totalPages = recentOrders.TotalPages,
-                    hasNext = recentOrders.HasNext,
-                    hasPrevious = recentOrders.HasPrevious
-                },
-                message = "Recent orders retrieved successfully"
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving recent orders for page {Page}, limit {Limit}", page, limit);
-            return StatusCode(500, new { message = "Error retrieving recent orders" });
-        }
+                page,
+                limit,
+                totalItems = recentOrders.TotalItems,
+                totalPages = recentOrders.TotalPages,
+                hasNext = recentOrders.HasNext,
+                hasPrevious = recentOrders.HasPrevious
+            },
+            message = "Recent orders retrieved successfully"
+        });
     }
 
     /// <summary>
@@ -197,24 +150,16 @@ public class AdminDashboardController : BaseApiController
     [RequireAdminPermission(AdminPermissions.ProductsRead)]
     public async Task<IActionResult> GetLowStockProducts([FromQuery] int threshold = 10)
     {
-        try
-        {
-            if (threshold < 0) threshold = 10;
+        if (threshold < 0) threshold = 10;
 
-            var lowStockProducts = await _dashboardService.GetLowStockProductsAsync(threshold);
+        var lowStockProducts = await _dashboardService.GetLowStockProductsAsync(threshold);
 
-            return Ok(new
-            {
-                success = true,
-                data = lowStockProducts,
-                message = "Low stock products retrieved successfully"
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error retrieving low stock products with threshold {Threshold}", threshold);
-            return StatusCode(500, new { message = "Error retrieving low stock products" });
-        }
+            success = true,
+            data = lowStockProducts,
+            message = "Low stock products retrieved successfully"
+        });
     }
 
     /// <summary>
@@ -231,32 +176,20 @@ public class AdminDashboardController : BaseApiController
         [FromQuery] string? dateFrom = null,
         [FromQuery] string? dateTo = null)
     {
-        try
+        if (format != "csv" && format != "pdf")
         {
-            if (format != "csv" && format != "pdf")
-            {
-                return BadRequest(new { message = "Format must be 'csv' or 'pdf'" });
-            }
-
-            var fromDate = string.IsNullOrEmpty(dateFrom) ? DateTime.Today.AddDays(-30) : DateTime.Parse(dateFrom);
-            var toDate = string.IsNullOrEmpty(dateTo) ? DateTime.Today : DateTime.Parse(dateTo);
-
-            var reportData = await _dashboardService.ExportDashboardReportAsync(fromDate, toDate);
-
-            var contentType = format == "pdf" ? "application/pdf" : "text/csv";
-            var fileName = $"dashboard-report-{DateTime.Now:yyyy-MM-dd}.{format}";
-
-            return File(reportData, contentType, fileName);
+            return BadRequest(new { message = "Format must be 'csv' or 'pdf'" });
         }
-        catch (FormatException)
-        {
-            return BadRequest(new { message = "Invalid date format. Use ISO format (YYYY-MM-DD)" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting dashboard report in {Format} format", format);
-            return StatusCode(500, new { message = "Error exporting dashboard report" });
-        }
+
+        var fromDate = string.IsNullOrEmpty(dateFrom) ? DateTime.Today.AddDays(-30) : DateTime.Parse(dateFrom);
+        var toDate = string.IsNullOrEmpty(dateTo) ? DateTime.Today : DateTime.Parse(dateTo);
+
+        var reportData = await _dashboardService.ExportDashboardReportAsync(fromDate, toDate);
+
+        var contentType = format == "pdf" ? "application/pdf" : "text/csv";
+        var fileName = $"dashboard-report-{DateTime.Now:yyyy-MM-dd}.{format}";
+
+        return File(reportData, contentType, fileName);
     }
 
     /// <summary>
@@ -268,24 +201,16 @@ public class AdminDashboardController : BaseApiController
     [RequireAdminPermission(AdminPermissions.ProductsRead)]
     public async Task<IActionResult> GetProductPerformance([FromQuery] int days = 30)
     {
-        try
-        {
-            if (days <= 0 || days > 365) days = 30;
+        if (days <= 0 || days > 365) days = 30;
 
-            var productPerformance = await _dashboardService.GetProductPerformanceAsync(days);
+        var productPerformance = await _dashboardService.GetProductPerformanceAsync(days);
 
-            return Ok(new
-            {
-                success = true,
-                data = productPerformance,
-                message = "Product performance data retrieved successfully"
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error retrieving product performance for {Days} days", days);
-            return StatusCode(500, new { message = "Error retrieving product performance data" });
-        }
+            success = true,
+            data = productPerformance,
+            message = "Product performance data retrieved successfully"
+        });
     }
 
     /// <summary>
@@ -296,25 +221,17 @@ public class AdminDashboardController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> TestDashboard()
     {
-        try
-        {
-            var fromDate = DateTime.UtcNow.AddDays(-30);
-            var toDate = DateTime.UtcNow;
+        var fromDate = DateTime.UtcNow.AddDays(-30);
+        var toDate = DateTime.UtcNow;
 
-            var kpis = await _dashboardService.GetDashboardKpisAsync(fromDate, toDate);
+        var kpis = await _dashboardService.GetDashboardKpisAsync(fromDate, toDate);
 
-            return Ok(new
-            {
-                success = true,
-                data = kpis,
-                message = "Dashboard test successful"
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error in dashboard test");
-            return StatusCode(500, new { message = "Dashboard test failed", error = ex.Message });
-        }
+            success = true,
+            data = kpis,
+            message = "Dashboard test successful"
+        });
     }
 
     /// <summary>
@@ -331,33 +248,25 @@ public class AdminDashboardController : BaseApiController
         [FromQuery] int limit = 5,
         [FromQuery] string? severity = null)
     {
-        try
+        if (page <= 0) page = 1;
+        if (limit <= 0 || limit > 100) limit = 5;
+
+        var securityEvents = await _dashboardService.GetSecurityEventsAsync(page, limit, severity);
+
+        return Ok(new
         {
-            if (page <= 0) page = 1;
-            if (limit <= 0 || limit > 100) limit = 5;
-
-            var securityEvents = await _dashboardService.GetSecurityEventsAsync(page, limit, severity);
-
-            return Ok(new
+            success = true,
+            data = securityEvents.Items,
+            pagination = new
             {
-                success = true,
-                data = securityEvents.Items,
-                pagination = new
-                {
-                    page,
-                    limit,
-                    totalItems = securityEvents.TotalItems,
-                    totalPages = securityEvents.TotalPages,
-                    hasNext = securityEvents.HasNext,
-                    hasPrevious = securityEvents.HasPrevious
-                },
-                message = "Security events retrieved successfully"
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving security events for page {Page}, limit {Limit}", page, limit);
-            return StatusCode(500, new { message = "Error retrieving security events" });
-        }
+                page,
+                limit,
+                totalItems = securityEvents.TotalItems,
+                totalPages = securityEvents.TotalPages,
+                hasNext = securityEvents.HasNext,
+                hasPrevious = securityEvents.HasPrevious
+            },
+            message = "Security events retrieved successfully"
+        });
     }
 }

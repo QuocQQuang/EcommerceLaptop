@@ -13,15 +13,9 @@ namespace EcommerceLaptop.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize(Roles = "Admin")]
-public class RefundController : BaseApiController
+public class RefundController(IRefundService refundService, ILogger<RefundController> logger) : BaseApiController(logger)
 {
-    private readonly IRefundService _refundService;
-
-    public RefundController(IRefundService refundService, ILogger<RefundController> logger)
-        : base(logger)
-    {
-        _refundService = refundService;
-    }
+    private readonly IRefundService _refundService = refundService;
 
     /// <summary>
     /// Get all refund requests with pagination and filtering
@@ -37,21 +31,13 @@ public class RefundController : BaseApiController
         [FromQuery] decimal? minAmount = null,
         [FromQuery] decimal? maxAmount = null)
     {
-        try
-        {
-            var result = await _refundService.GetRefundsAsync(
-                pageNumber, pageSize, searchTerm, status, startDate, endDate, minAmount, maxAmount);
+        var result = await _refundService.GetRefundsAsync(
+            pageNumber, pageSize, searchTerm, status, startDate, endDate, minAmount, maxAmount);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving refunds");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -60,23 +46,15 @@ public class RefundController : BaseApiController
     [HttpGet("{id}")]
     public async Task<IActionResult> GetRefund(int id)
     {
-        try
-        {
-            var result = await _refundService.GetRefundByIdAsync(id);
+        var result = await _refundService.GetRefundByIdAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (result.Data == null)
-                return NotFound(new { error = "Refund not found" });
+        if (result.Data == null)
+            return NotFound(new { error = "Refund not found" });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving refund with ID {RefundId}", id);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -85,20 +63,12 @@ public class RefundController : BaseApiController
     [HttpGet("order/{orderId}")]
     public async Task<IActionResult> GetRefundsByOrder(int orderId)
     {
-        try
-        {
-            var result = await _refundService.GetRefundsByOrderAsync(orderId);
+        var result = await _refundService.GetRefundsByOrderAsync(orderId);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving refunds for order {OrderId}", orderId);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -107,36 +77,25 @@ public class RefundController : BaseApiController
     [HttpPost]
     public async Task<IActionResult> CreateRefund([FromBody] CreateRefundRequest request)
     {
-        try
+        // Convert DTO RefundItemRequest to Services RefundItemRequest
+        List<ServicesRefundItemRequest>? serviceItems = request.ItemsToRefund?.Select(item => new ServicesRefundItemRequest
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            ProductId = item.ProductId,
+            Quantity = item.Quantity,
+            Reason = item.Reason
+        }).ToList();
 
-            // Convert DTO RefundItemRequest to Services RefundItemRequest
-            List<ServicesRefundItemRequest>? serviceItems = request.ItemsToRefund?.Select(item => new ServicesRefundItemRequest
-            {
-                ProductId = item.ProductId,
-                Quantity = item.Quantity,
-                Reason = item.Reason
-            }).ToList();
+        var result = await _refundService.CreateRefundAsync(
+            request.OrderId,
+            request.Amount,
+            request.Reason,
+            request.RefundType,
+            serviceItems);
 
-            var result = await _refundService.CreateRefundAsync(
-                request.OrderId,
-                request.Amount,
-                request.Reason,
-                request.RefundType,
-                serviceItems);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return CreatedAtAction(nameof(GetRefund), new { id = result.Data.Id }, result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating refund");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return CreatedAtAction(nameof(GetRefund), new { id = result.Data.Id }, result.Data);
     }
 
     /// <summary>
@@ -145,27 +104,16 @@ public class RefundController : BaseApiController
     [HttpPost("{id}/process")]
     public async Task<IActionResult> ProcessRefund(int id, [FromBody] ProcessRefundRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        var result = await _refundService.ProcessRefundAsync(
+            id,
+            request.Action,
+            request.AdminNotes,
+            request.ActualRefundAmount);
 
-            var result = await _refundService.ProcessRefundAsync(
-                id,
-                request.Action,
-                request.AdminNotes,
-                request.ActualRefundAmount);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing refund with ID {RefundId}", id);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -174,20 +122,12 @@ public class RefundController : BaseApiController
     [HttpPost("{id}/cancel")]
     public async Task<IActionResult> CancelRefund(int id, [FromBody] CancelRefundRequest request)
     {
-        try
-        {
-            var result = await _refundService.CancelRefundAsync(id, request.Reason);
+        var result = await _refundService.CancelRefundAsync(id, request.Reason);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { message = "Refund cancelled successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error cancelling refund with ID {RefundId}", id);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(new { message = "Refund cancelled successfully" });
     }
 
     /// <summary>
@@ -198,20 +138,12 @@ public class RefundController : BaseApiController
         [FromQuery] DateTime? startDate = null,
         [FromQuery] DateTime? endDate = null)
     {
-        try
-        {
-            var result = await _refundService.GetRefundStatisticsAsync(startDate, endDate);
+        var result = await _refundService.GetRefundStatisticsAsync(startDate, endDate);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving refund statistics");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -220,26 +152,15 @@ public class RefundController : BaseApiController
     [HttpPost("bulk-process")]
     public async Task<IActionResult> BulkProcessRefunds([FromBody] BulkProcessRefundsRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        var result = await _refundService.BulkProcessRefundsAsync(
+            request.RefundIds,
+            request.Action,
+            request.AdminNotes);
 
-            var result = await _refundService.BulkProcessRefundsAsync(
-                request.RefundIds,
-                request.Action,
-                request.AdminNotes);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error performing bulk refund processing");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -252,30 +173,22 @@ public class RefundController : BaseApiController
         [FromQuery] string? status = null,
         [FromQuery] string format = "json")
     {
-        try
+        var result = await _refundService.GenerateRefundReportAsync(startDate, endDate, status);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
+
+        if (format.ToLower() == "csv")
         {
-            var result = await _refundService.GenerateRefundReportAsync(startDate, endDate, status);
-
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            if (format.ToLower() == "csv")
-            {
-                // Convert to CSV and return as file
-                var csvContent = ConvertToCSV(result.Data);
-                var fileName = $"refund-report-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
-                
-                return File(System.Text.Encoding.UTF8.GetBytes(csvContent), 
-                    "text/csv", fileName);
-            }
-
-            return Ok(result.Data);
+            // Convert to CSV and return as file
+            var csvContent = ConvertToCSV(result.Data);
+            var fileName = $"refund-report-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
+            
+            return File(System.Text.Encoding.UTF8.GetBytes(csvContent), 
+                "text/csv", fileName);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating refund report");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+
+        return Ok(result.Data);
     }
 
     private static string ConvertToCSV(List<RefundReportItem> items)

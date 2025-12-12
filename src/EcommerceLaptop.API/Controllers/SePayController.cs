@@ -31,25 +31,17 @@ namespace EcommerceLaptop.API.Controllers;
 [ApiController]
 [Route("api/sepay")]
 [Authorize]
-public class SePayController : BaseApiController
+public class SePayController(
+    ISePayService sePayService,
+    IPaymentWebhookBusinessLogicService webhookBusinessLogicService,
+    IPaymentOrchestrator paymentOrchestrator,
+    ILogger<SePayController> logger,
+    IOptions<PaymentGatewaySettings> settings) : BaseApiController(logger)
 {
-    private readonly ISePayService _sePayService;
-    private readonly IPaymentWebhookBusinessLogicService _webhookBusinessLogicService;
-    private readonly IPaymentOrchestrator _paymentOrchestrator;
-    private readonly PaymentGatewaySettings _paymentSettings;
-
-    public SePayController(
-        ISePayService sePayService,
-        IPaymentWebhookBusinessLogicService webhookBusinessLogicService,
-        IPaymentOrchestrator paymentOrchestrator,
-        ILogger<SePayController> logger,
-        IOptions<PaymentGatewaySettings> settings) : base(logger)
-    {
-        _sePayService = sePayService;
-        _webhookBusinessLogicService = webhookBusinessLogicService;
-        _paymentOrchestrator = paymentOrchestrator;
-        _paymentSettings = settings.Value;
-    }
+    private readonly ISePayService _sePayService = sePayService;
+    private readonly IPaymentWebhookBusinessLogicService _webhookBusinessLogicService = webhookBusinessLogicService;
+    private readonly IPaymentOrchestrator _paymentOrchestrator = paymentOrchestrator;
+    private readonly PaymentGatewaySettings _paymentSettings = settings.Value;
 
     // Removed unused GenerateQrCode method - QR generation now handled client-side
 
@@ -101,69 +93,55 @@ public class SePayController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> ProcessWebhook([FromBody] SePayWebhookPayload payload)
     {
-        try
+        _logger.LogInformation("Received SePay webhook for transaction {TransactionId}, amount {Amount}",
+            payload.Id, payload.TransferAmount);
+
+        // Validate webhook authentication (optional for Sepay webhooks)
+        var authHeader = Request.Headers.Authorization.FirstOrDefault();
+        if (!string.IsNullOrEmpty(authHeader))
         {
-            _logger.LogInformation("Received SePay webhook for transaction {TransactionId}, amount {Amount}",
-                payload.Id, payload.TransferAmount);
-
-            // Validate webhook authentication (optional for Sepay webhooks)
-            var authHeader = Request.Headers.Authorization.FirstOrDefault();
-            if (!string.IsNullOrEmpty(authHeader))
+            var isAuthValid = await _sePayService.ValidateWebhookAuthAsync(authHeader);
+            if (!isAuthValid)
             {
-                var isAuthValid = await _sePayService.ValidateWebhookAuthAsync(authHeader);
-                if (!isAuthValid)
-                {
-                    _logger.LogWarning("SePay webhook received with invalid authorization");
-                    return Unauthorized(new { success = false, error = "Invalid authorization" });
-                }
+                _logger.LogWarning("SePay webhook received with invalid authorization");
+                return Unauthorized(new { success = false, error = "Invalid authorization" });
             }
-            else
-            {
-                _logger.LogWarning("SePay webhook received without authorization header - proceeding as trusted source");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("SePay webhook received with invalid payload");
-                return BadRequest(new { success = false, error = "Invalid payload" });
-            }
-
-            // Process webhook
-            var headers = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
-            var result = await _sePayService.ProcessWebhookAsync(payload, headers);
-
-            if (!result.Success)
-            {
-                _logger.LogWarning("SePay webhook processing failed: {Message}", result.Message);
-                return BadRequest(new { success = false, error = result.Message });
-            }
-
-            if (result.OrderId.HasValue)
-            {
-                // Use orchestrator to synchronize Payment status and run business logic
-                var payloadJson = JsonSerializer.Serialize(payload);
-                var orchestratorResult = await _paymentOrchestrator.ProcessWebhookAsync(
-                    PaymentGateway.SePay,
-                    payloadJson,
-                    headers);
-
-                if (!orchestratorResult.IsSuccess)
-                {
-                    _logger.LogWarning("SePay orchestrator processing reported failure: {Error}", orchestratorResult.ErrorMessage);
-                }
-            }
-
-            _logger.LogInformation("SePay webhook processed successfully for transaction {TransactionId}, mapped to order {OrderId}",
-                payload.Id, result.OrderId ?? (int?)null);
-
-            // Return the required SePay response format
-            return Ok(new { success = true });
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Unexpected error processing SePay webhook for transaction {TransactionId}", payload.Id);
-            return StatusCode(500, new { success = false, error = "Internal server error" });
+            _logger.LogWarning("SePay webhook received without authorization header - proceeding as trusted source");
         }
+
+        // Process webhook
+        var headers = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+        var result = await _sePayService.ProcessWebhookAsync(payload, headers);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("SePay webhook processing failed: {Message}", result.Message);
+            return BadRequest(new { success = false, error = result.Message });
+        }
+
+        if (result.OrderId.HasValue)
+        {
+            // Use orchestrator to synchronize Payment status and run business logic
+            var payloadJson = JsonSerializer.Serialize(payload);
+            var orchestratorResult = await _paymentOrchestrator.ProcessWebhookAsync(
+                PaymentGateway.SePay,
+                payloadJson,
+                headers);
+
+            if (!orchestratorResult.IsSuccess)
+            {
+                _logger.LogWarning("SePay orchestrator processing reported failure: {Error}", orchestratorResult.ErrorMessage);
+            }
+        }
+
+        _logger.LogInformation("SePay webhook processed successfully for transaction {TransactionId}, mapped to order {OrderId}",
+            payload.Id, result.OrderId ?? (int?)null);
+
+        // Return the required SePay response format
+        return Ok(new { success = true });
     }
 
     /// <summary>
@@ -206,32 +184,19 @@ public class SePayController : BaseApiController
     public async Task<ActionResult<SePayMonitoringResponse>> GetTransactions(
         [FromBody] SePayMonitoringRequest request)
     {
-        try
+        _logger.LogInformation("Retrieving SePay transactions for account {Account}, page {Page}",
+            request.BankAccount ?? "all", request.Page);
+
+        var result = await _sePayService.GetTransactionsAsync(request);
+
+        if (!result.IsSuccess)
         {
-            _logger.LogInformation("Retrieving SePay transactions for account {Account}, page {Page}",
-                request.BankAccount ?? "all", request.Page);
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var result = await _sePayService.GetTransactionsAsync(request);
-
-            if (!result.IsSuccess)
-            {
-                _logger.LogWarning("SePay transaction retrieval failed: {Error}", result.ErrorMessage);
-                return BadRequest(new { error = result.ErrorMessage });
-            }
-
-            _logger.LogInformation("Retrieved {Count} SePay transactions", result.Transactions.Count);
-            return Ok(result);
+            _logger.LogWarning("SePay transaction retrieval failed: {Error}", result.ErrorMessage);
+            return BadRequest(new { error = result.ErrorMessage });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error retrieving SePay transactions");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+
+        _logger.LogInformation("Retrieved {Count} SePay transactions", result.Transactions.Count);
+        return Ok(result);
     }
 
     /// <summary>
@@ -276,31 +241,18 @@ public class SePayController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> RegisterBankAccount([FromBody] SePayBankAccountRequest request)
     {
-        try
+        _logger.LogInformation("Registering SePay bank account {AccountNumber}", request.AccountNumber);
+
+        var result = await _sePayService.RegisterBankAccountAsync(request);
+
+        if (!result)
         {
-            _logger.LogInformation("Registering SePay bank account {AccountNumber}", request.AccountNumber);
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var result = await _sePayService.RegisterBankAccountAsync(request);
-
-            if (!result)
-            {
-                _logger.LogWarning("SePay bank account registration failed for {AccountNumber}", request.AccountNumber);
-                return BadRequest(new { error = "Bank account registration failed" });
-            }
-
-            _logger.LogInformation("SePay bank account {AccountNumber} registered successfully", request.AccountNumber);
-            return Ok(new { success = true, message = "Bank account registered successfully" });
+            _logger.LogWarning("SePay bank account registration failed for {AccountNumber}", request.AccountNumber);
+            return BadRequest(new { error = "Bank account registration failed" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error registering SePay bank account {AccountNumber}", request.AccountNumber);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+
+        _logger.LogInformation("SePay bank account {AccountNumber} registered successfully", request.AccountNumber);
+        return Ok(new { success = true, message = "Bank account registered successfully" });
     }
 
     /// <summary>
@@ -351,27 +303,19 @@ public class SePayController : BaseApiController
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public ActionResult GetSupportedBanks()
     {
-        try
-        {
-            var supportedBanks = _sePayService.GetSupportedBanks();
+        var supportedBanks = _sePayService.GetSupportedBanks();
 
-            var response = new
+        var response = new
+        {
+            success = true,
+            banks = supportedBanks.Select(b => new
             {
-                success = true,
-                banks = supportedBanks.Select(b => new
-                {
-                    bankCode = b.BankCode,
-                    bankName = b.BankName
-                }).ToList()
-            };
+                bankCode = b.BankCode,
+                bankName = b.BankName
+            }).ToList()
+        };
 
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving SePay supported banks");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(response);
     }
 
     /// <summary>
@@ -422,38 +366,25 @@ public class SePayController : BaseApiController
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<ActionResult> HealthCheck()
     {
-        try
-        {
-            var isHealthy = await _sePayService.CheckHealthAsync();
+        var isHealthy = await _sePayService.CheckHealthAsync();
 
-            if (!isHealthy)
-            {
-                return StatusCode(503, new
-                {
-                    healthy = false,
-                    service = "SePay",
-                    message = "SePay service is unavailable"
-                });
-            }
-
-            return Ok(new
-            {
-                healthy = true,
-                service = "SePay",
-                timestamp = DateTime.UtcNow,
-                message = "SePay service is operational"
-            });
-        }
-        catch (Exception ex)
+        if (!isHealthy)
         {
-            _logger.LogError(ex, "SePay health check failed");
             return StatusCode(503, new
             {
                 healthy = false,
                 service = "SePay",
-                error = "Health check failed"
+                message = "SePay service is unavailable"
             });
         }
+
+        return Ok(new
+        {
+            healthy = true,
+            service = "SePay",
+            timestamp = DateTime.UtcNow,
+            message = "SePay service is operational"
+        });
     }
 
     /// <summary>
@@ -496,42 +427,34 @@ public class SePayController : BaseApiController
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public ActionResult GetConfig(string? environment = "production")
     {
-        try
+        _logger.LogInformation("Retrieving SePay config for environment {Environment}", environment);
+
+        // For now, same config for both environments. In future, load different accounts based on environment
+        var sepaySettings = _paymentSettings.SePay;
+        var defaultAccount = sepaySettings.MonitoredAccounts?.FirstOrDefault(a => a.IsDefault);
+
+        var config = new
         {
-            _logger.LogInformation("Retrieving SePay config for environment {Environment}", environment);
-
-            // For now, same config for both environments. In future, load different accounts based on environment
-            var sepaySettings = _paymentSettings.SePay;
-            var defaultAccount = sepaySettings.MonitoredAccounts?.FirstOrDefault(a => a.IsDefault);
-
-            var config = new
+            environment = environment.ToLower(),
+            qrBaseUrl = "https://qr.sepay.vn/img",
+            defaultAccount = defaultAccount != null ? new
             {
-                environment = environment.ToLower(),
-                qrBaseUrl = "https://qr.sepay.vn/img",
-                defaultAccount = defaultAccount != null ? new
-                {
-                    accountNumber = defaultAccount.AccountNumber,
-                    bankCode = defaultAccount.BankCode,
-                    bankName = defaultAccount.BankName,
-                    isDefault = defaultAccount.IsDefault
-                } : null,
-                accounts = sepaySettings.MonitoredAccounts?.Select(a => new
-                {
-                    accountNumber = a.AccountNumber,
-                    bankCode = a.BankCode,
-                    bankName = a.BankName,
-                    isDefault = a.IsDefault,
-                    description = a.Description
-                }).Cast<object>().ToList() ?? new List<object>()
-            };
+                accountNumber = defaultAccount.AccountNumber,
+                bankCode = defaultAccount.BankCode,
+                bankName = defaultAccount.BankName,
+                isDefault = defaultAccount.IsDefault
+            } : null,
+            accounts = sepaySettings.MonitoredAccounts?.Select(a => new
+            {
+                accountNumber = a.AccountNumber,
+                bankCode = a.BankCode,
+                bankName = a.BankName,
+                isDefault = a.IsDefault,
+                description = a.Description
+            }).Cast<object>().ToList() ?? new List<object>()
+        };
 
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving SePay configuration");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(config);
     }
 
     /// <summary>
@@ -581,21 +504,13 @@ public class SePayController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public ActionResult TestOrderExtraction([FromBody] string content)
     {
-        try
-        {
-            var orderId = _sePayService.ExtractOrderIdFromContent(content);
+        var orderId = _sePayService.ExtractOrderIdFromContent(content);
 
-            return Ok(new
-            {
-                content = content,
-                extractedOrderId = orderId,
-                found = orderId.HasValue
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error testing order extraction");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+            content = content,
+            extractedOrderId = orderId,
+            found = orderId.HasValue
+        });
     }
 }

@@ -17,21 +17,18 @@ namespace EcommerceLaptop.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 // [Authorize(Roles = "Admin")] // Temporarily disabled for testing
-public class SystemSettingsController : BaseApiController
+public class SystemSettingsController(
+    ISystemSettingsService settingsService,
+    IEmailService emailService,
+    IEmailSecurityService emailSecurityService,
+    IAuditLoggingService auditLoggingService,
+    ILogger<SystemSettingsController> logger)
+    : BaseApiController(logger)
 {
-    private readonly ISystemSettingsService _settingsService;
-    private readonly IEmailService _emailService;
-    private readonly IEmailSecurityService _emailSecurityService;
-    private readonly IAuditLoggingService _auditLoggingService;
-
-    public SystemSettingsController(ISystemSettingsService settingsService, IEmailService emailService, IEmailSecurityService emailSecurityService, IAuditLoggingService auditLoggingService, ILogger<SystemSettingsController> logger)
-        : base(logger)
-    {
-        _settingsService = settingsService;
-        _emailService = emailService;
-        _emailSecurityService = emailSecurityService;
-        _auditLoggingService = auditLoggingService;
-    }
+    private readonly ISystemSettingsService _settingsService = settingsService;
+    private readonly IEmailService _emailService = emailService;
+    private readonly IEmailSecurityService _emailSecurityService = emailSecurityService;
+    private readonly IAuditLoggingService _auditLoggingService = auditLoggingService;
 
     /// <summary>
     /// Get all system settings grouped by category
@@ -103,23 +100,15 @@ public class SystemSettingsController : BaseApiController
     [RequireAdminPermission("settings:write")]
     public async Task<IActionResult> UpsertSetting(string key, [FromBody] UpsertSettingRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            var result = await _settingsService.UpsertSettingAsync(key, request.Value, request.Category, request.Description);
+        var result = await _settingsService.UpsertSettingAsync(key, request.Value, request.Category, request.Description);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error upserting setting {Key}", key);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -129,23 +118,15 @@ public class SystemSettingsController : BaseApiController
     [RequireAdminPermission("settings:write")]
     public async Task<IActionResult> UpdateSettings([FromBody] List<SystemSettingUpdateRequest> settings)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            var result = await _settingsService.UpdateSettingsAsync(settings);
+        var result = await _settingsService.UpdateSettingsAsync(settings);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { message = "Settings updated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating multiple settings");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(new { message = "Settings updated successfully" });
     }
 
     /// <summary>
@@ -157,61 +138,53 @@ public class SystemSettingsController : BaseApiController
     [RequireAdminPermission("settings:read")]
     public async Task<IActionResult> SendTestEmail([FromBody] TestEmailRequest? request)
     {
-        try
+        var stopwatch = Stopwatch.StartNew();
+        var toEmail = string.IsNullOrWhiteSpace(request?.To) ? "quocquang30@gmail.com" : request!.To!;
+        var subject = string.IsNullOrWhiteSpace(request?.Subject) ? "Test Email - System Settings" : request!.Subject!;
+        var html = string.IsNullOrWhiteSpace(request?.HtmlContent)
+            ? "<h2>Test Email</h2><p>This is a test email sent from EcommerceLaptop.</p>"
+            : request!.HtmlContent!;
+
+        // Pre-check rate limit to return proper status code instead of generic 500
+        var rateOk = await _emailSecurityService.CheckRateLimitAsync(toEmail);
+        if (!rateOk)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var toEmail = string.IsNullOrWhiteSpace(request?.To) ? "quocquang30@gmail.com" : request!.To!;
-            var subject = string.IsNullOrWhiteSpace(request?.Subject) ? "Test Email - System Settings" : request!.Subject!;
-            var html = string.IsNullOrWhiteSpace(request?.HtmlContent)
-                ? "<h2>Test Email</h2><p>This is a test email sent from EcommerceLaptop.</p>"
-                : request!.HtmlContent!;
-
-            // Pre-check rate limit to return proper status code instead of generic 500
-            var rateOk = await _emailSecurityService.CheckRateLimitAsync(toEmail);
-            if (!rateOk)
-            {
-                await _auditLoggingService.LogAdminActivityAsync(
-                    GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
-                    "email_test_rate_limited",
-                    $"Email test rate limited for recipient {toEmail}",
-                    HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
-                    Request.Headers["User-Agent"].ToString(),
-                    targetResource: "SystemSettings/test-email");
-                return StatusCode(429, new { success = false, message = "Rate limit exceeded. Please try again later." });
-            }
-
-            var result = await _emailService.SendCustomEmailAsync(toEmail, toEmail, subject, html, request?.TextContent);
-            if (!result)
-            {
-                stopwatch.Stop();
-                _logger.LogError("Failed to send test email to {ToEmail} after {ElapsedMs} ms", toEmail, stopwatch.ElapsedMilliseconds);
-                await _auditLoggingService.LogAdminActivityAsync(
-                    GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
-                    "email_test_failed",
-                    $"Failed to send test email to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
-                    HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
-                    Request.Headers["User-Agent"].ToString(),
-                    targetResource: "SystemSettings/test-email");
-                return StatusCode(500, new { success = false, message = "Failed to send test email" });
-            }
-
-            stopwatch.Stop();
-            _logger.LogInformation("Sent test email to {ToEmail} successfully in {ElapsedMs} ms", toEmail, stopwatch.ElapsedMilliseconds);
             await _auditLoggingService.LogAdminActivityAsync(
                 GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
-                "email_test_success",
-                $"Sent test email to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
+                "email_test_rate_limited",
+                $"Email test rate limited for recipient {toEmail}",
                 HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
                 Request.Headers["User-Agent"].ToString(),
                 targetResource: "SystemSettings/test-email");
+            return StatusCode(429, new { success = false, message = "Rate limit exceeded. Please try again later." });
+        }
 
-            return Ok(new { success = true, elapsedMs = stopwatch.ElapsedMilliseconds });
-        }
-        catch (Exception ex)
+        var result = await _emailService.SendCustomEmailAsync(toEmail, toEmail, subject, html, request?.TextContent);
+        if (!result)
         {
-            _logger.LogError(ex, "Error sending test email");
-            return StatusCode(500, new { success = false, message = "Internal server error" });
+            stopwatch.Stop();
+            _logger.LogError("Failed to send test email to {ToEmail} after {ElapsedMs} ms", toEmail, stopwatch.ElapsedMilliseconds);
+            await _auditLoggingService.LogAdminActivityAsync(
+                GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
+                "email_test_failed",
+                $"Failed to send test email to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
+                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+                Request.Headers["User-Agent"].ToString(),
+                targetResource: "SystemSettings/test-email");
+            return StatusCode(500, new { success = false, message = "Failed to send test email" });
         }
+
+        stopwatch.Stop();
+        _logger.LogInformation("Sent test email to {ToEmail} successfully in {ElapsedMs} ms", toEmail, stopwatch.ElapsedMilliseconds);
+        await _auditLoggingService.LogAdminActivityAsync(
+            GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
+            "email_test_success",
+            $"Sent test email to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
+            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            Request.Headers["User-Agent"].ToString(),
+            targetResource: "SystemSettings/test-email");
+
+        return Ok(new { success = true, elapsedMs = stopwatch.ElapsedMilliseconds });
     }
 
     /// <summary>
@@ -228,57 +201,49 @@ public class SystemSettingsController : BaseApiController
             return BadRequest(new { success = false, message = "EventType is required" });
         }
 
-        try
+        var stopwatch = Stopwatch.StartNew();
+        var toEmail = string.IsNullOrWhiteSpace(request.To) ? "quocquang30@gmail.com" : request.To!;
+
+        var rateOk = await _emailSecurityService.CheckRateLimitAsync(toEmail);
+        if (!rateOk)
         {
-            var stopwatch = Stopwatch.StartNew();
-            var toEmail = string.IsNullOrWhiteSpace(request.To) ? "quocquang30@gmail.com" : request.To!;
-
-            var rateOk = await _emailSecurityService.CheckRateLimitAsync(toEmail);
-            if (!rateOk)
-            {
-                await _auditLoggingService.LogAdminActivityAsync(
-                    GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
-                    "notification_test_rate_limited",
-                    $"Notification test rate limited for event {request.EventType} to {toEmail}",
-                    HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
-                    Request.Headers["User-Agent"].ToString(),
-                    targetResource: "SystemSettings/test-notification");
-                return StatusCode(429, new { success = false, message = "Rate limit exceeded. Please try again later." });
-            }
-
-            var subject = $"Test Notification - {request.EventType}";
-            var html = $"<h2>Test Notification</h2><p>Event: {request.EventType}</p><p>This is a test notification email.</p>";
-
-            var result = await _emailService.SendCustomEmailAsync(toEmail, toEmail, subject, html, null);
-            stopwatch.Stop();
-
-            if (!result)
-            {
-                _logger.LogError("Failed to send test notification for {EventType} to {ToEmail} after {ElapsedMs} ms", request.EventType, toEmail, stopwatch.ElapsedMilliseconds);
-                await _auditLoggingService.LogAdminActivityAsync(
-                    GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
-                    "notification_test_failed",
-                    $"Failed to send test notification {request.EventType} to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
-                    HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
-                    Request.Headers["User-Agent"].ToString(),
-                    targetResource: "SystemSettings/test-notification");
-                return StatusCode(500, new { success = false, message = "Failed to send test notification" });
-            }
-
-            _logger.LogInformation("Sent test notification for {EventType} to {ToEmail} in {ElapsedMs} ms", request.EventType, toEmail, stopwatch.ElapsedMilliseconds);
             await _auditLoggingService.LogAdminActivityAsync(
                 GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
-                "notification_test_success",
-                $"Sent test notification {request.EventType} to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
+                "notification_test_rate_limited",
+                $"Notification test rate limited for event {request.EventType} to {toEmail}",
                 HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
                 Request.Headers["User-Agent"].ToString(),
-                targetResource: "SystemSettings/test-notification"); return Ok(new { success = true, elapsedMs = stopwatch.ElapsedMilliseconds });
+                targetResource: "SystemSettings/test-notification");
+            return StatusCode(429, new { success = false, message = "Rate limit exceeded. Please try again later." });
         }
-        catch (Exception ex)
+
+        var subject = $"Test Notification - {request.EventType}";
+        var html = $"<h2>Test Notification</h2><p>Event: {request.EventType}</p><p>This is a test notification email.</p>";
+
+        var result = await _emailService.SendCustomEmailAsync(toEmail, toEmail, subject, html, null);
+        stopwatch.Stop();
+
+        if (!result)
         {
-            _logger.LogError(ex, "Error sending test notification");
-            return StatusCode(500, new { success = false, message = "Internal server error" });
+            _logger.LogError("Failed to send test notification for {EventType} to {ToEmail} after {ElapsedMs} ms", request.EventType, toEmail, stopwatch.ElapsedMilliseconds);
+            await _auditLoggingService.LogAdminActivityAsync(
+                GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
+                "notification_test_failed",
+                $"Failed to send test notification {request.EventType} to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
+                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+                Request.Headers["User-Agent"].ToString(),
+                targetResource: "SystemSettings/test-notification");
+            return StatusCode(500, new { success = false, message = "Failed to send test notification" });
         }
+
+        _logger.LogInformation("Sent test notification for {EventType} to {ToEmail} in {ElapsedMs} ms", request.EventType, toEmail, stopwatch.ElapsedMilliseconds);
+        await _auditLoggingService.LogAdminActivityAsync(
+            GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
+            "notification_test_success",
+            $"Sent test notification {request.EventType} to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
+            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            Request.Headers["User-Agent"].ToString(),
+            targetResource: "SystemSettings/test-notification"); return Ok(new { success = true, elapsedMs = stopwatch.ElapsedMilliseconds });
     }
 
     /// <summary>
@@ -288,20 +253,12 @@ public class SystemSettingsController : BaseApiController
     [RequireAdminPermission("settings:manage")]
     public async Task<IActionResult> DeleteSetting(string key)
     {
-        try
-        {
-            var result = await _settingsService.DeleteSettingAsync(key);
+        var result = await _settingsService.DeleteSettingAsync(key);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { message = "Setting deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting setting {Key}", key);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(new { message = "Setting deleted successfully" });
     }
 
     /// <summary>
@@ -311,20 +268,12 @@ public class SystemSettingsController : BaseApiController
     [RequireAdminPermission("settings:write")]
     public async Task<IActionResult> ResetSetting(string key)
     {
-        try
-        {
-            var result = await _settingsService.ResetSettingToDefaultAsync(key);
+        var result = await _settingsService.ResetSettingToDefaultAsync(key);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error resetting setting {Key}", key);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(result.Data);
     }
 
     private int? GetAdminIdAsInt()

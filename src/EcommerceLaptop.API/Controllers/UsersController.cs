@@ -18,23 +18,16 @@ namespace EcommerceLaptop.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class UsersController : BaseApiController
+public class UsersController(
+    IUserService userService,
+    IImageHostingService imageHostingService,
+    IAuditLoggingService auditLoggingService,
+    ILogger<UsersController> logger)
+    : BaseApiController(logger)
 {
-    private readonly IUserService _userService;
-    private readonly IImageHostingService _imageHostingService;
-    private readonly IAuditLoggingService _auditLoggingService;
-
-    public UsersController(
-        IUserService userService,
-        IImageHostingService imageHostingService,
-        IAuditLoggingService auditLoggingService,
-        ILogger<UsersController> logger)
-        : base(logger)
-    {
-        _userService = userService;
-        _imageHostingService = imageHostingService;
-        _auditLoggingService = auditLoggingService;
-    }
+    private readonly IUserService _userService = userService;
+    private readonly IImageHostingService _imageHostingService = imageHostingService;
+    private readonly IAuditLoggingService _auditLoggingService = auditLoggingService;
 
     /// <summary>
     /// Gets current user profile
@@ -43,25 +36,18 @@ public class UsersController : BaseApiController
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (!userId.HasValue)
-                return ErrorResponse("User not found", 401);
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue)
+            return ErrorResponse("User not found", 401);
 
-            var user = await _userService.GetByIdAsync(userId.Value);
-            if (user == null)
-                return ErrorResponse("User not found", 404);
+        var user = await _userService.GetByIdAsync(userId.Value);
+        if (user == null)
+            return ErrorResponse("User not found", 404);
 
-            var roles = await _userService.GetUserRolesAsync(userId.Value);
-            var userDto = MapToUserProfileDto(user, roles);
+        var roles = await _userService.GetUserRolesAsync(userId.Value);
+        var userDto = MapToUserProfileDto(user, roles);
 
-            return SuccessResponse(userDto);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetProfile));
-        }
+        return SuccessResponse(userDto);
     }
 
     /// <summary>
@@ -74,78 +60,67 @@ public class UsersController : BaseApiController
     [EnableRateLimiting("PasswordChangePolicy")]
     public async Task<IActionResult> ChangePassword([FromBody] DTOs.ChangePasswordRequest changePasswordRequest)
     {
-        try
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue)
+            return ErrorResponse("User not found", 401);
+
+        // Get user with security context
+        var user = await _userService.GetByIdAsync(userId.Value);
+
+        if (user == null)
+            return ErrorResponse("User not found", 404);
+
+        // Verify current password
+        if (!await _userService.VerifyPasswordAsync(user, changePasswordRequest.CurrentPassword))
         {
-            var modelStateErrors = ValidateModelState();
-            if (modelStateErrors != null) return modelStateErrors;
-
-            var userId = GetCurrentUserId();
-            if (!userId.HasValue)
-                return ErrorResponse("User not found", 401);
-
-            // Get user with security context
-            var user = await _userService.GetByIdAsync(userId.Value);
-
-            if (user == null)
-                return ErrorResponse("User not found", 404);
-
-            // Verify current password
-            if (!await _userService.VerifyPasswordAsync(user, changePasswordRequest.CurrentPassword))
-            {
-                // Log failed password change attempt
-                _logger.LogWarning("Failed password change attempt for user {UserId} from IP {IP}",
-                    userId.Value, HttpContext.Connection.RemoteIpAddress?.ToString());
-
-                // Record security event using audit logging service
-                var failedIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-                await _auditLoggingService.LogSecurityEventAsync(
-                    "failed_password_change",
-                    "Invalid current password provided for password change",
-                    failedIpAddress,
-                    userId.Value,
-                    null,
-                    HttpContext.TraceIdentifier);
-
-                return ErrorResponse("Mt khu hin ti khng ng", 400);
-            }
-
-            // Validate new password strength
-            var passwordValidation = ValidatePasswordStrength(changePasswordRequest.NewPassword);
-            if (!passwordValidation.IsValid)
-            {
-                return ErrorResponse(passwordValidation.ErrorMessage, 400);
-            }
-
-            // Check if new password is different from current
-            if (await _userService.VerifyPasswordAsync(user, changePasswordRequest.NewPassword))
-            {
-                return ErrorResponse("Mt khu mi phi khc vi mt khu hin ti", 400);
-            }
-
-            // Update password
-            await _userService.UpdatePasswordAsync(userId.Value, changePasswordRequest.NewPassword);
-
-            // Log successful password change
-            _logger.LogInformation("Password changed successfully for user {UserId} from IP {IP}",
+            // Log failed password change attempt
+            _logger.LogWarning("Failed password change attempt for user {UserId} from IP {IP}",
                 userId.Value, HttpContext.Connection.RemoteIpAddress?.ToString());
 
             // Record security event using audit logging service
-            var successIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+            var failedIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
             await _auditLoggingService.LogSecurityEventAsync(
-                "password_changed",
-                "Password changed successfully",
-                successIpAddress,
+                "failed_password_change",
+                "Invalid current password provided for password change",
+                failedIpAddress,
                 userId.Value,
                 null,
                 HttpContext.TraceIdentifier);
 
-            return SuccessResponse(new { success = true }, "Mt khu  c thay i thnh cng");
+            return ErrorResponse("Mt khu hin ti khng ng", 400);
         }
-        catch (Exception ex)
+
+        // Validate new password strength
+        var passwordValidation = ValidatePasswordStrength(changePasswordRequest.NewPassword);
+        if (!passwordValidation.IsValid)
         {
-            _logger.LogError(ex, "Error changing password for user {UserId}", GetCurrentUserId());
-            return HandleException(ex, nameof(ChangePassword));
+            return ErrorResponse(passwordValidation.ErrorMessage, 400);
         }
+
+        // Check if new password is different from current
+        if (await _userService.VerifyPasswordAsync(user, changePasswordRequest.NewPassword))
+        {
+            return ErrorResponse("Mt khu mi phi khc vi mt khu hin ti", 400);
+        }
+
+        // Update password
+        await _userService.UpdatePasswordAsync(userId.Value, changePasswordRequest.NewPassword);
+
+        // Log successful password change
+        _logger.LogInformation("Password changed successfully for user {UserId} from IP {IP}",
+            userId.Value, HttpContext.Connection.RemoteIpAddress?.ToString());
+
+        // Record security event using audit logging service
+        var successIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        await _auditLoggingService.LogSecurityEventAsync(
+            "password_changed",
+            "Password changed successfully",
+            successIpAddress,
+            userId.Value,
+            null,
+            HttpContext.TraceIdentifier);
+
+        return SuccessResponse(new { success = true }, "Mt khu  c thay i thnh cng");
     }
 
     /// <summary>
@@ -156,37 +131,27 @@ public class UsersController : BaseApiController
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserProfileRequest request)
     {
-        try
-        {
-            var modelStateErrors = ValidateModelState();
-            if (modelStateErrors != null) return modelStateErrors;
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue)
+            return ErrorResponse("User not found", 401);
 
-            var userId = GetCurrentUserId();
-            if (!userId.HasValue)
-                return ErrorResponse("User not found", 401);
+        var user = await _userService.GetByIdAsync(userId.Value);
+        if (user == null)
+            return ErrorResponse("User not found", 404);
 
-            var user = await _userService.GetByIdAsync(userId.Value);
-            if (user == null)
-                return ErrorResponse("User not found", 404);
+        // Apply updates
+        if (!string.IsNullOrEmpty(request.FirstName))
+            user.FirstName = request.FirstName;
+        if (!string.IsNullOrEmpty(request.LastName))
+            user.LastName = request.LastName;
+        if (!string.IsNullOrEmpty(request.PhoneNumber))
+            user.PhoneNumber = request.PhoneNumber;
 
-            // Apply updates
-            if (!string.IsNullOrEmpty(request.FirstName))
-                user.FirstName = request.FirstName;
-            if (!string.IsNullOrEmpty(request.LastName))
-                user.LastName = request.LastName;
-            if (!string.IsNullOrEmpty(request.PhoneNumber))
-                user.PhoneNumber = request.PhoneNumber;
+        var updatedUser = await _userService.UpdateUserAsync(user);
+        var roles = await _userService.GetUserRolesAsync(userId.Value);
+        var userDto = MapToUserProfileDto(updatedUser, roles);
 
-            var updatedUser = await _userService.UpdateUserAsync(user);
-            var roles = await _userService.GetUserRolesAsync(userId.Value);
-            var userDto = MapToUserProfileDto(updatedUser, roles);
-
-            return SuccessResponse(userDto, "Profile updated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(UpdateProfile));
-        }
+        return SuccessResponse(userDto, "Profile updated successfully");
     }
 
     /// <summary>
@@ -198,62 +163,50 @@ public class UsersController : BaseApiController
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadAvatar(IFormFile file)
     {
-        try
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue)
+            return ErrorResponse("User not found", 401);
+
+        // Validate file
+        if (file == null || file.Length == 0)
+            return ErrorResponse("No file provided", 400);
+
+        // Validate image using configured image hosting service
+        if (!_imageHostingService.IsValidImage(file.FileName, file.ContentType, file.Length))
+            return ErrorResponse("Invalid image file. Supported formats: JPEG, PNG, GIF, WebP. Max size: 10MB", 400);
+
+        // Get current user
+        var user = await _userService.GetByIdAsync(userId.Value);
+        if (user == null)
+            return ErrorResponse("User not found", 404);
+
+        // Delete old avatar if exists
+        if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
         {
-            var userId = GetCurrentUserId();
-            if (!userId.HasValue)
-                return ErrorResponse("User not found", 401);
-
-            // Validate file
-            if (file == null || file.Length == 0)
-                return ErrorResponse("No file provided", 400);
-
-            // Validate image using configured image hosting service
-            if (!_imageHostingService.IsValidImage(file.FileName, file.ContentType, file.Length))
-                return ErrorResponse("Invalid image file. Supported formats: JPEG, PNG, GIF, WebP. Max size: 10MB", 400);
-
-            // Get current user
-            var user = await _userService.GetByIdAsync(userId.Value);
-            if (user == null)
-                return ErrorResponse("User not found", 404);
-
-            // Delete old avatar if exists
-            if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
-            {
-                // Extract delete hash from URL if possible and delete old image
-                // Note: This requires storing delete hash in DB for full functionality
-                _logger.LogInformation("User {UserId} replacing existing avatar", userId.Value);
-            }
-
-            // Upload new avatar to image hosting service
-            using var stream = file.OpenReadStream();
-            var uploadResult = await _imageHostingService.UploadImageAsync(stream, file.FileName, ImageCategory.Avatars);
-
-            // Update user profile picture URL
-            user.ProfilePictureUrl = uploadResult.Url;
-            
-            var updatedUser = await _userService.UpdateUserAsync(user);
-            var roles = await _userService.GetUserRolesAsync(userId.Value);
-            var userDto = MapToUserProfileDto(updatedUser, roles);
-
-            _logger.LogInformation("Successfully uploaded avatar for user {UserId}: {ImageUrl}", userId.Value, uploadResult.Url);
-
-            return SuccessResponse(new
-            {
-                user = userDto,
-                avatarUrl = uploadResult.Url,
-                message = "Avatar uploaded successfully"
-            });
+            // Extract delete hash from URL if possible and delete old image
+            // Note: This requires storing delete hash in DB for full functionality
+            _logger.LogInformation("User {UserId} replacing existing avatar", userId.Value);
         }
-        catch (ImageHostingException ex)
+
+        // Upload new avatar to image hosting service
+        using var stream = file.OpenReadStream();
+        var uploadResult = await _imageHostingService.UploadImageAsync(stream, file.FileName, ImageCategory.Avatars);
+
+        // Update user profile picture URL
+        user.ProfilePictureUrl = uploadResult.Url;
+        
+        var updatedUser = await _userService.UpdateUserAsync(user);
+        var roles = await _userService.GetUserRolesAsync(userId.Value);
+        var userDto = MapToUserProfileDto(updatedUser, roles);
+
+        _logger.LogInformation("Successfully uploaded avatar for user {UserId}: {ImageUrl}", userId.Value, uploadResult.Url);
+
+        return SuccessResponse(new
         {
-            _logger.LogError(ex, "Image hosting upload failed for user {UserId}", GetCurrentUserId());
-            return ErrorResponse($"Image upload failed: {ex.Message}", ex.StatusCode);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(UploadAvatar));
-        }
+            user = userDto,
+            avatarUrl = uploadResult.Url,
+            message = "Avatar uploaded successfully"
+        });
     }
 
     /// <summary>
@@ -270,27 +223,20 @@ public class UsersController : BaseApiController
         [FromQuery] int pageSize = 20,
         [FromQuery] string? search = null)
     {
-        try
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+        var result = await _userService.GetUsersAsync(page, pageSize, search);
+        var userDtos = new List<UserSummaryDto>();
+
+        foreach (var user in result.Items)
         {
-            if (page < 1) page = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 20;
-
-            var result = await _userService.GetUsersAsync(page, pageSize, search);
-            var userDtos = new List<UserSummaryDto>();
-
-            foreach (var user in result.Items)
-            {
-                var roles = await _userService.GetUserRolesAsync(user.Id);
-                var userDto = MapToUserSummaryDto(user, roles);
-                userDtos.Add(userDto);
-            }
-
-            return PaginatedResponse(userDtos, result.TotalCount, page, pageSize);
+            var roles = await _userService.GetUserRolesAsync(user.Id);
+            var userDto = MapToUserSummaryDto(user, roles);
+            userDtos.Add(userDto);
         }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetUsers));
-        }
+
+        return PaginatedResponse(userDtos, result.TotalCount, page, pageSize);
     }
 
     /// <summary>
@@ -301,25 +247,18 @@ public class UsersController : BaseApiController
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUser(int id)
     {
-        try
-        {
-            var currentUserId = GetCurrentUserId();
-            if (!HasRole("Admin") && currentUserId != id)
-                return ErrorResponse("Access denied", 403);
+        var currentUserId = GetCurrentUserId();
+        if (!HasRole("Admin") && currentUserId != id)
+            return ErrorResponse("Access denied", 403);
 
-            var user = await _userService.GetByIdAsync(id);
-            if (user == null)
-                return ErrorResponse("User not found", 404);
+        var user = await _userService.GetByIdAsync(id);
+        if (user == null)
+            return ErrorResponse("User not found", 404);
 
-            var roles = await _userService.GetUserRolesAsync(id);
-            var userDto = MapToUserProfileDto(user, roles);
+        var roles = await _userService.GetUserRolesAsync(id);
+        var userDto = MapToUserProfileDto(user, roles);
 
-            return SuccessResponse(userDto);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetUser));
-        }
+        return SuccessResponse(userDto);
     }
 
     /// <summary>
@@ -331,35 +270,25 @@ public class UsersController : BaseApiController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
     {
-        try
+        // Check if user already exists
+        var existingUser = await _userService.GetByEmailAsync(request.Email);
+        if (existingUser != null)
+            return ErrorResponse("User with this email already exists");
+
+        var user = new Core.Entities.User
         {
-            var modelStateErrors = ValidateModelState();
-            if (modelStateErrors != null) return modelStateErrors;
+            Email = request.Email,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            PhoneNumber = request.PhoneNumber
+        };
 
-            // Check if user already exists
-            var existingUser = await _userService.GetByEmailAsync(request.Email);
-            if (existingUser != null)
-                return ErrorResponse("User with this email already exists");
+        var createdUser = await _userService.CreateUserAsync(user, request.Password, request.Roles);
+        var roles = await _userService.GetUserRolesAsync(createdUser.Id);
+        var userDto = MapToUserProfileDto(createdUser, roles);
 
-            var user = new Core.Entities.User
-            {
-                Email = request.Email,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                PhoneNumber = request.PhoneNumber
-            };
-
-            var createdUser = await _userService.CreateUserAsync(user, request.Password, request.Roles);
-            var roles = await _userService.GetUserRolesAsync(createdUser.Id);
-            var userDto = MapToUserProfileDto(createdUser, roles);
-
-            return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id },
-                SuccessResponse(userDto, "User created successfully"));
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(CreateUser));
-        }
+        return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id },
+            SuccessResponse(userDto, "User created successfully"));
     }
 
     /// <summary>
@@ -372,60 +301,50 @@ public class UsersController : BaseApiController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserRequest request)
     {
-        try
+        var user = await _userService.GetByIdAsync(id);
+        if (user == null)
+            return ErrorResponse("User not found", 404);
+
+        // Apply updates
+        if (!string.IsNullOrEmpty(request.FirstName))
+            user.FirstName = request.FirstName;
+        if (!string.IsNullOrEmpty(request.LastName))
+            user.LastName = request.LastName;
+        if (!string.IsNullOrEmpty(request.PhoneNumber))
+            user.PhoneNumber = request.PhoneNumber;
+        if (request.IsActive.HasValue)
+            user.IsActive = request.IsActive.Value;
+
+        var updatedUser = await _userService.UpdateUserAsync(user);
+
+        // Update roles if provided
+        if (request.Roles != null)
         {
-            var modelStateErrors = ValidateModelState();
-            if (modelStateErrors != null) return modelStateErrors;
+            var currentRoles = await _userService.GetUserRolesAsync(id);
 
-            var user = await _userService.GetByIdAsync(id);
-            if (user == null)
-                return ErrorResponse("User not found", 404);
-
-            // Apply updates
-            if (!string.IsNullOrEmpty(request.FirstName))
-                user.FirstName = request.FirstName;
-            if (!string.IsNullOrEmpty(request.LastName))
-                user.LastName = request.LastName;
-            if (!string.IsNullOrEmpty(request.PhoneNumber))
-                user.PhoneNumber = request.PhoneNumber;
-            if (request.IsActive.HasValue)
-                user.IsActive = request.IsActive.Value;
-
-            var updatedUser = await _userService.UpdateUserAsync(user);
-
-            // Update roles if provided
-            if (request.Roles != null)
+            // Remove roles not in the new list
+            foreach (var currentRole in currentRoles)
             {
-                var currentRoles = await _userService.GetUserRolesAsync(id);
-
-                // Remove roles not in the new list
-                foreach (var currentRole in currentRoles)
+                if (!request.Roles.Contains(currentRole))
                 {
-                    if (!request.Roles.Contains(currentRole))
-                    {
-                        await _userService.RemoveRoleAsync(id, currentRole);
-                    }
-                }
-
-                // Add new roles
-                foreach (var newRole in request.Roles)
-                {
-                    if (!currentRoles.Contains(newRole))
-                    {
-                        await _userService.AssignRoleAsync(id, newRole);
-                    }
+                    await _userService.RemoveRoleAsync(id, currentRole);
                 }
             }
 
-            var roles = await _userService.GetUserRolesAsync(id);
-            var userDto = MapToUserProfileDto(updatedUser, roles);
+            // Add new roles
+            foreach (var newRole in request.Roles)
+            {
+                if (!currentRoles.Contains(newRole))
+                {
+                    await _userService.AssignRoleAsync(id, newRole);
+                }
+            }
+        }
 
-            return SuccessResponse(userDto, "User updated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(UpdateUser));
-        }
+        var roles = await _userService.GetUserRolesAsync(id);
+        var userDto = MapToUserProfileDto(updatedUser, roles);
+
+        return SuccessResponse(userDto, "User updated successfully");
     }
 
     /// <summary>
@@ -437,18 +356,11 @@ public class UsersController : BaseApiController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeactivateUser(int id)
     {
-        try
-        {
-            var success = await _userService.DeactivateUserAsync(id);
-            if (!success)
-                return ErrorResponse("User not found", 404);
+        var success = await _userService.DeactivateUserAsync(id);
+        if (!success)
+            return ErrorResponse("User not found", 404);
 
-            return SuccessResponse(new { deactivated = true }, "User deactivated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(DeactivateUser));
-        }
+        return SuccessResponse(new { deactivated = true }, "User deactivated successfully");
     }
 
     /// <summary>
@@ -460,21 +372,11 @@ public class UsersController : BaseApiController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AssignRole([FromBody] AssignRoleRequest request)
     {
-        try
-        {
-            var modelStateErrors = ValidateModelState();
-            if (modelStateErrors != null) return modelStateErrors;
+        var success = await _userService.AssignRoleAsync(request.UserId, request.RoleName);
+        if (!success)
+            return ErrorResponse("Failed to assign role");
 
-            var success = await _userService.AssignRoleAsync(request.UserId, request.RoleName);
-            if (!success)
-                return ErrorResponse("Failed to assign role");
-
-            return SuccessResponse(new { assigned = true }, "Role assigned successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(AssignRole));
-        }
+        return SuccessResponse(new { assigned = true }, "Role assigned successfully");
     }
 
     /// <summary>
@@ -487,18 +389,11 @@ public class UsersController : BaseApiController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RemoveRole(int userId, string roleName)
     {
-        try
-        {
-            var success = await _userService.RemoveRoleAsync(userId, roleName);
-            if (!success)
-                return ErrorResponse("Failed to remove role");
+        var success = await _userService.RemoveRoleAsync(userId, roleName);
+        if (!success)
+            return ErrorResponse("Failed to remove role");
 
-            return SuccessResponse(new { removed = true }, "Role removed successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(RemoveRole));
-        }
+        return SuccessResponse(new { removed = true }, "Role removed successfully");
     }
 
     #region Address Management Endpoints
@@ -511,21 +406,14 @@ public class UsersController : BaseApiController
     [HttpGet("{userId}/addresses")]
     public async Task<IActionResult> GetUserAddresses(int userId)
     {
-        try
-        {
-            var currentUserId = GetCurrentUserId();
-            if (!HasRole("Admin") && currentUserId != userId)
-                return ErrorResponse("Access denied", 403);
+        var currentUserId = GetCurrentUserId();
+        if (!HasRole("Admin") && currentUserId != userId)
+            return ErrorResponse("Access denied", 403);
 
-            var addresses = await _userService.GetUserAddressesAsync(userId);
-            var addressDtos = addresses.Select(MapToAddressDto).ToList();
+        var addresses = await _userService.GetUserAddressesAsync(userId);
+        var addressDtos = addresses.Select(MapToAddressDto).ToList();
 
-            return SuccessResponse(addressDtos);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetUserAddresses));
-        }
+        return SuccessResponse(addressDtos);
     }
 
     /// <summary>
@@ -537,44 +425,34 @@ public class UsersController : BaseApiController
     [HttpPost("{userId}/addresses")]
     public async Task<IActionResult> CreateUserAddress(int userId, [FromBody] CreateUserAddressRequest request)
     {
-        try
+        var currentUserId = GetCurrentUserId();
+        if (!HasRole("Admin") && currentUserId != userId)
+            return ErrorResponse("Access denied", 403);
+
+        // Verify user exists
+        var user = await _userService.GetByIdAsync(userId);
+        if (user == null)
+            return ErrorResponse("User not found", 404);
+
+        var address = new Core.Entities.Address
         {
-            var modelStateErrors = ValidateModelState();
-            if (modelStateErrors != null) return modelStateErrors;
+            UserId = userId,
+            FullName = request.FullName,
+            PhoneNumber = request.PhoneNumber,
+            Street = request.Street,
+            City = request.City,
+            Province = request.Province,
+            Ward = request.District, // District DTO maps to Ward entity
+            PostalCode = request.PostalCode,
+            Country = request.Country,
+            IsDefault = request.IsDefault
+        };
 
-            var currentUserId = GetCurrentUserId();
-            if (!HasRole("Admin") && currentUserId != userId)
-                return ErrorResponse("Access denied", 403);
+        var createdAddress = await _userService.CreateUserAddressAsync(address);
+        var addressDto = MapToAddressDto(createdAddress);
 
-            // Verify user exists
-            var user = await _userService.GetByIdAsync(userId);
-            if (user == null)
-                return ErrorResponse("User not found", 404);
-
-            var address = new Core.Entities.Address
-            {
-                UserId = userId,
-                FullName = request.FullName,
-                PhoneNumber = request.PhoneNumber,
-                Street = request.Street,
-                City = request.City,
-                Province = request.Province,
-                Ward = request.District, // District DTO maps to Ward entity
-                PostalCode = request.PostalCode,
-                Country = request.Country,
-                IsDefault = request.IsDefault
-            };
-
-            var createdAddress = await _userService.CreateUserAddressAsync(address);
-            var addressDto = MapToAddressDto(createdAddress);
-
-            return CreatedAtAction(nameof(GetUserAddresses), new { userId },
-                SuccessResponse(addressDto, "Address created successfully"));
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(CreateUserAddress));
-        }
+        return CreatedAtAction(nameof(GetUserAddresses), new { userId },
+            SuccessResponse(addressDto, "Address created successfully"));
     }
 
     /// <summary>
@@ -587,46 +465,36 @@ public class UsersController : BaseApiController
     [HttpPut("{userId}/addresses/{addressId}")]
     public async Task<IActionResult> UpdateUserAddress(int userId, int addressId, [FromBody] UpdateAddressRequest request)
     {
-        try
-        {
-            var modelStateErrors = ValidateModelState();
-            if (modelStateErrors != null) return modelStateErrors;
+        var currentUserId = GetCurrentUserId();
+        if (!HasRole("Admin") && currentUserId != userId)
+            return ErrorResponse("Access denied", 403);
 
-            var currentUserId = GetCurrentUserId();
-            if (!HasRole("Admin") && currentUserId != userId)
-                return ErrorResponse("Access denied", 403);
+        // Get the existing address to update
+        var existingAddresses = await _userService.GetUserAddressesAsync(userId);
+        var addressToUpdate = existingAddresses.FirstOrDefault(a => a.Id == addressId);
 
-            // Get the existing address to update
-            var existingAddresses = await _userService.GetUserAddressesAsync(userId);
-            var addressToUpdate = existingAddresses.FirstOrDefault(a => a.Id == addressId);
+        if (addressToUpdate == null)
+            return ErrorResponse("Address not found", 404);
 
-            if (addressToUpdate == null)
-                return ErrorResponse("Address not found", 404);
+        // Apply updates only for non-null values
+        // NOTE: In a real entity tracking scenario, we might iterate.
+        // Since this object comes from service (maybe detached), we just update props and call update.
+        addressToUpdate.FullName = request.FullName ?? addressToUpdate.FullName;
+        addressToUpdate.PhoneNumber = request.PhoneNumber ?? addressToUpdate.PhoneNumber;
+        addressToUpdate.Street = request.Street ?? addressToUpdate.Street;
+        addressToUpdate.City = request.City ?? addressToUpdate.City;
+        addressToUpdate.Province = request.Province ?? addressToUpdate.Province;
+        addressToUpdate.Ward = request.District ?? addressToUpdate.Ward;
+        addressToUpdate.PostalCode = request.PostalCode ?? addressToUpdate.PostalCode;
+        addressToUpdate.Country = request.Country ?? addressToUpdate.Country;
+        addressToUpdate.IsDefault = request.IsDefault ?? addressToUpdate.IsDefault;
+        
+        var result = await _userService.UpdateUserAddressAsync(addressToUpdate);
+        if (result == null)
+            return ErrorResponse("Address not found (during update)", 404);
 
-            // Apply updates only for non-null values
-            // NOTE: In a real entity tracking scenario, we might iterate.
-            // Since this object comes from service (maybe detached), we just update props and call update.
-            addressToUpdate.FullName = request.FullName ?? addressToUpdate.FullName;
-            addressToUpdate.PhoneNumber = request.PhoneNumber ?? addressToUpdate.PhoneNumber;
-            addressToUpdate.Street = request.Street ?? addressToUpdate.Street;
-            addressToUpdate.City = request.City ?? addressToUpdate.City;
-            addressToUpdate.Province = request.Province ?? addressToUpdate.Province;
-            addressToUpdate.Ward = request.District ?? addressToUpdate.Ward;
-            addressToUpdate.PostalCode = request.PostalCode ?? addressToUpdate.PostalCode;
-            addressToUpdate.Country = request.Country ?? addressToUpdate.Country;
-            addressToUpdate.IsDefault = request.IsDefault ?? addressToUpdate.IsDefault;
-            
-            var result = await _userService.UpdateUserAddressAsync(addressToUpdate);
-            if (result == null)
-                return ErrorResponse("Address not found (during update)", 404);
-
-            var addressDto = MapToAddressDto(result);
-            return SuccessResponse(addressDto, "Address updated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(UpdateUserAddress));
-        }
+        var addressDto = MapToAddressDto(result);
+        return SuccessResponse(addressDto, "Address updated successfully");
     }
 
     /// <summary>
@@ -638,22 +506,15 @@ public class UsersController : BaseApiController
     [HttpDelete("{userId}/addresses/{addressId}")]
     public async Task<IActionResult> DeleteUserAddress(int userId, int addressId)
     {
-        try
-        {
-            var currentUserId = GetCurrentUserId();
-            if (!HasRole("Admin") && currentUserId != userId)
-                return ErrorResponse("Access denied", 403);
+        var currentUserId = GetCurrentUserId();
+        if (!HasRole("Admin") && currentUserId != userId)
+            return ErrorResponse("Access denied", 403);
 
-            var success = await _userService.DeleteUserAddressAsync(userId, addressId);
-            if (!success)
-                return ErrorResponse("Address not found", 404);
+        var success = await _userService.DeleteUserAddressAsync(userId, addressId);
+        if (!success)
+            return ErrorResponse("Address not found", 404);
 
-            return SuccessResponse(new { deleted = true }, "Address deleted successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(DeleteUserAddress));
-        }
+        return SuccessResponse(new { deleted = true }, "Address deleted successfully");
     }
 
     /// <summary>
@@ -665,22 +526,15 @@ public class UsersController : BaseApiController
     [HttpPatch("{userId}/addresses/{addressId}/default")]
     public async Task<IActionResult> SetDefaultAddress(int userId, int addressId)
     {
-        try
-        {
-            var currentUserId = GetCurrentUserId();
-            if (!HasRole("Admin") && currentUserId != userId)
-                return ErrorResponse("Access denied", 403);
+        var currentUserId = GetCurrentUserId();
+        if (!HasRole("Admin") && currentUserId != userId)
+            return ErrorResponse("Access denied", 403);
 
-            var success = await _userService.SetDefaultAddressAsync(userId, addressId);
-            if (!success)
-                return ErrorResponse("Address not found", 404);
+        var success = await _userService.SetDefaultAddressAsync(userId, addressId);
+        if (!success)
+            return ErrorResponse("Address not found", 404);
 
-            return SuccessResponse(new { defaultSet = true }, "Default address updated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(SetDefaultAddress));
-        }
+        return SuccessResponse(new { defaultSet = true }, "Default address updated successfully");
     }
 
     /// <summary>
@@ -691,15 +545,8 @@ public class UsersController : BaseApiController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetUserStatistics()
     {
-        try
-        {
-            var statistics = await _userService.GetUserStatisticsAsync();
-            return SuccessResponse(statistics);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetUserStatistics));
-        }
+        var statistics = await _userService.GetUserStatisticsAsync();
+        return SuccessResponse(statistics);
     }
 
     #endregion

@@ -17,19 +17,13 @@ namespace EcommerceLaptop.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class PaymentController : BaseApiController
+public class PaymentController(
+    IPaymentOrchestrator paymentOrchestrator,
+    IOrderService orderService,
+    ILogger<PaymentController> logger) : BaseApiController(logger)
 {
-    private readonly IPaymentOrchestrator _paymentOrchestrator;
-    private readonly IOrderService _orderService;
-
-    public PaymentController(
-        IPaymentOrchestrator paymentOrchestrator,
-        IOrderService orderService,
-        ILogger<PaymentController> logger) : base(logger)
-    {
-        _paymentOrchestrator = paymentOrchestrator;
-        _orderService = orderService;
-    }
+    private readonly IPaymentOrchestrator _paymentOrchestrator = paymentOrchestrator;
+    private readonly IOrderService _orderService = orderService;
 
     /// <summary>
     /// Initialize payment for an order using the specified gateway
@@ -44,14 +38,7 @@ public class PaymentController : BaseApiController
     public async Task<ActionResult<PaymentInitializationResult>> InitializePayment(
         [FromBody] InitializePaymentApiRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
             if (!userId.HasValue)
             {
                 return Unauthorized("User authentication required");
@@ -120,18 +107,6 @@ public class PaymentController : BaseApiController
                     Status = StatusCodes.Status400BadRequest
                 });
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error initializing payment for order {OrderId}", request.OrderId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new ProblemDetails
-                {
-                    Title = "Internal server error",
-                    Detail = "An error occurred while processing your payment request",
-                    Status = StatusCodes.Status500InternalServerError
-                });
-        }
     }
 
     /// <summary>
@@ -149,14 +124,7 @@ public class PaymentController : BaseApiController
     public async Task<ActionResult<PaymentInitializationResult>> RetryPayment(
         [FromBody] RetryPaymentRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
             if (!userId.HasValue)
             {
                 return Unauthorized("User authentication required");
@@ -270,18 +238,6 @@ public class PaymentController : BaseApiController
                     Status = StatusCodes.Status400BadRequest
                 });
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrying payment for order {OrderId}", request.OrderId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new ProblemDetails
-                {
-                    Title = "Internal server error",
-                    Detail = "An error occurred while retrying your payment",
-                    Status = StatusCodes.Status500InternalServerError
-                });
-        }
     }
 
     /// <summary>
@@ -297,14 +253,7 @@ public class PaymentController : BaseApiController
     public async Task<ActionResult<PaymentResult>> CompletePayment(
         [FromBody] CompletePaymentRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
             if (!userId.HasValue)
             {
                 return Unauthorized("User authentication required");
@@ -332,18 +281,6 @@ public class PaymentController : BaseApiController
                     Status = StatusCodes.Status400BadRequest
                 });
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error completing payment for order {OrderId}", request.OrderId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new ProblemDetails
-                {
-                    Title = "Internal server error",
-                    Detail = "An error occurred while completing your payment",
-                    Status = StatusCodes.Status500InternalServerError
-                });
-        }
     }
 
     /// <summary>
@@ -359,14 +296,7 @@ public class PaymentController : BaseApiController
     public async Task<ActionResult<PaymentResult>> CapturePayPalPayment(
         [FromBody] CapturePayPalPaymentRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
             if (!userId.HasValue)
             {
                 return Unauthorized("User authentication required");
@@ -407,18 +337,6 @@ public class PaymentController : BaseApiController
                     Status = StatusCodes.Status400BadRequest
                 });
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error capturing PayPal payment for order {OrderId}", request.OrderId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new ProblemDetails
-                {
-                    Title = "Internal server error",
-                    Detail = "An error occurred while capturing PayPal payment",
-                    Status = StatusCodes.Status500InternalServerError
-                });
-        }
     }
 
     /// <summary>
@@ -438,14 +356,7 @@ public class PaymentController : BaseApiController
         int paymentId,
         [FromBody] ProcessRefundApiRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
             if (!userId.HasValue)
             {
                 return Unauthorized("User authentication required");
@@ -479,18 +390,6 @@ public class PaymentController : BaseApiController
                     Status = StatusCodes.Status400BadRequest
                 });
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing refund for payment {PaymentId}", paymentId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new ProblemDetails
-                {
-                    Title = "Internal server error",
-                    Detail = "An error occurred while processing the refund",
-                    Status = StatusCodes.Status500InternalServerError
-                });
-        }
     }
 
     /// <summary>
@@ -505,9 +404,7 @@ public class PaymentController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PaymentStatusResult>> GetPaymentStatus(int paymentId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
             if (!userId.HasValue)
             {
                 return Unauthorized("User authentication required");
@@ -533,18 +430,6 @@ public class PaymentController : BaseApiController
                     Status = StatusCodes.Status404NotFound
                 });
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting payment status for payment {PaymentId}", paymentId);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new ProblemDetails
-                {
-                    Title = "Internal server error",
-                    Detail = "An error occurred while retrieving payment status",
-                    Status = StatusCodes.Status500InternalServerError
-                });
-        }
     }
 
     /// <summary>
@@ -564,9 +449,7 @@ public class PaymentController : BaseApiController
         [FromQuery, Required] string currency,
         [FromQuery, Required] decimal amount)
     {
-        try
-        {
-            if (amount <= 0)
+        if (amount <= 0)
             {
                 return BadRequest(new ValidationProblemDetails
                 {
@@ -590,18 +473,6 @@ public class PaymentController : BaseApiController
             var methods = await _paymentOrchestrator.GetAvailablePaymentMethodsAsync(gateway, currency, amount);
 
             return Ok(methods);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting available payment methods for gateway {Gateway}", gateway);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new ProblemDetails
-                {
-                    Title = "Internal server error",
-                    Detail = "An error occurred while retrieving payment methods",
-                    Status = StatusCodes.Status500InternalServerError
-                });
-        }
     }
 
     /// <summary>
@@ -618,9 +489,7 @@ public class PaymentController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GetGatewayHealth([FromQuery] PaymentGateway? gateway = null)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId();
             if (!userId.HasValue)
             {
                 return Unauthorized("User authentication required");
@@ -649,18 +518,6 @@ public class PaymentController : BaseApiController
 
                 return Ok(healthResults);
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting gateway health status");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new ProblemDetails
-                {
-                    Title = "Internal server error",
-                    Detail = "An error occurred while checking gateway health",
-                    Status = StatusCodes.Status500InternalServerError
-                });
-        }
     }
 
     /// <summary>
@@ -675,9 +532,7 @@ public class PaymentController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> ProcessWebhook(PaymentGateway gateway)
     {
-        try
-        {
-            _logger.LogInformation("Received webhook from gateway {Gateway}", gateway);
+        _logger.LogInformation("Received webhook from gateway {Gateway}", gateway);
 
             // Read the raw request body
             string payload;
@@ -709,12 +564,6 @@ public class PaymentController : BaseApiController
                     gateway, result.ErrorMessage);
                 return BadRequest(result.ErrorMessage);
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing webhook for gateway {Gateway}", gateway);
-            return StatusCode(StatusCodes.Status500InternalServerError, "Webhook processing failed");
-        }
     }
 }
 

@@ -12,15 +12,10 @@ namespace EcommerceLaptop.API.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class ReviewsController : BaseApiController
+public class ReviewsController(IReviewService reviewService, ILogger<ReviewsController> logger)
+    : BaseApiController(logger)
 {
-    private readonly IReviewService _reviewService;
-
-    public ReviewsController(IReviewService reviewService, ILogger<ReviewsController> logger)
-        : base(logger)
-    {
-        _reviewService = reviewService;
-    }
+    private readonly IReviewService _reviewService = reviewService;
 
     /// <summary>
     /// Get paginated reviews for a specific product
@@ -43,37 +38,29 @@ public class ReviewsController : BaseApiController
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        try
+        var filter = new ReviewFilterDto
         {
-            var filter = new ReviewFilterDto
-            {
-                Rating = rating,
-                VerifiedPurchaseOnly = verifiedOnly,
-                SortBy = sortBy,
-                SortOrder = sortOrder,
-                Page = page,
-                PageSize = Math.Min(pageSize, 50) // Limit max page size
-            };
+            Rating = rating,
+            VerifiedPurchaseOnly = verifiedOnly,
+            SortBy = sortBy,
+            SortOrder = sortOrder,
+            Page = page,
+            PageSize = Math.Min(pageSize, 50) // Limit max page size
+        };
 
-            var result = await _reviewService.GetProductReviewsAsync(productId, filter);
+        var result = await _reviewService.GetProductReviewsAsync(productId, filter);
 
-            // Set permission flags based on current user
-            var currentUserId = GetCurrentUserId();
-            var isAdmin = IsAdmin();
+        // Set permission flags based on current user
+        var currentUserId = GetCurrentUserId();
+        var isAdmin = IsAdmin();
 
-            foreach (var review in result.Reviews)
-            {
-                review.CanEdit = currentUserId.HasValue && review.UserId == currentUserId.Value;
-                review.CanDelete = currentUserId.HasValue && (review.UserId == currentUserId.Value || isAdmin);
-            }
-
-            return Ok(new { success = true, data = result });
-        }
-        catch (Exception ex)
+        foreach (var review in result.Reviews)
         {
-            _logger.LogError(ex, "Error getting reviews for product {ProductId}", productId);
-            return StatusCode(500, new { success = false, message = "Internal server error" });
+            review.CanEdit = currentUserId.HasValue && review.UserId == currentUserId.Value;
+            review.CanDelete = currentUserId.HasValue && (review.UserId == currentUserId.Value || isAdmin);
         }
+
+        return Ok(new { success = true, data = result });
     }
 
     /// <summary>
@@ -83,16 +70,8 @@ public class ReviewsController : BaseApiController
     [AllowAnonymous]
     public async Task<ActionResult<ReviewSummaryDto>> GetProductReviewSummary(int productId)
     {
-        try
-        {
-            var summary = await _reviewService.GetProductReviewSummaryAsync(productId);
-            return Ok(new { success = true, data = summary });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting review summary for product {ProductId}", productId);
-            return StatusCode(500, new { success = false, message = "Internal server error" });
-        }
+        var summary = await _reviewService.GetProductReviewSummaryAsync(productId);
+        return Ok(new { success = true, data = summary });
     }
 
     /// <summary>
@@ -102,23 +81,15 @@ public class ReviewsController : BaseApiController
     [AllowAnonymous]
     public async Task<ActionResult<ReviewDto>> GetReview(int reviewId)
     {
-        try
-        {
-            var currentUserId = GetCurrentUserId();
-            var review = await _reviewService.GetReviewByIdAsync(reviewId, currentUserId);
+        var currentUserId = GetCurrentUserId();
+        var review = await _reviewService.GetReviewByIdAsync(reviewId, currentUserId);
 
-            if (review == null)
-            {
-                return NotFound(new { success = false, message = "Review not found" });
-            }
-
-            return Ok(new { success = true, data = review });
-        }
-        catch (Exception ex)
+        if (review == null)
         {
-            _logger.LogError(ex, "Error getting review {ReviewId}", reviewId);
-            return StatusCode(500, new { success = false, message = "Internal server error" });
+            return NotFound(new { success = false, message = "Review not found" });
         }
+
+        return Ok(new { success = true, data = review });
     }
 
     /// <summary>
@@ -128,43 +99,31 @@ public class ReviewsController : BaseApiController
     [Authorize]
     public async Task<ActionResult<ReviewDto>> CreateReview([FromBody] CreateReviewDto createReviewDto)
     {
-        try
+        var currentUserId = GetCurrentUserId();
+        if (!currentUserId.HasValue)
         {
-            var currentUserId = GetCurrentUserId();
-            if (!currentUserId.HasValue)
-            {
-                return Unauthorized(new { success = false, message = "User not authenticated" });
-            }
-
-            // Validate rating range
-            if (createReviewDto.Rating < 1 || createReviewDto.Rating > 5)
-            {
-                return BadRequest(new { success = false, message = "Rating must be between 1 and 5" });
-            }
-
-            // Check if user can review this product
-            var canReview = await _reviewService.CanUserReviewProductAsync(createReviewDto.ProductId, currentUserId.Value);
-            if (!canReview)
-            {
-                return BadRequest(new { success = false, message = "You have already reviewed this product or product does not exist" });
-            }
-
-            var review = await _reviewService.CreateReviewAsync(createReviewDto, currentUserId.Value);
-
-            _logger.LogInformation("User {UserId} created review for product {ProductId}", currentUserId.Value, createReviewDto.ProductId);
-
-            return CreatedAtAction(nameof(GetReview), new { reviewId = review.Id },
-                new { success = true, data = review });
+            return Unauthorized(new { success = false, message = "User not authenticated" });
         }
-        catch (InvalidOperationException ex)
+
+        // Validate rating range
+        if (createReviewDto.Rating < 1 || createReviewDto.Rating > 5)
         {
-            return BadRequest(new { success = false, message = ex.Message });
+            return BadRequest(new { success = false, message = "Rating must be between 1 and 5" });
         }
-        catch (Exception ex)
+
+        // Check if user can review this product
+        var canReview = await _reviewService.CanUserReviewProductAsync(createReviewDto.ProductId, currentUserId.Value);
+        if (!canReview)
         {
-            _logger.LogError(ex, "Error creating review for product {ProductId}", createReviewDto.ProductId);
-            return StatusCode(500, new { success = false, message = "Internal server error" });
+            return BadRequest(new { success = false, message = "You have already reviewed this product or product does not exist" });
         }
+
+        var review = await _reviewService.CreateReviewAsync(createReviewDto, currentUserId.Value);
+
+        _logger.LogInformation("User {UserId} created review for product {ProductId}", currentUserId.Value, createReviewDto.ProductId);
+
+        return CreatedAtAction(nameof(GetReview), new { reviewId = review.Id },
+            new { success = true, data = review });
     }
 
     /// <summary>
@@ -174,39 +133,23 @@ public class ReviewsController : BaseApiController
     [Authorize]
     public async Task<ActionResult<ReviewDto>> UpdateReview(int reviewId, [FromBody] UpdateReviewDto updateReviewDto)
     {
-        try
+        var currentUserId = GetCurrentUserId();
+        if (!currentUserId.HasValue)
         {
-            var currentUserId = GetCurrentUserId();
-            if (!currentUserId.HasValue)
-            {
-                return Unauthorized(new { success = false, message = "User not authenticated" });
-            }
-
-            // Validate rating range
-            if (updateReviewDto.Rating < 1 || updateReviewDto.Rating > 5)
-            {
-                return BadRequest(new { success = false, message = "Rating must be between 1 and 5" });
-            }
-
-            var review = await _reviewService.UpdateReviewAsync(reviewId, updateReviewDto, currentUserId.Value);
-
-            _logger.LogInformation("User {UserId} updated review {ReviewId}", currentUserId.Value, reviewId);
-
-            return Ok(new { success = true, data = review });
+            return Unauthorized(new { success = false, message = "User not authenticated" });
         }
-        catch (InvalidOperationException ex)
+
+        // Validate rating range
+        if (updateReviewDto.Rating < 1 || updateReviewDto.Rating > 5)
         {
-            return NotFound(new { success = false, message = ex.Message });
+            return BadRequest(new { success = false, message = "Rating must be between 1 and 5" });
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating review {ReviewId}", reviewId);
-            return StatusCode(500, new { success = false, message = "Internal server error" });
-        }
+
+        var review = await _reviewService.UpdateReviewAsync(reviewId, updateReviewDto, currentUserId.Value);
+
+        _logger.LogInformation("User {UserId} updated review {ReviewId}", currentUserId.Value, reviewId);
+
+        return Ok(new { success = true, data = review });
     }
 
     /// <summary>
@@ -216,35 +159,23 @@ public class ReviewsController : BaseApiController
     [Authorize]
     public async Task<ActionResult> DeleteReview(int reviewId)
     {
-        try
+        var currentUserId = GetCurrentUserId();
+        if (!currentUserId.HasValue)
         {
-            var currentUserId = GetCurrentUserId();
-            if (!currentUserId.HasValue)
-            {
-                return Unauthorized(new { success = false, message = "User not authenticated" });
-            }
-
-            var isAdmin = IsAdmin();
-            var deleted = await _reviewService.DeleteReviewAsync(reviewId, currentUserId.Value, isAdmin);
-
-            if (!deleted)
-            {
-                return NotFound(new { success = false, message = "Review not found" });
-            }
-
-            _logger.LogInformation("User {UserId} deleted review {ReviewId}", currentUserId.Value, reviewId);
-
-            return Ok(new { success = true, message = "Review deleted successfully" });
+            return Unauthorized(new { success = false, message = "User not authenticated" });
         }
-        catch (UnauthorizedAccessException ex)
+
+        var isAdmin = IsAdmin();
+        var deleted = await _reviewService.DeleteReviewAsync(reviewId, currentUserId.Value, isAdmin);
+
+        if (!deleted)
         {
-            return Forbid(ex.Message);
+            return NotFound(new { success = false, message = "Review not found" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting review {ReviewId}", reviewId);
-            return StatusCode(500, new { success = false, message = "Internal server error" });
-        }
+
+        _logger.LogInformation("User {UserId} deleted review {ReviewId}", currentUserId.Value, reviewId);
+
+        return Ok(new { success = true, message = "Review deleted successfully" });
     }
 
     /// <summary>
@@ -256,23 +187,15 @@ public class ReviewsController : BaseApiController
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        try
+        var currentUserId = GetCurrentUserId();
+        if (!currentUserId.HasValue)
         {
-            var currentUserId = GetCurrentUserId();
-            if (!currentUserId.HasValue)
-            {
-                return Unauthorized(new { success = false, message = "User not authenticated" });
-            }
-
-            var reviews = await _reviewService.GetUserReviewsAsync(currentUserId.Value, page, Math.Min(pageSize, 50));
-
-            return Ok(new { success = true, data = reviews });
+            return Unauthorized(new { success = false, message = "User not authenticated" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting user reviews for user {UserId}", GetCurrentUserId());
-            return StatusCode(500, new { success = false, message = "Internal server error" });
-        }
+
+        var reviews = await _reviewService.GetUserReviewsAsync(currentUserId.Value, page, Math.Min(pageSize, 50));
+
+        return Ok(new { success = true, data = reviews });
     }
 
     /// <summary>
@@ -282,31 +205,23 @@ public class ReviewsController : BaseApiController
     [Authorize]
     public async Task<ActionResult<object>> CanReviewProduct(int productId)
     {
-        try
+        var currentUserId = GetCurrentUserId();
+        if (!currentUserId.HasValue)
         {
-            var currentUserId = GetCurrentUserId();
-            if (!currentUserId.HasValue)
-            {
-                return Unauthorized(new { success = false, message = "User not authenticated" });
-            }
-
-            var canReview = await _reviewService.CanUserReviewProductAsync(productId, currentUserId.Value);
-            var hasReviewed = await _reviewService.HasUserReviewedProductAsync(productId, currentUserId.Value);
-
-            var result = new
-            {
-                canReview = canReview,
-                hasReviewed = hasReviewed,
-                existingReview = hasReviewed ? await _reviewService.GetUserReviewForProductAsync(productId, currentUserId.Value) : null
-            };
-
-            return Ok(new { success = true, data = result });
+            return Unauthorized(new { success = false, message = "User not authenticated" });
         }
-        catch (Exception ex)
+
+        var canReview = await _reviewService.CanUserReviewProductAsync(productId, currentUserId.Value);
+        var hasReviewed = await _reviewService.HasUserReviewedProductAsync(productId, currentUserId.Value);
+
+        var result = new
         {
-            _logger.LogError(ex, "Error checking review eligibility for product {ProductId}", productId);
-            return StatusCode(500, new { success = false, message = "Internal server error" });
-        }
+            canReview = canReview,
+            hasReviewed = hasReviewed,
+            existingReview = hasReviewed ? await _reviewService.GetUserReviewForProductAsync(productId, currentUserId.Value) : null
+        };
+
+        return Ok(new { success = true, data = result });
     }
 
     /// <summary>

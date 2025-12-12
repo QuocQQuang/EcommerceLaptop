@@ -11,15 +11,9 @@ namespace EcommerceLaptop.API.Controllers;
 /// </summary>
 [Route("api/admin/[controller]")]
 [ApiController]
-public class BrandsController : BaseApiController
+public class BrandsController(IBrandService brandService, ILogger<BrandsController> logger) : BaseApiController(logger)
 {
-    private readonly IBrandService _brandService;
-
-    public BrandsController(IBrandService brandService, ILogger<BrandsController> logger)
-        : base(logger)
-    {
-        _brandService = brandService;
-    }
+    private readonly IBrandService _brandService = brandService;
 
     /// <summary>
     /// Get all brands with product counts (Admin only)
@@ -106,33 +100,25 @@ public class BrandsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:write")]
     public async Task<IActionResult> CreateBrand([FromBody] CreateBrandRequest request)
     {
-        try
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var brand = new ProductBrand
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            Name = request.Name,
+            Slug = request.Slug,
+            Description = request.Description,
+            LogoUrl = request.LogoUrl,
+            Website = request.WebsiteUrl,
+            IsActive = request.IsActive
+        };
 
-            var brand = new ProductBrand
-            {
-                Name = request.Name,
-                Slug = request.Slug,
-                Description = request.Description,
-                LogoUrl = request.LogoUrl,
-                Website = request.WebsiteUrl,
-                IsActive = request.IsActive
-            };
+        var result = await _brandService.CreateBrandAsync(brand);
 
-            var result = await _brandService.CreateBrandAsync(brand);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return CreatedAtAction(nameof(GetBrand), new { id = result.Data.Id }, result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating brand");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return CreatedAtAction(nameof(GetBrand), new { id = result.Data.Id }, result.Data);
     }
 
     /// <summary>
@@ -142,34 +128,26 @@ public class BrandsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:write")]
     public async Task<IActionResult> UpdateBrand(int id, [FromBody] CreateBrandRequest request)
     {
-        try
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var brand = new ProductBrand
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            Id = id,
+            Name = request.Name,
+            Slug = request.Slug,
+            Description = request.Description,
+            LogoUrl = request.LogoUrl,
+            Website = request.WebsiteUrl,
+            IsActive = request.IsActive
+        };
 
-            var brand = new ProductBrand
-            {
-                Id = id,
-                Name = request.Name,
-                Slug = request.Slug,
-                Description = request.Description,
-                LogoUrl = request.LogoUrl,
-                Website = request.WebsiteUrl,
-                IsActive = request.IsActive
-            };
+        var result = await _brandService.UpdateBrandAsync(brand);
 
-            var result = await _brandService.UpdateBrandAsync(brand);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating brand with ID {BrandId}", id);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -179,20 +157,12 @@ public class BrandsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:delete")]
     public async Task<IActionResult> DeleteBrand(int id)
     {
-        try
-        {
-            var result = await _brandService.DeleteBrandAsync(id);
+        var result = await _brandService.DeleteBrandAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { message = "Brand deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting brand with ID {BrandId}", id);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(new { message = "Brand deleted successfully" });
     }
 
     /// <summary>
@@ -202,16 +172,8 @@ public class BrandsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:read")]
     public async Task<IActionResult> CheckSlugUnique(string slug, [FromQuery] int? excludeId = null)
     {
-        try
-        {
-            var isUnique = await _brandService.IsSlugUniqueAsync(slug, excludeId);
-            return Ok(new { isUnique });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error checking brand slug uniqueness");
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        var isUnique = await _brandService.IsSlugUniqueAsync(slug, excludeId);
+        return Ok(new { isUnique });
     }
 
     /// <summary>
@@ -221,20 +183,12 @@ public class BrandsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> ReassignAndDeleteBrand(int brandIdToDelete, [FromBody] ReassignBrandRequest request)
     {
-        try
-        {
-            var result = await _brandService.ReassignProductsAndDeleteBrandAsync(brandIdToDelete, request.NewBrandId);
+        var result = await _brandService.ReassignProductsAndDeleteBrandAsync(brandIdToDelete, request.NewBrandId);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { message = "Products reassigned and brand deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reassigning products and deleting brand with ID {BrandId}", brandIdToDelete);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(new { message = "Products reassigned and brand deleted successfully" });
     }
 
     /// <summary>
@@ -244,20 +198,12 @@ public class BrandsController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> ForceDeleteBrand(int id)
     {
-        try
-        {
-            var result = await _brandService.ForceDeleteBrandAsync(id);
+        var result = await _brandService.ForceDeleteBrandAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { message = "Brand force deleted and associated products deactivated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error force deleting brand with ID {BrandId}", id);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(new { message = "Brand force deleted and associated products deactivated successfully" });
     }
 }
 

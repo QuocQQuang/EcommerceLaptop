@@ -16,19 +16,13 @@ namespace EcommerceLaptop.API.Controllers;
 /// </summary>
 [Route("api/auth")]
 [ApiController]
-public class AuthController : BaseApiController
+public class AuthController(
+    IAuthService authService,
+    IAuditLoggingService auditLoggingService,
+    ILogger<AuthController> logger) : BaseApiController(logger)
 {
-    private readonly IAuthService _authService;
-    private readonly IAuditLoggingService _auditLoggingService;
-
-    public AuthController(
-        IAuthService authService,
-        IAuditLoggingService auditLoggingService,
-        ILogger<AuthController> logger) : base(logger)
-    {
-        _authService = authService;
-        _auditLoggingService = auditLoggingService;
-    }
+    private readonly IAuthService _authService = authService;
+    private readonly IAuditLoggingService _auditLoggingService = auditLoggingService;
 
     /// <summary>
     /// Universal login endpoint supporting all user types
@@ -41,83 +35,72 @@ public class AuthController : BaseApiController
     [EnableRateLimiting("AdminAuthPolicy")]
     public async Task<IActionResult> Login([FromBody] UnifiedLoginRequest request)
     {
-        try
+        // Default to Customer context if not specified
+        var context = request.Context ?? AuthContext.Customer;
+
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+        _logger.LogInformation(" UNIFIED LOGIN ATTEMPT - Email: {Email} | Context: {Context} | IP: {IP}",
+            request.Email, context, ipAddress);
+
+        var result = await _authService.AuthenticateAsync(
+            request.Email,
+            request.Password,
+            context,
+            ipAddress,
+            userAgent);
+
+        if (result == null || !result.Success)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            _logger.LogWarning(" UNIFIED LOGIN FAILED - Email: {Email} | Context: {Context}",
+                request.Email, context);
 
-            // Default to Customer context if not specified
-            var context = request.Context ?? AuthContext.Customer;
+            // Log failed login as security event
+            await _auditLoggingService.LogSecurityEventAsync(
+                "failed_login",
+                $"Failed login attempt for email: {request.Email}",
+                ipAddress ?? "Unknown",
+                correlationId: Guid.NewGuid().ToString()
+            );
 
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-            _logger.LogInformation(" UNIFIED LOGIN ATTEMPT - Email: {Email} | Context: {Context} | IP: {IP}",
-                request.Email, context, ipAddress);
-
-            var result = await _authService.AuthenticateAsync(
-                request.Email,
-                request.Password,
-                context,
-                ipAddress,
-                userAgent);
-
-            if (result == null || !result.Success)
+            return Unauthorized(new
             {
-                _logger.LogWarning(" UNIFIED LOGIN FAILED - Email: {Email} | Context: {Context}",
-                    request.Email, context);
-
-                // Log failed login as security event
-                await _auditLoggingService.LogSecurityEventAsync(
-                    "failed_login",
-                    $"Failed login attempt for email: {request.Email}",
-                    ipAddress ?? "Unknown",
-                    correlationId: Guid.NewGuid().ToString()
-                );
-
-                return Unauthorized(new
-                {
-                    success = false,
-                    error = result?.ErrorMessage ?? "Authentication failed"
-                });
-            }
-
-            _logger.LogInformation(" UNIFIED LOGIN SUCCESS - Email: {Email} | Context: {Context} | UserType: {UserType}",
-                request.Email, context, result.User?.UserType);
-
-            // Log successful login based on context
-            if (context == AuthContext.Admin && result.User != null)
-            {
-                await _auditLoggingService.LogAdminActivityAsync(
-                    result.User.Id,
-                    "admin_login",
-                    $"Admin login successful for email: {request.Email}",
-                    ipAddress ?? "Unknown",
-                    userAgent ?? "Unknown"
-                );
-            }
-            else if (result.User != null)
-            {
-                await _auditLoggingService.LogUserActivityAsync(
-                    result.User.Id,
-                    "login",
-                    $"User login successful for email: {request.Email}",
-                    ipAddress ?? "Unknown",
-                    userAgent ?? "Unknown"
-                );
-            }
-
-            return Ok(new
-            {
-                success = true,
-                data = result
+                success = false,
+                error = result?.ErrorMessage ?? "Authentication failed"
             });
         }
-        catch (Exception ex)
+
+        _logger.LogInformation(" UNIFIED LOGIN SUCCESS - Email: {Email} | Context: {Context} | UserType: {UserType}",
+            request.Email, context, result.User?.UserType);
+
+        // Log successful login based on context
+        if (context == AuthContext.Admin && result.User != null)
         {
-            _logger.LogError(ex, " UNIFIED LOGIN ERROR - Email: {Email}", request.Email);
-            return StatusCode(500, new { error = "An error occurred during login" });
+            await _auditLoggingService.LogAdminActivityAsync(
+                result.User.Id,
+                "admin_login",
+                $"Admin login successful for email: {request.Email}",
+                ipAddress ?? "Unknown",
+                userAgent ?? "Unknown"
+            );
         }
+        else if (result.User != null)
+        {
+            await _auditLoggingService.LogUserActivityAsync(
+                result.User.Id,
+                "login",
+                $"User login successful for email: {request.Email}",
+                ipAddress ?? "Unknown",
+                userAgent ?? "Unknown"
+            );
+        }
+
+        return Ok(new
+        {
+            success = true,
+            data = result
+        });
     }
 
     /// <summary>
@@ -129,41 +112,30 @@ public class AuthController : BaseApiController
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
-        try
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+        _logger.LogInformation(" UNIFIED REFRESH ATTEMPT - Context: {Context}", request.Context);
+
+        var result = await _authService.RefreshTokenAsync(
+            request.RefreshToken,
+            request.Context,
+            ipAddress,
+            userAgent);
+
+        if (result == null || !result.Success)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-            _logger.LogInformation(" UNIFIED REFRESH ATTEMPT - Context: {Context}", request.Context);
-
-            var result = await _authService.RefreshTokenAsync(
-                request.RefreshToken,
-                request.Context,
-                ipAddress,
-                userAgent);
-
-            if (result == null || !result.Success)
-            {
-                _logger.LogWarning(" UNIFIED REFRESH FAILED - Context: {Context}", request.Context);
-                return Unauthorized(new { error = result?.ErrorMessage ?? "Token refresh failed" });
-            }
-
-            _logger.LogInformation(" UNIFIED REFRESH SUCCESS - Context: {Context}", request.Context);
-
-            return Ok(new
-            {
-                success = true,
-                data = result
-            });
+            _logger.LogWarning(" UNIFIED REFRESH FAILED - Context: {Context}", request.Context);
+            return Unauthorized(new { error = result?.ErrorMessage ?? "Token refresh failed" });
         }
-        catch (Exception ex)
+
+        _logger.LogInformation(" UNIFIED REFRESH SUCCESS - Context: {Context}", request.Context);
+
+        return Ok(new
         {
-            _logger.LogError(ex, " UNIFIED REFRESH ERROR");
-            return StatusCode(500, new { error = "An error occurred during token refresh" });
-        }
+            success = true,
+            data = result
+        });
     }
 
     /// <summary>
@@ -176,62 +148,54 @@ public class AuthController : BaseApiController
     [Authorize]
     public async Task<IActionResult> Logout([FromBody] LogoutRequest? request = null)
     {
-        try
+        var userId = GetCurrentUserId();
+        if (userId == null)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
+            return Unauthorized(new { error = "Unable to identify user" });
+        }
+
+        var context = GetCurrentUserContext(); // Helper method to determine context from token
+
+        _logger.LogInformation(" UNIFIED LOGOUT ATTEMPT - UserId: {UserId} | Context: {Context}",
+            userId, context);
+
+        var result = await _authService.LogoutAsync(userId.Value, context, request?.RefreshToken);
+
+        if (result)
+        {
+            _logger.LogInformation(" UNIFIED LOGOUT SUCCESS - UserId: {UserId}", userId);
+
+            // Log successful logout based on context
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+            if (context == AuthContext.Admin)
             {
-                return Unauthorized(new { error = "Unable to identify user" });
-            }
-
-            var context = GetCurrentUserContext(); // Helper method to determine context from token
-
-            _logger.LogInformation(" UNIFIED LOGOUT ATTEMPT - UserId: {UserId} | Context: {Context}",
-                userId, context);
-
-            var result = await _authService.LogoutAsync(userId.Value, context, request?.RefreshToken);
-
-            if (result)
-            {
-                _logger.LogInformation(" UNIFIED LOGOUT SUCCESS - UserId: {UserId}", userId);
-
-                // Log successful logout based on context
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-                if (context == AuthContext.Admin)
-                {
-                    await _auditLoggingService.LogAdminActivityAsync(
-                        userId.Value,
-                        "admin_logout",
-                        $"Admin logout successful for userId: {userId}",
-                        ipAddress ?? "Unknown",
-                        userAgent ?? "Unknown"
-                    );
-                }
-                else
-                {
-                    await _auditLoggingService.LogUserActivityAsync(
-                        userId.Value,
-                        "logout",
-                        $"User logout successful for userId: {userId}",
-                        ipAddress ?? "Unknown",
-                        userAgent ?? "Unknown"
-                    );
-                }
-
-                return Ok(new { success = true, message = "Logged out successfully" });
+                await _auditLoggingService.LogAdminActivityAsync(
+                    userId.Value,
+                    "admin_logout",
+                    $"Admin logout successful for userId: {userId}",
+                    ipAddress ?? "Unknown",
+                    userAgent ?? "Unknown"
+                );
             }
             else
             {
-                _logger.LogWarning(" UNIFIED LOGOUT FAILED - UserId: {UserId}", userId);
-                return BadRequest(new { error = "Logout failed" });
+                await _auditLoggingService.LogUserActivityAsync(
+                    userId.Value,
+                    "logout",
+                    $"User logout successful for userId: {userId}",
+                    ipAddress ?? "Unknown",
+                    userAgent ?? "Unknown"
+                );
             }
+
+            return Ok(new { success = true, message = "Logged out successfully" });
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, " UNIFIED LOGOUT ERROR");
-            return StatusCode(500, new { error = "An error occurred during logout" });
+            _logger.LogWarning(" UNIFIED LOGOUT FAILED - UserId: {UserId}", userId);
+            return BadRequest(new { error = "Logout failed" });
         }
     }
 
@@ -244,38 +208,30 @@ public class AuthController : BaseApiController
     [Authorize]
     public async Task<IActionResult> GetProfile()
     {
-        try
+        var userId = GetCurrentUserId();
+        if (userId == null)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-            {
-                return Unauthorized(new { error = "Unable to identify user" });
-            }
-
-            _logger.LogInformation(" UNIFIED PROFILE REQUEST - UserId: {UserId}", userId);
-
-            var profile = await _authService.GetUserProfileAsync(userId.Value);
-
-            if (profile == null)
-            {
-                _logger.LogWarning(" UNIFIED PROFILE NOT FOUND - UserId: {UserId}", userId);
-                return NotFound(new { error = "User profile not found" });
-            }
-
-            _logger.LogInformation(" UNIFIED PROFILE SUCCESS - UserId: {UserId} | UserType: {UserType}",
-                userId, profile.UserType);
-
-            return Ok(new
-            {
-                success = true,
-                data = profile
-            });
+            return Unauthorized(new { error = "Unable to identify user" });
         }
-        catch (Exception ex)
+
+        _logger.LogInformation(" UNIFIED PROFILE REQUEST - UserId: {UserId}", userId);
+
+        var profile = await _authService.GetUserProfileAsync(userId.Value);
+
+        if (profile == null)
         {
-            _logger.LogError(ex, " UNIFIED PROFILE ERROR");
-            return StatusCode(500, new { error = "An error occurred while retrieving profile" });
+            _logger.LogWarning(" UNIFIED PROFILE NOT FOUND - UserId: {UserId}", userId);
+            return NotFound(new { error = "User profile not found" });
         }
+
+        _logger.LogInformation(" UNIFIED PROFILE SUCCESS - UserId: {UserId} | UserType: {UserType}",
+            userId, profile.UserType);
+
+        return Ok(new
+        {
+            success = true,
+            data = profile
+        });
     }
 
     /// <summary>
@@ -288,27 +244,19 @@ public class AuthController : BaseApiController
     [Authorize]
     public async Task<IActionResult> CheckPermission([FromQuery, Required] string permission)
     {
-        try
+        var userId = GetCurrentUserId();
+        if (userId == null)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-            {
-                return Unauthorized(new { error = "Unable to identify user" });
-            }
-
-            var hasPermission = await _authService.HasPermissionAsync(userId.Value, permission);
-
-            return Ok(new
-            {
-                success = true,
-                data = new { hasPermission, permission, userId = userId.Value }
-            });
+            return Unauthorized(new { error = "Unable to identify user" });
         }
-        catch (Exception ex)
+
+        var hasPermission = await _authService.HasPermissionAsync(userId.Value, permission);
+
+        return Ok(new
         {
-            _logger.LogError(ex, "Error checking permission: {Permission}", permission);
-            return StatusCode(500, new { error = "An error occurred while checking permission" });
-        }
+            success = true,
+            data = new { hasPermission, permission, userId = userId.Value }
+        });
     }
 
     /// <summary>
@@ -320,27 +268,19 @@ public class AuthController : BaseApiController
     [Authorize]
     public async Task<IActionResult> GetPermissions()
     {
-        try
+        var userId = GetCurrentUserId();
+        if (userId == null)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-            {
-                return Unauthorized(new { error = "Unable to identify user" });
-            }
-
-            var permissions = await _authService.GetUserPermissionsAsync(userId.Value);
-
-            return Ok(new
-            {
-                success = true,
-                data = permissions
-            });
+            return Unauthorized(new { error = "Unable to identify user" });
         }
-        catch (Exception ex)
+
+        var permissions = await _authService.GetUserPermissionsAsync(userId.Value);
+
+        return Ok(new
         {
-            _logger.LogError(ex, "Error getting user permissions");
-            return StatusCode(500, new { error = "An error occurred while retrieving permissions" });
-        }
+            success = true,
+            data = permissions
+        });
     }
 
     /// <summary>
@@ -353,76 +293,65 @@ public class AuthController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] UnifiedRegisterRequest request)
     {
-        try
+        // Default to Customer context if not specified
+        var context = request.Context ?? AuthContext.Customer;
+
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+        request.IpAddress = ipAddress;
+        request.UserAgent = userAgent;
+
+        _logger.LogInformation(" UNIFIED REGISTER ATTEMPT - Email: {Email} | Context: {Context} | IP: {IP}",
+            request.Email, context, ipAddress);
+
+        var result = await _authService.RegisterAsync(request);
+
+        if (result == null || !result.Success)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            _logger.LogWarning(" UNIFIED REGISTER FAILED - Email: {Email} | Context: {Context}",
+                request.Email, context);
 
-            // Default to Customer context if not specified
-            var context = request.Context ?? AuthContext.Customer;
-
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-            request.IpAddress = ipAddress;
-            request.UserAgent = userAgent;
-
-            _logger.LogInformation(" UNIFIED REGISTER ATTEMPT - Email: {Email} | Context: {Context} | IP: {IP}",
-                request.Email, context, ipAddress);
-
-            var result = await _authService.RegisterAsync(request);
-
-            if (result == null || !result.Success)
+            return BadRequest(new
             {
-                _logger.LogWarning(" UNIFIED REGISTER FAILED - Email: {Email} | Context: {Context}",
-                    request.Email, context);
-
-                return BadRequest(new
-                {
-                    success = false,
-                    error = result?.ErrorMessage ?? "Registration failed"
-                });
-            }
-
-            _logger.LogInformation(" UNIFIED REGISTER SUCCESS - Email: {Email} | Context: {Context} | UserType: {UserType}",
-                request.Email, context, result.User?.UserType);
-
-            // Log successful registration
-            if (result.User != null)
-            {
-                if (context == AuthContext.Admin)
-                {
-                    await _auditLoggingService.LogAdminActivityAsync(
-                        result.User.Id,
-                        "admin_register",
-                        $"Admin registration successful for email: {request.Email}",
-                        ipAddress ?? "Unknown",
-                        userAgent ?? "Unknown"
-                    );
-                }
-                else
-                {
-                    await _auditLoggingService.LogUserActivityAsync(
-                        result.User.Id,
-                        "register",
-                        $"User registration successful for email: {request.Email}",
-                        ipAddress ?? "Unknown",
-                        userAgent ?? "Unknown"
-                    );
-                }
-            }
-
-            return Ok(new
-            {
-                success = true,
-                data = result
+                success = false,
+                error = result?.ErrorMessage ?? "Registration failed"
             });
         }
-        catch (Exception ex)
+
+        _logger.LogInformation(" UNIFIED REGISTER SUCCESS - Email: {Email} | Context: {Context} | UserType: {UserType}",
+            request.Email, context, result.User?.UserType);
+
+        // Log successful registration
+        if (result.User != null)
         {
-            _logger.LogError(ex, " UNIFIED REGISTER ERROR - Email: {Email}", request.Email);
-            return StatusCode(500, new { error = "An error occurred during registration" });
+            if (context == AuthContext.Admin)
+            {
+                await _auditLoggingService.LogAdminActivityAsync(
+                    result.User.Id,
+                    "admin_register",
+                    $"Admin registration successful for email: {request.Email}",
+                    ipAddress ?? "Unknown",
+                    userAgent ?? "Unknown"
+                );
+            }
+            else
+            {
+                await _auditLoggingService.LogUserActivityAsync(
+                    result.User.Id,
+                    "register",
+                    $"User registration successful for email: {request.Email}",
+                    ipAddress ?? "Unknown",
+                    userAgent ?? "Unknown"
+                );
+            }
         }
+
+        return Ok(new
+        {
+            success = true,
+            data = result
+        });
     }
 
     /// <summary>
@@ -435,75 +364,64 @@ public class AuthController : BaseApiController
     [EnableRateLimiting("PasswordChangePolicy")]
     public async Task<IActionResult> ChangePassword([FromBody] UnifiedChangePasswordRequest request)
     {
-        try
+        var userId = GetCurrentUserId();
+        if (userId == null)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            return Unauthorized(new { error = "Unable to identify user" });
+        }
 
-            var userId = GetCurrentUserId();
-            if (userId == null)
+        _logger.LogInformation(" UNIFIED CHANGE PASSWORD - UserId: {UserId}", userId);
+
+        // Use the existing method that takes userId directly
+        var success = await _authService.ChangePasswordAsync(userId.Value, request.CurrentPassword, request.NewPassword);
+
+        if (success)
+        {
+            _logger.LogInformation(" UNIFIED CHANGE PASSWORD SUCCESS - UserId: {UserId}", userId);
+
+            // Log successful password change
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            var context = GetCurrentUserContext();
+
+            if (context == AuthContext.Admin)
             {
-                return Unauthorized(new { error = "Unable to identify user" });
-            }
-
-            _logger.LogInformation(" UNIFIED CHANGE PASSWORD - UserId: {UserId}", userId);
-
-            // Use the existing method that takes userId directly
-            var success = await _authService.ChangePasswordAsync(userId.Value, request.CurrentPassword, request.NewPassword);
-
-            if (success)
-            {
-                _logger.LogInformation(" UNIFIED CHANGE PASSWORD SUCCESS - UserId: {UserId}", userId);
-
-                // Log successful password change
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-                var context = GetCurrentUserContext();
-
-                if (context == AuthContext.Admin)
-                {
-                    await _auditLoggingService.LogAdminActivityAsync(
-                        userId.Value,
-                        "password_change",
-                        $"Admin password change successful for userId: {userId}",
-                        ipAddress ?? "Unknown",
-                        userAgent ?? "Unknown"
-                    );
-                }
-                else
-                {
-                    await _auditLoggingService.LogUserActivityAsync(
-                        userId.Value,
-                        "password_change",
-                        $"User password change successful for userId: {userId}",
-                        ipAddress ?? "Unknown",
-                        userAgent ?? "Unknown"
-                    );
-                }
-
-                return Ok(new { success = true, message = "Password changed successfully" });
+                await _auditLoggingService.LogAdminActivityAsync(
+                    userId.Value,
+                    "password_change",
+                    $"Admin password change successful for userId: {userId}",
+                    ipAddress ?? "Unknown",
+                    userAgent ?? "Unknown"
+                );
             }
             else
             {
-                _logger.LogWarning(" UNIFIED CHANGE PASSWORD FAILED - UserId: {UserId}", userId);
-
-                // Log failed password change as security event
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                await _auditLoggingService.LogSecurityEventAsync(
-                    "failed_password_change",
-                    $"Failed password change attempt for userId: {userId}",
+                await _auditLoggingService.LogUserActivityAsync(
+                    userId.Value,
+                    "password_change",
+                    $"User password change successful for userId: {userId}",
                     ipAddress ?? "Unknown",
-                    userId: userId.Value,
-                    correlationId: Guid.NewGuid().ToString()
+                    userAgent ?? "Unknown"
                 );
-
-                return BadRequest(new { success = false, error = "Failed to change password" });
             }
+
+            return Ok(new { success = true, message = "Password changed successfully" });
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, " UNIFIED CHANGE PASSWORD ERROR");
-            return StatusCode(500, new { error = "An error occurred while changing password" });
+            _logger.LogWarning(" UNIFIED CHANGE PASSWORD FAILED - UserId: {UserId}", userId);
+
+            // Log failed password change as security event
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            await _auditLoggingService.LogSecurityEventAsync(
+                "failed_password_change",
+                $"Failed password change attempt for userId: {userId}",
+                ipAddress ?? "Unknown",
+                userId: userId.Value,
+                correlationId: Guid.NewGuid().ToString()
+            );
+
+            return BadRequest(new { success = false, error = "Failed to change password" });
         }
     }
 
@@ -516,22 +434,11 @@ public class AuthController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> ForgotPassword([FromBody] UnifiedForgotPasswordRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        _logger.LogInformation(" UNIFIED FORGOT PASSWORD - Email: {Email}", request.Email);
 
-            _logger.LogInformation(" UNIFIED FORGOT PASSWORD - Email: {Email}", request.Email);
+        var (success, message) = await _authService.ForgotPasswordAsync(request);
 
-            var (success, message) = await _authService.ForgotPasswordAsync(request);
-
-            return Ok(new { success = true, message }); // Always return success for security
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, " UNIFIED FORGOT PASSWORD ERROR - Email: {Email}", request.Email);
-            return StatusCode(500, new { error = "An error occurred while processing forgot password request" });
-        }
+        return Ok(new { success = true, message }); // Always return success for security
     }
 
     /// <summary>
@@ -543,41 +450,29 @@ public class AuthController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> ResetPassword([FromBody] UnifiedResetPasswordRequest request)
     {
-        try
+        // Extract IP address and user agent for security logging
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+        // Set IP address in request
+        request.IpAddress = ipAddress;
+
+        _logger.LogInformation(" UNIFIED RESET PASSWORD - Email: {Email}, Token: {Token}, IP: {IP}",
+            request.Email, request.Token, ipAddress);
+
+        var (success, message) = await _authService.ResetPasswordAsync(request);
+
+        if (success)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            // Extract IP address and user agent for security logging
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-
-            // Set IP address in request
-            request.IpAddress = ipAddress;
-
-            _logger.LogInformation(" UNIFIED RESET PASSWORD - Email: {Email}, Token: {Token}, IP: {IP}",
-                request.Email, request.Token, ipAddress);
-
-            var (success, message) = await _authService.ResetPasswordAsync(request);
-
-            if (success)
-            {
-                _logger.LogInformation(" UNIFIED RESET PASSWORD SUCCESS - Email: {Email}, IP: {IP}",
-                    request.Email, ipAddress);
-                return Ok(new { success = true, message });
-            }
-            else
-            {
-                _logger.LogWarning(" UNIFIED RESET PASSWORD FAILED - Email: {Email}, Message: {Message}, IP: {IP}",
-                    request.Email, message, ipAddress);
-                return BadRequest(new { success = false, error = message });
-            }
+            _logger.LogInformation(" UNIFIED RESET PASSWORD SUCCESS - Email: {Email}, IP: {IP}",
+                request.Email, ipAddress);
+            return Ok(new { success = true, message });
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, " UNIFIED RESET PASSWORD ERROR - Email: {Email}, IP: {IP}",
-                request.Email, HttpContext.Connection.RemoteIpAddress?.ToString());
-            return StatusCode(500, new { error = "An error occurred while resetting password" });
+            _logger.LogWarning(" UNIFIED RESET PASSWORD FAILED - Email: {Email}, Message: {Message}, IP: {IP}",
+                request.Email, message, ipAddress);
+            return BadRequest(new { success = false, error = message });
         }
     }
 
@@ -595,28 +490,20 @@ public class AuthController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> ConfirmEmail([FromQuery, Required] string token)
     {
-        try
+        var ipAddress = GetClientIpAddress();
+        var userAgent = Request.Headers["User-Agent"].ToString();
+
+        var (success, message) = await _authService.ConfirmEmailWithTokenAsync(token, ipAddress, userAgent);
+
+        if (success)
         {
-            var ipAddress = GetClientIpAddress();
-            var userAgent = Request.Headers["User-Agent"].ToString();
-
-            var (success, message) = await _authService.ConfirmEmailWithTokenAsync(token, ipAddress, userAgent);
-
-            if (success)
-            {
-                _logger.LogInformation(" Email confirmed successfully from IP {IP}", ipAddress);
-                return Ok(new { success = true, message });
-            }
-            else
-            {
-                _logger.LogWarning(" Email confirmation failed from IP {IP}: {Message}", ipAddress, message);
-                return BadRequest(new { success = false, message });
-            }
+            _logger.LogInformation(" Email confirmed successfully from IP {IP}", ipAddress);
+            return Ok(new { success = true, message });
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, " EMAIL CONFIRMATION ERROR - Token provided from IP {IP}", GetClientIpAddress());
-            return StatusCode(500, new { success = false, message = "An error occurred while confirming email" });
+            _logger.LogWarning(" Email confirmation failed from IP {IP}: {Message}", ipAddress, message);
+            return BadRequest(new { success = false, message });
         }
     }
 
@@ -630,16 +517,8 @@ public class AuthController : BaseApiController
     [Obsolete("Use /confirm-email with token parameter for secure confirmation")]
     public async Task<IActionResult> ConfirmEmailLegacy([FromQuery, Required] string email)
     {
-        try
-        {
-            var success = await _authService.ConfirmEmailAsync(email);
-            return Ok(new { success });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, " LEGACY EMAIL CONFIRMATION ERROR - Email: {Email}", email);
-            return StatusCode(500, new { error = "An error occurred while confirming email" });
-        }
+        var success = await _authService.ConfirmEmailAsync(email);
+        return Ok(new { success });
     }
 
     /// <summary>
@@ -651,35 +530,27 @@ public class AuthController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationRequest request)
     {
-        try
+        if (string.IsNullOrEmpty(request.Email))
         {
-            if (string.IsNullOrEmpty(request.Email))
-            {
-                return BadRequest(new { success = false, message = "Email address is required" });
-            }
-
-            var ipAddress = GetClientIpAddress();
-            var userAgent = Request.Headers["User-Agent"].ToString();
-
-            // Use AuthService to handle resend logic (it has access to all needed services)
-            var result = await _authService.ResendEmailConfirmationAsync(request.Email, ipAddress, userAgent);
-
-            if (result.Success)
-            {
-                _logger.LogInformation(" Email confirmation resent for email {Email} from IP {IP}", request.Email, ipAddress);
-                return Ok(new { success = true, message = result.Message });
-            }
-            else
-            {
-                _logger.LogWarning(" Failed to resend confirmation for email {Email} from IP {IP}: {Message}",
-                    request.Email, ipAddress, result.Message);
-                return StatusCode(500, new { success = false, message = result.Message });
-            }
+            return BadRequest(new { success = false, message = "Email address is required" });
         }
-        catch (Exception ex)
+
+        var ipAddress = GetClientIpAddress();
+        var userAgent = Request.Headers["User-Agent"].ToString();
+
+        // Use AuthService to handle resend logic (it has access to all needed services)
+        var result = await _authService.ResendEmailConfirmationAsync(request.Email, ipAddress, userAgent);
+
+        if (result.Success)
         {
-            _logger.LogError(ex, " RESEND EMAIL CONFIRMATION ERROR from IP {IP}", GetClientIpAddress());
-            return StatusCode(500, new { success = false, message = "An error occurred while sending confirmation email" });
+            _logger.LogInformation(" Email confirmation resent for email {Email} from IP {IP}", request.Email, ipAddress);
+            return Ok(new { success = true, message = result.Message });
+        }
+        else
+        {
+            _logger.LogWarning(" Failed to resend confirmation for email {Email} from IP {IP}: {Message}",
+                request.Email, ipAddress, result.Message);
+            return StatusCode(500, new { success = false, message = result.Message });
         }
     }
 
@@ -691,38 +562,30 @@ public class AuthController : BaseApiController
     [Authorize]
     public async Task<IActionResult> GetMe()
     {
-        try
+        var userId = GetCurrentUserId();
+        if (userId == null)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-            {
-                return Unauthorized(new { error = "Unable to identify user" });
-            }
-
-            _logger.LogInformation(" ME REQUEST - UserId: {UserId}", userId);
-
-            var profile = await _authService.GetUserProfileAsync(userId.Value);
-
-            if (profile == null)
-            {
-                _logger.LogWarning("  ME NOT FOUND - UserId: {UserId}", userId);
-                return NotFound(new { error = "User profile not found" });
-            }
-
-            _logger.LogInformation("  ME SUCCESS - UserId: {UserId} | UserType: {UserType}",
-                userId, profile.UserType);
-
-            return Ok(new
-            {
-                success = true,
-                data = profile
-            });
+            return Unauthorized(new { error = "Unable to identify user" });
         }
-        catch (Exception ex)
+
+        _logger.LogInformation(" ME REQUEST - UserId: {UserId}", userId);
+
+        var profile = await _authService.GetUserProfileAsync(userId.Value);
+
+        if (profile == null)
         {
-            _logger.LogError(ex, " UNIFIED ME ERROR");
-            return StatusCode(500, new { error = "An error occurred while retrieving profile" });
+            _logger.LogWarning("  ME NOT FOUND - UserId: {UserId}", userId);
+            return NotFound(new { error = "User profile not found" });
         }
+
+        _logger.LogInformation("  ME SUCCESS - UserId: {UserId} | UserType: {UserType}",
+            userId, profile.UserType);
+
+        return Ok(new
+        {
+            success = true,
+            data = profile
+        });
     }
 
     // =====================================================

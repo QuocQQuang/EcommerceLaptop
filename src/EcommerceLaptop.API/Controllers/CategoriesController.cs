@@ -13,15 +13,9 @@ namespace EcommerceLaptop.API.Controllers;
 /// </summary>
 [Route("api/admin/[controller]")]
 [ApiController]
-public class CategoriesController : BaseApiController
+public class CategoriesController(ICategoryService categoryService, ILogger<CategoriesController> logger) : BaseApiController(logger)
 {
-    private readonly ICategoryService _categoryService;
-
-    public CategoriesController(ICategoryService categoryService, ILogger<CategoriesController> logger)
-        : base(logger)
-    {
-        _categoryService = categoryService;
-    }
+    private readonly ICategoryService _categoryService = categoryService;
 
     /// <summary>
     /// Get all categories in hierarchical tree structure
@@ -29,20 +23,12 @@ public class CategoriesController : BaseApiController
     [HttpGet("tree")]
     public async Task<IActionResult> GetCategoryTree()
     {
-        try
-        {
-            var result = await _categoryService.GetCategoryTreeAsync();
+        var result = await _categoryService.GetCategoryTreeAsync();
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting category tree");
-            return StatusCode(500, new { error = "Error retrieving categories" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -52,20 +38,12 @@ public class CategoriesController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> GetAllCategories()
     {
-        try
-        {
-            var result = await _categoryService.GetAllCategoriesAsync();
+        var result = await _categoryService.GetAllCategoriesAsync();
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting all categories");
-            return StatusCode(500, new { error = "Error retrieving categories" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -75,20 +53,12 @@ public class CategoriesController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> GetCategoriesWithProductCount()
     {
-        try
-        {
-            var result = await _categoryService.GetCategoriesWithProductCountAsync();
+        var result = await _categoryService.GetCategoriesWithProductCountAsync();
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting categories with product counts");
-            return StatusCode(500, new { error = "Error retrieving category statistics" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -97,23 +67,15 @@ public class CategoriesController : BaseApiController
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetCategoryById(int id)
     {
-        try
-        {
-            var result = await _categoryService.GetCategoryByIdAsync(id);
+        var result = await _categoryService.GetCategoryByIdAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (result.Data == null)
-                return NotFound(new { error = "Category not found" });
+        if (result.Data == null)
+            return NotFound(new { error = "Category not found" });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting category with ID {CategoryId}", id);
-            return StatusCode(500, new { error = "Error retrieving category" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -122,23 +84,15 @@ public class CategoriesController : BaseApiController
     [HttpGet("slug/{slug}")]
     public async Task<IActionResult> GetCategoryBySlug(string slug)
     {
-        try
-        {
-            var result = await _categoryService.GetCategoryBySlugAsync(slug);
+        var result = await _categoryService.GetCategoryBySlugAsync(slug);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (result.Data == null)
-                return NotFound(new { error = "Category not found" });
+        if (result.Data == null)
+            return NotFound(new { error = "Category not found" });
 
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting category with slug {Slug}", slug);
-            return StatusCode(500, new { error = "Error retrieving category" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -148,34 +102,23 @@ public class CategoriesController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:write")]
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request)
     {
-        try
+        var category = new ProductCategory
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            Name = request.Name,
+            Slug = request.Slug,
+            Description = request.Description,
+            ImageUrl = request.ImageUrl,
+            IsActive = request.IsActive,
+            ParentId = request.ParentId,
+            SortOrder = request.SortOrder
+        };
 
-            var category = new ProductCategory
-            {
-                Name = request.Name,
-                Slug = request.Slug,
-                Description = request.Description,
-                ImageUrl = request.ImageUrl,
-                IsActive = request.IsActive,
-                ParentId = request.ParentId,
-                SortOrder = request.SortOrder
-            };
+        var result = await _categoryService.CreateCategoryAsync(category);
 
-            var result = await _categoryService.CreateCategoryAsync(category);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return CreatedAtAction(nameof(GetCategoryById), new { id = result.Data!.Id }, result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating category");
-            return StatusCode(500, new { error = "Error creating category" });
-        }
+        return CreatedAtAction(nameof(GetCategoryById), new { id = result.Data!.Id }, result.Data);
     }
 
     /// <summary>
@@ -185,35 +128,24 @@ public class CategoriesController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:write")]
     public async Task<IActionResult> UpdateCategory(int id, [FromBody] CreateCategoryRequest request)
     {
-        try
+        var category = new ProductCategory
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            Id = id,
+            Name = request.Name,
+            Slug = request.Slug,
+            Description = request.Description,
+            ImageUrl = request.ImageUrl,
+            IsActive = request.IsActive,
+            ParentId = request.ParentId,
+            SortOrder = request.SortOrder
+        };
 
-            var category = new ProductCategory
-            {
-                Id = id,
-                Name = request.Name,
-                Slug = request.Slug,
-                Description = request.Description,
-                ImageUrl = request.ImageUrl,
-                IsActive = request.IsActive,
-                ParentId = request.ParentId,
-                SortOrder = request.SortOrder
-            };
+        var result = await _categoryService.UpdateCategoryAsync(category);
 
-            var result = await _categoryService.UpdateCategoryAsync(category);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return Ok(result.Data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating category with ID {CategoryId}", id);
-            return StatusCode(500, new { error = "Error updating category" });
-        }
+        return Ok(result.Data);
     }
 
     /// <summary>
@@ -223,20 +155,12 @@ public class CategoriesController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:delete")]
     public async Task<IActionResult> DeleteCategory(int id)
     {
-        try
-        {
-            var result = await _categoryService.DeleteCategoryAsync(id);
+        var result = await _categoryService.DeleteCategoryAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { message = "Category deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting category with ID {CategoryId}", id);
-            return StatusCode(500, new { error = "Error deleting category" });
-        }
+        return Ok(new { message = "Category deleted successfully" });
     }
 
     /// <summary>
@@ -246,23 +170,12 @@ public class CategoriesController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:write")]
     public async Task<IActionResult> ReorderCategories([FromBody] List<CategoryReorderRequest> reorderRequests)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        var result = await _categoryService.ReorderCategoriesAsync(reorderRequests);
 
-            var result = await _categoryService.ReorderCategoriesAsync(reorderRequests);
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
-
-            return Ok(new { message = "Categories reordered successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reordering categories");
-            return StatusCode(500, new { error = "Error reordering categories" });
-        }
+        return Ok(new { message = "Categories reordered successfully" });
     }
 
     /// <summary>
@@ -272,20 +185,12 @@ public class CategoriesController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> ReassignAndDeleteCategory(int categoryIdToDelete, [FromBody] ReassignCategoryRequest request)
     {
-        try
-        {
-            var result = await _categoryService.ReassignProductsAndDeleteCategoryAsync(categoryIdToDelete, request.NewCategoryId);
+        var result = await _categoryService.ReassignProductsAndDeleteCategoryAsync(categoryIdToDelete, request.NewCategoryId);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { message = "Products reassigned and category deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reassigning products and deleting category with ID {CategoryId}", categoryIdToDelete);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(new { message = "Products reassigned and category deleted successfully" });
     }
 
     /// <summary>
@@ -295,20 +200,12 @@ public class CategoriesController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> ForceDeleteCategory(int id)
     {
-        try
-        {
-            var result = await _categoryService.ForceDeleteCategoryAsync(id);
+        var result = await _categoryService.ForceDeleteCategoryAsync(id);
 
-            if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+        if (!result.IsSuccess)
+            return BadRequest(new { error = result.ErrorMessage });
 
-            return Ok(new { message = "Category force deleted, child categories moved to parent level, and associated products deactivated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error force deleting category with ID {CategoryId}", id);
-            return StatusCode(500, new { error = "Internal server error" });
-        }
+        return Ok(new { message = "Category force deleted, child categories moved to parent level, and associated products deactivated successfully" });
     }
 }
 

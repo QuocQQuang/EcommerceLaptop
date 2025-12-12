@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using EcommerceLaptop.Core.Services;
+using EcommerceLaptop.Core.Interfaces.Services;
 using EcommerceLaptop.API.DTOs;
 using EcommerceLaptop.Core.Entities;
+using EcommerceLaptop.API.Controllers;
 
 namespace EcommerceLaptop.API.Controllers;
 
