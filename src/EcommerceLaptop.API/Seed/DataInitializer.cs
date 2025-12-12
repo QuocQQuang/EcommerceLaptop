@@ -12,8 +12,11 @@ public static class DataInitializer
         var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger("DataInitializer");
 
-        // Apply pending migrations (create DB if missing)
-        context.Database.Migrate();
+        // Apply pending migrations (create DB if missing) - only for relational DBs
+        if (context.Database.IsRelational())
+        {
+            context.Database.Migrate();
+        }
 
         // Cleanup v seed SystemSettings (ch Email & Notifications)
         SystemSettingsCleanupSeeder.MigrateKeysToSnakeCase(context, logger);

@@ -31,7 +31,10 @@ builder.Services.AddIdentityServices(builder.Configuration);
 builder.Services.AddExternalServices(builder.Configuration);
 builder.Services.AddSecurityServices(builder.Configuration);
 builder.Services.AddApplicationServices();
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddMediatR(cfg => {
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.AddOpenBehavior(typeof(EcommerceLaptop.API.Behaviors.ValidationBehavior<,>));
+});
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddSwaggerDocumentation();

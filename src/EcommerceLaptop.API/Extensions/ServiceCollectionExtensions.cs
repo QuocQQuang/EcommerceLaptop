@@ -181,6 +181,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAdminUserService, AdminUserService>();
         services.AddScoped<IDevService, DevService>();
 
+        // FluentValidation Registration
+        services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
         return services;
     }
 
