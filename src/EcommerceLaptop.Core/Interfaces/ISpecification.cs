@@ -13,4 +13,7 @@ public interface ISpecification<T>
     int Take { get; }
     int Skip { get; }
     bool IsPagingEnabled { get; }
+    
+    bool IsSplitQuery { get; }
+    bool IsNoTracking { get; }
 }

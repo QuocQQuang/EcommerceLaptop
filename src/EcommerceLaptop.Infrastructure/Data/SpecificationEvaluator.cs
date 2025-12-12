@@ -32,6 +32,16 @@ public class SpecificationEvaluator<T> where T : class
         query = specification.Includes.Aggregate(query, (current, include) => current.Include(include));
         query = specification.IncludeStrings.Aggregate(query, (current, include) => current.Include(include));
 
+        if (specification.IsSplitQuery)
+        {
+            query = query.AsSplitQuery();
+        }
+
+        if (specification.IsNoTracking)
+        {
+            query = query.AsNoTracking();
+        }
+
         return query;
     }
 }

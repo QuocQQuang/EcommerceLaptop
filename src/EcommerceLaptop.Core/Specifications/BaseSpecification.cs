@@ -52,4 +52,17 @@ public class BaseSpecification<T> : ISpecification<T>
         Take = take;
         IsPagingEnabled = true;
     }
+
+    public bool IsSplitQuery { get; private set; }
+    public bool IsNoTracking { get; private set; }
+
+    protected void ApplySplitQuery()
+    {
+        IsSplitQuery = true;
+    }
+
+    protected void ApplyNoTracking()
+    {
+        IsNoTracking = true;
+    }
 }

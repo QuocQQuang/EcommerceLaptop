@@ -9,6 +9,7 @@ public class ProductWithDetailsSpecification : BaseSpecification<Product>
         AddInclude(p => p.Images);
         AddInclude(p => p.Inventory);
         AddInclude(p => p.Category);
+        ApplySplitQuery();
     }
 
     public ProductWithDetailsSpecification(string sku) : base(p => p.SKU == sku)
@@ -16,5 +17,6 @@ public class ProductWithDetailsSpecification : BaseSpecification<Product>
         AddInclude(p => p.Images);
         AddInclude(p => p.Inventory);
         AddInclude(p => p.Category);
+        ApplySplitQuery();
     }
 }

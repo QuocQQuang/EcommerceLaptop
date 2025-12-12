@@ -71,5 +71,8 @@ public class AdvancedLaptopSpecification : BaseSpecification<Laptop>
         {
             ApplyPaging(skip.Value, take.Value);
         }
+
+        ApplySplitQuery();
+        ApplyNoTracking();
     }
 }

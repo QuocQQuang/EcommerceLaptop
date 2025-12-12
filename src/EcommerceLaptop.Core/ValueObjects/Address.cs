@@ -11,7 +11,14 @@ public class Address : ValueObject
     public string PostalCode { get; private set; }
     public string Country { get; private set; }
 
-    private Address() { } // EF Core
+    private Address() 
+    {
+        Street = null!;
+        City = null!;
+        Province = null!;
+        PostalCode = null!;
+        Country = null!;
+    } // EF Core
 
     public Address(string street, string city, string province, string postalCode, string country)
     {
