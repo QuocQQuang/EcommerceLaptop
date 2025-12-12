@@ -7,318 +7,316 @@ namespace EcommerceLaptop.API.DTOs;
 /// <summary>
 /// Product specification data transfer object
 /// </summary>
-public class ProductSpecificationDto
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public int DisplayOrder { get; set; }
-}
+public record ProductSpecificationDto(
+    int Id,
+    string Name,
+    string Value,
+    string Category,
+    int DisplayOrder);
 
 /// <summary>
 /// Base product data transfer object
 /// </summary>
-public class ProductDto
+public record ProductDto
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Brand { get; set; } = string.Empty;
-    public string Model { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public string SKU { get; set; } = string.Empty;
-    public bool IsActive { get; set; }
-    public string ProductType { get; set; } = string.Empty;
-    public int StockQuantity { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-    public string? ImageUrl { get; set; } // Primary image URL for backward compatibility
-    public List<ProductImageDto> Images { get; set; } = new();
-    public List<ProductSpecificationDto> Specifications { get; set; } = new();
-    public InventoryDto? Inventory { get; set; }
+    public int Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public string Brand { get; init; } = string.Empty;
+    public string Model { get; init; } = string.Empty;
+    public decimal Price { get; init; }
+    public string SKU { get; init; } = string.Empty;
+    public bool IsActive { get; init; }
+    public string ProductType { get; init; } = string.Empty;
+    public int StockQuantity { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public DateTime UpdatedAt { get; init; }
+    public string? ImageUrl { get; init; } // Primary image URL for backward compatibility
+    public List<ProductImageDto> Images { get; init; } = new();
+    public List<ProductSpecificationDto> Specifications { get; init; } = new();
+    public InventoryDto? Inventory { get; init; }
 
     // Variant support
-    public int? ParentProductId { get; set; }
-    public string? VariantName { get; set; }
-    public string? VariantSku { get; set; }
-    public bool IsVariant { get; set; }
-    public bool IsBaseProduct { get; set; }
-    public List<ProductDto> Variants { get; set; } = new();
+    public int? ParentProductId { get; init; }
+    public string? VariantName { get; init; }
+    public string? VariantSku { get; init; }
+    public bool IsVariant { get; init; }
+    public bool IsBaseProduct { get; init; }
+    public List<ProductDto> Variants { get; init; } = new();
 }
 
 /// <summary>
 /// Laptop-specific DTO with detailed specifications
 /// </summary>
-public class LaptopDto : ProductDto
+public record LaptopDto : ProductDto
 {
-    public string? Series { get; set; }
+    public string? Series { get; init; }
 
     // CPU Specifications
-    public string? CpuBrand { get; set; }
-    public string? CpuModel { get; set; }
-    public string? CpuGeneration { get; set; }
-    public int? CpuCores { get; set; }
-    public decimal? CpuBaseClockGHz { get; set; }
-    public decimal? CpuBoostClockGHz { get; set; }
-    public string? CpuCache { get; set; }
+    public string? CpuBrand { get; init; }
+    public string? CpuModel { get; init; }
+    public string? CpuGeneration { get; init; }
+    public int? CpuCores { get; init; }
+    public decimal? CpuBaseClockGHz { get; init; }
+    public decimal? CpuBoostClockGHz { get; init; }
+    public string? CpuCache { get; init; }
 
     // RAM Specifications
-    public string? RamType { get; set; }
-    public int? RamCapacityGB { get; set; }
-    public int? RamSlots { get; set; }
-    public int? RamSpeed { get; set; }
-    public bool? RamUpgradeable { get; set; }
+    public string? RamType { get; init; }
+    public int? RamCapacityGB { get; init; }
+    public int? RamSlots { get; init; }
+    public int? RamSpeed { get; init; }
+    public bool? RamUpgradeable { get; init; }
 
     // Storage Specifications
-    public string? StorageType { get; set; }
-    public int? StorageCapacityGB { get; set; }
-    public string? StorageInterface { get; set; }
-    public bool? NvMeSupport { get; set; }
+    public string? StorageType { get; init; }
+    public int? StorageCapacityGB { get; init; }
+    public string? StorageInterface { get; init; }
+    public bool? NvMeSupport { get; init; }
 
     // GPU Specifications
-    public string? GpuType { get; set; }
-    public string? GpuBrand { get; set; }
-    public string? GpuModel { get; set; }
-    public int? GpuVramGB { get; set; }
+    public string? GpuType { get; init; }
+    public string? GpuBrand { get; init; }
+    public string? GpuModel { get; init; }
+    public int? GpuVramGB { get; init; }
 
     // Display Specifications
-    public decimal? DisplaySizeInches { get; set; }
-    public string? DisplayResolution { get; set; }
-    public string? DisplayPanelType { get; set; }
-    public int? DisplayRefreshRateHz { get; set; }
-    public bool? DisplayTouchscreen { get; set; }
+    public decimal? DisplaySizeInches { get; init; }
+    public string? DisplayResolution { get; init; }
+    public string? DisplayPanelType { get; init; }
+    public int? DisplayRefreshRateHz { get; init; }
+    public bool? DisplayTouchscreen { get; init; }
 
     // Physical Specifications
-    public int? BatteryCapacityWh { get; set; }
-    public decimal? WeightKg { get; set; }
-    public string? Dimensions { get; set; }
-    public string? Color { get; set; }
-    public string? Ports { get; set; }
+    public int? BatteryCapacityWh { get; init; }
+    public decimal? WeightKg { get; init; }
+    public string? Dimensions { get; init; }
+    public string? Color { get; init; }
+    public string? Ports { get; init; }
 
     // Connectivity
-    public bool? WiFi6Support { get; set; }
-    public bool? BluetoothSupport { get; set; }
-    public string? BluetoothVersion { get; set; }
+    public bool? WiFi6Support { get; init; }
+    public bool? BluetoothSupport { get; init; }
+    public string? BluetoothVersion { get; init; }
 
     // Other
-    public string? WarrantyPeriod { get; set; }
-    public string? TargetAudience { get; set; }
+    public string? WarrantyPeriod { get; init; }
+    public string? TargetAudience { get; init; }
 }
 
 /// <summary>
 /// DTO for creating product variants
 /// </summary>
-public class CreateVariantDto
+public record CreateVariantDto
 {
-    public string VariantName { get; set; } = string.Empty;
-    public string VariantSku { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public string? Description { get; set; }
-    public int StockQuantity { get; set; }
-    public bool IsActive { get; set; } = true;
+    public string VariantName { get; init; } = string.Empty;
+    public string VariantSku { get; init; } = string.Empty;
+    public decimal Price { get; init; }
+    public string? Description { get; init; }
+    public int StockQuantity { get; init; }
+    public bool IsActive { get; init; } = true;
 
     // Laptop-specific variant properties - M RNG TT C THNG S
-    public string? Series { get; set; }
+    public string? Series { get; init; }
 
     // CPU Specifications
-    public string? CpuBrand { get; set; }
-    public string? CpuModel { get; set; }
-    public string? CpuGeneration { get; set; }
-    public int? CpuCores { get; set; }
-    public decimal? CpuBaseClockGHz { get; set; }
-    public decimal? CpuBoostClockGHz { get; set; }
-    public string? CpuCache { get; set; }
+    public string? CpuBrand { get; init; }
+    public string? CpuModel { get; init; }
+    public string? CpuGeneration { get; init; }
+    public int? CpuCores { get; init; }
+    public decimal? CpuBaseClockGHz { get; init; }
+    public decimal? CpuBoostClockGHz { get; init; }
+    public string? CpuCache { get; init; }
 
     // RAM Specifications
-    public string? RamType { get; set; }
-    public int? RamCapacityGB { get; set; }
-    public int? RamSlots { get; set; }
-    public int? RamSpeed { get; set; }
-    public bool? RamUpgradeable { get; set; }
+    public string? RamType { get; init; }
+    public int? RamCapacityGB { get; init; }
+    public int? RamSlots { get; init; }
+    public int? RamSpeed { get; init; }
+    public bool? RamUpgradeable { get; init; }
 
     // Storage Specifications
-    public string? StorageType { get; set; }
-    public int? StorageCapacityGB { get; set; }
-    public string? StorageInterface { get; set; }
-    public bool? NvMeSupport { get; set; }
+    public string? StorageType { get; init; }
+    public int? StorageCapacityGB { get; init; }
+    public string? StorageInterface { get; init; }
+    public bool? NvMeSupport { get; init; }
 
     // GPU Specifications
-    public string? GpuType { get; set; }
-    public string? GpuBrand { get; set; }
-    public string? GpuModel { get; set; }
-    public int? GpuVramGB { get; set; }
+    public string? GpuType { get; init; }
+    public string? GpuBrand { get; init; }
+    public string? GpuModel { get; init; }
+    public int? GpuVramGB { get; init; }
 
     // Display Specifications
-    public decimal? DisplaySizeInches { get; set; }
-    public string? DisplayResolution { get; set; }
-    public string? DisplayPanelType { get; set; }
-    public int? DisplayRefreshRateHz { get; set; }
-    public bool? DisplayTouchscreen { get; set; }
+    public decimal? DisplaySizeInches { get; init; }
+    public string? DisplayResolution { get; init; }
+    public string? DisplayPanelType { get; init; }
+    public int? DisplayRefreshRateHz { get; init; }
+    public bool? DisplayTouchscreen { get; init; }
 
     // Physical Specifications
-    public int? BatteryCapacityWh { get; set; }
-    public decimal? WeightKg { get; set; }
-    public string? Dimensions { get; set; }
-    public string? Color { get; set; }
-    public string? Ports { get; set; }
+    public int? BatteryCapacityWh { get; init; }
+    public decimal? WeightKg { get; init; }
+    public string? Dimensions { get; init; }
+    public string? Color { get; init; }
+    public string? Ports { get; init; }
 
     // Connectivity
-    public bool? WiFi6Support { get; set; }
-    public bool? BluetoothSupport { get; set; }
-    public string? BluetoothVersion { get; set; }
+    public bool? WiFi6Support { get; init; }
+    public bool? BluetoothSupport { get; init; }
+    public string? BluetoothVersion { get; init; }
 
     // Business info
-    public string? WarrantyPeriod { get; set; }
-    public string? TargetAudience { get; set; }
+    public string? WarrantyPeriod { get; init; }
+    public string? TargetAudience { get; init; }
 }
 
 /// <summary>
 /// DTO for updating product variants
 /// </summary>
-public class UpdateVariantDto
+public record UpdateVariantDto
 {
-    public string? VariantName { get; set; }
-    public string? VariantSku { get; set; }
-    public decimal? Price { get; set; }
-    public string? Description { get; set; }
-    public int? StockQuantity { get; set; }
-    public bool? IsActive { get; set; }
+    public string? VariantName { get; init; }
+    public string? VariantSku { get; init; }
+    public decimal? Price { get; init; }
+    public string? Description { get; init; }
+    public int? StockQuantity { get; init; }
+    public bool? IsActive { get; init; }
 
     // Laptop-specific variant properties - M RNG TT C THNG S
-    public string? Series { get; set; }
+    public string? Series { get; init; }
 
     // CPU Specifications
-    public string? CpuBrand { get; set; }
-    public string? CpuModel { get; set; }
-    public string? CpuGeneration { get; set; }
-    public int? CpuCores { get; set; }
-    public decimal? CpuBaseClockGHz { get; set; }
-    public decimal? CpuBoostClockGHz { get; set; }
-    public string? CpuCache { get; set; }
+    public string? CpuBrand { get; init; }
+    public string? CpuModel { get; init; }
+    public string? CpuGeneration { get; init; }
+    public int? CpuCores { get; init; }
+    public decimal? CpuBaseClockGHz { get; init; }
+    public decimal? CpuBoostClockGHz { get; init; }
+    public string? CpuCache { get; init; }
 
     // RAM Specifications
-    public string? RamType { get; set; }
-    public int? RamCapacityGB { get; set; }
-    public int? RamSlots { get; set; }
-    public int? RamSpeed { get; set; }
-    public bool? RamUpgradeable { get; set; }
+    public string? RamType { get; init; }
+    public int? RamCapacityGB { get; init; }
+    public int? RamSlots { get; init; }
+    public int? RamSpeed { get; init; }
+    public bool? RamUpgradeable { get; init; }
 
     // Storage Specifications
-    public string? StorageType { get; set; }
-    public int? StorageCapacityGB { get; set; }
-    public string? StorageInterface { get; set; }
-    public bool? NvMeSupport { get; set; }
+    public string? StorageType { get; init; }
+    public int? StorageCapacityGB { get; init; }
+    public string? StorageInterface { get; init; }
+    public bool? NvMeSupport { get; init; }
 
     // GPU Specifications
-    public string? GpuType { get; set; }
-    public string? GpuBrand { get; set; }
-    public string? GpuModel { get; set; }
-    public int? GpuVramGB { get; set; }
+    public string? GpuType { get; init; }
+    public string? GpuBrand { get; init; }
+    public string? GpuModel { get; init; }
+    public int? GpuVramGB { get; init; }
 
     // Display Specifications
-    public decimal? DisplaySizeInches { get; set; }
-    public string? DisplayResolution { get; set; }
-    public string? DisplayPanelType { get; set; }
-    public int? DisplayRefreshRateHz { get; set; }
-    public bool? DisplayTouchscreen { get; set; }
+    public decimal? DisplaySizeInches { get; init; }
+    public string? DisplayResolution { get; init; }
+    public string? DisplayPanelType { get; init; }
+    public int? DisplayRefreshRateHz { get; init; }
+    public bool? DisplayTouchscreen { get; init; }
 
     // Physical Specifications
-    public int? BatteryCapacityWh { get; set; }
-    public decimal? WeightKg { get; set; }
-    public string? Dimensions { get; set; }
-    public string? Color { get; set; }
-    public string? Ports { get; set; }
+    public int? BatteryCapacityWh { get; init; }
+    public decimal? WeightKg { get; init; }
+    public string? Dimensions { get; init; }
+    public string? Color { get; init; }
+    public string? Ports { get; init; }
 
     // Connectivity
-    public bool? WiFi6Support { get; set; }
-    public bool? BluetoothSupport { get; set; }
-    public string? BluetoothVersion { get; set; }
+    public bool? WiFi6Support { get; init; }
+    public bool? BluetoothSupport { get; init; }
+    public string? BluetoothVersion { get; init; }
 
     // Business info
-    public string? WarrantyPeriod { get; set; }
-    public string? TargetAudience { get; set; }
+    public string? WarrantyPeriod { get; init; }
+    public string? TargetAudience { get; init; }
 }
 
 /// <summary>
 /// DTO for variant summary (used in product listings)
 /// </summary>
-public class VariantSummaryDto
+public record VariantSummaryDto
 {
-    public int Id { get; set; }
-    public string VariantName { get; set; } = string.Empty;
-    public string VariantSku { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public int StockQuantity { get; set; }
-    public bool IsActive { get; set; }
-    public string? ImageUrl { get; set; }
+    public int Id { get; init; }
+    public string VariantName { get; init; } = string.Empty;
+    public string VariantSku { get; init; } = string.Empty;
+    public decimal Price { get; init; }
+    public int StockQuantity { get; init; }
+    public bool IsActive { get; init; }
+    public string? ImageUrl { get; init; }
 
     // Key differentiators
-    public int? RamCapacityGB { get; set; }
-    public int? StorageCapacityGB { get; set; }
-    public string? Color { get; set; }
-    public string? GpuModel { get; set; }
+    public int? RamCapacityGB { get; init; }
+    public int? StorageCapacityGB { get; init; }
+    public string? Color { get; init; }
+    public string? GpuModel { get; init; }
 }
 
 /// <summary>
 /// Accessory DTO
 /// </summary>
-public class AccessoryDto : ProductDto
+public record AccessoryDto : ProductDto
 {
-    public string? AccessoryType { get; set; }
-    public string? Compatibility { get; set; }
-    public string? SpecificationDetails { get; set; }
-    public string? Color { get; set; }
-    public string? Connectivity { get; set; }
+    public string? AccessoryType { get; init; }
+    public string? Compatibility { get; init; }
+    public string? SpecificationDetails { get; init; }
+    public string? Color { get; init; }
+    public string? Connectivity { get; init; }
 }
 
 /// <summary>
 /// Bundle DTO
 /// </summary>
-public class BundleDto : ProductDto
+public record BundleDto : ProductDto
 {
-    public string? BundleType { get; set; }
-    public decimal? DiscountPercentage { get; set; }
-    public DateTime? ValidFrom { get; set; }
-    public DateTime? ValidTo { get; set; }
-    public List<BundleItemDto> BundleItems { get; set; } = new();
+    public string? BundleType { get; init; }
+    public decimal? DiscountPercentage { get; init; }
+    public DateTime? ValidFrom { get; init; }
+    public DateTime? ValidTo { get; init; }
+    public List<BundleItemDto> BundleItems { get; init; } = new();
 }
 
 /// <summary>
 /// Bundle item DTO with detailed pricing and availability
 /// </summary>
-public class BundleItemDto
+public record BundleItemDto
 {
-    public int Id { get; set; }
-    public int ProductId { get; set; }
-    public string ProductName { get; set; } = string.Empty;
-    public string ProductSku { get; set; } = string.Empty;
-    public string? ProductImageUrl { get; set; }
-    public string Brand { get; set; } = string.Empty;
-    public decimal OriginalPrice { get; set; }
-    public int Quantity { get; set; }
-    public decimal DiscountPercentage { get; set; }
-    public decimal DiscountedPrice { get; set; }
-    public decimal TotalPrice { get; set; }
-    public bool IsAvailable { get; set; } = true;
-    public int StockQuantity { get; set; }
+    public int Id { get; init; }
+    public int ProductId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public string ProductSku { get; init; } = string.Empty;
+    public string? ProductImageUrl { get; init; }
+    public string Brand { get; init; } = string.Empty;
+    public decimal OriginalPrice { get; init; }
+    public int Quantity { get; init; }
+    public decimal DiscountPercentage { get; init; }
+    public decimal DiscountedPrice { get; init; }
+    public decimal TotalPrice { get; init; }
+    public bool IsAvailable { get; init; } = true;
+    public int StockQuantity { get; init; }
 }
 
 /// <summary>
 /// Product image DTO
 /// </summary>
-public class ProductImageDto
+public record ProductImageDto
 {
-    public int Id { get; set; }
-    public string ImageUrl { get; set; } = string.Empty;
-    public string AltText { get; set; } = string.Empty;
-    public int SortOrder { get; set; }
-    public bool IsPrimary { get; set; }
+    public int Id { get; init; }
+    public string ImageUrl { get; init; } = string.Empty;
+    public string AltText { get; init; } = string.Empty;
+    public int SortOrder { get; init; }
+    public bool IsPrimary { get; init; }
 
     // ImgBB Integration fields
-    public string? ImageId { get; set; } // ImgBB image ID for deletion
-    public string? DeleteUrl { get; set; } // ImgBB delete URL
-    public int DisplayOrder { get; set; } // Additional ordering field for ImgBB images
+    public string? ImageId { get; init; } // ImgBB image ID for deletion
+    public string? DeleteUrl { get; init; } // ImgBB delete URL
+    public int DisplayOrder { get; init; } // Additional ordering field for ImgBB images
 }
 
 #endregion
@@ -328,170 +326,170 @@ public class ProductImageDto
 /// <summary>
 /// Create product request DTO
 /// </summary>
-public class CreateProductRequest
+public record CreateProductRequest
 {
     [Required]
     [StringLength(255)]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
     [Required]
     [StringLength(2000)]
-    public string Description { get; set; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
 
     [Required]
     [StringLength(100)]
-    public string Brand { get; set; } = string.Empty;
+    public string Brand { get; init; } = string.Empty;
 
     [Required]
     [StringLength(100)]
-    public string Model { get; set; } = string.Empty;
+    public string Model { get; init; } = string.Empty;
 
     [Required]
     [Range(0.01, double.MaxValue)]
-    public decimal Price { get; set; }
+    public decimal Price { get; init; }
 
     [Required]
     [StringLength(50)]
-    public string SKU { get; set; } = string.Empty;
+    public string SKU { get; init; } = string.Empty;
 
     [Required]
-    public string ProductType { get; set; } = string.Empty; // "Laptop", "Accessory", "Bundle"
+    public string ProductType { get; init; } = string.Empty; // "Laptop", "Accessory", "Bundle"
 }
 
 /// <summary>
 /// Create laptop request DTO
 /// </summary>
-public class CreateLaptopRequest : CreateProductRequest
+public record CreateLaptopRequest : CreateProductRequest
 {
-    public string? Series { get; set; }
-    public string? CpuBrand { get; set; }
-    public string? CpuModel { get; set; }
-    public string? CpuGeneration { get; set; }
-    public int? CpuCores { get; set; }
-    public decimal? CpuBaseClockGHz { get; set; }
-    public decimal? CpuBoostClockGHz { get; set; }
-    public string? CpuCache { get; set; }
-    public string? RamType { get; set; }
-    public int? RamCapacityGB { get; set; }
-    public int? RamSlots { get; set; }
-    public int? RamSpeed { get; set; }
-    public bool? RamUpgradeable { get; set; }
-    public string? StorageType { get; set; }
-    public int? StorageCapacityGB { get; set; }
-    public string? StorageInterface { get; set; }
-    public bool? NvMeSupport { get; set; }
-    public string? GpuType { get; set; }
-    public string? GpuBrand { get; set; }
-    public string? GpuModel { get; set; }
-    public int? GpuVramGB { get; set; }
-    public decimal? DisplaySizeInches { get; set; }
-    public string? DisplayResolution { get; set; }
-    public string? DisplayPanelType { get; set; }
-    public int? DisplayRefreshRateHz { get; set; }
-    public bool? DisplayTouchscreen { get; set; }
-    public int? BatteryCapacityWh { get; set; }
-    public decimal? WeightKg { get; set; }
-    public string? Dimensions { get; set; }
-    public string? Color { get; set; }
-    public string? Ports { get; set; }
-    public bool? WiFi6Support { get; set; }
-    public bool? BluetoothSupport { get; set; }
-    public string? BluetoothVersion { get; set; }
-    public string? WarrantyPeriod { get; set; }
-    public string? TargetAudience { get; set; }
+    public string? Series { get; init; }
+    public string? CpuBrand { get; init; }
+    public string? CpuModel { get; init; }
+    public string? CpuGeneration { get; init; }
+    public int? CpuCores { get; init; }
+    public decimal? CpuBaseClockGHz { get; init; }
+    public decimal? CpuBoostClockGHz { get; init; }
+    public string? CpuCache { get; init; }
+    public string? RamType { get; init; }
+    public int? RamCapacityGB { get; init; }
+    public int? RamSlots { get; init; }
+    public int? RamSpeed { get; init; }
+    public bool? RamUpgradeable { get; init; }
+    public string? StorageType { get; init; }
+    public int? StorageCapacityGB { get; init; }
+    public string? StorageInterface { get; init; }
+    public bool? NvMeSupport { get; init; }
+    public string? GpuType { get; init; }
+    public string? GpuBrand { get; init; }
+    public string? GpuModel { get; init; }
+    public int? GpuVramGB { get; init; }
+    public decimal? DisplaySizeInches { get; init; }
+    public string? DisplayResolution { get; init; }
+    public string? DisplayPanelType { get; init; }
+    public int? DisplayRefreshRateHz { get; init; }
+    public bool? DisplayTouchscreen { get; init; }
+    public int? BatteryCapacityWh { get; init; }
+    public decimal? WeightKg { get; init; }
+    public string? Dimensions { get; init; }
+    public string? Color { get; init; }
+    public string? Ports { get; init; }
+    public bool? WiFi6Support { get; init; }
+    public bool? BluetoothSupport { get; init; }
+    public string? BluetoothVersion { get; init; }
+    public string? WarrantyPeriod { get; init; }
+    public string? TargetAudience { get; init; }
 }
 
 /// <summary>
 /// Create accessory request DTO
 /// </summary>
-public class CreateAccessoryRequest : CreateProductRequest
+public record CreateAccessoryRequest : CreateProductRequest
 {
-    public string? AccessoryType { get; set; }
-    public string? Compatibility { get; set; }
-    public string? SpecificationDetails { get; set; }
-    public string? Color { get; set; }
-    public string? Connectivity { get; set; }
+    public string? AccessoryType { get; init; }
+    public string? Compatibility { get; init; }
+    public string? SpecificationDetails { get; init; }
+    public string? Color { get; init; }
+    public string? Connectivity { get; init; }
 }
 
 /// <summary>
 /// Update product request DTO
 /// </summary>
-public class UpdateProductRequest
+public record UpdateProductRequest
 {
     [StringLength(255)]
-    public string? Name { get; set; }
+    public string? Name { get; init; }
 
     [StringLength(2000)]
-    public string? Description { get; set; }
+    public string? Description { get; init; }
 
     [StringLength(100)]
-    public string? Brand { get; set; }
+    public string? Brand { get; init; }
 
     [StringLength(100)]
-    public string? Model { get; set; }
+    public string? Model { get; init; }
 
     [Range(0.01, double.MaxValue)]
-    public decimal? Price { get; set; }
+    public decimal? Price { get; init; }
 
-    public bool? IsActive { get; set; }
+    public bool? IsActive { get; init; }
 
     // Add ProductType to help differentiate update requests
-    public string? ProductType { get; set; }
+    public string? ProductType { get; init; }
 }
 
 /// <summary>
 /// Update laptop request DTO
 /// </summary>
-public class UpdateLaptopRequest : UpdateProductRequest
+public record UpdateLaptopRequest : UpdateProductRequest
 {
-    public string? Series { get; set; }
-    public string? CpuBrand { get; set; }
-    public string? CpuModel { get; set; }
-    public string? CpuGeneration { get; set; }
-    public int? CpuCores { get; set; }
-    public decimal? CpuBaseClockGHz { get; set; }
-    public decimal? CpuBoostClockGHz { get; set; }
-    public string? CpuCache { get; set; }
-    public string? RamType { get; set; }
-    public int? RamCapacityGB { get; set; }
-    public int? RamSlots { get; set; }
-    public int? RamSpeed { get; set; }
-    public bool? RamUpgradeable { get; set; }
-    public string? StorageType { get; set; }
-    public int? StorageCapacityGB { get; set; }
-    public string? StorageInterface { get; set; }
-    public bool? NvMeSupport { get; set; }
-    public string? GpuType { get; set; }
-    public string? GpuBrand { get; set; }
-    public string? GpuModel { get; set; }
-    public int? GpuVramGB { get; set; }
-    public decimal? DisplaySizeInches { get; set; }
-    public string? DisplayResolution { get; set; }
-    public string? DisplayPanelType { get; set; }
-    public int? DisplayRefreshRateHz { get; set; }
-    public bool? DisplayTouchscreen { get; set; }
-    public int? BatteryCapacityWh { get; set; }
-    public decimal? WeightKg { get; set; }
-    public string? Dimensions { get; set; }
-    public string? Color { get; set; }
-    public string? Ports { get; set; }
-    public bool? WiFi6Support { get; set; }
-    public bool? BluetoothSupport { get; set; }
-    public string? BluetoothVersion { get; set; }
-    public string? WarrantyPeriod { get; set; }
-    public string? TargetAudience { get; set; }
+    public string? Series { get; init; }
+    public string? CpuBrand { get; init; }
+    public string? CpuModel { get; init; }
+    public string? CpuGeneration { get; init; }
+    public int? CpuCores { get; init; }
+    public decimal? CpuBaseClockGHz { get; init; }
+    public decimal? CpuBoostClockGHz { get; init; }
+    public string? CpuCache { get; init; }
+    public string? RamType { get; init; }
+    public int? RamCapacityGB { get; init; }
+    public int? RamSlots { get; init; }
+    public int? RamSpeed { get; init; }
+    public bool? RamUpgradeable { get; init; }
+    public string? StorageType { get; init; }
+    public int? StorageCapacityGB { get; init; }
+    public string? StorageInterface { get; init; }
+    public bool? NvMeSupport { get; init; }
+    public string? GpuType { get; init; }
+    public string? GpuBrand { get; init; }
+    public string? GpuModel { get; init; }
+    public int? GpuVramGB { get; init; }
+    public decimal? DisplaySizeInches { get; init; }
+    public string? DisplayResolution { get; init; }
+    public string? DisplayPanelType { get; init; }
+    public int? DisplayRefreshRateHz { get; init; }
+    public bool? DisplayTouchscreen { get; init; }
+    public int? BatteryCapacityWh { get; init; }
+    public decimal? WeightKg { get; init; }
+    public string? Dimensions { get; init; }
+    public string? Color { get; init; }
+    public string? Ports { get; init; }
+    public bool? WiFi6Support { get; init; }
+    public bool? BluetoothSupport { get; init; }
+    public string? BluetoothVersion { get; init; }
+    public string? WarrantyPeriod { get; init; }
+    public string? TargetAudience { get; init; }
 }
 
 /// <summary>
 /// Update accessory request DTO
 /// </summary>
-public class UpdateAccessoryRequest : UpdateProductRequest
+public record UpdateAccessoryRequest : UpdateProductRequest
 {
-    public string? AccessoryType { get; set; }
-    public string? Compatibility { get; set; }
-    public string? SpecificationDetails { get; set; }
-    public string? Color { get; set; }
-    public string? Connectivity { get; set; }
+    public string? AccessoryType { get; init; }
+    public string? Compatibility { get; init; }
+    public string? SpecificationDetails { get; init; }
+    public string? Color { get; init; }
+    public string? Connectivity { get; init; }
 }
 
 #endregion
@@ -501,48 +499,48 @@ public class UpdateAccessoryRequest : UpdateProductRequest
 /// <summary>
 /// Request DTO for creating product bundles
 /// </summary>
-public class CreateBundleRequest
+public record CreateBundleRequest
 {
     [Required]
     [StringLength(200)]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
     [Required]
     [StringLength(1000)]
-    public string Description { get; set; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
 
     [Required]
-    public List<int> ProductIds { get; set; } = new();
+    public List<int> ProductIds { get; init; } = new();
 
     [Range(0, 100)]
-    public decimal DiscountPercentage { get; set; }
+    public decimal DiscountPercentage { get; init; }
 
-    public DateTime? ValidFrom { get; set; }
-    public DateTime? ValidTo { get; set; }
+    public DateTime? ValidFrom { get; init; }
+    public DateTime? ValidTo { get; init; }
 }
 
 /// <summary>
 /// Request DTO for calculating bundle pricing
 /// </summary>
-public class CalculateBundlePriceRequest
+public record CalculateBundlePriceRequest
 {
     [Required]
-    public List<int> ProductIds { get; set; } = new();
+    public List<int> ProductIds { get; init; } = new();
 
     [Range(0, 100)]
-    public decimal DiscountPercentage { get; set; }
+    public decimal DiscountPercentage { get; init; }
 }
 
 /// <summary>
 /// Request DTO for bulk pricing updates
 /// </summary>
-public class BulkPricingUpdateRequest
+public record BulkPricingUpdateRequest
 {
     [Required]
-    public List<int> ProductIds { get; set; } = new();
+    public List<int> ProductIds { get; init; } = new();
 
     [Range(-100, 1000)]
-    public decimal PriceAdjustmentPercentage { get; set; }
+    public decimal PriceAdjustmentPercentage { get; init; }
 }
 
 #endregion

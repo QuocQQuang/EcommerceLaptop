@@ -12,14 +12,9 @@ namespace EcommerceLaptop.API.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public abstract class BaseApiController : ControllerBase
+public abstract class BaseApiController(ILogger logger) : ControllerBase
 {
-    protected readonly ILogger _logger;
-
-    protected BaseApiController(ILogger logger)
-    {
-        _logger = logger;
-    }
+    protected readonly ILogger _logger = logger;
 
     /// <summary>
     /// Gets the current authenticated user ID from JWT claims
@@ -171,6 +166,40 @@ public abstract class BaseApiController : ControllerBase
     }
 
     /// <summary>
+    /// Handles exceptions centrally (Legacy - Use GlobalExceptionHandler instead)
+    /// </summary>
+    [Obsolete("Use GlobalExceptionHandler instead")]
+    protected IActionResult HandleException(Exception ex, string? customMessage = null)
+    {
+        _logger.LogError(ex, "An error occurred while processing the request: {Message}", customMessage ?? "No details");
+        return ErrorResponse(customMessage ?? ex.Message, 500);
+    }
+
+    /// <summary>
+    /// Validates model state manually (Legacy - Use [ApiController] validation instead)
+    /// </summary>
+    [Obsolete("Use [ApiController] automatic validation instead")]
+    protected IActionResult? ValidateModelState()
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            
+            var message = string.Join("; ", errors);
+            return BadRequest(new ApiResponse<object>
+            {
+                Success = false,
+                Message = "Validation Failed: " + message,
+                Data = null
+            });
+        }
+        return null;
+    }
+
+    /// <summary>
     /// Creates a paginated response
     /// </summary>
     protected IActionResult PaginatedResponse<T>(IEnumerable<T> items, int totalCount, int page, int pageSize)
@@ -188,39 +217,6 @@ public abstract class BaseApiController : ControllerBase
         };
 
         return Ok(response);
-    }
-
-    /// <summary>
-    /// Handles exceptions with standardized logging and response
-    /// </summary>
-    protected IActionResult HandleException(Exception ex, string operation)
-    {
-        _logger.LogError(ex, "Error in {Operation}", operation);
-        return ErrorResponse("An error occurred while processing your request", 500);
-    }
-
-    /// <summary>
-    /// Validates model state and returns error response if invalid
-    /// </summary>
-    protected IActionResult? ValidateModelState()
-    {
-        if (!ModelState.IsValid)
-        {
-            var errors = ModelState
-                .Where(x => x.Value?.Errors.Count > 0)
-                .ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).ToArray()
-                );
-
-            return BadRequest(new ApiResponse<object>
-            {
-                Success = false,
-                Message = "Validation failed",
-                Data = errors
-            });
-        }
-        return null;
     }
 
     /// <summary>
@@ -244,25 +240,25 @@ public abstract class BaseApiController : ControllerBase
 /// <summary>
 /// Standard API response wrapper
 /// </summary>
-public class ApiResponse<T>
+public record ApiResponse<T>
 {
-    public bool Success { get; set; }
-    public string? Message { get; set; }
-    public T? Data { get; set; }
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public bool Success { get; init; }
+    public string? Message { get; init; }
+    public T? Data { get; init; }
+    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
 }
 
 /// <summary>
 /// Paginated API response wrapper
 /// </summary>
-public class PaginatedApiResponse<T> : ApiResponse<IEnumerable<T>>
+public record PaginatedApiResponse<T> : ApiResponse<IEnumerable<T>>
 {
-    public int TotalCount { get; set; }
-    public int Page { get; set; }
-    public int PageSize { get; set; }
-    public int TotalPages { get; set; }
-    public bool HasNextPage { get; set; }
-    public bool HasPreviousPage { get; set; }
+    public int TotalCount { get; init; }
+    public int Page { get; init; }
+    public int PageSize { get; init; }
+    public int TotalPages { get; init; }
+    public bool HasNextPage { get; init; }
+    public bool HasPreviousPage { get; init; }
 }
 
 #endregion

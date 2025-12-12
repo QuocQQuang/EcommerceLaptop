@@ -14,18 +14,14 @@ namespace EcommerceLaptop.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize] // Require authentication for order operations
-public class OrdersController : BaseApiController
+public class OrdersController(
+    IOrderService orderService, 
+    IPaymentOrchestrator paymentOrchestrator, 
+    ILogger<OrdersController> logger) : BaseApiController(logger)
 {
-    private readonly IOrderService _orderService;
-    private readonly IPaymentOrchestrator _paymentOrchestrator;
-    private new readonly ILogger<OrdersController> _logger;
-
-    public OrdersController(IOrderService orderService, IPaymentOrchestrator paymentOrchestrator, ILogger<OrdersController> logger) : base(logger)
-    {
-        _orderService = orderService;
-        _paymentOrchestrator = paymentOrchestrator;
-        _logger = logger;
-    }
+    private readonly IOrderService _orderService = orderService;
+    private readonly IPaymentOrchestrator _paymentOrchestrator = paymentOrchestrator;
+    private new readonly ILogger<OrdersController> _logger = logger;
 
     [HttpPost("checkout")]
     [ProducesResponseType(typeof(AtomicCheckoutResult), StatusCodes.Status200OK)]
@@ -34,63 +30,40 @@ public class OrdersController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AtomicCheckoutResult>> AtomicCheckout([FromBody] CreateOrderRequest request)
     {
-        try
+        var customerId = GetUserId();
+        if (string.IsNullOrEmpty(customerId))
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return Unauthorized();
+        }
 
-            var customerId = GetUserId();
-            if (string.IsNullOrEmpty(customerId))
-            {
-                return Unauthorized();
-            }
+        request.CustomerId = int.Parse(customerId);
 
-            request.CustomerId = int.Parse(customerId);
-
-            // Enforce email confirmation before allowing checkout
-            var isEmailConfirmed = User.Claims.FirstOrDefault(c => c.Type == "email_confirmed")?.Value;
-            if (string.IsNullOrEmpty(isEmailConfirmed))
-            {
-                // Fallback: require service to verify user record
-                var authService = HttpContext.RequestServices
-                    .GetRequiredService<EcommerceLaptop.Core.Services.IAuthService>();
-                var profile = await authService.GetUserProfileAsync(request.CustomerId);
-                if (profile == null || profile.IsEmailVerified == false)
-                {
-                    return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
-                }
-            }
-            else if (!bool.TryParse(isEmailConfirmed, out var confirmed) || !confirmed)
+        // Enforce email confirmation before allowing checkout
+        var isEmailConfirmed = User.Claims.FirstOrDefault(c => c.Type == "email_confirmed")?.Value;
+        if (string.IsNullOrEmpty(isEmailConfirmed))
+        {
+            // Fallback: require service to verify user record
+            var authService = HttpContext.RequestServices
+                .GetRequiredService<EcommerceLaptop.Core.Services.IAuthService>();
+            var profile = await authService.GetUserProfileAsync(request.CustomerId);
+            if (profile == null || profile.IsEmailVerified == false)
             {
                 return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
             }
-            var result = await _orderService.CreateOrderAndInitializePaymentAsync(request);
+        }
+        else if (!bool.TryParse(isEmailConfirmed, out var confirmed) || !confirmed)
+        {
+            return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
+        }
+        var result = await _orderService.CreateOrderAndInitializePaymentAsync(request);
 
-            if (result.IsSuccess)
-            {
-                return Ok(result);
-            }
-            else
-            {
-                return BadRequest(result.ErrorMessage);
-            }
-        }
-        catch (ArgumentException ex)
+        if (result.IsSuccess)
         {
-            _logger.LogWarning(ex, "Invalid argument for atomic checkout");
-            return BadRequest(ex.Message);
+            return Ok(result);
         }
-        catch (InvalidOperationException ex)
+        else
         {
-            _logger.LogWarning(ex, "Invalid operation for atomic checkout");
-            return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in atomic checkout");
-            return StatusCode(500, "An error occurred during the checkout process");
+            return BadRequest(result.ErrorMessage);
         }
     }
 
@@ -101,66 +74,43 @@ public class OrdersController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrderDto>> CreateFromCart(string cartId, [FromBody] CreateOrderRequest request)
     {
-        try
+        // Validate and parse cartId
+        if (!int.TryParse(cartId, out int parsedCartId))
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest("Invalid cart ID format");
+        }
 
-            // Validate and parse cartId
-            if (!int.TryParse(cartId, out int parsedCartId))
-            {
-                return BadRequest("Invalid cart ID format");
-            }
+        var customerId = GetUserId();
+        if (string.IsNullOrEmpty(customerId))
+        {
+            return Unauthorized();
+        }
 
-            var customerId = GetUserId();
-            if (string.IsNullOrEmpty(customerId))
-            {
-                return Unauthorized();
-            }
-
-            // Enforce email confirmation for order creation from cart as well
-            var isEmailConfirmed2 = User.Claims.FirstOrDefault(c => c.Type == "email_confirmed")?.Value;
-            if (string.IsNullOrEmpty(isEmailConfirmed2))
-            {
-                var authService = HttpContext.RequestServices
-                    .GetRequiredService<EcommerceLaptop.Core.Services.IAuthService>();
-                var profile = await authService.GetUserProfileAsync(int.Parse(customerId));
-                if (profile == null || profile.IsEmailVerified == false)
-                {
-                    return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
-                }
-            }
-            else if (!bool.TryParse(isEmailConfirmed2, out var confirmed2) || !confirmed2)
+        // Enforce email confirmation for order creation from cart as well
+        var isEmailConfirmed2 = User.Claims.FirstOrDefault(c => c.Type == "email_confirmed")?.Value;
+        if (string.IsNullOrEmpty(isEmailConfirmed2))
+        {
+            var authService = HttpContext.RequestServices
+                .GetRequiredService<EcommerceLaptop.Core.Services.IAuthService>();
+            var profile = await authService.GetUserProfileAsync(int.Parse(customerId));
+            if (profile == null || profile.IsEmailVerified == false)
             {
                 return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
             }
+        }
+        else if (!bool.TryParse(isEmailConfirmed2, out var confirmed2) || !confirmed2)
+        {
+            return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
+        }
 
-            // Validate shipping address
-            if (string.IsNullOrWhiteSpace(request.ShippingAddress))
-            {
-                return BadRequest("Shipping address is required");
-            }
+        // Validate shipping address
+        if (string.IsNullOrWhiteSpace(request.ShippingAddress))
+        {
+            return BadRequest("Shipping address is required");
+        }
 
-            var order = await _orderService.CreateOrderFromCartAsync(parsedCartId, int.Parse(customerId), request.ShippingAddress);
-            return CreatedAtAction(nameof(GetOrder), new { orderId = order.Id }, order);
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Invalid argument for order creation: CartId {CartId}", cartId);
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogWarning(ex, "Invalid operation for order creation: CartId {CartId}", cartId);
-            return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating order from cart {CartId}", cartId);
-            return StatusCode(500, "An error occurred while creating the order");
-        }
+        var order = await _orderService.CreateOrderFromCartAsync(parsedCartId, int.Parse(customerId), request.ShippingAddress);
+        return CreatedAtAction(nameof(GetOrder), new { orderId = order.Id }, order);
     }
 
     [HttpGet("{orderId}")]
@@ -170,27 +120,14 @@ public class OrdersController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrderDetailsDto>> GetOrder(int orderId)
     {
-        try
+        var customerId = GetUserId();
+        if (string.IsNullOrEmpty(customerId))
         {
-            var customerId = GetUserId();
-            if (string.IsNullOrEmpty(customerId))
-            {
-                return Unauthorized();
-            }
+            return Unauthorized();
+        }
 
-            var order = await _orderService.GetOrderDetailsAsync(orderId);
-            return Ok(order);
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Order not found: {OrderId}", orderId);
-            return NotFound();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting order {OrderId}", orderId);
-            return StatusCode(500, "An error occurred while retrieving the order");
-        }
+        var order = await _orderService.GetOrderDetailsAsync(orderId);
+        return Ok(order);
     }
 
     [HttpPut("{orderId}/status")]
@@ -202,40 +139,20 @@ public class OrdersController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateStatus(int orderId, [FromBody] UpdateStatusRequest request)
     {
-        try
+        _logger.LogInformation(" UPDATE ORDER STATUS - OrderId: {OrderId}, NewStatus: {NewStatus}, Reason: {Reason}",
+            orderId, request.NewStatus, request.Reason);
+
+        var success = await _orderService.UpdateOrderStatusAsync(orderId, request);
+        if (!success)
         {
-            _logger.LogInformation(" UPDATE ORDER STATUS - OrderId: {OrderId}, NewStatus: {NewStatus}, Reason: {Reason}",
-                orderId, request.NewStatus, request.Reason);
-
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning(" MODEL STATE INVALID - OrderId: {OrderId}, Errors: {Errors}",
-                    orderId, string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
-                return BadRequest(ModelState);
-            }
-
-            var success = await _orderService.UpdateOrderStatusAsync(orderId, request);
-            if (!success)
-            {
-                _logger.LogWarning(" UPDATE FAILED - OrderId: {OrderId}, NewStatus: {NewStatus}",
-                    orderId, request.NewStatus);
-                return NotFound("Order not found or invalid status transition");
-            }
-
-            _logger.LogInformation(" UPDATE SUCCESS - OrderId: {OrderId}, NewStatus: {NewStatus}",
+            _logger.LogWarning(" UPDATE FAILED - OrderId: {OrderId}, NewStatus: {NewStatus}",
                 orderId, request.NewStatus);
-            return Ok();
+            return NotFound("Order not found or invalid status transition");
         }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Invalid request for status update: OrderId {OrderId}", orderId);
-            return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating order status {OrderId}", orderId);
-            return StatusCode(500, "An error occurred while updating the order status");
-        }
+
+        _logger.LogInformation(" UPDATE SUCCESS - OrderId: {OrderId}, NewStatus: {NewStatus}",
+            orderId, request.NewStatus);
+        return Ok();
     }
 
     [HttpDelete("{orderId}")]
@@ -247,45 +164,27 @@ public class OrdersController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CancelOrder(int orderId, [FromBody] CancelOrderRequest request)
     {
-        try
+        var customerId = GetUserId();
+        if (string.IsNullOrEmpty(customerId))
         {
-            if (!ModelState.IsValid)
+            return Unauthorized();
+        }
+
+        var success = await _orderService.CancelOrderAsync(orderId, request);
+        if (!success)
+        {
+            // Check if order exists to provide better error message
+            var order = await _orderService.GetOrderDetailsAsync(orderId);
+            if (order == null)
             {
-                return BadRequest(ModelState);
+                return NotFound("Order not found");
             }
 
-            var customerId = GetUserId();
-            if (string.IsNullOrEmpty(customerId))
-            {
-                return Unauthorized();
-            }
-
-            var success = await _orderService.CancelOrderAsync(orderId, request);
-            if (!success)
-            {
-                // Check if order exists to provide better error message
-                var order = await _orderService.GetOrderDetailsAsync(orderId);
-                if (order == null)
-                {
-                    return NotFound("Order not found");
-                }
-
-                // If order exists but cancellation failed, it's likely because it's already paid
-                return BadRequest("Khng th hy n hng  thanh ton. Vui lng lin h h tr  c hon tin.");
-            }
-
-            return Ok();
+            // If order exists but cancellation failed, it's likely because it's already paid
+            return BadRequest("Khng th hy n hng  thanh ton. Vui lng lin h h tr  c hon tin.");
         }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Invalid request for order cancellation: OrderId {OrderId}", orderId);
-            return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error cancelling order {OrderId}", orderId);
-            return StatusCode(500, "An error occurred while cancelling the order");
-        }
+
+        return Ok();
     }
 
     [HttpGet("customer/{customerId}")]
@@ -295,22 +194,14 @@ public class OrdersController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EcommerceLaptop.Core.DTOs.PagedResult<OrderDto>>> GetCustomerOrders(int customerId, int page = 1, int pageSize = 10)
     {
-        try
+        var userId = GetUserId();
+        if (string.IsNullOrEmpty(userId) || int.Parse(userId) != customerId)
         {
-            var userId = GetUserId();
-            if (string.IsNullOrEmpty(userId) || int.Parse(userId) != customerId)
-            {
-                return Unauthorized("Access denied");
-            }
+            return Unauthorized("Access denied");
+        }
 
-            var orders = await _orderService.GetCustomerOrdersAsync(customerId, page, pageSize);
-            return Ok(orders);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting customer orders for {CustomerId}", customerId);
-            return StatusCode(500, "An error occurred while retrieving customer orders");
-        }
+        var orders = await _orderService.GetCustomerOrdersAsync(customerId, page, pageSize);
+        return Ok(orders);
     }
 
     #region Admin Endpoints
@@ -330,32 +221,24 @@ public class OrdersController : BaseApiController
         [FromQuery] string? status = null,
         [FromQuery] int? customerId = null)
     {
-        try
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+        var result = await _orderService.GetEnhancedAdminOrdersAsync(page, pageSize, search, status, customerId);
+
+        return Ok(new
         {
-            if (page < 1) page = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 20;
-
-            var result = await _orderService.GetEnhancedAdminOrdersAsync(page, pageSize, search, status, customerId);
-
-            return Ok(new
+            orders = result.Items,
+            totalCount = result.TotalCount,
+            currentPage = result.Page,
+            totalPages = result.TotalPages,
+            pageSize = result.PageSize,
+            summary = new
             {
-                orders = result.Items,
-                totalCount = result.TotalCount,
-                currentPage = result.Page,
-                totalPages = result.TotalPages,
-                pageSize = result.PageSize,
-                summary = new
-                {
-                    totalAmount = result.Items?.Sum(o => o.TotalAmount) ?? 0,
-                    averageOrderValue = result.Items?.Count > 0 ? result.Items.Average(o => o.TotalAmount) : 0
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting admin orders");
-            return StatusCode(500, "An error occurred while retrieving orders");
-        }
+                totalAmount = result.Items?.Sum(o => o.TotalAmount) ?? 0,
+                averageOrderValue = result.Items?.Count > 0 ? result.Items.Average(o => o.TotalAmount) : 0
+            }
+        });
     }
 
     #endregion

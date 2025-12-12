@@ -13,15 +13,9 @@ namespace EcommerceLaptop.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class InventoryController : BaseApiController
+public class InventoryController(IInventoryService inventoryService, ILogger<InventoryController> logger) : BaseApiController(logger)
 {
-    private readonly IInventoryService _inventoryService;
-
-    public InventoryController(IInventoryService inventoryService, ILogger<InventoryController> logger)
-        : base(logger)
-    {
-        _inventoryService = inventoryService;
-    }
+    private readonly IInventoryService _inventoryService = inventoryService;
 
     #region Core CRUD Operations
 
@@ -34,21 +28,14 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse,Sales")]
     public async Task<IActionResult> GetInventoryByProductId(int productId)
     {
-        try
-        {
-            if (productId <= 0)
-                return ErrorResponse("Invalid product ID", 400);
+        if (productId <= 0)
+            return ErrorResponse("Invalid product ID", 400);
 
-            var inventory = await _inventoryService.GetInventoryByProductIdAsync(productId);
-            if (inventory == null)
-                return ErrorResponse("Inventory not found for this product", 404);
+        var inventory = await _inventoryService.GetInventoryByProductIdAsync(productId);
+        if (inventory == null)
+            return ErrorResponse("Inventory not found for this product", 404);
 
-            return SuccessResponse(inventory, "Inventory retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetInventoryByProductId));
-        }
+        return SuccessResponse(inventory, "Inventory retrieved successfully");
     }
 
     /// <summary>
@@ -60,18 +47,8 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse,Sales")]
     public async Task<IActionResult> GetInventories([FromBody] InventoryFilterRequest request)
     {
-        try
-        {
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
-
-            var result = await _inventoryService.GetInventoriesAsync(request);
-            return PaginatedResponse(result.Items, result.TotalCount, result.Page, result.PageSize);
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetInventories));
-        }
+        var result = await _inventoryService.GetInventoriesAsync(request);
+        return PaginatedResponse(result.Items, result.TotalCount, result.Page, result.PageSize);
     }
 
     /// <summary>
@@ -83,18 +60,8 @@ public class InventoryController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> CreateInventory([FromBody] CreateInventoryRequest request)
     {
-        try
-        {
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
-
-            var inventory = await _inventoryService.CreateInventoryAsync(request);
-            return SuccessResponse(inventory, "Inventory created successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(CreateInventory));
-        }
+        var inventory = await _inventoryService.CreateInventoryAsync(request);
+        return SuccessResponse(inventory, "Inventory created successfully");
     }
 
     /// <summary>
@@ -107,21 +74,11 @@ public class InventoryController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> UpdateInventory(int id, [FromBody] UpdateInventoryRequest request)
     {
-        try
-        {
-            if (id <= 0)
-                return ErrorResponse("Invalid inventory ID", 400);
+        if (id <= 0)
+            return ErrorResponse("Invalid inventory ID", 400);
 
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
-
-            var inventory = await _inventoryService.UpdateInventoryAsync(id, request);
-            return SuccessResponse(inventory, "Inventory updated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(UpdateInventory));
-        }
+        var inventory = await _inventoryService.UpdateInventoryAsync(id, request);
+        return SuccessResponse(inventory, "Inventory updated successfully");
     }
 
     /// <summary>
@@ -133,21 +90,14 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> DeleteInventory(int id)
     {
-        try
-        {
-            if (id <= 0)
-                return ErrorResponse("Invalid inventory ID", 400);
+        if (id <= 0)
+            return ErrorResponse("Invalid inventory ID", 400);
 
-            var result = await _inventoryService.DeleteInventoryAsync(id);
-            if (!result)
-                return ErrorResponse("Failed to delete inventory", 400);
+        var result = await _inventoryService.DeleteInventoryAsync(id);
+        if (!result)
+            return ErrorResponse("Failed to delete inventory", 400);
 
-            return SuccessResponse(true, "Inventory deleted successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(DeleteInventory));
-        }
+        return SuccessResponse(true, "Inventory deleted successfully");
     }
 
     #endregion
@@ -163,21 +113,11 @@ public class InventoryController : BaseApiController
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> AdjustStock([FromBody] StockAdjustmentRequest request)
     {
-        try
-        {
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
+        var result = await _inventoryService.AdjustStockAsync(request);
+        if (!result)
+            return ErrorResponse("Failed to adjust stock", 400);
 
-            var result = await _inventoryService.AdjustStockAsync(request);
-            if (!result)
-                return ErrorResponse("Failed to adjust stock", 400);
-
-            return SuccessResponse(true, "Stock adjusted successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(AdjustStock));
-        }
+        return SuccessResponse(true, "Stock adjusted successfully");
     }
 
     /// <summary>
@@ -189,21 +129,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> BulkAdjustStock([FromBody] List<StockAdjustmentRequest> requests)
     {
-        try
-        {
-            if (requests == null || !requests.Any())
-                return ErrorResponse("No adjustment requests provided", 400);
+        if (requests == null || !requests.Any())
+            return ErrorResponse("No adjustment requests provided", 400);
 
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
-
-            var result = await _inventoryService.BulkAdjustStockAsync(requests);
-            return SuccessResponse(result, "Bulk stock adjustment completed");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(BulkAdjustStock));
-        }
+        var result = await _inventoryService.BulkAdjustStockAsync(requests);
+        return SuccessResponse(result, "Bulk stock adjustment completed");
     }
 
     /// <summary>
@@ -215,21 +145,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> TransferStock([FromBody] StockTransferRequest request)
     {
-        try
-        {
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
+        var result = await _inventoryService.TransferStockAsync(request);
+        if (!result)
+            return ErrorResponse("Failed to transfer stock", 400);
 
-            var result = await _inventoryService.TransferStockAsync(request);
-            if (!result)
-                return ErrorResponse("Failed to transfer stock", 400);
-
-            return SuccessResponse(true, "Stock transferred successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(TransferStock));
-        }
+        return SuccessResponse(true, "Stock transferred successfully");
     }
 
     /// <summary>
@@ -241,18 +161,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse,Sales")]
     public async Task<IActionResult> ValidateStockLevels([FromBody] List<int> productIds)
     {
-        try
-        {
-            if (productIds == null || !productIds.Any())
-                return ErrorResponse("No product IDs provided", 400);
+        if (productIds == null || !productIds.Any())
+            return ErrorResponse("No product IDs provided", 400);
 
-            var result = await _inventoryService.ValidateStockLevelsAsync(productIds);
-            return SuccessResponse(result, "Stock validation completed");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(ValidateStockLevels));
-        }
+        var result = await _inventoryService.ValidateStockLevelsAsync(productIds);
+        return SuccessResponse(result, "Stock validation completed");
     }
 
     #endregion
@@ -267,15 +180,8 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> GetLowStockAlerts()
     {
-        try
-        {
-            var alerts = await _inventoryService.GetLowStockAlertsAsync();
-            return SuccessResponse(alerts, "Low stock alerts retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetLowStockAlerts));
-        }
+        var alerts = await _inventoryService.GetLowStockAlertsAsync();
+        return SuccessResponse(alerts, "Low stock alerts retrieved successfully");
     }
 
     /// <summary>
@@ -286,15 +192,8 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> GetReorderSuggestions()
     {
-        try
-        {
-            var suggestions = await _inventoryService.GetReorderSuggestionsAsync();
-            return SuccessResponse(suggestions, "Reorder suggestions generated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetReorderSuggestions));
-        }
+        var suggestions = await _inventoryService.GetReorderSuggestionsAsync();
+        return SuccessResponse(suggestions, "Reorder suggestions generated successfully");
     }
 
     /// <summary>
@@ -307,24 +206,17 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> UpdateReorderLevel(int productId, [FromBody] int newReorderLevel)
     {
-        try
-        {
-            if (productId <= 0)
-                return ErrorResponse("Invalid product ID", 400);
+        if (productId <= 0)
+            return ErrorResponse("Invalid product ID", 400);
 
-            if (newReorderLevel < 0)
-                return ErrorResponse("Reorder level cannot be negative", 400);
+        if (newReorderLevel < 0)
+            return ErrorResponse("Reorder level cannot be negative", 400);
 
-            var result = await _inventoryService.UpdateReorderLevelsAsync(productId, newReorderLevel);
-            if (!result)
-                return ErrorResponse("Failed to update reorder level", 400);
+        var result = await _inventoryService.UpdateReorderLevelsAsync(productId, newReorderLevel);
+        if (!result)
+            return ErrorResponse("Failed to update reorder level", 400);
 
-            return SuccessResponse(true, "Reorder level updated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(UpdateReorderLevel));
-        }
+        return SuccessResponse(true, "Reorder level updated successfully");
     }
 
     /// <summary>
@@ -335,15 +227,8 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> GetRealTimeAlerts()
     {
-        try
-        {
-            var alerts = await _inventoryService.GetRealTimeAlertsAsync();
-            return SuccessResponse(alerts, "Real-time alerts retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetRealTimeAlerts));
-        }
+        var alerts = await _inventoryService.GetRealTimeAlertsAsync();
+        return SuccessResponse(alerts, "Real-time alerts retrieved successfully");
     }
 
     #endregion
@@ -358,18 +243,8 @@ public class InventoryController : BaseApiController
     [HttpPost("reports/inventory")]
     public async Task<IActionResult> GenerateInventoryReport([FromBody] InventoryReportRequest request)
     {
-        try
-        {
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
-
-            var report = await _inventoryService.GenerateInventoryReportAsync(request);
-            return SuccessResponse(report, "Inventory report generated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GenerateInventoryReport));
-        }
+        var report = await _inventoryService.GenerateInventoryReportAsync(request);
+        return SuccessResponse(report, "Inventory report generated successfully");
     }
 
     /// <summary>
@@ -386,18 +261,11 @@ public class InventoryController : BaseApiController
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null)
     {
-        try
-        {
-            if (productId <= 0)
-                return ErrorResponse("Invalid product ID", 400);
+        if (productId <= 0)
+            return ErrorResponse("Invalid product ID", 400);
 
-            var transactions = await _inventoryService.GetTransactionHistoryAsync(productId, fromDate, toDate);
-            return SuccessResponse(transactions, "Transaction history retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetTransactionHistory));
-        }
+        var transactions = await _inventoryService.GetTransactionHistoryAsync(productId, fromDate, toDate);
+        return SuccessResponse(transactions, "Transaction history retrieved successfully");
     }
 
     /// <summary>
@@ -412,21 +280,14 @@ public class InventoryController : BaseApiController
         [FromQuery, Required] DateTime fromDate,
         [FromQuery, Required] DateTime toDate)
     {
-        try
-        {
-            if (fromDate >= toDate)
-                return ErrorResponse("From date must be before to date", 400);
+        if (fromDate >= toDate)
+            return ErrorResponse("From date must be before to date", 400);
 
-            if ((toDate - fromDate).TotalDays > 365)
-                return ErrorResponse("Date range cannot exceed 365 days", 400);
+        if ((toDate - fromDate).TotalDays > 365)
+            return ErrorResponse("Date range cannot exceed 365 days", 400);
 
-            var report = await _inventoryService.GetStockMovementReportAsync(fromDate, toDate);
-            return SuccessResponse(report, "Stock movement report generated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetStockMovementReport));
-        }
+        var report = await _inventoryService.GetStockMovementReportAsync(fromDate, toDate);
+        return SuccessResponse(report, "Stock movement report generated successfully");
     }
 
     /// <summary>
@@ -438,15 +299,8 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> GetInventoryKPIs([FromQuery] string warehouseLocation = "")
     {
-        try
-        {
-            var kpis = await _inventoryService.GetInventoryKPIsAsync(warehouseLocation);
-            return SuccessResponse(kpis, "Inventory KPIs calculated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetInventoryKPIs));
-        }
+        var kpis = await _inventoryService.GetInventoryKPIsAsync(warehouseLocation);
+        return SuccessResponse(kpis, "Inventory KPIs calculated successfully");
     }
 
     /// <summary>
@@ -457,15 +311,8 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> GetInventoryHealthScore()
     {
-        try
-        {
-            var healthScore = await _inventoryService.CalculateInventoryHealthScoreAsync();
-            return SuccessResponse(healthScore, "Inventory health score calculated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetInventoryHealthScore));
-        }
+        var healthScore = await _inventoryService.CalculateInventoryHealthScoreAsync();
+        return SuccessResponse(healthScore, "Inventory health score calculated successfully");
     }
 
     #endregion
@@ -481,18 +328,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> GetWarehouseInventory(string warehouseLocation)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(warehouseLocation))
-                return ErrorResponse("Warehouse location is required", 400);
+        if (string.IsNullOrWhiteSpace(warehouseLocation))
+            return ErrorResponse("Warehouse location is required", 400);
 
-            var inventory = await _inventoryService.GetWarehouseInventoryAsync(warehouseLocation);
-            return SuccessResponse(inventory, "Warehouse inventory retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetWarehouseInventory));
-        }
+        var inventory = await _inventoryService.GetWarehouseInventoryAsync(warehouseLocation);
+        return SuccessResponse(inventory, "Warehouse inventory retrieved successfully");
     }
 
     #endregion
@@ -508,23 +348,13 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> AssignSerialNumber([FromBody] AssignSerialNumberRequest request)
     {
-        try
-        {
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
+        var result = await _inventoryService.AssignSerialNumberAsync(
+            request.ProductId, request.SerialNumber, request.BatchNumber);
 
-            var result = await _inventoryService.AssignSerialNumberAsync(
-                request.ProductId, request.SerialNumber, request.BatchNumber);
+        if (!result)
+            return ErrorResponse("Failed to assign serial number", 400);
 
-            if (!result)
-                return ErrorResponse("Failed to assign serial number", 400);
-
-            return SuccessResponse(true, "Serial number assigned successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(AssignSerialNumber));
-        }
+        return SuccessResponse(true, "Serial number assigned successfully");
     }
 
     /// <summary>
@@ -537,18 +367,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> GetSerialNumbers(int productId, [FromQuery] bool onlyAvailable = true)
     {
-        try
-        {
-            if (productId <= 0)
-                return ErrorResponse("Invalid product ID", 400);
+        if (productId <= 0)
+            return ErrorResponse("Invalid product ID", 400);
 
-            var serialNumbers = await _inventoryService.GetSerialNumbersAsync(productId, onlyAvailable);
-            return SuccessResponse(serialNumbers, "Serial numbers retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetSerialNumbers));
-        }
+        var serialNumbers = await _inventoryService.GetSerialNumbersAsync(productId, onlyAvailable);
+        return SuccessResponse(serialNumbers, "Serial numbers retrieved successfully");
     }
 
     /// <summary>
@@ -560,23 +383,13 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse,Sales")]
     public async Task<IActionResult> ReserveSerialNumber([FromBody] ReserveSerialNumberRequest request)
     {
-        try
-        {
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
+        var result = await _inventoryService.ReserveSerialNumberAsync(
+            request.SerialNumber, request.OrderReference);
 
-            var result = await _inventoryService.ReserveSerialNumberAsync(
-                request.SerialNumber, request.OrderReference);
+        if (!result)
+            return ErrorResponse("Failed to reserve serial number", 400);
 
-            if (!result)
-                return ErrorResponse("Failed to reserve serial number", 400);
-
-            return SuccessResponse(true, "Serial number reserved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(ReserveSerialNumber));
-        }
+        return SuccessResponse(true, "Serial number reserved successfully");
     }
 
     /// <summary>
@@ -588,21 +401,14 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse,Sales")]
     public async Task<IActionResult> GetProductBySerialNumber(string serialNumber)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(serialNumber))
-                return ErrorResponse("Serial number is required", 400);
+        if (string.IsNullOrWhiteSpace(serialNumber))
+            return ErrorResponse("Serial number is required", 400);
 
-            var serialNumberInfo = await _inventoryService.GetProductBySerialNumberAsync(serialNumber);
-            if (serialNumberInfo == null)
-                return ErrorResponse("Serial number not found", 404);
+        var serialNumberInfo = await _inventoryService.GetProductBySerialNumberAsync(serialNumber);
+        if (serialNumberInfo == null)
+            return ErrorResponse("Serial number not found", 404);
 
-            return SuccessResponse(serialNumberInfo, "Product found by serial number");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetProductBySerialNumber));
-        }
+        return SuccessResponse(serialNumberInfo, "Product found by serial number");
     }
 
     #endregion
@@ -618,21 +424,14 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse,Sales")]
     public async Task<IActionResult> GetInventoryByBarcode(string barcode)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(barcode))
-                return ErrorResponse("Barcode is required", 400);
+        if (string.IsNullOrWhiteSpace(barcode))
+            return ErrorResponse("Barcode is required", 400);
 
-            var inventory = await _inventoryService.GetInventoryByBarcodeAsync(barcode);
-            if (inventory == null)
-                return ErrorResponse("Inventory not found for this barcode", 404);
+        var inventory = await _inventoryService.GetInventoryByBarcodeAsync(barcode);
+        if (inventory == null)
+            return ErrorResponse("Inventory not found for this barcode", 404);
 
-            return SuccessResponse(inventory, "Inventory retrieved by barcode");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetInventoryByBarcode));
-        }
+        return SuccessResponse(inventory, "Inventory retrieved by barcode");
     }
 
     /// <summary>
@@ -644,21 +443,14 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse,Sales")]
     public async Task<IActionResult> GetInventoryBySKU(string sku)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(sku))
-                return ErrorResponse("SKU is required", 400);
+        if (string.IsNullOrWhiteSpace(sku))
+            return ErrorResponse("SKU is required", 400);
 
-            var inventory = await _inventoryService.GetInventoryBySKUAsync(sku);
-            if (inventory == null)
-                return ErrorResponse("Inventory not found for this SKU", 404);
+        var inventory = await _inventoryService.GetInventoryBySKUAsync(sku);
+        if (inventory == null)
+            return ErrorResponse("Inventory not found for this SKU", 404);
 
-            return SuccessResponse(inventory, "Inventory retrieved by SKU");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetInventoryBySKU));
-        }
+        return SuccessResponse(inventory, "Inventory retrieved by SKU");
     }
 
     /// <summary>
@@ -670,21 +462,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> GenerateBarcode([FromBody] GenerateBarcodeRequest request)
     {
-        try
-        {
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
+        var result = await _inventoryService.GenerateBarcodeAsync(request.ProductId, request.Format);
+        if (!result)
+            return ErrorResponse("Failed to generate barcode", 400);
 
-            var result = await _inventoryService.GenerateBarcodeAsync(request.ProductId, request.Format);
-            if (!result)
-                return ErrorResponse("Failed to generate barcode", 400);
-
-            return SuccessResponse(true, "Barcode generated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GenerateBarcode));
-        }
+        return SuccessResponse(true, "Barcode generated successfully");
     }
 
     /// <summary>
@@ -696,18 +478,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse,Sales")]
     public async Task<IActionResult> ScanMultipleBarcodes([FromBody] List<string> barcodes)
     {
-        try
-        {
-            if (barcodes == null || !barcodes.Any())
-                return ErrorResponse("No barcodes provided", 400);
+        if (barcodes == null || !barcodes.Any())
+            return ErrorResponse("No barcodes provided", 400);
 
-            var inventories = await _inventoryService.ScanMultipleBarcodesAsync(barcodes);
-            return SuccessResponse(inventories, "Barcodes scanned successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(ScanMultipleBarcodes));
-        }
+        var inventories = await _inventoryService.ScanMultipleBarcodesAsync(barcodes);
+        return SuccessResponse(inventories, "Barcodes scanned successfully");
     }
 
     #endregion
@@ -723,18 +498,8 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> CreateCycleCount([FromBody] CycleCountRequest request)
     {
-        try
-        {
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
-
-            var cycleCount = await _inventoryService.CreateCycleCountAsync(request);
-            return SuccessResponse(cycleCount, "Cycle count created successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(CreateCycleCount));
-        }
+        var cycleCount = await _inventoryService.CreateCycleCountAsync(request);
+        return SuccessResponse(cycleCount, "Cycle count created successfully");
     }
 
     /// <summary>
@@ -747,24 +512,17 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> RecordCycleCount(int cycleCountId, [FromBody] List<CountedItemDto> countedItems)
     {
-        try
-        {
-            if (cycleCountId <= 0)
-                return ErrorResponse("Invalid cycle count ID", 400);
+        if (cycleCountId <= 0)
+            return ErrorResponse("Invalid cycle count ID", 400);
 
-            if (countedItems == null || !countedItems.Any())
-                return ErrorResponse("No counted items provided", 400);
+        if (countedItems == null || !countedItems.Any())
+            return ErrorResponse("No counted items provided", 400);
 
-            var result = await _inventoryService.RecordCycleCountAsync(cycleCountId, countedItems);
-            if (!result)
-                return ErrorResponse("Failed to record cycle count", 400);
+        var result = await _inventoryService.RecordCycleCountAsync(cycleCountId, countedItems);
+        if (!result)
+            return ErrorResponse("Failed to record cycle count", 400);
 
-            return SuccessResponse(true, "Cycle count recorded successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(RecordCycleCount));
-        }
+        return SuccessResponse(true, "Cycle count recorded successfully");
     }
 
     /// <summary>
@@ -776,18 +534,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> GetInventoryDiscrepancies(int cycleCountId)
     {
-        try
-        {
-            if (cycleCountId <= 0)
-                return ErrorResponse("Invalid cycle count ID", 400);
+        if (cycleCountId <= 0)
+            return ErrorResponse("Invalid cycle count ID", 400);
 
-            var discrepancies = await _inventoryService.GetInventoryDiscrepanciesAsync(cycleCountId);
-            return SuccessResponse(discrepancies, "Inventory discrepancies retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetInventoryDiscrepancies));
-        }
+        var discrepancies = await _inventoryService.GetInventoryDiscrepanciesAsync(cycleCountId);
+        return SuccessResponse(discrepancies, "Inventory discrepancies retrieved successfully");
     }
 
     /// <summary>
@@ -800,21 +551,14 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> AdjustInventoryFromCycleCount(int cycleCountId, [FromQuery] bool autoApprove = false)
     {
-        try
-        {
-            if (cycleCountId <= 0)
-                return ErrorResponse("Invalid cycle count ID", 400);
+        if (cycleCountId <= 0)
+            return ErrorResponse("Invalid cycle count ID", 400);
 
-            var result = await _inventoryService.AdjustInventoryFromCycleCountAsync(cycleCountId, autoApprove);
-            if (!result)
-                return ErrorResponse("Failed to adjust inventory from cycle count", 400);
+        var result = await _inventoryService.AdjustInventoryFromCycleCountAsync(cycleCountId, autoApprove);
+        if (!result)
+            return ErrorResponse("Failed to adjust inventory from cycle count", 400);
 
-            return SuccessResponse(true, "Inventory adjusted from cycle count successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(AdjustInventoryFromCycleCount));
-        }
+        return SuccessResponse(true, "Inventory adjusted from cycle count successfully");
     }
 
     #endregion
@@ -829,15 +573,8 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> GetPendingPurchaseOrders()
     {
-        try
-        {
-            var purchaseOrders = await _inventoryService.GetPendingPurchaseOrdersAsync();
-            return SuccessResponse(purchaseOrders, "Pending purchase orders retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetPendingPurchaseOrders));
-        }
+        var purchaseOrders = await _inventoryService.GetPendingPurchaseOrdersAsync();
+        return SuccessResponse(purchaseOrders, "Pending purchase orders retrieved successfully");
     }
 
     /// <summary>
@@ -850,24 +587,17 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> ReceiveInventoryFromPO(int purchaseOrderId, [FromBody] List<ReceivedItemDto> receivedItems)
     {
-        try
-        {
-            if (purchaseOrderId <= 0)
-                return ErrorResponse("Invalid purchase order ID", 400);
+        if (purchaseOrderId <= 0)
+            return ErrorResponse("Invalid purchase order ID", 400);
 
-            if (receivedItems == null || !receivedItems.Any())
-                return ErrorResponse("No received items provided", 400);
+        if (receivedItems == null || !receivedItems.Any())
+            return ErrorResponse("No received items provided", 400);
 
-            var result = await _inventoryService.ReceiveInventoryFromPOAsync(purchaseOrderId, receivedItems);
-            if (!result)
-                return ErrorResponse("Failed to receive inventory from purchase order", 400);
+        var result = await _inventoryService.ReceiveInventoryFromPOAsync(purchaseOrderId, receivedItems);
+        if (!result)
+            return ErrorResponse("Failed to receive inventory from purchase order", 400);
 
-            return SuccessResponse(true, "Inventory received from purchase order successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(ReceiveInventoryFromPO));
-        }
+        return SuccessResponse(true, "Inventory received from purchase order successfully");
     }
 
     /// <summary>
@@ -879,21 +609,14 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> CreateAutomaticPurchaseOrder([FromBody] List<ReorderSuggestionDto> reorderSuggestions)
     {
-        try
-        {
-            if (reorderSuggestions == null || !reorderSuggestions.Any())
-                return ErrorResponse("No reorder suggestions provided", 400);
+        if (reorderSuggestions == null || !reorderSuggestions.Any())
+            return ErrorResponse("No reorder suggestions provided", 400);
 
-            var result = await _inventoryService.CreateAutomaticPurchaseOrderAsync(reorderSuggestions);
-            if (!result)
-                return ErrorResponse("Failed to create automatic purchase orders", 400);
+        var result = await _inventoryService.CreateAutomaticPurchaseOrderAsync(reorderSuggestions);
+        if (!result)
+            return ErrorResponse("Failed to create automatic purchase orders", 400);
 
-            return SuccessResponse(true, "Automatic purchase orders created successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(CreateAutomaticPurchaseOrder));
-        }
+        return SuccessResponse(true, "Automatic purchase orders created successfully");
     }
 
     #endregion
@@ -909,21 +632,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> RecordDamagedInventory([FromBody] DamageReportRequest request)
     {
-        try
-        {
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
+        var result = await _inventoryService.RecordDamagedInventoryAsync(request);
+        if (!result)
+            return ErrorResponse("Failed to record damaged inventory", 400);
 
-            var result = await _inventoryService.RecordDamagedInventoryAsync(request);
-            if (!result)
-                return ErrorResponse("Failed to record damaged inventory", 400);
-
-            return SuccessResponse(true, "Damaged inventory recorded successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(RecordDamagedInventory));
-        }
+        return SuccessResponse(true, "Damaged inventory recorded successfully");
     }
 
     /// <summary>
@@ -935,21 +648,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> ProcessCustomerReturn([FromBody] CustomerReturnRequest request)
     {
-        try
-        {
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
+        var result = await _inventoryService.ProcessCustomerReturnAsync(request);
+        if (!result)
+            return ErrorResponse("Failed to process customer return", 400);
 
-            var result = await _inventoryService.ProcessCustomerReturnAsync(request);
-            if (!result)
-                return ErrorResponse("Failed to process customer return", 400);
-
-            return SuccessResponse(true, "Customer return processed successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(ProcessCustomerReturn));
-        }
+        return SuccessResponse(true, "Customer return processed successfully");
     }
 
     /// <summary>
@@ -961,15 +664,8 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> GetDamagedInventory([FromQuery] string warehouseLocation = "")
     {
-        try
-        {
-            var damagedItems = await _inventoryService.GetDamagedInventoryAsync(warehouseLocation);
-            return SuccessResponse(damagedItems, "Damaged inventory retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetDamagedInventory));
-        }
+        var damagedItems = await _inventoryService.GetDamagedInventoryAsync(warehouseLocation);
+        return SuccessResponse(damagedItems, "Damaged inventory retrieved successfully");
     }
 
     /// <summary>
@@ -982,26 +678,16 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> DisposeDamagedInventory(int damageId, [FromBody] DisposalRequest request)
     {
-        try
-        {
-            if (damageId <= 0)
-                return ErrorResponse("Invalid damage ID", 400);
+        if (damageId <= 0)
+            return ErrorResponse("Invalid damage ID", 400);
 
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
+        var result = await _inventoryService.DisposeDamagedInventoryAsync(
+            damageId, request.DisposalMethod, request.Notes);
 
-            var result = await _inventoryService.DisposeDamagedInventoryAsync(
-                damageId, request.DisposalMethod, request.Notes);
+        if (!result)
+            return ErrorResponse("Failed to dispose damaged inventory", 400);
 
-            if (!result)
-                return ErrorResponse("Failed to dispose damaged inventory", 400);
-
-            return SuccessResponse(true, "Damaged inventory disposed successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(DisposeDamagedInventory));
-        }
+        return SuccessResponse(true, "Damaged inventory disposed successfully");
     }
 
     #endregion
@@ -1018,21 +704,14 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> GenerateDemandForecast(int productId, [FromQuery] int forecastDays = 90)
     {
-        try
-        {
-            if (productId <= 0)
-                return ErrorResponse("Invalid product ID", 400);
+        if (productId <= 0)
+            return ErrorResponse("Invalid product ID", 400);
 
-            if (forecastDays <= 0 || forecastDays > 365)
-                return ErrorResponse("Forecast days must be between 1 and 365", 400);
+        if (forecastDays <= 0 || forecastDays > 365)
+            return ErrorResponse("Forecast days must be between 1 and 365", 400);
 
-            var forecast = await _inventoryService.GenerateDemandForecastAsync(productId, forecastDays);
-            return SuccessResponse(forecast, "Demand forecast generated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GenerateDemandForecast));
-        }
+        var forecast = await _inventoryService.GenerateDemandForecastAsync(productId, forecastDays);
+        return SuccessResponse(forecast, "Demand forecast generated successfully");
     }
 
     /// <summary>
@@ -1044,18 +723,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> GetSlowMovingInventory([FromQuery] int daysSinceLastSale = 90)
     {
-        try
-        {
-            if (daysSinceLastSale <= 0)
-                return ErrorResponse("Days since last sale must be positive", 400);
+        if (daysSinceLastSale <= 0)
+            return ErrorResponse("Days since last sale must be positive", 400);
 
-            var slowMovingItems = await _inventoryService.GetSlowMovingInventoryAsync(daysSinceLastSale);
-            return SuccessResponse(slowMovingItems, "Slow-moving inventory retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetSlowMovingInventory));
-        }
+        var slowMovingItems = await _inventoryService.GetSlowMovingInventoryAsync(daysSinceLastSale);
+        return SuccessResponse(slowMovingItems, "Slow-moving inventory retrieved successfully");
     }
 
     /// <summary>
@@ -1067,18 +739,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> GetFastMovingInventory([FromQuery] int daysPeriod = 30)
     {
-        try
-        {
-            if (daysPeriod <= 0)
-                return ErrorResponse("Analysis period must be positive", 400);
+        if (daysPeriod <= 0)
+            return ErrorResponse("Analysis period must be positive", 400);
 
-            var fastMovingItems = await _inventoryService.GetFastMovingInventoryAsync(daysPeriod);
-            return SuccessResponse(fastMovingItems, "Fast-moving inventory retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetFastMovingInventory));
-        }
+        var fastMovingItems = await _inventoryService.GetFastMovingInventoryAsync(daysPeriod);
+        return SuccessResponse(fastMovingItems, "Fast-moving inventory retrieved successfully");
     }
 
     /// <summary>
@@ -1091,24 +756,14 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> UpdateForecastParameters(int productId, [FromBody] ForecastParametersDto parameters)
     {
-        try
-        {
-            if (productId <= 0)
-                return ErrorResponse("Invalid product ID", 400);
+        if (productId <= 0)
+            return ErrorResponse("Invalid product ID", 400);
 
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
+        var result = await _inventoryService.UpdateForecastParametersAsync(productId, parameters);
+        if (!result)
+            return ErrorResponse("Failed to update forecast parameters", 400);
 
-            var result = await _inventoryService.UpdateForecastParametersAsync(productId, parameters);
-            if (!result)
-                return ErrorResponse("Failed to update forecast parameters", 400);
-
-            return SuccessResponse(true, "Forecast parameters updated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(UpdateForecastParameters));
-        }
+        return SuccessResponse(true, "Forecast parameters updated successfully");
     }
 
     #endregion
@@ -1124,18 +779,11 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Sales")]
     public async Task<IActionResult> GetExpiringWarranties([FromQuery] int daysAhead = 30)
     {
-        try
-        {
-            if (daysAhead <= 0)
-                return ErrorResponse("Days ahead must be positive", 400);
+        if (daysAhead <= 0)
+            return ErrorResponse("Days ahead must be positive", 400);
 
-            var expiringWarranties = await _inventoryService.GetExpiringWarrantiesAsync(daysAhead);
-            return SuccessResponse(expiringWarranties, "Expiring warranties retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetExpiringWarranties));
-        }
+        var expiringWarranties = await _inventoryService.GetExpiringWarrantiesAsync(daysAhead);
+        return SuccessResponse(expiringWarranties, "Expiring warranties retrieved successfully");
     }
 
     /// <summary>
@@ -1148,24 +796,14 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> UpdateProductExpiryDate(int inventoryId, [FromBody] UpdateExpiryDateRequest request)
     {
-        try
-        {
-            if (inventoryId <= 0)
-                return ErrorResponse("Invalid inventory ID", 400);
+        if (inventoryId <= 0)
+            return ErrorResponse("Invalid inventory ID", 400);
 
-            var validation = ValidateModelState();
-            if (validation != null) return validation;
+        var result = await _inventoryService.UpdateProductExpiryDateAsync(inventoryId, request.ExpiryDate);
+        if (!result)
+            return ErrorResponse("Failed to update expiry date", 400);
 
-            var result = await _inventoryService.UpdateProductExpiryDateAsync(inventoryId, request.ExpiryDate);
-            if (!result)
-                return ErrorResponse("Failed to update expiry date", 400);
-
-            return SuccessResponse(true, "Expiry date updated successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(UpdateProductExpiryDate));
-        }
+        return SuccessResponse(true, "Expiry date updated successfully");
     }
 
     /// <summary>
@@ -1177,15 +815,8 @@ public class InventoryController : BaseApiController
     [Authorize(Roles = "Admin,Manager,Warehouse")]
     public async Task<IActionResult> GetExpiredInventory([FromQuery] string warehouseLocation = "")
     {
-        try
-        {
-            var expiredItems = await _inventoryService.GetExpiredInventoryAsync(warehouseLocation);
-            return SuccessResponse(expiredItems, "Expired inventory retrieved successfully");
-        }
-        catch (Exception ex)
-        {
-            return HandleException(ex, nameof(GetExpiredInventory));
-        }
+        var expiredItems = await _inventoryService.GetExpiredInventoryAsync(warehouseLocation);
+        return SuccessResponse(expiredItems, "Expired inventory retrieved successfully");
     }
 
     #endregion

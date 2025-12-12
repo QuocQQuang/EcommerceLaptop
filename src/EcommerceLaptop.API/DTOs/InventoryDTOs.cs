@@ -7,36 +7,36 @@ namespace EcommerceLaptop.API.DTOs;
 /// <summary>
 /// Inventory data transfer object
 /// </summary>
-public class InventoryDto
+public record InventoryDto
 {
-    public int Id { get; set; }
-    public int ProductId { get; set; }
-    public string ProductName { get; set; } = string.Empty;
-    public int QuantityInStock { get; set; }
-    public int ReservedQuantity { get; set; }
+    public int Id { get; init; }
+    public int ProductId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public int QuantityInStock { get; init; }
+    public int ReservedQuantity { get; init; }
     public int AvailableQuantity => QuantityInStock - ReservedQuantity;
-    public int ReorderLevel { get; set; }
-    public int MaxStockLevel { get; set; }
-    public string WarehouseLocation { get; set; } = string.Empty;
-    public DateTime LastStockUpdate { get; set; }
+    public int ReorderLevel { get; init; }
+    public int MaxStockLevel { get; init; }
+    public string WarehouseLocation { get; init; } = string.Empty;
+    public DateTime LastStockUpdate { get; init; }
     public bool IsLowStock => QuantityInStock <= ReorderLevel;
 }
 
 /// <summary>
 /// Inventory transaction DTO
 /// </summary>
-public class InventoryTransactionDto
+public record InventoryTransactionDto
 {
-    public int Id { get; set; }
-    public int InventoryId { get; set; }
-    public string ProductName { get; set; } = string.Empty;
-    public string Type { get; set; } = string.Empty; // StockIn, StockOut, Reserved, Released, Adjustment
-    public int Quantity { get; set; }
-    public string Reference { get; set; } = string.Empty;
-    public string Notes { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public int CreatedBy { get; set; }
-    public string CreatedByName { get; set; } = string.Empty;
+    public int Id { get; init; }
+    public int InventoryId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public string Type { get; init; } = string.Empty; // StockIn, StockOut, Reserved, Released, Adjustment
+    public int Quantity { get; init; }
+    public string Reference { get; init; } = string.Empty;
+    public string Notes { get; init; } = string.Empty;
+    public DateTime CreatedAt { get; init; }
+    public int CreatedBy { get; init; }
+    public string CreatedByName { get; init; } = string.Empty;
 }
 
 #endregion
@@ -46,83 +46,83 @@ public class InventoryTransactionDto
 /// <summary>
 /// Create inventory request DTO
 /// </summary>
-public class CreateInventoryRequest
+public record CreateInventoryRequest
 {
     [Required]
-    public int ProductId { get; set; }
+    public int ProductId { get; init; }
     
     [Required]
     [Range(0, int.MaxValue)]
-    public int QuantityInStock { get; set; }
+    public int QuantityInStock { get; init; }
     
     [Required]
     [Range(0, int.MaxValue)]
-    public int ReorderLevel { get; set; }
+    public int ReorderLevel { get; init; }
     
     [Required]
     [Range(1, int.MaxValue)]
-    public int MaxStockLevel { get; set; }
+    public int MaxStockLevel { get; init; }
     
     [Required]
     [StringLength(255)]
-    public string WarehouseLocation { get; set; } = string.Empty;
+    public string WarehouseLocation { get; init; } = string.Empty;
 }
 
 /// <summary>
 /// Update inventory request DTO
 /// </summary>
-public class UpdateInventoryRequest
+public record UpdateInventoryRequest
 {
     [Range(0, int.MaxValue)]
-    public int? QuantityInStock { get; set; }
+    public int? QuantityInStock { get; init; }
     
     [Range(0, int.MaxValue)]
-    public int? ReorderLevel { get; set; }
+    public int? ReorderLevel { get; init; }
     
     [Range(1, int.MaxValue)]
-    public int? MaxStockLevel { get; set; }
+    public int? MaxStockLevel { get; init; }
     
     [StringLength(255)]
-    public string? WarehouseLocation { get; set; }
+    public string? WarehouseLocation { get; init; }
 }
 
 /// <summary>
 /// Stock adjustment request DTO
 /// </summary>
-public class StockAdjustmentRequest
+public record StockAdjustmentRequest
 {
     [Required]
-    public int ProductId { get; set; }
+    public int ProductId { get; init; }
     
     [Required]
-    public int Quantity { get; set; } // Positive for stock in, negative for stock out
+    public int Quantity { get; init; } // Positive for stock in, negative for stock out
     
     [Required]
     [StringLength(255)]
-    public string Reference { get; set; } = string.Empty;
+    public string Reference { get; init; } = string.Empty;
     
     [StringLength(1000)]
-    public string Notes { get; set; } = string.Empty;
+    public string Notes { get; init; } = string.Empty;
 }
 
 /// <summary>
 /// Reserve stock request DTO
 /// </summary>
-public class ReserveStockRequest
+public record ReserveStockRequest
 {
     [Required]
-    public int ProductId { get; set; }
+    public int ProductId { get; init; }
     
     [Required]
     [Range(1, int.MaxValue)]
-    public int Quantity { get; set; }
+    public int Quantity { get; init; }
     
     [Required]
     [StringLength(255)]
-    public string Reference { get; set; } = string.Empty; // Usually order number
+    public string Reference { get; init; } = string.Empty; // Usually order number
     
     [StringLength(1000)]
-    public string Notes { get; set; } = string.Empty;
+    public string Notes { get; init; } = string.Empty;
 }
 
 #endregion

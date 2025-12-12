@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.API.DTOs;
-using EcommerceLaptop.API.Controllers;
+using EcommerceLaptop.Core.Entities;
 
 namespace EcommerceLaptop.API.Controllers;
 
@@ -12,16 +12,11 @@ namespace EcommerceLaptop.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class SearchController : BaseApiController
+public class SearchController(
+    IProductSearchService searchService,
+    ILogger<SearchController> logger) : BaseApiController(logger)
 {
-    private readonly IProductSearchService _searchService;
-
-    public SearchController(
-        IProductSearchService searchService, 
-        ILogger<SearchController> logger) : base(logger)
-    {
-        _searchService = searchService;
-    }
+    private readonly IProductSearchService _searchService = searchService;
 
     /// <summary>
     /// Performs advanced product search with full-text capabilities
@@ -32,47 +27,38 @@ public class SearchController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> SearchProducts([FromBody] ProductSearchRequestDto request)
     {
-        try
+        // Manual mapping from DTO to Service Model
+        // In a real app, AutoMapper would simplify this
+        var searchRequest = new EcommerceLaptop.Core.Services.ProductSearchRequest
         {
-            var validationResult = ValidateModelState();
-            if (validationResult != null) return validationResult;
+            Query = request.Query ?? string.Empty,
+            Page = Math.Max(1, request.Page),
+            PageSize = Math.Min(100, Math.Max(1, request.PageSize)),
+            ProductTypes = request.ProductTypes,
+            Brands = request.Brands,
+            MinPrice = request.MinPrice,
+            MaxPrice = request.MaxPrice,
+            IsActive = request.IsActive ?? true,
+            SortBy = request.SortBy,
+            SortDirection = request.SortDirection,
+            Filters = ConvertFilters(request.Filters)
+        };
 
-            var searchRequest = new EcommerceLaptop.Core.Services.ProductSearchRequest
-            {
-                Query = request.Query ?? string.Empty,
-                Page = Math.Max(1, request.Page),
-                PageSize = Math.Min(100, Math.Max(1, request.PageSize)),
-                ProductTypes = request.ProductTypes,
-                Brands = request.Brands,
-                MinPrice = request.MinPrice,
-                MaxPrice = request.MaxPrice,
-                IsActive = request.IsActive ?? true,
-                SortBy = request.SortBy,
-                SortDirection = request.SortDirection,
-                Filters = ConvertFilters(request.Filters)
-            };
+        var result = await _searchService.SearchProductsAsync(searchRequest);
 
-            var result = await _searchService.SearchProductsAsync(searchRequest);
-
-            var response = new ProductSearchResponseDto
-            {
-                Items = result.Items.Select(MapToProductDto),
-                TotalCount = result.TotalCount,
-                Page = result.Page,
-                PageSize = result.PageSize,
-                TotalPages = result.TotalPages,
-                SearchTime = result.SearchTime,
-                Query = result.Query ?? string.Empty,
-                Filters = new Dictionary<string, string[]>() // Basic search doesn't have facets
-            };
-
-            return SuccessResponse(response);
-        }
-        catch (Exception ex)
+        var response = new ProductSearchResponseDto
         {
-            _logger.LogError(ex, "Error performing product search");
-            return ErrorResponse("Failed to perform search");
-        }
+            Items = result.Items.Select(MapToProductDto),
+            TotalCount = result.TotalCount,
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalPages = result.TotalPages,
+            SearchTime = result.SearchTime,
+            Query = result.Query ?? string.Empty,
+            Filters = new Dictionary<string, string[]>() // Basic search doesn't have facets
+        };
+
+        return SuccessResponse(response);
     }
 
     /// <summary>
@@ -87,24 +73,16 @@ public class SearchController : BaseApiController
         [FromQuery] string query,
         [FromQuery] int maxSuggestions = 10)
     {
-        try
+        if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
         {
-            if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
-            {
-                return SuccessResponse(new string[0]);
-            }
-
-            maxSuggestions = Math.Min(20, Math.Max(1, maxSuggestions));
-
-            var suggestions = await _searchService.GetSearchSuggestionsAsync(query, maxSuggestions);
-
-            return SuccessResponse(suggestions);
+            return SuccessResponse(new string[0]);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting search suggestions for query: {Query}", query);
-            return ErrorResponse("Failed to get search suggestions");
-        }
+
+        maxSuggestions = Math.Min(20, Math.Max(1, maxSuggestions));
+
+        var suggestions = await _searchService.GetSearchSuggestionsAsync(query, maxSuggestions);
+
+        return SuccessResponse(suggestions);
     }
 
     /// <summary>
@@ -116,75 +94,64 @@ public class SearchController : BaseApiController
     [AllowAnonymous]
     public async Task<IActionResult> FacetedSearch([FromBody] FacetedSearchRequestDto request)
     {
-        try
+        var searchRequest = new EcommerceLaptop.Core.Services.FacetedSearchRequest
         {
-            var validationResult = ValidateModelState();
-            if (validationResult != null) return validationResult;
+            Query = request.Query ?? string.Empty,
+            Page = Math.Max(1, request.Page),
+            PageSize = Math.Min(100, Math.Max(1, request.PageSize)),
+            ProductTypes = request.ProductTypes,
+            Brands = request.Brands,
+            MinPrice = request.MinPrice,
+            MaxPrice = request.MaxPrice,
+            IsActive = request.IsActive ?? true,
+            SortBy = request.SortBy,
+            SortDirection = request.SortDirection,
+            Filters = ConvertFilters(request.Filters),
+            FacetFields = request.FacetFields,
+            MaxFacetValues = Math.Min(50, Math.Max(1, request.MaxFacetValues)),
+            IncludeZeroCounts = request.IncludeZeroCounts
+        };
 
-            var searchRequest = new EcommerceLaptop.Core.Services.FacetedSearchRequest
+        var result = await _searchService.FacetedSearchAsync(searchRequest);
+
+        var filters = new Dictionary<string, string[]>();
+        foreach (var kvp in result.Facets)
+        {
+            if (kvp.Value.Values.Any(v => v.IsSelected))
             {
-                Query = request.Query ?? string.Empty,
-                Page = Math.Max(1, request.Page),
-                PageSize = Math.Min(100, Math.Max(1, request.PageSize)),
-                ProductTypes = request.ProductTypes,
-                Brands = request.Brands,
-                MinPrice = request.MinPrice,
-                MaxPrice = request.MaxPrice,
-                IsActive = request.IsActive ?? true,
-                SortBy = request.SortBy,
-                SortDirection = request.SortDirection,
-                Filters = ConvertFilters(request.Filters),
-                FacetFields = request.FacetFields,
-                MaxFacetValues = Math.Min(50, Math.Max(1, request.MaxFacetValues)),
-                IncludeZeroCounts = request.IncludeZeroCounts
-            };
-
-            var result = await _searchService.FacetedSearchAsync(searchRequest);
-
-            var filters = new Dictionary<string, string[]>();
-            foreach (var kvp in result.Facets)
-            {
-                if (kvp.Value.Values.Any(v => v.IsSelected))
-                {
-                    filters[kvp.Key] = kvp.Value.Values
-                        .Where(v => v.IsSelected)
-                        .Select(v => v.Value)
-                        .ToArray();
-                }
+                filters[kvp.Key] = kvp.Value.Values
+                    .Where(v => v.IsSelected)
+                    .Select(v => v.Value)
+                    .ToArray();
             }
-
-            var response = new FacetedSearchResponseDto
-            {
-                Items = result.Items.Select(MapToProductDto),
-                TotalCount = result.TotalCount,
-                Page = result.Page,
-                PageSize = result.PageSize,
-                TotalPages = result.TotalPages,
-                SearchTime = result.SearchTime,
-                Query = result.Query ?? string.Empty,
-                Facets = result.Facets.ToDictionary(
-                    f => f.Key,
-                    f => new FacetResultDto
-                    {
-                        Field = f.Value.Field,
-                        Values = f.Value.Values.Select(v => new FacetValueDto
-                        {
-                            Value = v.Value,
-                            Count = v.Count,
-                            IsSelected = v.IsSelected
-                        }),
-                        TotalCount = f.Value.TotalCount
-                    }),
-                Filters = filters
-            };
-
-            return SuccessResponse(response);
         }
-        catch (Exception ex)
+
+        var response = new FacetedSearchResponseDto
         {
-            _logger.LogError(ex, "Error performing faceted search");
-            return ErrorResponse("Failed to perform faceted search");
-        }
+            Items = result.Items.Select(MapToProductDto),
+            TotalCount = result.TotalCount,
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalPages = result.TotalPages,
+            SearchTime = result.SearchTime,
+            Query = result.Query ?? string.Empty,
+            Facets = result.Facets.ToDictionary(
+                f => f.Key,
+                f => new FacetResultDto
+                {
+                    Field = f.Value.Field,
+                    Values = f.Value.Values.Select(v => new FacetValueDto
+                    {
+                        Value = v.Value,
+                        Count = v.Count,
+                        IsSelected = v.IsSelected
+                    }),
+                    TotalCount = f.Value.TotalCount
+                }),
+            Filters = filters
+        };
+
+        return SuccessResponse(response);
     }
 
     /// <summary>
@@ -205,41 +172,33 @@ public class SearchController : BaseApiController
         [FromQuery] string? type = null,
         [FromQuery] string? brand = null)
     {
-        try
+        var searchRequest = new EcommerceLaptop.Core.Services.ProductSearchRequest
         {
-            var searchRequest = new EcommerceLaptop.Core.Services.ProductSearchRequest
-            {
-                Query = q ?? string.Empty,
-                Page = Math.Max(1, page),
-                PageSize = Math.Min(100, Math.Max(1, size)),
-                ProductTypes = !string.IsNullOrEmpty(type) ? new[] { type } : null,
-                Brands = !string.IsNullOrEmpty(brand) ? new[] { brand } : null,
-                IsActive = true
-            };
+            Query = q ?? string.Empty,
+            Page = Math.Max(1, page),
+            PageSize = Math.Min(100, Math.Max(1, size)),
+            ProductTypes = !string.IsNullOrEmpty(type) ? new[] { type } : null,
+            Brands = !string.IsNullOrEmpty(brand) ? new[] { brand } : null,
+            IsActive = true
+        };
 
-            var result = await _searchService.SearchProductsAsync(searchRequest);
+        var result = await _searchService.SearchProductsAsync(searchRequest);
 
-            return SuccessResponse(new
-            {
-                items = result.Items.Select(p => new
-                {
-                    id = p.Id,
-                    name = p.Name,
-                    brand = p.Brand,
-                    price = p.Price,
-                    type = p.GetType().Name
-                }),
-                totalCount = result.TotalCount,
-                page = result.Page,
-                pageSize = result.PageSize,
-                searchTime = result.SearchTime
-            });
-        }
-        catch (Exception ex)
+        return SuccessResponse(new
         {
-            _logger.LogError(ex, "Error performing quick search");
-            return ErrorResponse("Failed to perform quick search");
-        }
+            items = result.Items.Select(p => new
+            {
+                id = p.Id,
+                name = p.Name,
+                brand = p.Brand,
+                price = p.Price,
+                type = p.GetType().Name
+            }),
+            totalCount = result.TotalCount,
+            page = result.Page,
+            pageSize = result.PageSize,
+            searchTime = result.SearchTime
+        });
     }
 
     /// <summary>
@@ -254,50 +213,42 @@ public class SearchController : BaseApiController
         [FromQuery] DateTime? from = null,
         [FromQuery] DateTime? to = null)
     {
-        try
-        {
-            var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
-            var toDate = to ?? DateTime.UtcNow;
+        var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
+        var toDate = to ?? DateTime.UtcNow;
 
-            if (fromDate > toDate)
+        if (fromDate > toDate)
+        {
+            return BadRequest("From date cannot be greater than to date");
+        }
+
+        var analytics = await _searchService.GetSearchAnalyticsAsync(fromDate, toDate);
+
+        var response = new
+        {
+            TotalSearches = analytics.TotalSearches,
+            AverageResponseTime = analytics.AverageResponseTime,
+            TopQueries = analytics.TopQueries.Select(q => new
             {
-                return BadRequest("From date cannot be greater than to date");
+                Query = q.Query,
+                Count = q.Count,
+                AverageResultsCount = q.AverageResultsCount,
+                AverageResponseTime = q.AverageResponseTime
+            }),
+            ZeroResultQueries = analytics.ZeroResultQueries.Select(q => new
+            {
+                Query = q.Query,
+                Count = q.Count,
+                LastSearched = q.LastSearched
+            }),
+            SearchesByDay = analytics.SearchesByDay,
+            Period = new
+            {
+                From = fromDate,
+                To = toDate
             }
+        };
 
-            var analytics = await _searchService.GetSearchAnalyticsAsync(fromDate, toDate);
-
-            var response = new
-            {
-                TotalSearches = analytics.TotalSearches,
-                AverageResponseTime = analytics.AverageResponseTime,
-                TopQueries = analytics.TopQueries.Select(q => new
-                {
-                    Query = q.Query,
-                    Count = q.Count,
-                    AverageResultsCount = q.AverageResultsCount,
-                    AverageResponseTime = q.AverageResponseTime
-                }),
-                ZeroResultQueries = analytics.ZeroResultQueries.Select(q => new
-                {
-                    Query = q.Query,
-                    Count = q.Count,
-                    LastSearched = q.LastSearched
-                }),
-                SearchesByDay = analytics.SearchesByDay,
-                Period = new
-                {
-                    From = fromDate,
-                    To = toDate
-                }
-            };
-
-            return SuccessResponse(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting search analytics");
-            return ErrorResponse("Failed to get search analytics");
-        }
+        return SuccessResponse(response);
     }
 
     /// <summary>
@@ -308,22 +259,14 @@ public class SearchController : BaseApiController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateSearchIndex()
     {
-        try
-        {
-            var success = await _searchService.CreateOrUpdateIndexAsync();
+        var success = await _searchService.CreateOrUpdateIndexAsync();
 
-            if (success)
-            {
-                return SuccessResponse(new { message = "Search index created/updated successfully" });
-            }
-            else
-            {
-                return ErrorResponse("Failed to create search index");
-            }
-        }
-        catch (Exception ex)
+        if (success)
         {
-            _logger.LogError(ex, "Error creating search index");
+            return SuccessResponse(new { message = "Search index created/updated successfully" });
+        }
+        else
+        {
             return ErrorResponse("Failed to create search index");
         }
     }
@@ -335,22 +278,14 @@ public class SearchController : BaseApiController
     /// <returns>Indexing status</returns>
     [HttpPost("index/product/{productId}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> IndexProduct(int productId)
+    public IActionResult IndexProduct(int productId)
     {
-        try
-        {
-            // In a real implementation, you'd fetch the product from the database
-            // For now, we'll return a placeholder response
-            return SuccessResponse(new { 
-                message = $"Product indexing queued for product ID: {productId}",
-                productId = productId
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error indexing product {ProductId}", productId);
-            return ErrorResponse("Failed to index product");
-        }
+        // In a real implementation, you'd fetch the product from the database
+        // For now, we'll return a placeholder response
+        return SuccessResponse(new { 
+            message = $"Product indexing queued for product ID: {productId}",
+            productId = productId
+        });
     }
 
     /// <summary>
@@ -362,32 +297,24 @@ public class SearchController : BaseApiController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RemoveProductFromIndex(int productId)
     {
-        try
-        {
-            var success = await _searchService.RemoveProductFromIndexAsync(productId);
+        var success = await _searchService.RemoveProductFromIndexAsync(productId);
 
-            if (success)
-            {
-                return SuccessResponse(new { 
-                    message = $"Product removed from search index",
-                    productId = productId
-                });
-            }
-            else
-            {
-                return ErrorResponse("Failed to remove product from search index");
-            }
-        }
-        catch (Exception ex)
+        if (success)
         {
-            _logger.LogError(ex, "Error removing product {ProductId} from search index", productId);
+            return SuccessResponse(new { 
+                message = $"Product removed from search index",
+                productId = productId
+            });
+        }
+        else
+        {
             return ErrorResponse("Failed to remove product from search index");
         }
     }
 
     #region Private Helper Methods
 
-    private ProductDto MapToProductDto(EcommerceLaptop.Core.Entities.Product product)
+    private ProductDto MapToProductDto(Product product)
     {
         // Simplified mapping - in practice, you might use AutoMapper or a more comprehensive mapping
         return new ProductDto

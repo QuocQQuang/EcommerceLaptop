@@ -172,14 +172,7 @@ public class AutoMapperProfile : Profile
         if (!string.IsNullOrEmpty(value))
         {
             order++;
-            specs.Add(new ProductSpecificationDto 
-            { 
-                Id = order, 
-                Name = name, 
-                Value = value, 
-                Category = category, 
-                DisplayOrder = order 
-            });
+            specs.Add(new ProductSpecificationDto(order, name, value, category, order));
         }
     }
 

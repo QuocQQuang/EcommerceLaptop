@@ -7,83 +7,83 @@ namespace EcommerceLaptop.API.DTOs;
 /// <summary>
 /// Order data transfer object
 /// </summary>
-public class OrderDto
+public record OrderDto
 {
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public string UserEmail { get; set; } = string.Empty;
-    public string UserName { get; set; } = string.Empty;
-    public string OrderNumber { get; set; } = string.Empty;
-    public DateTime OrderDate { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public decimal SubTotal { get; set; }
-    public decimal TaxAmount { get; set; }
-    public decimal ShippingAmount { get; set; }
-    public decimal DiscountAmount { get; set; }
-    public decimal TotalAmount { get; set; }
+    public int Id { get; init; }
+    public int UserId { get; init; }
+    public string UserEmail { get; init; } = string.Empty;
+    public string UserName { get; init; } = string.Empty;
+    public string OrderNumber { get; init; } = string.Empty;
+    public DateTime OrderDate { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public decimal SubTotal { get; init; }
+    public decimal TaxAmount { get; init; }
+    public decimal ShippingAmount { get; init; }
+    public decimal DiscountAmount { get; init; }
+    public decimal TotalAmount { get; init; }
 
     // Shipping Information
-    public AddressDto ShippingAddress { get; set; } = new();
-    public string ShippingProvider { get; set; } = string.Empty;
-    public string TrackingNumber { get; set; } = string.Empty;
-    public DateTime? ShippedDate { get; set; }
-    public DateTime? DeliveredDate { get; set; }
+    public AddressDto ShippingAddress { get; init; } = new();
+    public string ShippingProvider { get; init; } = string.Empty;
+    public string TrackingNumber { get; init; } = string.Empty;
+    public DateTime? ShippedDate { get; init; }
+    public DateTime? DeliveredDate { get; init; }
 
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+    public DateTime CreatedAt { get; init; }
+    public DateTime UpdatedAt { get; init; }
 
-    public List<OrderItemDto> OrderItems { get; set; } = new();
-    public List<PaymentDto> Payments { get; set; } = new();
+    public List<OrderItemDto> OrderItems { get; init; } = new();
+    public List<PaymentDto> Payments { get; init; } = new();
 }
 
 /// <summary>
 /// Order item DTO
 /// </summary>
-public class OrderItemDto
+public record OrderItemDto
 {
-    public int Id { get; set; }
-    public int ProductId { get; set; }
-    public string ProductName { get; set; } = string.Empty;
-    public string ProductSKU { get; set; } = string.Empty;
-    public string ProductBrand { get; set; } = string.Empty;
-    public int Quantity { get; set; }
-    public decimal UnitPrice { get; set; }
-    public decimal DiscountAmount { get; set; }
-    public decimal TotalPrice { get; set; }
+    public int Id { get; init; }
+    public int ProductId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public string ProductSKU { get; init; } = string.Empty;
+    public string ProductBrand { get; init; } = string.Empty;
+    public int Quantity { get; init; }
+    public decimal UnitPrice { get; init; }
+    public decimal DiscountAmount { get; init; }
+    public decimal TotalPrice { get; init; }
 }
 
 /// <summary>
 /// Address DTO
 /// </summary>
-public class AddressDto
+public record AddressDto
 {
-    public int Id { get; set; }
-    public string FullName { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
-    public string Street { get; set; } = string.Empty;
-    public string City { get; set; } = string.Empty;
-    public string Province { get; set; } = string.Empty;
-    public string District { get; set; } = string.Empty;
-    public string PostalCode { get; set; } = string.Empty;
-    public string Country { get; set; } = string.Empty;
-    public bool IsDefault { get; set; }
+    public int Id { get; init; }
+    public string FullName { get; init; } = string.Empty;
+    public string PhoneNumber { get; init; } = string.Empty;
+    public string Street { get; init; } = string.Empty;
+    public string City { get; init; } = string.Empty;
+    public string Province { get; init; } = string.Empty;
+    public string District { get; init; } = string.Empty;
+    public string PostalCode { get; init; } = string.Empty;
+    public string Country { get; init; } = string.Empty;
+    public bool IsDefault { get; init; }
 }
 
 /// <summary>
 /// Payment DTO
 /// </summary>
-public class PaymentDto
+public record PaymentDto
 {
-    public int Id { get; set; }
-    public string TransactionId { get; set; } = string.Empty;
-    public string Gateway { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
-    public string Method { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public string Currency { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public DateTime? ProcessedAt { get; set; }
-    public string GatewayResponse { get; set; } = string.Empty;
+    public int Id { get; init; }
+    public string TransactionId { get; init; } = string.Empty;
+    public string Gateway { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string Method { get; init; } = string.Empty;
+    public decimal Amount { get; init; }
+    public string Currency { get; init; } = string.Empty;
+    public DateTime CreatedAt { get; init; }
+    public DateTime? ProcessedAt { get; init; }
+    public string GatewayResponse { get; init; } = string.Empty;
 }
 
 #endregion
@@ -93,90 +93,90 @@ public class PaymentDto
 /// <summary>
 /// Create order request DTO
 /// </summary>
-public class CreateOrderRequest
+public record CreateOrderRequest
 {
     [Required]
-    public List<CreateOrderItemRequest> Items { get; set; } = new();
+    public List<CreateOrderItemRequest> Items { get; init; } = new();
 
     [Required]
-    public CreateAddressRequest ShippingAddress { get; set; } = new();
+    public CreateAddressRequest ShippingAddress { get; init; } = new();
 
-    public string? CouponCode { get; set; }
+    public string? CouponCode { get; init; }
 
     [StringLength(1000)]
-    public string? Notes { get; set; }
+    public string? Notes { get; init; }
 }
 
 /// <summary>
 /// Create order item request DTO
 /// </summary>
-public class CreateOrderItemRequest
+public record CreateOrderItemRequest
 {
     [Required]
-    public int ProductId { get; set; }
+    public int ProductId { get; init; }
 
     [Required]
     [Range(1, int.MaxValue)]
-    public int Quantity { get; set; }
+    public int Quantity { get; init; }
 }
 
 /// <summary>
 /// Create address request DTO
 /// </summary>
-public class CreateAddressRequest
+public record CreateAddressRequest
 {
     [Required]
     [StringLength(255)]
-    public string Street { get; set; } = string.Empty;
+    public string Street { get; init; } = string.Empty;
 
     [Required]
     [StringLength(100)]
-    public string City { get; set; } = string.Empty;
+    public string City { get; init; } = string.Empty;
 
     [Required]
     [StringLength(100)]
-    public string Province { get; set; } = string.Empty;
+    public string Province { get; init; } = string.Empty;
 
     [Required]
     [StringLength(20)]
-    public string PostalCode { get; set; } = string.Empty;
+    public string PostalCode { get; init; } = string.Empty;
 
     [Required]
     [StringLength(100)]
-    public string Country { get; set; } = string.Empty;
+    public string Country { get; init; } = string.Empty;
 }
 
 /// <summary>
 /// Update order status request DTO
 /// </summary>
-public class UpdateOrderStatusRequest
+public record UpdateOrderStatusRequest
 {
     [Required]
-    public string Status { get; set; } = string.Empty; // Pending, Processing, Shipped, Delivered, Cancelled
+    public string Status { get; init; } = string.Empty; // Pending, Processing, Shipped, Delivered, Cancelled
 
-    public string? TrackingNumber { get; set; }
+    public string? TrackingNumber { get; init; }
 
-    public string? ShippingProvider { get; set; }
+    public string? ShippingProvider { get; init; }
 
     [StringLength(1000)]
-    public string? Notes { get; set; }
+    public string? Notes { get; init; }
 }
 
 /// <summary>
 /// Process payment request DTO
 /// </summary>
-public class ProcessPaymentRequest
+public record ProcessPaymentRequest
 {
     [Required]
-    public int OrderId { get; set; }
+    public int OrderId { get; init; }
 
     [Required]
-    public string PaymentMethod { get; set; } = string.Empty; // CreditCard, DebitCard, PayPal, BankTransfer
+    public string PaymentMethod { get; init; } = string.Empty; // CreditCard, DebitCard, PayPal, BankTransfer
 
     [Required]
-    public string Gateway { get; set; } = string.Empty; // Stripe, PayPal, VNPay
+    public string Gateway { get; init; } = string.Empty; // Stripe, PayPal, VNPay
 
-    public Dictionary<string, object> PaymentDetails { get; set; } = new();
+    public Dictionary<string, object> PaymentDetails { get; init; } = new();
 }
 
 #endregion

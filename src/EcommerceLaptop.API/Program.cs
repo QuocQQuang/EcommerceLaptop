@@ -31,6 +31,8 @@ builder.Services.AddIdentityServices(builder.Configuration);
 builder.Services.AddExternalServices(builder.Configuration);
 builder.Services.AddSecurityServices(builder.Configuration);
 builder.Services.AddApplicationServices();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 builder.Services.AddSwaggerDocumentation();
 
 builder.Services.AddControllers()
@@ -110,8 +112,8 @@ app.UseCors(corsPolicy);
 // All image uploads now handled by ImgBB cloud service
 app.UseStaticFiles();
 
-// 4. Exception Handling Middleware (Should be high up to catch errors from controllers and other middleware)
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+// 4. Global Exception Handler (Replaces custom middleware)
+app.UseExceptionHandler();
 
 // Security Headers Middleware
 app.Use(async (context, next) =>
