@@ -333,9 +333,8 @@ public static class ServiceCollectionExtensions
     {
         // Business Services
 
-        services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<ICustomerManagementService, CustomerManagementService>();
-        services.AddScoped<IWishlistService, WishlistService>();
+
         
         // Inventory Management
         services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));

@@ -1,17 +1,18 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using EcommerceLaptop.Core.Services;
+using MediatR;
 using System.Security.Claims;
+using EcommerceLaptop.API.Features.Wishlist;
 
 namespace EcommerceLaptop.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class WishlistController(IWishlistService wishlistService, ILogger<WishlistController> logger)
+public class WishlistController(ISender sender, ILogger<WishlistController> logger)
     : BaseApiController(logger)
 {
-    private readonly IWishlistService _wishlistService = wishlistService;
+    private readonly ISender _sender = sender;
 
     [HttpGet]
     public async Task<ActionResult> GetWishlist()
@@ -22,7 +23,7 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
             return Unauthorized(new { message = "Khng th xc thc ngi dng" });
         }
 
-        var result = await _wishlistService.GetWishlistAsync(userId.Value);
+        var result = await _sender.Send(new GetWishlistQuery(userId.Value));
 
         return Ok(new
         {
@@ -54,7 +55,7 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
             return Unauthorized(new { message = "Khng th xc thc ngi dng" });
         }
 
-        await _wishlistService.AddToWishlistAsync(userId.Value, productId);
+        await _sender.Send(new AddToWishlistCommand(userId.Value, productId));
         return Ok(new { message = " thm vo danh sch yu thch" });
     }
 
@@ -67,7 +68,7 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
             return Unauthorized(new { message = "Khng th xc thc ngi dng" });
         }
 
-        await _wishlistService.RemoveFromWishlistAsync(userId.Value, productId);
+        await _sender.Send(new RemoveFromWishlistCommand(userId.Value, productId));
         return Ok(new { message = " xa khi danh sch yu thch" });
     }
 
@@ -80,7 +81,7 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
             return Unauthorized(new { message = "Khng th xc thc ngi dng" });
         }
 
-        await _wishlistService.ClearWishlistAsync(userId.Value);
+        await _sender.Send(new ClearWishlistCommand(userId.Value));
         return Ok(new { message = " xa ton b danh sch yu thch" });
     }
 
@@ -93,7 +94,7 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
             return Unauthorized(new { message = "Khng th xc thc ngi dng" });
         }
 
-        var isInWishlist = await _wishlistService.CheckInWishlistAsync(userId.Value, productId);
+        var isInWishlist = await _sender.Send(new CheckInWishlistQuery(userId.Value, productId));
         return Ok(new { isInWishlist = isInWishlist });
     }
 
@@ -106,8 +107,7 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
             return Unauthorized(new { message = "Khng th xc thc ngi dng" });
         }
 
-        var count = await _wishlistService.GetWishlistCountAsync(userId.Value);
+        var count = await _sender.Send(new GetWishlistCountQuery(userId.Value));
         return Ok(new { count = count });
     }
-
 }

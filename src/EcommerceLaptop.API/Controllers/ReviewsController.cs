@@ -1,8 +1,8 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using EcommerceLaptop.API.Controllers;
 using EcommerceLaptop.Core.DTOs;
-using EcommerceLaptop.Core.Interfaces.Services;
+using EcommerceLaptop.API.Features.Reviews;
 
 namespace EcommerceLaptop.API.Controllers;
 
@@ -12,21 +12,14 @@ namespace EcommerceLaptop.API.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class ReviewsController(IReviewService reviewService, ILogger<ReviewsController> logger)
+public class ReviewsController(ISender sender, ILogger<ReviewsController> logger)
     : BaseApiController(logger)
 {
-    private readonly IReviewService _reviewService = reviewService;
+    private readonly ISender _sender = sender;
 
     /// <summary>
     /// Get paginated reviews for a specific product
     /// </summary>
-    /// <param name="productId">Product ID</param>
-    /// <param name="rating">Filter by rating (1-5)</param>
-    /// <param name="verifiedOnly">Show only verified purchase reviews</param>
-    /// <param name="sortBy">Sort by: CreatedAt, Rating</param>
-    /// <param name="sortOrder">Sort order: ASC, DESC</param>
-    /// <param name="page">Page number (default: 1)</param>
-    /// <param name="pageSize">Page size (default: 10)</param>
     [HttpGet("product/{productId}")]
     [AllowAnonymous]
     public async Task<ActionResult<ReviewsPagedDto>> GetProductReviews(
@@ -51,9 +44,7 @@ public class ReviewsController(IReviewService reviewService, ILogger<ReviewsCont
         var currentUserId = GetCurrentUserId();
         var isAdmin = IsAdmin();
 
-        var result = await _reviewService.GetProductReviewsAsync(productId, filter, currentUserId, isAdmin);
-
-
+        var result = await _sender.Send(new GetProductReviewsQuery(productId, filter, currentUserId, isAdmin));
 
         return Ok(new { success = true, data = result });
     }
@@ -65,7 +56,7 @@ public class ReviewsController(IReviewService reviewService, ILogger<ReviewsCont
     [AllowAnonymous]
     public async Task<ActionResult<ReviewSummaryDto>> GetProductReviewSummary(int productId)
     {
-        var summary = await _reviewService.GetProductReviewSummaryAsync(productId);
+        var summary = await _sender.Send(new GetProductReviewSummaryQuery(productId));
         return Ok(new { success = true, data = summary });
     }
 
@@ -77,7 +68,7 @@ public class ReviewsController(IReviewService reviewService, ILogger<ReviewsCont
     public async Task<ActionResult<ReviewDto>> GetReview(int reviewId)
     {
         var currentUserId = GetCurrentUserId();
-        var review = await _reviewService.GetReviewByIdAsync(reviewId, currentUserId);
+        var review = await _sender.Send(new GetReviewByIdQuery(reviewId, currentUserId));
 
         if (review == null)
         {
@@ -107,18 +98,25 @@ public class ReviewsController(IReviewService reviewService, ILogger<ReviewsCont
         }
 
         // Check if user can review this product
-        var canReview = await _reviewService.CanUserReviewProductAsync(createReviewDto.ProductId, currentUserId.Value);
+        var canReview = await _sender.Send(new CanUserReviewProductQuery(createReviewDto.ProductId, currentUserId.Value));
         if (!canReview)
         {
             return BadRequest(new { success = false, message = "You have already reviewed this product or product does not exist" });
         }
 
-        var review = await _reviewService.CreateReviewAsync(createReviewDto, currentUserId.Value);
+        try 
+        {
+            var review = await _sender.Send(new CreateReviewCommand(createReviewDto, currentUserId.Value));
 
-        _logger.LogInformation("User {UserId} created review for product {ProductId}", currentUserId.Value, createReviewDto.ProductId);
+            _logger.LogInformation("User {UserId} created review for product {ProductId}", currentUserId.Value, createReviewDto.ProductId);
 
-        return CreatedAtAction(nameof(GetReview), new { reviewId = review.Id },
-            new { success = true, data = review });
+            return CreatedAtAction(nameof(GetReview), new { reviewId = review.Id },
+                new { success = true, data = review });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -140,11 +138,22 @@ public class ReviewsController(IReviewService reviewService, ILogger<ReviewsCont
             return BadRequest(new { success = false, message = "Rating must be between 1 and 5" });
         }
 
-        var review = await _reviewService.UpdateReviewAsync(reviewId, updateReviewDto, currentUserId.Value);
+        try
+        {
+            var review = await _sender.Send(new UpdateReviewCommand(reviewId, updateReviewDto, currentUserId.Value));
 
-        _logger.LogInformation("User {UserId} updated review {ReviewId}", currentUserId.Value, reviewId);
+            _logger.LogInformation("User {UserId} updated review {ReviewId}", currentUserId.Value, reviewId);
 
-        return Ok(new { success = true, data = review });
+            return Ok(new { success = true, data = review });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
+        }
     }
 
     /// <summary>
@@ -161,16 +170,23 @@ public class ReviewsController(IReviewService reviewService, ILogger<ReviewsCont
         }
 
         var isAdmin = IsAdmin();
-        var deleted = await _reviewService.DeleteReviewAsync(reviewId, currentUserId.Value, isAdmin);
-
-        if (!deleted)
+        try
         {
-            return NotFound(new { success = false, message = "Review not found" });
+            var deleted = await _sender.Send(new DeleteReviewCommand(reviewId, currentUserId.Value, isAdmin));
+
+            if (!deleted)
+            {
+                return NotFound(new { success = false, message = "Review not found" });
+            }
+
+            _logger.LogInformation("User {UserId} deleted review {ReviewId}", currentUserId.Value, reviewId);
+
+            return Ok(new { success = true, message = "Review deleted successfully" });
         }
-
-        _logger.LogInformation("User {UserId} deleted review {ReviewId}", currentUserId.Value, reviewId);
-
-        return Ok(new { success = true, message = "Review deleted successfully" });
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
+        }
     }
 
     /// <summary>
@@ -188,7 +204,7 @@ public class ReviewsController(IReviewService reviewService, ILogger<ReviewsCont
             return Unauthorized(new { success = false, message = "User not authenticated" });
         }
 
-        var reviews = await _reviewService.GetUserReviewsAsync(currentUserId.Value, page, Math.Min(pageSize, 50));
+        var reviews = await _sender.Send(new GetUserReviewsQuery(currentUserId.Value, page, Math.Min(pageSize, 50)));
 
         return Ok(new { success = true, data = reviews });
     }
@@ -206,14 +222,17 @@ public class ReviewsController(IReviewService reviewService, ILogger<ReviewsCont
             return Unauthorized(new { success = false, message = "User not authenticated" });
         }
 
-        var canReview = await _reviewService.CanUserReviewProductAsync(productId, currentUserId.Value);
-        var hasReviewed = await _reviewService.HasUserReviewedProductAsync(productId, currentUserId.Value);
+        var canReview = await _sender.Send(new CanUserReviewProductQuery(productId, currentUserId.Value));
+        var hasReviewed = await _sender.Send(new HasUserReviewedProductQuery(productId, currentUserId.Value));
+        
+        // We need GetUserReviewForProductQuery to get the review if it exists
+        var existingReview = hasReviewed ? await _sender.Send(new GetUserReviewForProductQuery(productId, currentUserId.Value)) : null;
 
         var result = new
         {
             canReview = canReview,
             hasReviewed = hasReviewed,
-            existingReview = hasReviewed ? await _reviewService.GetUserReviewForProductAsync(productId, currentUserId.Value) : null
+            existingReview = existingReview
         };
 
         return Ok(new { success = true, data = result });
