@@ -1,5 +1,7 @@
+using MediatR;
 using EcommerceLaptop.Core.Entities;
-using EcommerceLaptop.Core.Services;
+using EcommerceLaptop.Core.DTOs.Order;
+using EcommerceLaptop.API.Features.Orders; // For GetOrderByIdQuery
 using Microsoft.Extensions.Logging;
 
 namespace EcommerceLaptop.API.Controllers;
@@ -12,7 +14,7 @@ public static class PaymentRetryHelpers
     /// <summary>
     /// Gets the retry count for an order
     /// </summary>
-    public static async Task<int> GetRetryCountAsync(int orderId, IOrderService orderService)
+    public static async Task<int> GetRetryCountAsync(int orderId, ISender? sender = null)
     {
         // In a real implementation, this would query the database for retry attempts
         // For now, return 0 as a placeholder
@@ -22,7 +24,7 @@ public static class PaymentRetryHelpers
     /// <summary>
     /// Gets the last retry time for an order
     /// </summary>
-    public static async Task<DateTime?> GetLastRetryTimeAsync(int orderId, IOrderService orderService)
+    public static async Task<DateTime?> GetLastRetryTimeAsync(int orderId, ISender? sender = null)
     {
         // In a real implementation, this would query the database for retry attempts
         // For now, return null as a placeholder
@@ -52,11 +54,11 @@ public static class PaymentRetryHelpers
     /// </summary>
     public static async Task<(bool IsEligible, string? Reason)> IsEligibleForRetryAsync(
         int orderId,
-        IOrderService orderService)
+        ISender sender)
     {
         try
         {
-            var order = await orderService.GetOrderDetailsAsync(orderId);
+            var order = await sender.Send(new GetOrderByIdQuery(orderId));
 
             // Check if order exists
             if (order == null)
@@ -79,7 +81,7 @@ public static class PaymentRetryHelpers
             }
 
             // Check retry count
-            var retryCount = await GetRetryCountAsync(orderId, orderService);
+            var retryCount = await GetRetryCountAsync(orderId, sender);
             var maxRetries = 3; // Could be configurable
 
             if (retryCount >= maxRetries)
@@ -88,7 +90,7 @@ public static class PaymentRetryHelpers
             }
 
             // Check time since last retry
-            var lastRetryTime = await GetLastRetryTimeAsync(orderId, orderService);
+            var lastRetryTime = await GetLastRetryTimeAsync(orderId, sender);
             if (lastRetryTime.HasValue)
             {
                 var retryDelay = TimeSpan.FromMinutes(1); // Could be configurable
@@ -112,7 +114,7 @@ public static class PaymentRetryHelpers
     /// </summary>
     public static async Task<(int MaxRetries, TimeSpan RetryDelay, double BackoffMultiplier)> GetRetryLimitsAsync(
         int orderId,
-        IOrderService orderService)
+        ISender? sender = null)
     {
         // In a real implementation, this could be configurable per order or user
         // For now, return default values

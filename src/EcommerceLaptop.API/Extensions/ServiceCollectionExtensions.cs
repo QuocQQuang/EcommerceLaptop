@@ -182,7 +182,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDevService, DevService>();
 
         // FluentValidation Registration
-        services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+        services.AddValidatorsFromAssembly(typeof(ServiceCollectionExtensions).Assembly);
 
         return services;
     }
@@ -334,8 +334,6 @@ public static class ServiceCollectionExtensions
         // Business Services
 
         services.AddScoped<IReviewService, ReviewService>();
-        services.AddScoped<ICategoryService, CategoryService>();
-        services.AddScoped<IBrandService, BrandService>();
         services.AddScoped<ICustomerManagementService, CustomerManagementService>();
         services.AddScoped<IWishlistService, WishlistService>();
         
@@ -357,12 +355,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IFeatureFlagService, FeatureFlagService>();
 
         // Shopping Cart
-        services.AddScoped<IShoppingCartService, ShoppingCartService>();
         services.AddScoped<IPricingService, PricingService>();
         services.AddScoped<ICartValidationService, CartValidationService>();
 
         // Order Management
-        services.AddScoped<IOrderService, OrderService>();
+        // services.AddScoped<IOrderService, OrderService>(); // Deprecated - Moved to MediatR
         services.AddScoped<IOrderWorkflowService, OrderWorkflowService>();
 
         // Search
@@ -381,7 +378,7 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<ProductIndexingService>();
 
         // AutoMapper
-        services.AddAutoMapper(typeof(Program));
+        services.AddAutoMapper(typeof(ServiceCollectionExtensions));
 
         return services;
     }

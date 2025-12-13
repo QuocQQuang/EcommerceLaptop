@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using MediatR; // Added for ISender
 using EcommerceLaptop.Core.DTOs.Payment;
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Core.Services.Payment;
 using EcommerceLaptop.Core.Utilities.Payment;
+using EcommerceLaptop.API.Features.Orders; // Added for GetOrderByIdQuery
 using System.ComponentModel.DataAnnotations;
 
 namespace EcommerceLaptop.API.Controllers;
@@ -19,11 +21,11 @@ namespace EcommerceLaptop.API.Controllers;
 [Authorize]
 public class PaymentController(
     IPaymentOrchestrator paymentOrchestrator,
-    IOrderService orderService,
+    ISender sender,
     ILogger<PaymentController> logger) : BaseApiController(logger)
 {
     private readonly IPaymentOrchestrator _paymentOrchestrator = paymentOrchestrator;
-    private readonly IOrderService _orderService = orderService;
+    private readonly ISender _sender = sender;
 
     /// <summary>
     /// Initialize payment for an order using the specified gateway
@@ -48,7 +50,7 @@ public class PaymentController(
                 request.OrderId, request.Gateway, userId.Value);
 
             // Fetch order to get amount and currency from database
-            var order = await _orderService.GetOrderDetailsAsync(request.OrderId);
+            var order = await _sender.Send(new GetOrderByIdQuery(request.OrderId));
 
             // Determine currency based on gateway
             var paymentCurrency = request.Gateway switch
@@ -134,7 +136,7 @@ public class PaymentController(
                 request.OrderId, request.Gateway, userId.Value);
 
             // Fetch order to validate status
-            var order = await _orderService.GetOrderDetailsAsync(request.OrderId);
+            var order = await _sender.Send(new GetOrderByIdQuery(request.OrderId));
             if (order.Status != OrderStatus.Pending)
             {
                 return Conflict(new ProblemDetails
@@ -157,7 +159,7 @@ public class PaymentController(
             }
 
             // Check retry limits
-            var retryCount = await PaymentRetryHelpers.GetRetryCountAsync(request.OrderId, _orderService);
+            var retryCount = await PaymentRetryHelpers.GetRetryCountAsync(request.OrderId, _sender);
             var maxRetries = 3; // Could be configurable
             var retryDelay = TimeSpan.FromMinutes(1); // Could be configurable
 
@@ -172,7 +174,7 @@ public class PaymentController(
             }
 
             // Check if enough time has passed since last retry
-            var lastRetryTime = await PaymentRetryHelpers.GetLastRetryTimeAsync(request.OrderId, _orderService);
+            var lastRetryTime = await PaymentRetryHelpers.GetLastRetryTimeAsync(request.OrderId, _sender);
             if (lastRetryTime.HasValue && DateTime.UtcNow - lastRetryTime.Value < retryDelay)
             {
                 var remainingTime = retryDelay - (DateTime.UtcNow - lastRetryTime.Value);

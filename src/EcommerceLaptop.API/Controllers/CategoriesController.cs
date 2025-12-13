@@ -1,10 +1,9 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EcommerceLaptop.Core.Entities;
-using EcommerceLaptop.Core.Interfaces.Services;
 using EcommerceLaptop.Core.DTOs;
-using EcommerceLaptop.Infrastructure.Services;
-
+using EcommerceLaptop.API.Features.Categories;
 
 namespace EcommerceLaptop.API.Controllers;
 
@@ -13,9 +12,9 @@ namespace EcommerceLaptop.API.Controllers;
 /// </summary>
 [Route("api/admin/[controller]")]
 [ApiController]
-public class CategoriesController(ICategoryService categoryService, ILogger<CategoriesController> logger) : BaseApiController(logger)
+public class CategoriesController(ISender sender, ILogger<CategoriesController> logger) : BaseApiController(logger)
 {
-    private readonly ICategoryService _categoryService = categoryService;
+    private readonly ISender _sender = sender;
 
     /// <summary>
     /// Get all categories in hierarchical tree structure
@@ -23,12 +22,8 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
     [HttpGet("tree")]
     public async Task<IActionResult> GetCategoryTree()
     {
-        var result = await _categoryService.GetCategoryTreeAsync();
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        return Ok(result.Data);
+        var result = await _sender.Send(new GetCategoryTreeQuery());
+        return Ok(result);
     }
 
     /// <summary>
@@ -38,12 +33,8 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
     [AllowAnonymous]
     public async Task<IActionResult> GetAllCategories()
     {
-        var result = await _categoryService.GetAllCategoriesAsync();
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        return Ok(result.Data);
+        var result = await _sender.Send(new GetAllCategoriesQuery());
+        return Ok(result);
     }
 
     /// <summary>
@@ -53,12 +44,8 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
     [AllowAnonymous]
     public async Task<IActionResult> GetCategoriesWithProductCount()
     {
-        var result = await _categoryService.GetCategoriesWithProductCountAsync();
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        return Ok(result.Data);
+        var result = await _sender.Send(new GetCategoriesWithProductCountQuery());
+        return Ok(result);
     }
 
     /// <summary>
@@ -67,15 +54,11 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetCategoryById(int id)
     {
-        var result = await _categoryService.GetCategoryByIdAsync(id);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        if (result.Data == null)
+        var result = await _sender.Send(new GetCategoryByIdQuery(id));
+        if (result == null)
             return NotFound(new { error = "Category not found" });
 
-        return Ok(result.Data);
+        return Ok(result);
     }
 
     /// <summary>
@@ -84,15 +67,11 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
     [HttpGet("slug/{slug}")]
     public async Task<IActionResult> GetCategoryBySlug(string slug)
     {
-        var result = await _categoryService.GetCategoryBySlugAsync(slug);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        if (result.Data == null)
+        var result = await _sender.Send(new GetCategoryBySlugQuery(slug));
+        if (result == null)
             return NotFound(new { error = "Category not found" });
 
-        return Ok(result.Data);
+        return Ok(result);
     }
 
     /// <summary>
@@ -113,12 +92,8 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
             SortOrder = request.SortOrder
         };
 
-        var result = await _categoryService.CreateCategoryAsync(category);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        return CreatedAtAction(nameof(GetCategoryById), new { id = result.Data!.Id }, result.Data);
+        var result = await _sender.Send(new CreateCategoryCommand(category));
+        return CreatedAtAction(nameof(GetCategoryById), new { id = result.Id }, result);
     }
 
     /// <summary>
@@ -140,12 +115,8 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
             SortOrder = request.SortOrder
         };
 
-        var result = await _categoryService.UpdateCategoryAsync(category);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        return Ok(result.Data);
+        var result = await _sender.Send(new UpdateCategoryCommand(category));
+        return Ok(result);
     }
 
     /// <summary>
@@ -155,11 +126,7 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
     [Authorize(Policy = "RequirePermission:products:delete")]
     public async Task<IActionResult> DeleteCategory(int id)
     {
-        var result = await _categoryService.DeleteCategoryAsync(id);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
+        await _sender.Send(new DeleteCategoryCommand(id));
         return Ok(new { message = "Category deleted successfully" });
     }
 
@@ -170,11 +137,7 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
     [Authorize(Policy = "RequirePermission:products:write")]
     public async Task<IActionResult> ReorderCategories([FromBody] List<CategoryReorderRequest> reorderRequests)
     {
-        var result = await _categoryService.ReorderCategoriesAsync(reorderRequests);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
+        await _sender.Send(new ReorderCategoriesCommand(reorderRequests));
         return Ok(new { message = "Categories reordered successfully" });
     }
 
@@ -185,11 +148,7 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> ReassignAndDeleteCategory(int categoryIdToDelete, [FromBody] ReassignCategoryRequest request)
     {
-        var result = await _categoryService.ReassignProductsAndDeleteCategoryAsync(categoryIdToDelete, request.NewCategoryId);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
+        await _sender.Send(new ReassignProductsAndDeleteCategoryCommand(categoryIdToDelete, request.NewCategoryId));
         return Ok(new { message = "Products reassigned and category deleted successfully" });
     }
 
@@ -200,11 +159,7 @@ public class CategoriesController(ICategoryService categoryService, ILogger<Cate
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> ForceDeleteCategory(int id)
     {
-        var result = await _categoryService.ForceDeleteCategoryAsync(id);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
+        await _sender.Send(new ForceDeleteCategoryCommand(id));
         return Ok(new { message = "Category force deleted, child categories moved to parent level, and associated products deactivated successfully" });
     }
 }

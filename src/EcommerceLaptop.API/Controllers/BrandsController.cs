@@ -1,8 +1,9 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EcommerceLaptop.Core.Entities;
-using EcommerceLaptop.Core.Interfaces.Services;
 using EcommerceLaptop.Core.DTOs;
+using EcommerceLaptop.API.Features.Brands;
 
 namespace EcommerceLaptop.API.Controllers;
 
@@ -11,9 +12,9 @@ namespace EcommerceLaptop.API.Controllers;
 /// </summary>
 [Route("api/admin/[controller]")]
 [ApiController]
-public class BrandsController(IBrandService brandService, ILogger<BrandsController> logger) : BaseApiController(logger)
+public class BrandsController(ISender sender, ILogger<BrandsController> logger) : BaseApiController(logger)
 {
-    private readonly IBrandService _brandService = brandService;
+    private readonly ISender _sender = sender;
 
     /// <summary>
     /// Get all brands with product counts (Admin only)
@@ -22,12 +23,8 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
     [AllowAnonymous]
     public async Task<IActionResult> GetBrandsWithCounts()
     {
-        var result = await _brandService.GetBrandsWithProductCountAsync();
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        return Ok(result.Data);
+        var result = await _sender.Send(new GetBrandsWithProductCountQuery());
+        return Ok(result);
     }
 
     /// <summary>
@@ -37,12 +34,8 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
     [AllowAnonymous]
     public async Task<IActionResult> GetBrands()
     {
-        var result = await _brandService.GetAllBrandsAsync();
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        return Ok(result.Data);
+        var result = await _sender.Send(new GetAllBrandsQuery());
+        return Ok(result);
     }
 
     /// <summary>
@@ -51,12 +44,8 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
     [HttpGet("for-select")]
     public async Task<IActionResult> GetBrandsForSelect()
     {
-        var result = await _brandService.GetBrandsForSelectAsync();
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        return Ok(result.Data);
+        var result = await _sender.Send(new GetBrandsForSelectQuery());
+        return Ok(result);
     }
 
     /// <summary>
@@ -65,15 +54,11 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
     [HttpGet("{id}")]
     public async Task<IActionResult> GetBrand(int id)
     {
-        var result = await _brandService.GetBrandByIdAsync(id);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        if (result.Data == null)
+        var result = await _sender.Send(new GetBrandByIdQuery(id));
+        if (result == null)
             return NotFound(new { error = "Brand not found" });
 
-        return Ok(result.Data);
+        return Ok(result);
     }
 
     /// <summary>
@@ -82,15 +67,11 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
     [HttpGet("slug/{slug}")]
     public async Task<IActionResult> GetBrandBySlug(string slug)
     {
-        var result = await _brandService.GetBrandBySlugAsync(slug);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        if (result.Data == null)
+        var result = await _sender.Send(new GetBrandBySlugQuery(slug));
+        if (result == null)
             return NotFound(new { error = "Brand not found" });
 
-        return Ok(result.Data);
+        return Ok(result);
     }
 
     /// <summary>
@@ -113,12 +94,8 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
             IsActive = request.IsActive
         };
 
-        var result = await _brandService.CreateBrandAsync(brand);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        return CreatedAtAction(nameof(GetBrand), new { id = result.Data?.Id }, result.Data);
+        var result = await _sender.Send(new CreateBrandCommand(brand));
+        return CreatedAtAction(nameof(GetBrand), new { id = result.Id }, result);
     }
 
     /// <summary>
@@ -142,12 +119,8 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
             IsActive = request.IsActive
         };
 
-        var result = await _brandService.UpdateBrandAsync(brand);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
-        return Ok(result.Data);
+        var result = await _sender.Send(new UpdateBrandCommand(brand));
+        return Ok(result);
     }
 
     /// <summary>
@@ -157,11 +130,7 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
     [Authorize(Policy = "RequirePermission:products:delete")]
     public async Task<IActionResult> DeleteBrand(int id)
     {
-        var result = await _brandService.DeleteBrandAsync(id);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
+        await _sender.Send(new DeleteBrandCommand(id));
         return Ok(new { message = "Brand deleted successfully" });
     }
 
@@ -172,7 +141,7 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
     [Authorize(Policy = "RequirePermission:products:read")]
     public async Task<IActionResult> CheckSlugUnique(string slug, [FromQuery] int? excludeId = null)
     {
-        var isUnique = await _brandService.IsSlugUniqueAsync(slug, excludeId);
+        var isUnique = await _sender.Send(new CheckBrandSlugUniqueQuery(slug, excludeId));
         return Ok(new { isUnique });
     }
 
@@ -183,11 +152,7 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> ReassignAndDeleteBrand(int brandIdToDelete, [FromBody] ReassignBrandRequest request)
     {
-        var result = await _brandService.ReassignProductsAndDeleteBrandAsync(brandIdToDelete, request.NewBrandId);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
+        await _sender.Send(new ReassignProductsAndDeleteBrandCommand(brandIdToDelete, request.NewBrandId));
         return Ok(new { message = "Products reassigned and brand deleted successfully" });
     }
 
@@ -198,11 +163,7 @@ public class BrandsController(IBrandService brandService, ILogger<BrandsControll
     [Authorize(Policy = "RequirePermission:products:manage")]
     public async Task<IActionResult> ForceDeleteBrand(int id)
     {
-        var result = await _brandService.ForceDeleteBrandAsync(id);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { error = result.ErrorMessage });
-
+        await _sender.Send(new ForceDeleteBrandCommand(id));
         return Ok(new { message = "Brand force deleted and associated products deactivated successfully" });
     }
 }

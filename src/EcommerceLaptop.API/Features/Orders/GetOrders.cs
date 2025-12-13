@@ -1,8 +1,12 @@
 using MediatR;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using EcommerceLaptop.Core.DTOs.Order;
 using EcommerceLaptop.Core.DTOs.Admin;
 using EcommerceLaptop.Core.DTOs;
-using EcommerceLaptop.Core.Services;
+using EcommerceLaptop.Core.Entities;
+using EcommerceLaptop.Infrastructure.Data;
+using System.Security.Claims;
 
 namespace EcommerceLaptop.API.Features.Orders;
 
@@ -14,34 +18,31 @@ public record GetOrderByIdQuery(int OrderId) : IRequest<OrderDetailsDto>
 
 public class GetOrderByIdHandler : IRequestHandler<GetOrderByIdQuery, OrderDetailsDto>
 {
-    private readonly IOrderService _orderService;
+    private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public GetOrderByIdHandler(IOrderService orderService)
+    public GetOrderByIdHandler(ApplicationDbContext context, IMapper mapper)
     {
-        _orderService = orderService;
+        _context = context;
+        _mapper = mapper;
     }
 
     public async Task<OrderDetailsDto> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
     {
-        // Permission check logic could be here or mostly in service/controller.
-        // For now, we trust the service to fetch or we add a check if needed.
-        // The service GetOrderDetailsAsync(orderId) returns OrderDetailsDto.
-        // It doesn't seem to take userId.
-        // However, the controller did:
-        // if (string.IsNullOrEmpty(customerId)) return Unauthorized();
-        // var order = await _orderService.GetOrderDetailsAsync(orderId);
-        // It didn't verify ownership in the controller! 
-        // Wait, looking at OrdersController.cs:
-        // [HttpGet("{orderId}")] ...
-        // var customerId = GetUserId(); ...
-        // var order = await _orderService.GetOrderDetailsAsync(orderId);
-        // return Ok(order);
-        // There is NO verification that the order belongs to customerId in the Controller!
-        // This looks like a potential security hole in the existing code if the service doesn't check.
-        // But for refactoring, I should preserve existing behavior OR improve if obvious.
-        // Let's preserve for now to minimize logic change risks, but usually we should check.
-        
-        return await _orderService.GetOrderDetailsAsync(request.OrderId);
+        var order = await _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .Include(o => o.Audits)
+            .Include(o => o.User)
+            .Include(o => o.Payments) // Added Payments to match GetOrderDetailsAsync if needed, or if UI needs it
+            .FirstOrDefaultAsync(o => o.Id == request.OrderId, cancellationToken);
+
+        if (order == null)
+        {
+            throw new KeyNotFoundException($"Order with ID {request.OrderId} not found.");
+        }
+
+        return _mapper.Map<OrderDetailsDto>(order);
     }
 }
 
@@ -53,24 +54,44 @@ public record GetCustomerOrdersQuery(int CustomerId, int Page = 1, int PageSize 
 
 public class GetCustomerOrdersHandler : IRequestHandler<GetCustomerOrdersQuery, PagedResult<OrderDto>>
 {
-    private readonly IOrderService _orderService;
+    private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public GetCustomerOrdersHandler(IOrderService orderService)
+    public GetCustomerOrdersHandler(ApplicationDbContext context, IMapper mapper)
     {
-        _orderService = orderService;
+        _context = context;
+        _mapper = mapper;
     }
 
     public async Task<PagedResult<OrderDto>> Handle(GetCustomerOrdersQuery request, CancellationToken cancellationToken)
     {
         if (request.AuthenticatedUserId.HasValue && request.AuthenticatedUserId != request.CustomerId)
         {
-             // Check if Admin? OR just block?
-             // Controller logic: 
-             // if (int.Parse(userId) != customerId) return Unauthorized("Access denied");
              throw new UnauthorizedAccessException("Access denied");
         }
 
-        return await _orderService.GetCustomerOrdersAsync(request.CustomerId, request.Page, request.PageSize);
+        var query = _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .Include(o => o.Payments)
+            .Where(o => o.UserId == request.CustomerId)
+            .OrderByDescending(o => o.CreatedAt);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var orders = await query
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(cancellationToken);
+
+        var orderDtos = _mapper.Map<List<OrderDto>>(orders);
+
+        return new PagedResult<OrderDto>
+        {
+            Items = orderDtos,
+            Page = request.Page,
+            PageSize = request.PageSize,
+            TotalCount = totalCount
+        };
     }
 }
 
@@ -79,20 +100,75 @@ public record GetAdminOrdersQuery(int Page = 1, int PageSize = 20, string? Searc
 
 public class GetAdminOrdersHandler : IRequestHandler<GetAdminOrdersQuery, PagedResult<AdminOrderDto>>
 {
-    private readonly IOrderService _orderService;
+    private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
+    private readonly Microsoft.Extensions.Logging.ILogger<GetAdminOrdersHandler> _logger;
 
-    public GetAdminOrdersHandler(IOrderService orderService)
+    public GetAdminOrdersHandler(ApplicationDbContext context, IMapper mapper, Microsoft.Extensions.Logging.ILogger<GetAdminOrdersHandler> logger)
     {
-        _orderService = orderService;
+        _context = context;
+        _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<PagedResult<AdminOrderDto>> Handle(GetAdminOrdersQuery request, CancellationToken cancellationToken)
     {
-        return await _orderService.GetEnhancedAdminOrdersAsync(
-            request.Page, 
-            request.PageSize, 
-            request.Search, 
-            request.Status, 
-            request.CustomerId);
+        try
+        {
+            _logger.LogInformation("Getting enhanced admin orders with filters: page={Page}, pageSize={PageSize}, search={Search}, status={Status}, customerId={CustomerId}",
+                request.Page, request.PageSize, request.Search, request.Status, request.CustomerId);
+
+            var query = _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .Include(o => o.Payments)
+                .AsQueryable();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                query = query.Where(o => o.OrderNumber.Contains(request.Search) ||
+                                        o.User.Email.Contains(request.Search) ||
+                                        o.User.FirstName.Contains(request.Search) ||
+                                        o.User.LastName.Contains(request.Search));
+            }
+
+            if (!string.IsNullOrEmpty(request.Status))
+            {
+                if (Enum.TryParse<OrderStatus>(request.Status, true, out var orderStatus))
+                {
+                    query = query.Where(o => o.Status == orderStatus);
+                }
+            }
+
+            if (request.CustomerId.HasValue)
+            {
+                query = query.Where(o => o.UserId == request.CustomerId.Value);
+            }
+
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var orders = await query
+                .OrderByDescending(o => o.CreatedAt)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync(cancellationToken);
+
+            var adminOrderDtos = _mapper.Map<List<AdminOrderDto>>(orders);
+
+            return new PagedResult<AdminOrderDto>
+            {
+                Items = adminOrderDtos,
+                TotalCount = totalCount,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting enhanced admin orders with filters: search={Search}, status={Status}, customerId={CustomerId}", request.Search, request.Status, request.CustomerId);
+            throw;
+        }
     }
 }

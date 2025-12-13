@@ -1,9 +1,12 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using EcommerceLaptop.Core.DTOs.Payment;
 using EcommerceLaptop.Core.DTOs.Order;
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Core.Services.Payment;
+using EcommerceLaptop.Infrastructure.Data;
 
 namespace EcommerceLaptop.Infrastructure.Services.Payment;
 
@@ -14,7 +17,8 @@ namespace EcommerceLaptop.Infrastructure.Services.Payment;
 /// </summary>
 public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicService
 {
-    private readonly IOrderService _orderService;
+    private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
     private readonly IOrderWorkflowService _orderWorkflowService;
     private readonly IInventoryReservationService _inventoryService;
     private readonly IEmailService _emailService;
@@ -22,14 +26,16 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
     private readonly ILogger<PaymentWebhookBusinessLogicService> _logger;
 
     public PaymentWebhookBusinessLogicService(
-        IOrderService orderService,
+        ApplicationDbContext context,
+        IMapper mapper,
         IOrderWorkflowService orderWorkflowService,
         IInventoryReservationService inventoryService,
         IEmailService emailService,
         IEmailQueueService emailQueueService,
         ILogger<PaymentWebhookBusinessLogicService> logger)
     {
-        _orderService = orderService;
+        _context = context;
+        _mapper = mapper;
         _orderWorkflowService = orderWorkflowService;
         _inventoryService = inventoryService;
         _emailService = emailService;
@@ -57,13 +63,14 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
             }
 
             // Step 2: Update order status to paid
-            var order = await _orderService.GetOrderDetailsAsync(orderId.Value);
-            if (order == null)
+            var orderEntity = await GetOrderEntityAsync(orderId.Value);
+            if (orderEntity == null)
             {
                 _logger.LogWarning("Order {OrderId} not found for payment {TransactionId}", 
                     orderId, webhookResult.TransactionId);
                 return false;
             }
+            var order = _mapper.Map<OrderDetailsDto>(orderEntity);
 
             // Step 3: Use OrderWorkflowService for state management
             var updateResult = await _orderWorkflowService.UpdateOrderStatusAsync(
@@ -116,13 +123,14 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
             }
 
             // Step 2: Get order details
-            var order = await _orderService.GetOrderDetailsAsync(orderId.Value);
-            if (order == null)
+            var orderEntity = await GetOrderEntityAsync(orderId.Value);
+            if (orderEntity == null)
             {
                 _logger.LogWarning("Order {OrderId} not found for failed payment {TransactionId}", 
                     orderId, webhookResult.TransactionId);
                 return false;
             }
+            var order = _mapper.Map<OrderDetailsDto>(orderEntity);
 
             // Step 3: Update order status to cancelled due to payment failure
             var updateResult = await _orderWorkflowService.UpdateOrderStatusAsync(
@@ -174,13 +182,14 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
             }
 
             // Step 2: Get order details
-            var order = await _orderService.GetOrderDetailsAsync(orderId.Value);
-            if (order == null)
+            var orderEntity = await GetOrderEntityAsync(orderId.Value);
+            if (orderEntity == null)
             {
                 _logger.LogWarning("Order {OrderId} not found for refund {TransactionId}", 
                     orderId, webhookResult.TransactionId);
                 return false;
             }
+            var order = _mapper.Map<OrderDetailsDto>(orderEntity);
 
             // Step 3: Update order status to refunded (both partial and full refunds)
             var refundAmount = ExtractRefundAmountFromWebhook(webhookResult);
@@ -243,13 +252,14 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
             }
 
             // Step 2: Get order details
-            var order = await _orderService.GetOrderDetailsAsync(orderId.Value);
-            if (order == null)
+            var orderEntity = await GetOrderEntityAsync(orderId.Value);
+            if (orderEntity == null)
             {
                 _logger.LogWarning("Order {OrderId} not found for dispute {TransactionId}", 
                     orderId, webhookResult.TransactionId);
                 return false;
             }
+            var order = _mapper.Map<OrderDetailsDto>(orderEntity);
 
             // Step 3: Handle dispute - don't change order status, just log and notify
             // Disputes require manual review, so we keep current status
@@ -329,7 +339,9 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
                 _logger.LogInformation("Webhook data missing order ID. Looking up order by transaction ID: {TransactionId}", 
                     webhookResult.TransactionId);
 
-                var payment = await _orderService.GetPaymentByTransactionIdAsync(webhookResult.TransactionId);
+                var payment = await _context.Payments
+                    .FirstOrDefaultAsync(p => p.TransactionId == webhookResult.TransactionId);
+
                 if (payment != null)
                 {
                     _logger.LogInformation("Found order {OrderId} for transaction {TransactionId} via database lookup", 
@@ -429,6 +441,16 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
         {
             _logger.LogError(ex, "Error restoring inventory for order {OrderId}", orderId);
         }
+    }
+
+    private async Task<EcommerceLaptop.Core.Entities.Order?> GetOrderEntityAsync(int orderId)
+    {
+        return await _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .Include(o => o.Audits)
+            .Include(o => o.User)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
     }
 
     /// <summary>
