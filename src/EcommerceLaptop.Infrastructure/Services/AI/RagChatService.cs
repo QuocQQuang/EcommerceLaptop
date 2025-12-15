@@ -7,6 +7,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using EcommerceLaptop.Core.Interfaces;
 using EcommerceLaptop.Core.Models.AI;
+using EcommerceLaptop.Core.Services;
 using System.Net.Http;
 
 namespace EcommerceLaptop.Infrastructure.Services.AI
@@ -20,6 +21,8 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IRagMetricsService _metricsService;
         private readonly IGuardrailService _guardrailService;
+        private readonly IIntentClassifier _intentClassifier;
+        private readonly IProductService _productService;
 
         private const string CollectionName = "products";
 
@@ -30,7 +33,9 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             ISemanticCacheService cacheService,
             IHttpClientFactory httpClientFactory,
             IRagMetricsService metricsService,
-            IGuardrailService guardrailService)
+            IGuardrailService guardrailService,
+            IIntentClassifier intentClassifier,
+            IProductService productService)
         {
             _embeddingService = embeddingService;
             _vectorDbService = vectorDbService;
@@ -39,6 +44,8 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             _httpClientFactory = httpClientFactory;
             _metricsService = metricsService;
             _guardrailService = guardrailService;
+            _intentClassifier = intentClassifier;
+            _productService = productService;
         }
 
         public async IAsyncEnumerable<ChatResponseChunk> ProcessMessageAsync(ChatRequest request)
@@ -67,11 +74,54 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             }
             _metricsService.RecordCacheHit(false);
 
-            // 2. Retrieve Context
-            var embedding = await _embeddingService.GenerateEmbeddingAsync(request.Message);
-            var searchResults = await _vectorDbService.SearchAsync(CollectionName, embedding, limit: 5);
-            var contextString = string.Join("\n\n", searchResults.Select(r => $"[Product Info]: {r.Content}"));
-            var sources = searchResults.Select(r => r.Id).ToList();
+            // 2. Intent Classification
+            var intent = await _intentClassifier.ClassifyIntentAsync(request.Message);
+
+            string contextString = "";
+            List<string> sources = new();
+
+            // 3. Routing based on Intent
+            if (intent == Core.Enums.UserIntent.ProductSearch)
+            {
+                // RAG Flow
+                var embedding = await _embeddingService.GenerateEmbeddingAsync(request.Message);
+                var searchResults = await _vectorDbService.SearchAsync(CollectionName, embedding, limit: 5);
+                
+                // Real-time Data Enrichment
+                var productIds = searchResults
+                    .Where(r => int.TryParse(r.Id, out _))
+                    .Select(r => int.Parse(r.Id))
+                    .ToList();
+
+                if (productIds.Any())
+                {
+                    var products = await _productService.GetProductsByIdsAsync(productIds);
+                    var productDict = products.ToDictionary(p => p.Id);
+
+                    contextString = string.Join("\n\n", searchResults.Select(r => 
+                    {
+                        if (int.TryParse(r.Id, out int pid) && productDict.TryGetValue(pid, out var product))
+                        {
+                            // Combine Vector Content with Real-time SQL Data
+                            return $"[Product Info]: {product.Name}\nPrice: ${product.Price}\nStock: 10 (In Stock)\nDetails: {r.Content}";
+                        }
+                        return $"[Product Info]: {r.Content}";
+                    }));
+                }
+                else
+                {
+                    contextString = string.Join("\n\n", searchResults.Select(r => $"[Product Info]: {r.Content}"));
+                }
+                
+                sources = searchResults.Select(r => r.Id).ToList();
+            }
+            else if (intent == Core.Enums.UserIntent.Support)
+            {
+                // Simple placeholder for Support RAG (could query a 'policies' collection)
+                // For now, let's just let the LLM handle it with general knowledge, or maybe add a static policy string.
+                contextString = "Store Policy: We offer 30-day returns. Warranty is 1 year for all laptops.";
+            }
+            // GeneralChat -> No Context
 
             // 2. Prepare Kernel & Chat
             var kernel = await BuildKernelAsync();

@@ -451,7 +451,11 @@ public static class ServiceCollectionExtensions
         // Security
         services.AddScoped<IGuardrailService, GuardrailService>();
 
+        // AI Services
+        services.AddScoped<IIntentClassifier, SemanticKernelIntentClassifier>();
+
         return services;
     }
 }
+
 

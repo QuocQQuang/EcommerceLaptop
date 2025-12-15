@@ -646,4 +646,10 @@ public class ProductService : IProductService
             PageSize = pageSize
         };
     }
+
+    public async Task<IEnumerable<Product>> GetProductsByIdsAsync(IEnumerable<int> ids)
+    {
+        if (ids == null || !ids.Any()) return new List<Product>();
+        return await _productRepository.GetAsync(new ProductsByIdsSpecification(ids.Distinct().ToList()));
+    }
 }

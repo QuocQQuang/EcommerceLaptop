@@ -344,4 +344,10 @@ public interface IProductService
         decimal? maxPrice = null,
         bool? isActive = null,
         string? sortBy = null);
+    /// <summary>
+    /// Gets specific products by their IDs
+    /// </summary>
+    /// <param name="ids">List of product IDs</param>
+    /// <returns>List of matching products</returns>
+    Task<IEnumerable<Product>> GetProductsByIdsAsync(IEnumerable<int> ids);
 }
