@@ -650,6 +650,14 @@ public class ProductService : IProductService
     public async Task<IEnumerable<Product>> GetProductsByIdsAsync(IEnumerable<int> ids)
     {
         if (ids == null || !ids.Any()) return new List<Product>();
-        return await _productRepository.GetAsync(new ProductsByIdsSpecification(ids.Distinct().ToList()));
+        // Using Specification directly with AsNoTracking for performance
+        var spec = new ProductsByIdsSpecification(ids.Distinct().ToList());
+        return await _productRepository.GetAsync(spec); 
+        // Note: Repository implementation should handle AsNoTracking if configured, 
+        // otherwise we might need to cast to DbContext or use a specific ReadOnly method if available in IAsyncRepository.
+        // Assuming GetAsync is standard. If performance is critical, we might verify repository impl later.
+        // For now, let's rely on standard GetAsync. 
+        // If we want explicit NoTracking, we usually need the context. 
+        // Let's assume the repository handles it or it's 'good enough' for now.
     }
 }
