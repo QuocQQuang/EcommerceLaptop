@@ -9,11 +9,14 @@ using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Core.Services.Payment;
 using EcommerceLaptop.Core.Validators;
 using EcommerceLaptop.Infrastructure.Data;
+using EcommerceLaptop.Infrastructure.Jobs; // Correct namespace
 using EcommerceLaptop.Infrastructure.Repositories;
 using EcommerceLaptop.Infrastructure.Services;
+using EcommerceLaptop.Infrastructure.Services.AI;
 using EcommerceLaptop.Infrastructure.Services.Payment;
 using EcommerceLaptop.Infrastructure.Services.Security;
 using FluentValidation;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -83,8 +86,39 @@ public static class ServiceCollectionExtensions
             return new ElasticClient(connectionSettings);
         });
 
+        // AI Configuration Provider
+        services.AddScoped<ILlmConfigProvider, LlmConfigProvider>();
+
+        // AI Ingestion Pipeline
+        services.AddScoped<IProductChunkingService, ProductChunkingService>();
+        services.AddScoped<IEmbeddingService, SemanticKernelEmbeddingService>();
+        services.AddScoped<IVectorDbService, QdrantVectorDbService>();
+        
+        // Llm Client with Resilience
+        services.AddHttpClient("llm-client")
+            .AddStandardResilienceHandler();
+
+        // Metrics
+        services.AddSingleton<IRagMetricsService, RagMetricsService>();
+
+        // RAG Service
+        services.AddScoped<ISemanticCacheService, SemanticCacheService>();
+        services.AddScoped<IChatService, RagChatService>();
+
+        // Background Jobs (Hangfire)
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(configuration.GetConnectionString("DefaultConnection")));
+
+        services.AddHangfireServer();
+        
+        services.AddScoped<ProductIndexingJob>();
+
         return services;
     }
+
 
     public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration configuration)
     {
@@ -414,6 +448,10 @@ public static class ServiceCollectionExtensions
             });
         });
         
+        // Security
+        services.AddScoped<IGuardrailService, GuardrailService>();
+
         return services;
     }
 }
+

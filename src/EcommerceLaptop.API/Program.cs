@@ -1,10 +1,18 @@
 using Serilog;
-using EcommerceLaptop.Infrastructure.Middleware;
+using EcommerceLaptop.Infrastructure.Middleware; // Correct namespace
 using EcommerceLaptop.API.Extensions;
+using EcommerceLaptop.Infrastructure.Data;
+using EcommerceLaptop.Core.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Infrastructure.Services.Security;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Threading.RateLimiting;
+using Hangfire;
+using EcommerceLaptop.API.Authorization;
+using EcommerceLaptop.API.Hubs; // Added
+using OpenTelemetry.Metrics; // For WithMetricsthorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +32,16 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+// -- OpenTelemetry Configuration --
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics =>
+    {
+        metrics.AddAspNetCoreInstrumentation()
+               .AddMeter("EcommerceLaptop.AI") // Our Custom Meter
+               .AddPrometheusExporter();
+    });
+// ---------------------------------
 
 // Add services to the container using Extension Methods
 builder.Services.AddInfrastructureServices(builder.Configuration);
@@ -190,7 +208,13 @@ app.UseSession(); // Enable session middleware for guest cart management
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<ChatHub>("/chatHub"); // Map ChatHub
 app.MapControllers();
+
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireAuthorizationFilter() }
+});
 
 // Global 404 logger: capture NotFound responses as high-severity security events
 app.Use(async (context, next) =>
@@ -248,6 +272,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 Log.Information("Ca Hng Laptop API started");
+
+app.MapPrometheusScrapingEndpoint(); // /metrics
 
 app.Run();
 

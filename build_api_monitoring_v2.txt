@@ -1,0 +1,11 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  EcommerceLaptop.Core -> C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Core\bin\Debug\net9.0\EcommerceLaptop.Core.dll
+  EcommerceLaptop.Infrastructure -> C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\bin\Debug\net9.0\EcommerceLaptop.Infrastructure.dll
+  EcommerceLaptop -> C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.API\bin\Debug\net9.0\EcommerceLaptop.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.63
