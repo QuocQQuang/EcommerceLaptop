@@ -9,6 +9,12 @@ using EcommerceLaptop.Core.Interfaces;
 using EcommerceLaptop.Core.Models.AI;
 using EcommerceLaptop.Core.Services;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
+using EcommerceLaptop.Core.DTOs.Chat;
+using EcommerceLaptop.Core.Entities;
+using EcommerceLaptop.Core.Interfaces.Services;
+using System.Threading;
+using System;
 
 namespace EcommerceLaptop.Infrastructure.Services.AI
 {
@@ -23,6 +29,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
         private readonly IGuardrailService _guardrailService;
         private readonly IIntentClassifier _intentClassifier;
         private readonly IProductService _productService;
+        private readonly IChatPersistenceService _persistenceService;
 
         private const string CollectionName = "products";
 
@@ -35,7 +42,8 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             IRagMetricsService metricsService,
             IGuardrailService guardrailService,
             IIntentClassifier intentClassifier,
-            IProductService productService)
+            IProductService productService,
+            IChatPersistenceService persistenceService)
         {
             _embeddingService = embeddingService;
             _vectorDbService = vectorDbService;
@@ -46,45 +54,91 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             _guardrailService = guardrailService;
             _intentClassifier = intentClassifier;
             _productService = productService;
+            _persistenceService = persistenceService;
         }
 
-        public async IAsyncEnumerable<ChatResponseChunk> ProcessMessageAsync(ChatRequest request)
+        public async IAsyncEnumerable<ChatStreamEvent> StreamChatAsync(
+            string query,
+            string? sessionId = null,
+            string? userId = null,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            int tokenCount = 0;
+
+            // Persistence: Ensure Session ID
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                 // Create new session
+                 string title = query.Length > 50 ? query.Substring(0, 47) + "..." : query;
+                 // If userId is null, treat as anonymous/guest (or handle as per auth policy)
+                 // integrating logic: if userId is null, we can't persist effectively for a user, but we can for a temporary session.
+                 // For now, we allow null userId but maybe generate a temp ID?
+                 var effectiveUserId = userId ?? "anonymous"; 
+                 sessionId = await _persistenceService.CreateSessionAsync(effectiveUserId, title);
+            }
+
+            yield return new ProgressEvent { Stage = "Validation", Message = "Validating input...", Progress = 0.1 };
 
             // 0. Guardrails (Input)
-            var inputCheck = await _guardrailService.ValidateInputAsync(request.Message);
+            var inputCheck = await _guardrailService.ValidateInputAsync(query);
             if (!inputCheck.IsSafe)
             {
-                yield return new ChatResponseChunk 
+                yield return new ErrorEvent 
                 { 
-                    Content = $"I cannot process that request. {inputCheck.Reason}", 
-                    IsComplete = true 
+                    Code = "UNSAFE_INPUT", 
+                    Message = $"I cannot process that request. {inputCheck.Reason}",
+                    Recoverable = false 
                 };
                 yield break;
             }
 
             // 1. Check Cache
-            var cachedResponse = await _cacheService.GetCachedResponseAsync(request.Message);
+            yield return new ProgressEvent { Stage = "Cache", Message = "Checking cache...", Progress = 0.2 };
+            var cachedResponse = await _cacheService.GetCachedResponseAsync(query);
             if (cachedResponse != null)
             {
                 _metricsService.RecordCacheHit(true);
-                yield return cachedResponse;
+                yield return new MetadataEvent { ProcessingStage = "Cache", CacheHit = true, ElapsedMs = stopwatch.ElapsedMilliseconds };
+                
+                // Stream cached response as a single big token or simulate streaming?
+                // For better UX, usually we just return it. 
+                // But the protocol expects TokenEvents.
+                // We'll treat the whole cached content as one token for simplicity, or split it if we want "streaming" feel.
+                yield return new TokenEvent { Token = cachedResponse.Content, Index = 0 };
+                
+                yield return new CompleteEvent 
+                { 
+                    QueryId = System.Guid.NewGuid().ToString(),
+                    TotalTokens = cachedResponse.Content.Length / 4, // Estimate
+                    DurationMs = stopwatch.ElapsedMilliseconds,
+                    CacheHit = true,
+                    ModelUsed = "Cache"
+                };
+                
+                // Save interaction to history even if cached?
+                // Yes, otherwise context is lost.
+                await _persistenceService.SaveMessageAsync(sessionId, "user", query);
+                await _persistenceService.SaveMessageAsync(sessionId, "assistant", cachedResponse.Content);
+                
                 yield break;
             }
             _metricsService.RecordCacheHit(false);
 
             // 2. Intent Classification
-            var intent = await _intentClassifier.ClassifyIntentAsync(request.Message);
-
+            yield return new ProgressEvent { Stage = "Intent", Message = "Understanding query...", Progress = 0.3 };
+            var intent = await _intentClassifier.ClassifyIntentAsync(query);
+            
             string contextString = "";
             List<string> sources = new();
 
             // 3. Routing based on Intent
             if (intent == Core.Enums.UserIntent.ProductSearch)
             {
+                yield return new ProgressEvent { Stage = "Retrieval", Message = "Searching products...", Progress = 0.5 };
+                
                 // RAG Flow
-                var embedding = await _embeddingService.GenerateEmbeddingAsync(request.Message);
+                var embedding = await _embeddingService.GenerateEmbeddingAsync(query);
                 var searchResults = await _vectorDbService.SearchAsync(CollectionName, embedding, limit: 5);
                 
                 // Real-time Data Enrichment
@@ -98,11 +152,28 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                     var products = await _productService.GetProductsByIdsAsync(productIds);
                     var productDict = products.ToDictionary(p => p.Id);
 
+                    // Emit Product Events
+                    int rank = 1;
+                    foreach (var result in searchResults)
+                    {
+                         if (int.TryParse(result.Id, out int pid) && productDict.TryGetValue(pid, out var product))
+                         {
+                             yield return new ProductEvent
+                             {
+                                 Id = product.Id.ToString(),
+                                 Name = product.Name,
+                                 Description = product.Description,
+                                 Price = product.Price,
+                                 RelevanceScore = result.Score,
+                                 Rank = rank++
+                             };
+                         }
+                    }
+
                     contextString = string.Join("\n\n", searchResults.Select(r => 
                     {
                         if (int.TryParse(r.Id, out int pid) && productDict.TryGetValue(pid, out var product))
                         {
-                            // Combine Vector Content with Real-time SQL Data
                             return $"[Product Info]: {product.Name}\nPrice: ${product.Price}\nStock: 10 (In Stock)\nDetails: {r.Content}";
                         }
                         return $"[Product Info]: {r.Content}";
@@ -117,13 +188,12 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             }
             else if (intent == Core.Enums.UserIntent.Support)
             {
-                // Simple placeholder for Support RAG (could query a 'policies' collection)
-                // For now, let's just let the LLM handle it with general knowledge, or maybe add a static policy string.
-                contextString = "Store Policy: We offer 30-day returns. Warranty is 1 year for all laptops.";
+                contextString = "Store Policy: We offer 30-day returns. Warranty is 1 year for all laptops. Shipping is free for orders over $500.";
             }
-            // GeneralChat -> No Context
 
-            // 2. Prepare Kernel & Chat
+            yield return new ProgressEvent { Stage = "Generation", Message = "Generating response...", Progress = 0.8 };
+
+            // 4. Prepare Kernel & Chat
             var kernel = await BuildKernelAsync();
             var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
 
@@ -135,47 +205,62 @@ Review the context carefully. It contains product titles, specs, and description
 Context:
 {contextString}");
 
-            // Add previous history
-            foreach (var msg in request.History)
+            // Load History
+            var history = await _persistenceService.GetSessionHistoryAsync(sessionId);
+            foreach (var msg in history)
             {
                 if (msg.Role == "user") chatHistory.AddUserMessage(msg.Content);
                 else if (msg.Role == "assistant") chatHistory.AddAssistantMessage(msg.Content);
             }
+            
+            // Save current user message
+            await _persistenceService.SaveMessageAsync(sessionId, "user", query);
+            chatHistory.AddUserMessage(query);
 
-            chatHistory.AddUserMessage(request.Message);
-
-            // 3. Stream Response
             var executionSettings = new OpenAIPromptExecutionSettings() { Temperature = 0.7 };
             
-            var responses = chatCompletionService.GetStreamingChatMessageContentsAsync(chatHistory, executionSettings, kernel);
+            var responses = chatCompletionService.GetStreamingChatMessageContentsAsync(chatHistory, executionSettings, kernel, cancellationToken);
             
             var fullResponseBuilder = new StringBuilder();
-            bool firstChunk = true;
+            int index = 0;
             
             await foreach (var content in responses)
             {
+                if (cancellationToken.IsCancellationRequested) break;
+
                 if (!string.IsNullOrEmpty(content.Content))
                 {
                     fullResponseBuilder.Append(content.Content);
-                    yield return new ChatResponseChunk 
+                    yield return new TokenEvent 
                     { 
-                        Content = content.Content, 
-                        IsComplete = false,
-                        Sources = firstChunk ? sources : new List<string>()
+                        Token = content.Content, 
+                        Index = index++
                     };
-                    firstChunk = false;
+                    tokenCount++;
                 }
             }
             
-            // Unify response for cache
-            await _cacheService.CacheResponseAsync(request.Message, fullResponseBuilder.ToString());
+            string fullResponse = fullResponseBuilder.ToString();
+            
+            // Save assistant response
+            if (!string.IsNullOrEmpty(fullResponse))
+            {
+                 await _persistenceService.SaveMessageAsync(sessionId, "assistant", fullResponse);
+                 await _cacheService.CacheResponseAsync(query, fullResponse);
+            }
             
             stopwatch.Stop();
             _metricsService.RecordLatency(stopwatch.ElapsedMilliseconds, "ChatGeneration");
-            // Estimate tokens (simple mapping 4 chars = 1 token) or use library if available
-            _metricsService.RecordTokenUsage(request.Message.Length / 4, fullResponseBuilder.Length / 4);
+            _metricsService.RecordTokenUsage(query.Length / 4, fullResponse.Length / 4);
 
-            yield return new ChatResponseChunk { IsComplete = true };
+            yield return new CompleteEvent 
+            {
+                QueryId = System.Guid.NewGuid().ToString(),
+                TotalTokens = tokenCount,
+                DurationMs = stopwatch.ElapsedMilliseconds,
+                CacheHit = false,
+                ModelUsed = "GPT-4o" // Placeholder, ideally get from config
+            };
         }
 
         private async Task<Kernel> BuildKernelAsync()
@@ -183,13 +268,12 @@ Context:
             var config = await _configProvider.GetConfigAsync();
             var builder = Kernel.CreateBuilder();
 
-            // Create resilient client
             var httpClient = _httpClientFactory.CreateClient("llm-client");
 
             if (config.Provider == "Azure")
             {
                 builder.AddAzureOpenAIChatCompletion(
-                    deploymentName: config.ModelId ?? "gpt-4o", 
+                    deploymentName: config.ModelId ?? "gpt-4o",
                     endpoint: config.BaseUrl!,
                     apiKey: config.ApiKey,
                     httpClient: httpClient
@@ -197,33 +281,13 @@ Context:
             }
             else if (config.Provider == "Ollama")
             {
-                 // For Ollama with a resilient client, we pass the client but might need to respect the base URL from config if it differs from default.
-                 // However, AddOpenAIChatCompletion usually expects the HttpClient to be pre-configured if passed.
-                 // Or we pass the endpoint as modelId? No.
-                 // The AddOpenAIChatCompletion overload with httpClient DOES NOT take an endpoint usually? 
-                 // It depends on the SK version. 
-                 // Let's assume standard OpenAI protocol.
-                 // If we use "CreateClient", we might not have set the BaseAddress yet if it varies.
-                 // But typically "llm-client" is configured in one place.
-                 // Here configurations are dynamic.
-                 // We can set the BaseAddress on the client instance if it's null.
-                 
-                 // Since we're using "StandardResilienceHandler", it's a generic client.
-                 // We manually set BaseAddress for this request's client instance.
                  if (!string.IsNullOrEmpty(config.BaseUrl))
                  {
-                     // Ideally we shouldn't mute the client from factory, but here we need to point to dynamic target.
-                     // A safer way is using Named Clients for specific known providers, but here provider is dynamic.
-                     // We'll proceed with creating a client and setting base address if not set.
-                     // Note: You can't change BaseAddress if request started, but this is a fresh client instance.
-                     // actually properties of HttpClient are not thread safe if modifying shared one, but CreateClient returns new instance.
-                     // however, it shares the handler pipeline.
-                     // Setting BaseAddress on the returned HttpClient instance is safe.
                      try 
                      {
                         httpClient.BaseAddress = new System.Uri(config.BaseUrl); 
                      }
-                     catch {} // Ignore if already set or invalid
+                     catch {}
                  }
 
                  builder.AddOpenAIChatCompletion(

@@ -1,0 +1,14 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  EcommerceLaptop.Core -> C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Core\bin\Debug\net9.0\EcommerceLaptop.Core.dll
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\Services\AI\RagChatService.cs(31,26): error CS0246: The type or namespace name 'IChatPersistenceService' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\EcommerceLaptop.Infrastructure.csproj]
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\Services\AI\RagChatService.cs(45,13): error CS0246: The type or namespace name 'IChatPersistenceService' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\EcommerceLaptop.Infrastructure.csproj]
+
+Build FAILED.
+
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\Services\AI\RagChatService.cs(31,26): error CS0246: The type or namespace name 'IChatPersistenceService' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\EcommerceLaptop.Infrastructure.csproj]
+C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\Services\AI\RagChatService.cs(45,13): error CS0246: The type or namespace name 'IChatPersistenceService' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Lecoo\Desktop\Git\EcommerceLaptop\src\EcommerceLaptop.Infrastructure\EcommerceLaptop.Infrastructure.csproj]
+    0 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:01.18

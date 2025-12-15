@@ -103,6 +103,7 @@ public static class ServiceCollectionExtensions
 
         // RAG Service
         services.AddScoped<ISemanticCacheService, SemanticCacheService>();
+        services.AddScoped<IChatPersistenceService, ChatPersistenceService>();
         services.AddScoped<IChatService, RagChatService>();
 
         // Background Jobs (Hangfire)
@@ -156,10 +157,23 @@ public static class ServiceCollectionExtensions
                         // If Authorization header is missing, try to read from admin-session cookie (frontend uses this)
                         if (string.IsNullOrEmpty(context.Request.Headers["Authorization"]))
                         {
-                            var cookieToken = context.Request.Cookies["admin-session"];
-                            if (!string.IsNullOrEmpty(cookieToken))
+                            // 1. Check for SignalR access_token in Query String
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+                            
+                            if (!string.IsNullOrEmpty(accessToken) && 
+                                path.StartsWithSegments("/chatHub"))
                             {
-                                context.Token = cookieToken;
+                                context.Token = accessToken;
+                            }
+                            // 2. Fallback to admin-session cookie
+                            else 
+                            {
+                                var cookieToken = context.Request.Cookies["admin-session"];
+                                if (!string.IsNullOrEmpty(cookieToken))
+                                {
+                                    context.Token = cookieToken;
+                                }
                             }
                         }
                     }

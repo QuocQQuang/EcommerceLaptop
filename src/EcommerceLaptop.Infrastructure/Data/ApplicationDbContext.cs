@@ -136,6 +136,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<SystemAuditLog> SystemAuditLogs { get; set; }
     public DbSet<LoginAttempt> LoginAttempts { get; set; }
 
+    // AI Chat Persistence
+    public DbSet<ChatSession> ChatSessions { get; set; }
+    public DbSet<ChatMessage> ChatMessages { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -799,21 +803,53 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Action).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.Description).HasMaxLength(1000).IsRequired();
+            entity.Property(e => e.EntityId).HasMaxLength(100);
             entity.Property(e => e.EntityType).HasMaxLength(100);
-            entity.Property(e => e.EntityId).HasMaxLength(50);
             entity.Property(e => e.IPAddress).HasMaxLength(45);
-            entity.Property(e => e.UserAgent).HasMaxLength(500);
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.UserAgent).HasMaxLength(1000);
 
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => new { e.EntityType, e.EntityId });
 
             entity.HasOne(e => e.User)
-                .WithMany(e => e.ActivityLogs)
+                .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+
+        // Chat Persistence Configuration
+        modelBuilder.Entity<ChatSession>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserId).HasMaxLength(450);
+            entity.Property(e => e.Title).HasMaxLength(100);
+            
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.LastUpdatedAt);
+
+            // If using Guest sessions, UserId might be nullable or handle differently according to your auth system
+            // Here we assume UserId is foreign key to User table if present, or just a string ID for guest?
+            // If strictly linked to Users table:
+            // entity.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
+            // Relaxed for guest support (UserId is just a string, possibly GUID):
+        });
+
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Role).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Content).IsRequired(); // MaxLength? Maybe nvarchar(max)
+            
+            entity.HasIndex(e => e.SessionId);
+            entity.HasIndex(e => e.Timestamp);
+
+            entity.HasOne(e => e.Session)
+                .WithMany(s => s.Messages)
+                .HasForeignKey(e => e.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
 
         // UserVipTier configuration
         modelBuilder.Entity<UserVipTier>(entity =>

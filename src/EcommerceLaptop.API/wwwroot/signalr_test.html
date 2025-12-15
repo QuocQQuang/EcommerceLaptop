@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SignalR Chat Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .input-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 8px 16px; cursor: pointer; background: #007bff; color: white; border: none; }
+        button:disabled { background: #ccc; }
+        #log { background: #f4f4f4; padding: 10px; height: 400px; overflow-y: auto; border: 1px solid #ddd; margin-top: 20px; font-family: monospace; white-space: pre-wrap; }
+        .event { border-bottom: 1px solid #ddd; padding: 5px 0; }
+        .event-type { font-weight: bold; color: #333; }
+        .event-token { color: green; }
+        .event-error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SignalR Chat Protocol Tester</h1>
+        
+        <div class="input-group">
+            <label>API URL</label>
+            <input type="text" id="apiUrl" value="http://localhost:5129/chatHub">
+        </div>
+        
+        <div class="input-group">
+            <label>Access Token (JWT)</label>
+            <input type="text" id="token" placeholder="Paste your JWT here">
+        </div>
+
+        <button id="btnConnect" onclick="connect()">Connect</button>
+        <button id="btnDisconnect" onclick="disconnect()" disabled>Disconnect</button>
+        <hr>
+
+        <div class="input-group">
+            <label>Query</label>
+            <textarea id="query" rows="3">Recommend a gaming laptop under $2000</textarea>
+        </div>
+        
+        <button id="btnSend" onclick="send()" disabled>Send Query</button>
+        
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let connection = null;
+
+        async function connect() {
+            const url = document.getElementById('apiUrl').value;
+            const token = document.getElementById('token').value;
+            
+            if (!token) {
+                log("Error: Token required", "error");
+                return;
+            }
+
+            try {
+                connection = new signalR.HubConnectionBuilder()
+                    .withUrl(url, {
+                        accessTokenFactory: () => token
+                    })
+                    .configureLogging(signalR.LogLevel.Information)
+                    .build();
+
+                connection.on("ReceiveEvent", (evt) => {
+                    logEvent(evt);
+                });
+
+                connection.onclose((err) => {
+                    log(`Disconnected. ${err ? err.message : ''}`, "error");
+                    updateState(false);
+                });
+
+                await connection.start();
+                log("Connected to SignalR Hub", "info");
+                updateState(true);
+            } catch (err) {
+                log(`Connection failed: ${err.toString()}`, "error");
+            }
+        }
+
+        async function disconnect() {
+            if (connection) {
+                await connection.stop();
+                updateState(false);
+            }
+        }
+
+        async function send() {
+            if (!connection) return;
+            
+            const query = document.getElementById('query').value;
+            log(`Sending Query: ${query}`, "info");
+            
+            try {
+                // SendQuery signature: (string query, QueryOptions? options)
+                await connection.invoke("SendQuery", query, { sessionId: crypto.randomUUID() });
+            } catch (err) {
+                log(`Send failed: ${err.toString()}`, "error");
+            }
+        }
+
+        function updateState(connected) {
+            document.getElementById('btnConnect').disabled = connected;
+            document.getElementById('apiUrl').disabled = connected;
+            document.getElementById('token').disabled = connected;
+            
+            document.getElementById('btnDisconnect').disabled = !connected;
+            document.getElementById('btnSend').disabled = !connected;
+        }
+
+        function logEvent(evt) {
+            const types = {
+                'token': 'event-token',
+                'error': 'event-error'
+            };
+            
+            let content = JSON.stringify(evt, null, 2);
+            if (evt.type === 'token') {
+                content = `Token: "${evt.token}" (Index: ${evt.index})`;
+            }
+            
+            const div = document.createElement('div');
+            div.className = 'event';
+            div.innerHTML = `<span class="event-type">[${evt.type?.toUpperCase() || 'UNKNOWN'}]</span> <span class="${types[evt.type] || ''}">${content}</span>`;
+            
+            const logDiv = document.getElementById('log');
+            logDiv.appendChild(div);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function log(msg, type) {
+            const div = document.createElement('div');
+            div.className = 'event';
+            div.style.color = type === 'error' ? 'red' : (type === 'info' ? 'blue' : 'black');
+            div.textContent = `[SYSTEM] ${msg}`;
+            document.getElementById('log').appendChild(div);
+        }
+    </script>
+</body>
+</html>

@@ -1,10 +1,13 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Authorization;
 using EcommerceLaptop.Core.Interfaces;
-using EcommerceLaptop.Core.Models.AI;
+using EcommerceLaptop.Core.DTOs.Chat;
 
 namespace EcommerceLaptop.API.Hubs
 {
+    [Authorize]
     public class ChatHub : Hub
     {
         private readonly IChatService _chatService;
@@ -14,16 +17,33 @@ namespace EcommerceLaptop.API.Hubs
             _chatService = chatService;
         }
 
-        public async Task SendMessage(ChatRequest request)
+        public async Task SendQuery(string query, QueryOptions? options = null)
         {
-            request.ConnectionId = Context.ConnectionId;
-            
-            await foreach (var chunk in _chatService.ProcessMessageAsync(request))
+            var cancellationToken = Context.ConnectionAborted;
+            var userId = Context.UserIdentifier;
+            var sessionId = options?.SessionId;
+
+            try
             {
-                await Clients.Caller.SendAsync("ReceiveToken", chunk);
+                await foreach (var evt in _chatService.StreamChatAsync(query, sessionId, userId, cancellationToken))
+                {
+                    await Clients.Caller.SendAsync("ReceiveEvent", evt, cancellationToken);
+                }
             }
-            
-            await Clients.Caller.SendAsync("StreamCompleted");
+            catch (Exception ex)
+            {
+                await Clients.Caller.SendAsync("ReceiveEvent", new ErrorEvent 
+                { 
+                    Code = "SYSTEM_ERROR", 
+                    Message = ex.Message,
+                    Recoverable = false
+                }, cancellationToken);
+            }
         }
+    }
+
+    public class QueryOptions
+    {
+        public string? SessionId { get; set; }
     }
 }
