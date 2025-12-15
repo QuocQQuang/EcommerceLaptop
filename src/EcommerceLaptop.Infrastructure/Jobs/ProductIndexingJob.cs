@@ -7,10 +7,11 @@ using Microsoft.Extensions.Logging;
 using EcommerceLaptop.Core.Interfaces;
 using EcommerceLaptop.Infrastructure.Data;
 using EcommerceLaptop.Core.Entities;
+using EcommerceLaptop.Core.Interfaces.Services;
 
 namespace EcommerceLaptop.Infrastructure.Jobs
 {
-    public class ProductIndexingJob
+    public class ProductIndexingJob : IProductIndexingService
     {
         private readonly ApplicationDbContext _context;
         private readonly IProductChunkingService _chunkingService;
@@ -52,33 +53,13 @@ namespace EcommerceLaptop.Infrastructure.Jobs
                     var products = await _context.Products
                         .Include(p => p.Category)
                         .Include(p => p.ProductBrand)
-                        // Strategies strategies if Specs are needed, but inheritance usually loads base fields.
-                        // For full data, we might need simple cast or eager load.
-                        // EF Core will load correct derived type if TPH is used.
                         .Skip(offset)
                         .Take(BatchSize)
                         .ToListAsync();
 
                     if (!products.Any()) break;
 
-                    var allChunks = new List<ProductChunk>();
-
-                    // 1. Chunking
-                    foreach (var product in products)
-                    {
-                        var chunks = _chunkingService.ChunkProduct(product);
-                        allChunks.AddRange(chunks);
-                    }
-
-                    if (allChunks.Any())
-                    {
-                        // 2. Embedding (Batch)
-                        var texts = allChunks.Select(c => c.Content).ToList();
-                        var embeddings = await _embeddingService.GenerateEmbeddingsAsync(texts);
-
-                        // 3. Upsert
-                        await _vectorDbService.UpsertAsync(CollectionName, allChunks, embeddings);
-                    }
+                    await ProcessBatchAsync(products);
 
                     processedCount += products.Count;
                     offset += BatchSize;
@@ -90,7 +71,70 @@ namespace EcommerceLaptop.Infrastructure.Jobs
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during product indexing job.");
-                throw; // Rethrow to let Hangfire retry
+                throw; 
+            }
+        }
+
+        public async Task IndexProductAsync(int productId)
+        {
+             _logger.LogInformation("Indexing product {ProductId}...", productId);
+             try 
+             {
+                 var product = await _context.Products
+                        .Include(p => p.Category)
+                        .Include(p => p.ProductBrand)
+                        .FirstOrDefaultAsync(p => p.Id == productId);
+                 
+                 // Note: If product is inactive/soft-deleted, we might want to remove it instead?
+                 // For now, if it exists in DB, we upsert. If logic requires filtering active, we should check IsActive.
+                 if (product == null)
+                 {
+                     _logger.LogWarning("Product {ProductId} not found for indexing. Attempting removal in case it existed.", productId);
+                     await DeleteProductAsync(productId);
+                     return;
+                 }
+                 
+                 await ProcessBatchAsync(new List<Product> { product });
+                 _logger.LogInformation("Product {ProductId} indexed successfully.", productId);
+             }
+             catch (Exception ex)
+             {
+                 _logger.LogError(ex, "Error indexing product {ProductId}.", productId);
+                 throw;
+             }
+        }
+
+        public async Task DeleteProductAsync(int productId)
+        {
+            _logger.LogInformation("Deleting product {ProductId} from index...", productId);
+            try
+            {
+                // Delete all chunks associated with this product_id from vector DB
+                await _vectorDbService.RemoveAsync(CollectionName, productId.ToString());
+                _logger.LogInformation("Product {ProductId} deleted from index.", productId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting product {ProductId} from index.", productId);
+                throw;
+            }
+        }
+
+        private async Task ProcessBatchAsync(List<Product> products)
+        {
+            var allChunks = new List<ProductChunk>();
+
+            foreach (var product in products)
+            {
+                var chunks = _chunkingService.ChunkProduct(product);
+                allChunks.AddRange(chunks);
+            }
+
+            if (allChunks.Any())
+            {
+                var texts = allChunks.Select(c => c.Content).ToList();
+                var embeddings = await _embeddingService.GenerateEmbeddingsAsync(texts);
+                await _vectorDbService.UpsertAsync(CollectionName, allChunks, embeddings);
             }
         }
     }

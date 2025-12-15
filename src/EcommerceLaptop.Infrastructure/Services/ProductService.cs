@@ -4,6 +4,7 @@ using EcommerceLaptop.Core.Interfaces;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Core.Specifications.Order;
 using EcommerceLaptop.Core.Specifications.Products;
+using EcommerceLaptop.Core.DomainEvents;
 
 namespace EcommerceLaptop.Infrastructure.Services;
 
@@ -19,6 +20,7 @@ public class ProductService : IProductService
     private readonly IAsyncRepository<Bundle> _bundleRepository;
     private readonly IAsyncRepository<ProductImage> _imageRepository;
     private readonly IAsyncRepository<OrderItem> _orderItemRepository;
+    private readonly IDomainEventDispatcher _dispatcher;
 
     public ProductService(
         IProductRepository productRepository,
@@ -26,7 +28,8 @@ public class ProductService : IProductService
         IAsyncRepository<Accessory> accessoryRepository,
         IAsyncRepository<Bundle> bundleRepository,
         IAsyncRepository<ProductImage> imageRepository,
-        IAsyncRepository<OrderItem> orderItemRepository)
+        IAsyncRepository<OrderItem> orderItemRepository,
+        IDomainEventDispatcher dispatcher)
     {
         _productRepository = productRepository;
         _laptopRepository = laptopRepository;
@@ -34,6 +37,7 @@ public class ProductService : IProductService
         _bundleRepository = bundleRepository;
         _imageRepository = imageRepository;
         _orderItemRepository = orderItemRepository;
+        _dispatcher = dispatcher;
     }
 
     public async Task<Product?> GetByIdAsync(int id)
@@ -363,13 +367,22 @@ public class ProductService : IProductService
     {
         product.CreatedAt = DateTime.UtcNow;
         product.UpdatedAt = DateTime.UtcNow;
-        return await _productRepository.AddAsync(product);
+        var createdProduct = await _productRepository.AddAsync(product);
+        
+        // Dispatch Event
+        await _dispatcher.DispatchAsync(new ProductCreatedEvent(createdProduct));
+        
+        return createdProduct;
     }
 
     public async Task<Product> UpdateProductAsync(Product product)
     {
         product.UpdatedAt = DateTime.UtcNow;
         await _productRepository.UpdateAsync(product);
+        
+        // Dispatch Event
+        await _dispatcher.DispatchAsync(new ProductUpdatedEvent(product));
+        
         return product;
     }
 
@@ -382,6 +395,10 @@ public class ProductService : IProductService
         product.UpdatedAt = DateTime.UtcNow;
 
         await _productRepository.UpdateAsync(product);
+        
+        // Dispatch Event
+        await _dispatcher.DispatchAsync(new ProductDeletedEvent(product.Id)); 
+        
         return true;
     }
 

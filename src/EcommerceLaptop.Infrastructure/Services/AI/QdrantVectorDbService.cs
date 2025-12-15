@@ -69,6 +69,28 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             }
         }
 
+        public async Task RemoveAsync(string collectionName, string id)
+        {
+            // Delete all points with matching product_id in payload
+            // Since we use random UUIDs for point IDs, we filter by product_id metadata
+            var filter = new Filter
+            {
+                Must =
+                {
+                    new Condition
+                    {
+                        Field = new FieldCondition
+                        {
+                            Key = "product_id",
+                            Match = new Match { Integer = int.Parse(id) }
+                        }
+                    }
+                }
+            };
+
+            await _client.DeleteAsync(collectionName, filter);
+        }
+
         public async Task<List<SearchResult>> SearchAsync(string collectionName, float[] vector, int limit = 10, Dictionary<string, object>? filter = null)
         {
             // TODO: Implement Filters if needed

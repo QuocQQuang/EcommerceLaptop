@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using EcommerceLaptop.API.Authorization;
 using EcommerceLaptop.API.Services;
 using EcommerceLaptop.Core.Configuration;
+using EcommerceLaptop.Core.DomainEvents;
 using EcommerceLaptop.Core.Interfaces;
 using EcommerceLaptop.Core.Interfaces.Services;
 using EcommerceLaptop.Core.Services;
@@ -115,7 +116,8 @@ public static class ServiceCollectionExtensions
 
         services.AddHangfireServer();
         
-        services.AddScoped<ProductIndexingJob>();
+        services.AddScoped<IProductIndexingService, ProductIndexingJob>();
+        services.AddScoped<ProductIndexingJob>(); // Optional: if concrete type is needed elsewhere
 
         return services;
     }
@@ -396,6 +398,11 @@ public static class ServiceCollectionExtensions
         
         // Domain Events
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+        
+        // Event Handlers
+        services.AddScoped<IEventHandler<ProductCreatedEvent>, ProductSearchSyncHandler>();
+        services.AddScoped<IEventHandler<ProductUpdatedEvent>, ProductSearchSyncHandler>();
+        services.AddScoped<IEventHandler<ProductDeletedEvent>, ProductSearchSyncHandler>();
 
         // Feature Flags
         services.AddSingleton<IFeatureFlagService, FeatureFlagService>();
