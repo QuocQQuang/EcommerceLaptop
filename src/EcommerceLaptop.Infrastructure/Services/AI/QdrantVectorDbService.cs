@@ -116,8 +116,21 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                 Id = r.Id.ToString(),
                 Score = r.Score,
                 Content = r.Payload.TryGetValue("content", out var contentVal) ? contentVal.StringValue : string.Empty,
-                Metadata = r.Payload.ToDictionary(k => k.Key, k => (object)k.Value.ToString()!) // Simplified payload conversion
+                Metadata = r.Payload.ToDictionary(k => k.Key, k => UnpackValue(k.Value))
             }).ToList();
+        }
+
+        private object UnpackValue(Value value)
+        {
+            return value.KindCase switch
+            {
+                Value.KindOneofCase.StringValue => value.StringValue,
+                Value.KindOneofCase.IntegerValue => value.IntegerValue,
+                Value.KindOneofCase.DoubleValue => value.DoubleValue,
+                Value.KindOneofCase.BoolValue => value.BoolValue,
+                Value.KindOneofCase.ListValue => value.ListValue.Values.Select(UnpackValue).ToList(),
+                _ => value.ToString()
+            };
         }
     }
 }

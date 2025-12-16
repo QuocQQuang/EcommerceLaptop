@@ -1,8 +1,15 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace EcommerceLaptop.Core.DTOs.Chat;
 
 // Base Event
+[JsonDerivedType(typeof(TokenEvent), typeDiscriminator: "token")]
+[JsonDerivedType(typeof(ProductEvent), typeDiscriminator: "product")]
+[JsonDerivedType(typeof(MetadataEvent), typeDiscriminator: "metadata")]
+[JsonDerivedType(typeof(CompleteEvent), typeDiscriminator: "complete")]
+[JsonDerivedType(typeof(ErrorEvent), typeDiscriminator: "error")]
+[JsonDerivedType(typeof(ProgressEvent), typeDiscriminator: "progress")]
 public abstract class ChatStreamEvent
 {
     public string Type { get; protected set; }

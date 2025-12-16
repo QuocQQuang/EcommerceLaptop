@@ -154,21 +154,48 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                     
                     // Real-time Data Enrichment
                     var productIds = searchResults
-                        .Where(r => int.TryParse(r.Id, out _))
-                        .Select(r => int.Parse(r.Id))
-                        .Distinct() // Keep distinct fix
+                        .Select(r => 
+                        {
+                            _logger.LogWarning($"[DEBUG] Processing result {r.Id}. Metadata Keys: {string.Join(", ", r.Metadata.Keys)}");
+                            if (r.Metadata.TryGetValue("product_id", out var pidObj))
+                            {
+                                _logger.LogWarning($"[DEBUG] Found product_id: {pidObj} ({pidObj.GetType().Name})");
+                                if (pidObj is int i) return i;
+                                if (pidObj is long l) return (int)l;
+                                if (pidObj is string s && int.TryParse(s, out var parsed)) return parsed;
+                            }
+                            else 
+                            {
+                                _logger.LogWarning($"[DEBUG] product_id NOT FOUND in metadata for result {r.Id}");
+                            }
+                            return (int?)null;
+                        })
+                        .Where(pid => pid.HasValue)
+                        .Select(pid => pid.Value)
+                        .Distinct()
                         .ToList();
+
+                    _logger.LogWarning($"[DEBUG] Extracted Product IDs: {string.Join(", ", productIds)}");
 
                     if (productIds.Any())
                     {
                         var products = await _productService.GetProductsByIdsAsync(productIds);
+                        _logger.LogWarning($"[DEBUG] Retrieved {products.Count()} products from DB.");
                         var productDict = products.ToDictionary(p => p.Id);
 
                         // Collect Product Events
                         int rank = 1;
                         foreach (var result in searchResults)
                         {
-                             if (int.TryParse(result.Id, out int pid) && productDict.TryGetValue(pid, out var product))
+                            int? pid = null;
+                            if (result.Metadata.TryGetValue("product_id", out var pidObj))
+                            {
+                                if (pidObj is int i) pid = i;
+                                else if (pidObj is long l) pid = (int)l;
+                                else if (pidObj is string s && int.TryParse(s, out var parsed)) pid = parsed;
+                            }
+
+                             if (pid.HasValue && productDict.TryGetValue(pid.Value, out var product))
                              {
                                  foundProducts.Add(new ProductEvent
                                  {
@@ -184,7 +211,28 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
                         contextString = string.Join("\n\n", searchResults.Select(r => 
                         {
-                            if (int.TryParse(r.Id, out int pid) && productDict.TryGetValue(pid, out var product))
+                            int? pid = null;
+                            if (r.Metadata.TryGetValue("product_id", out var pidObj))
+                            {
+                                if (pidObj is int i) pid = i;
+                                else if (pidObj is long l) pid = (int)l;
+                                else if (pidObj is string s && int.TryParse(s, out var parsed)) pid = parsed;
+                            }
+
+                            if (pid.HasValue && productDict.TryGetValue(pid.Value, out var product))
+                            {
+                                return $"[Product Info]: {product.Name}\nPrice: ${product.Price}\nStock: 10 (In Stock)\nDetails: {r.Content}";
+                            }
+                            return $"[Product Info]: {r.Content}";
+                        }));
+                            if (r.Metadata.TryGetValue("product_id", out var pidObj))
+                            {
+                                if (pidObj is int i) pid = i;
+                                else if (pidObj is long l) pid = (int)l;
+                                else if (pidObj is string s && int.TryParse(s, out var parsed)) pid = parsed;
+                            }
+
+                            if (pid.HasValue && productDict.TryGetValue(pid.Value, out var product))
                             {
                                 return $"[Product Info]: {product.Name}\nPrice: ${product.Price}\nStock: 10 (In Stock)\nDetails: {r.Content}";
                             }
