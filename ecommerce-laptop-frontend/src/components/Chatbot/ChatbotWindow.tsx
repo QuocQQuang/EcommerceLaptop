@@ -5,6 +5,7 @@ import { X, Trash2, Send } from 'lucide-react';
 import { ChatMessage } from '@/types/chat';
 import { MessageBubble } from './MessageBubble';
 import { ProductCarousel } from './ProductCarousel';
+import { OrderCarousel } from './OrderCarousel';
 import { QuickActionChips } from './QuickActionChips';
 import TypingIndicator from './TypingIndicator';
 import { useState, useRef, useEffect } from 'react';
@@ -153,6 +154,12 @@ export function ChatbotWindow({
                                                         />
                                                     </div>
                                                 )}
+
+                                                {message.orders && message.orders.length > 0 && (
+                                                    <div className="mt-2 mb-4">
+                                                        <OrderCarousel orders={message.orders} />
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}
@@ -167,7 +174,10 @@ export function ChatbotWindow({
                                                 onConsult={handleConsultation}
                                             />
                                         </div>
+
                                     )}
+
+
 
                                     {statusMessage && (
                                         <div className="text-xs text-neutral-500 italic px-2">

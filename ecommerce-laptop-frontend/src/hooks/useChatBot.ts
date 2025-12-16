@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { v4 as uuidv4 } from 'uuid';
-import { ChatMessage, EnrichedProduct } from '../types/chat';
+import { ChatMessage, EnrichedProduct, Order } from '../types/chat';
 import { useCart } from './useCart';
 
 // Use environment variable for API base URL, fallback to localhost for development
@@ -120,6 +120,29 @@ export const useChatBot = (userToken?: string | null) => {
                                 // Avoid duplicates
                                 if (!products.find(p => p.id === product.id)) {
                                     return [...prev.slice(0, -1), { ...lastMsg, products: [...products, product] }];
+                                }
+                            }
+                            return prev;
+                        });
+                    }
+                    else if (type === 'order') {
+                        console.log(' Order Event received:', evt);
+                        const order: Order = {
+                            id: evt.id || evt.Id,
+                            status: evt.status || evt.Status,
+                            createdAt: evt.createdAt || evt.CreatedAt,
+                            totalAmount: evt.totalAmount || evt.TotalAmount,
+                            itemCount: evt.itemCount || evt.ItemCount,
+                            items: evt.items || evt.Items || []
+                        };
+
+                        setMessages(prev => {
+                            const lastMsg = prev[prev.length - 1];
+                            if (lastMsg && lastMsg.role === 'assistant') {
+                                const orders = lastMsg.orders || [];
+                                // Avoid duplicates
+                                if (!orders.find(o => o.id === order.id)) {
+                                    return [...prev.slice(0, -1), { ...lastMsg, orders: [...orders, order] }];
                                 }
                             }
                             return prev;

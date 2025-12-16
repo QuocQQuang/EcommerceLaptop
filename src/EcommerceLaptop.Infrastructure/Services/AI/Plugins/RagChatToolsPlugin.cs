@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Linq;
 using System.Text;
+using EcommerceLaptop.Infrastructure.Services.Security;
 
 namespace EcommerceLaptop.Infrastructure.Services.AI.Plugins;
 
@@ -29,6 +30,7 @@ public class RagChatToolsPlugin
         Core.Interfaces.IVectorDbService vectorDbService,
         Core.Interfaces.IEmbeddingService embeddingService,
         IOrderService orderService,
+        IRateLimitingService rateLimitingService,
         ILogger<RagChatToolsPlugin> logger)
     {
         _toolRegistry = toolRegistry;
@@ -37,8 +39,11 @@ public class RagChatToolsPlugin
         _vectorDbService = vectorDbService;
         _embeddingService = embeddingService;
         _orderService = orderService;
+        _rateLimitingService = rateLimitingService;
         _logger = logger;
     }
+
+    private readonly IRateLimitingService _rateLimitingService;
 
     private string? _explicitUserId;
     private string? _explicitSessionId;
@@ -49,7 +54,7 @@ public class RagChatToolsPlugin
         _explicitSessionId = sessionId;
     }
 
-    private (string? userId, string? sessionId) GetUserContext()
+    public (string? userId, string? sessionId) GetUserContext()
     {
         // Prioritize explicit context set by RagChatService (SignalR safe)
         if (!string.IsNullOrEmpty(_explicitUserId) || !string.IsNullOrEmpty(_explicitSessionId))
@@ -89,11 +94,34 @@ public class RagChatToolsPlugin
          try
          {
              _logger.LogInformation("RagChatToolsPlugin: CheckOrderStatus called for OrderId {OrderId}, UserId {UserId}", orderId, userId);
+             
+             // Rate Limit Check
+             var rateLimitResult = await _rateLimitingService.CheckRateLimitAsync(userId, "tool:CheckOrderStatus", "TOOL");
+             if (!rateLimitResult.IsSuccess || !rateLimitResult.Data.IsAllowed)
+             {
+                 _logger.LogWarning("Rate limit exceeded for user {UserId} on tool CheckOrderStatus", userId);
+                 return "Rate limit exceeded. Please try again later.";
+             }
+
              var order = await _orderService.GetOrderDetailsAsync(orderId);
              
-             // Security check
-             if (order == null) return $"Order #{orderId} not found.";
-             if (order.CustomerId.ToString() != userId) return "You do not have permission to view this order.";
+             // Security check - Unified response to prevent enumeration
+             // We check for both null (not found) and ownership mismatch
+             if (order == null || order.CustomerId.ToString() != userId) 
+             {
+                 // Log the specific reason internally for security monitoring
+                 if (order == null)
+                 {
+                     _logger.LogWarning("Security: Order lookup failed - Order #{OrderId} not found. Requested by User {UserId}", orderId, userId);
+                 }
+                 else
+                 {
+                     _logger.LogWarning("SECURITY ALERT: Authorization denied. User {UserId} attempted to access Order #{OrderId} belonging to Customer {OwnerId}", userId, orderId, order.CustomerId);
+                 }
+
+                 // Return generic message to user
+                 return $"Order #{orderId} not found.";
+             }
 
              return $@"
 ### Order #{order.Id}
@@ -109,7 +137,7 @@ public class RagChatToolsPlugin
          catch (Exception ex)
          {
              _logger.LogError(ex, "Error checking order status");
-             return $"Error retrieving order: {ex.Message}";
+             return "Unable to retrieve order details at this time.";
          }
     }
 

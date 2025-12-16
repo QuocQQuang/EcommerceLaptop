@@ -10,6 +10,7 @@ namespace EcommerceLaptop.Core.DTOs.Chat;
 [JsonDerivedType(typeof(CompleteEvent), typeDiscriminator: "complete")]
 [JsonDerivedType(typeof(ErrorEvent), typeDiscriminator: "error")]
 [JsonDerivedType(typeof(ProgressEvent), typeDiscriminator: "progress")]
+[JsonDerivedType(typeof(OrderEvent), typeDiscriminator: "order")]
 public abstract class ChatStreamEvent
 {
     public string Type { get; protected set; }
@@ -104,4 +105,21 @@ public class ProgressEvent : ChatStreamEvent
     public string Stage { get; set; }
     public double Progress { get; set; } // 0.0 to 1.0
     public string Message { get; set; }
+}
+
+// Order Event (Rich UI)
+public class OrderEvent : ChatStreamEvent
+{
+    public OrderEvent()
+    {
+        Type = "order";
+    }
+    
+    public int Id { get; set; }
+    public string Status { get; set; } // "Pending", "Shipped" etc.
+    public DateTime CreatedAt { get; set; }
+    public decimal TotalAmount { get; set; }
+    public int ItemCount { get; set; }
+    // Minimal item details for the card
+    public List<string> Items { get; set; } = new List<string>(); 
 }

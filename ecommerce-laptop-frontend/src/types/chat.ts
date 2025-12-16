@@ -16,10 +16,20 @@ export interface ChatMessage {
 
     // Attached rich data
     products?: EnrichedProduct[];
+    orders?: Order[];
 
     // UI State
     isStreaming?: boolean;
     timestamp: Date;
+}
+
+export interface Order {
+    id: number;
+    status: string;
+    createdAt: string;
+    totalAmount: number;
+    itemCount: number;
+    items: string[];
 }
 
 export interface ChatRequest {

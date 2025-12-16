@@ -30,6 +30,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
         private readonly IGuardrailService _guardrailService;
         private readonly IIntentClassifier _intentClassifier;
         private readonly IProductService _productService;
+        private readonly IOrderService _orderService;
         private readonly IChatPersistenceService _persistenceService;
         private readonly IToolRegistry _toolRegistry;
         private readonly Infrastructure.Services.AI.Plugins.RagChatToolsPlugin _toolsPlugin;
@@ -47,6 +48,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             IGuardrailService guardrailService,
             IIntentClassifier intentClassifier,
             IProductService productService,
+            IOrderService orderService,
             IChatPersistenceService persistenceService,
             IToolRegistry toolRegistry,
             Infrastructure.Services.AI.Plugins.RagChatToolsPlugin toolsPlugin,
@@ -61,6 +63,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             _guardrailService = guardrailService;
             _intentClassifier = intentClassifier;
             _productService = productService;
+            _orderService = orderService;
             _persistenceService = persistenceService;
             _toolRegistry = toolRegistry;
             _toolsPlugin = toolsPlugin;
@@ -292,6 +295,14 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             {
                 contextString = "Store Policy: We offer 30-day returns. Warranty is 1 year for all laptops. Shipping is free for orders over $500.";
             }
+            else if (intent == Core.Enums.UserIntent.OrderStatus)
+            {
+                yield return new ProgressEvent { Stage = "OrderRetrieval", Message = "Checking order status...", Progress = 0.5 };
+                
+                var (events, message) = await GetOrderEventsForQueryAsync(query);
+                foreach(var evt in events) yield return evt;
+                contextString = message;
+            }
             else if (RequiresToolCalling(intent))
             {
                 // Tool Calling Path: Enable tools and let SK handle it
@@ -331,7 +342,10 @@ Context:
             var executionSettings = new OpenAIPromptExecutionSettings() 
             { 
                 Temperature = 0.7,
-                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+                // Disable tools if we already handled it via BFF (OrderStatus) to prevent double data (Markdown + Rich UI)
+                ToolCallBehavior = intent == Core.Enums.UserIntent.OrderStatus 
+                    ? null 
+                    : ToolCallBehavior.AutoInvokeKernelFunctions
             };
             var responses = chatCompletionService.GetStreamingChatMessageContentsAsync(chatHistory, executionSettings, kernel, cancellationToken);
             string fullResponse = "";
@@ -548,6 +562,75 @@ Context:
             .Replace("--", "-")
             .Replace("---", "-")
             .Trim('-');
+    }
+
+    private async Task<(List<Core.DTOs.Chat.OrderEvent>, string)> GetOrderEventsForQueryAsync(string query)
+    {
+        var events = new List<Core.DTOs.Chat.OrderEvent>();
+        var (effectiveUserIdStr, _) = _toolsPlugin.GetUserContext();
+        
+        if (string.IsNullOrEmpty(effectiveUserIdStr) || !int.TryParse(effectiveUserIdStr, out var userId))
+        {
+            return (events, "Please login to view your orders.");
+        }
+
+        try
+        {
+            int? orderId = null;
+            var match = System.Text.RegularExpressions.Regex.Match(query, @"#?(\d+)");
+            if (match.Success)
+            {
+               if (int.TryParse(match.Groups[1].Value, out var id)) orderId = id;
+            }
+
+            if (orderId.HasValue)
+            {
+                 var order = await _orderService.GetOrderDetailsAsync(orderId.Value);
+                 if (order != null && order.CustomerId == userId)
+                 {
+                     events.Add(new Core.DTOs.Chat.OrderEvent 
+                     {
+                         Id = order.Id,
+                         Status = order.Status.ToString(),
+                         CreatedAt = order.CreatedAt,
+                         TotalAmount = order.TotalAmount,
+                         ItemCount = order.Items.Count,
+                         Items = order.Items.Select(i => $"{i.Quantity}x {i.ProductName}").ToList()
+                     });
+                     return (events, $"Found order #{order.Id}. It is currently {order.Status}.");
+                 }
+                 return (events, $"Order #{orderId.Value} not found.");
+            }
+            else
+            {
+                 var orders = await _orderService.GetCustomerOrdersAsync(userId, 1, 5);
+                 if (orders.Items.Any())
+                 {
+                     foreach(var o in orders.Items)
+                     {
+                         events.Add(new Core.DTOs.Chat.OrderEvent 
+                         {
+                             Id = o.Id,
+                             Status = o.Status.ToString(),
+                             CreatedAt = o.CreatedAt,
+                             TotalAmount = o.TotalAmount,
+                             ItemCount = o.Items.Count,
+                             // OrderDto might not populate Items in list view, check if needed
+                             // Typically list view returns OrderDto which has Items property but it might be empty
+                             // Assuming it's populated or we accept empty list for list card
+                             Items = o.Items.Select(i => $"{i.Quantity}x {i.ProductName}").ToList()
+                         });
+                     }
+                     return (events, "Here are your recent orders.");
+                 }
+                 return (events, "You have no orders yet.");
+            }
+        }
+        catch (Exception ex)
+        {
+             _logger.LogError(ex, "Error in GetOrderEventsForQueryAsync");
+             return (events, "I had trouble retrieving your order information.");
+        }
     }
 
     private static bool RequiresToolCalling(Core.Enums.UserIntent intent) => intent switch
