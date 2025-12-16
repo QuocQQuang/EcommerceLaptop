@@ -2,12 +2,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { v4 as uuidv4 } from 'uuid';
 import { ChatMessage, EnrichedProduct } from '../types/chat';
+import { useCart } from './useCart';
 
 // Use environment variable for API base URL, fallback to localhost for development
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5129';
 const HUB_URL = `${API_BASE.replace('/api', '')}/chatHub`;
 
 export const useChatBot = (userToken?: string | null) => {
+    const { refreshCart } = useCart();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isStreaming, setIsStreaming] = useState(false);
@@ -145,6 +147,17 @@ export const useChatBot = (userToken?: string | null) => {
                                 return prev;
                             });
                         }
+                    }
+                    else if (type === 'tool' || type === 'cart') {
+                        // Cart tool response detected - refresh cart to sync with backend
+                        console.log(' Cart tool response received, refreshing cart...');
+
+                        // Debounce cart refresh to avoid excessive API calls
+                        setTimeout(() => {
+                            refreshCart().catch(err => {
+                                console.error('Failed to refresh cart after tool response:', err);
+                            });
+                        }, 500);
                     }
                     else if (type === 'error') {
                         setIsStreaming(false);
