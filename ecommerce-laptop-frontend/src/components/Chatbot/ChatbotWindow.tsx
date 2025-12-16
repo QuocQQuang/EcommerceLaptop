@@ -88,21 +88,21 @@ export function ChatbotWindow({
                         <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200/80 bg-white/60">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                <h3 className="font-semibold text-sm text-neutral-900">AI Assistant</h3>
+                                <h3 className="font-semibold text-sm text-neutral-900">Tr l AI</h3>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={onClearChat}
                                     className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors"
-                                    aria-label="Clear chat"
-                                    title="Clear chat"
+                                    aria-label="Xa cuc tr chuyn"
+                                    title="Xa cuc tr chuyn"
                                 >
                                     <Trash2 className="w-4 h-4 text-neutral-600" />
                                 </button>
                                 <button
                                     onClick={onClose}
                                     className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors"
-                                    aria-label="Close chat"
+                                    aria-label="ng chat"
                                 >
                                     <X className="w-4 h-4 text-neutral-600" />
                                 </button>
@@ -123,9 +123,9 @@ export function ChatbotWindow({
                                             </svg>
                                         </motion.div>
                                     </div>
-                                    <h4 className="font-semibold text-neutral-900 mb-2">Welcome to Laptop Assistant</h4>
+                                    <h4 className="font-semibold text-neutral-900 mb-2">Cho mng n vi Tr l Laptop</h4>
                                     <p className="text-sm text-neutral-600 mb-4">
-                                        I can help you find the perfect laptop. Ask me anything!
+                                        Ti c th gip bn tm chic laptop hon ho. Hi ti bt c iu g!
                                     </p>
                                     <QuickActionChips onChipClick={handleQuickAction} />
                                 </div>
@@ -163,7 +163,7 @@ export function ChatbotWindow({
                                     type="text"
                                     value={inputValue}
                                     onChange={(e) => setInputValue(e.target.value)}
-                                    placeholder="Ask about laptops..."
+                                    placeholder="Hi v laptop..."
                                     disabled={isStreaming}
                                     className="flex-1 px-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent disabled:bg-neutral-50 disabled:text-neutral-400"
                                 />
@@ -171,7 +171,7 @@ export function ChatbotWindow({
                                     type="submit"
                                     disabled={!inputValue.trim() || isStreaming}
                                     className="p-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors"
-                                    aria-label="Send message"
+                                    aria-label="Gi tin nhn"
                                 >
                                     <Send className="w-5 h-5" />
                                 </button>

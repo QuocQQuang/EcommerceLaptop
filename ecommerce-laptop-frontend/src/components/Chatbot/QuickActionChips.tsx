@@ -5,12 +5,12 @@ interface QuickActionChipsProps {
 }
 
 const QUICK_ACTIONS = [
-    { label: 'Gaming Laptops', query: 'Show me gaming laptops' },
-    { label: 'Thin & Light', query: 'I need a thin and light laptop' },
-    { label: 'Student Deals', query: 'Best laptops for students' },
-    { label: 'Under $1000', query: 'Show laptops under $1000' },
-    { label: 'Business', query: 'Best business laptops' },
-    { label: 'Creative Work', query: 'Laptops for video editing and design' },
+    { label: 'Laptop Gaming', query: 'Cho ti xem laptop gaming' },
+    { label: 'Mng & Nh', query: 'Ti cn laptop mng nh' },
+    { label: 'Sinh Vin', query: 'Laptop tt nht cho sinh vin' },
+    { label: 'Di 20 triu', query: 'Laptop di 20 triu' },
+    { label: 'Vn Phng', query: 'Laptop vn phng tt nht' },
+    { label: 'Sng To', query: 'Laptop cho edit video v thit k' },
 ];
 
 export function QuickActionChips({ onChipClick }: QuickActionChipsProps) {

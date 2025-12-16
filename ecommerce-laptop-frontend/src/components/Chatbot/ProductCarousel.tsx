@@ -68,7 +68,7 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
 
                     {/* Product Title */}
                     <Link href={`/products/${product.slug}`}>
-                        <h4 className="font-semibold text-sm leading-tight line-clamp-2 hover:text-neutral-600 transition-colors mb-2">
+                        <h4 className="font-semibold text-sm leading-tight line-clamp-2 min-h-[2.5rem] hover:text-neutral-600 transition-colors mb-2">
                             {product.name}
                         </h4>
                     </Link>
@@ -104,7 +104,7 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
                             onClick={() => handleAddToCart(product)}
                             disabled={!product.inStock}
                             className="bg-neutral-900 text-white p-1.5 rounded-lg hover:bg-neutral-800 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors"
-                            aria-label={`Add ${product.name} to cart`}
+                            aria-label={`Thm ${product.name} vo gi hng`}
                         >
                             <ShoppingCart size={14} />
                         </button>

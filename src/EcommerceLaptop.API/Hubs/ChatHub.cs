@@ -21,23 +21,28 @@ namespace EcommerceLaptop.API.Hubs
         {
             var cancellationToken = Context.ConnectionAborted;
             
-            // Try get Authenticated User ID or Guest ID from Header
-            var userId = Context.UserIdentifier;
-            if (string.IsNullOrEmpty(userId))
+            // Extract User ID from JWT Claims (int format)
+            string? userId = null;
+            var httpContext = Context.GetHttpContext();
+            
+            if (httpContext?.User?.Identity?.IsAuthenticated == true)
             {
-                var httpContext = Context.GetHttpContext();
-                if (httpContext != null)
+                // Get int userId from NameIdentifier claim
+                userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            }
+            
+            // Fallback to guest ID if not authenticated
+            if (string.IsNullOrEmpty(userId) && httpContext != null)
+            {
+                // Check Header (fallback if valid)
+                if (httpContext.Request.Headers.TryGetValue("X-Guest-Id", out var guestIdHeader))
                 {
-                    // Check Header (fallback if valid)
-                    if (httpContext.Request.Headers.TryGetValue("X-Guest-Id", out var guestIdHeader))
-                    {
-                        userId = guestIdHeader.ToString();
-                    }
-                    // Check Query String (Primary for WebSockets)
-                    else if (httpContext.Request.Query.TryGetValue("guest_id", out var guestIdQuery))
-                    {
-                        userId = guestIdQuery.ToString();
-                    }
+                    userId = guestIdHeader.ToString();
+                }
+                // Check Query String (Primary for WebSockets)
+                else if (httpContext.Request.Query.TryGetValue("guest_id", out var guestIdQuery))
+                {
+                    userId = guestIdQuery.ToString();
                 }
             }
 

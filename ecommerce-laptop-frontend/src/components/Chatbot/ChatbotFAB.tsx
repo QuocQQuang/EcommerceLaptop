@@ -19,7 +19,7 @@ export function ChatbotFAB({ isOpen, onClick, hasUnread = false }: ChatbotFABPro
             whileHover={{ y: -4, scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.3 }}
-            aria-label={isOpen ? 'Close chat' : 'Open chat'}
+            aria-label={isOpen ? 'ng chat' : 'M chat'}
         >
             {/* Unread Badge */}
             <AnimatePresence>
