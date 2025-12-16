@@ -4,7 +4,6 @@ import { Toaster } from "@/components/ui/sonner";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { CartSyncProvider } from '@/components/providers/CartSyncProvider';
 import { Providers } from "./providers";
 
 const inter = Inter({
@@ -78,6 +77,8 @@ export const viewport: Viewport = {
   themeColor: '#2563eb',
   colorScheme: 'light',
 };
+
+import { CartSyncProvider } from "@/components/providers/CartSyncProvider";
 
 export default function RootLayout({
   children,

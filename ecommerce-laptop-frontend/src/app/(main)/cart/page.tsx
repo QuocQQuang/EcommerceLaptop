@@ -6,7 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCurrencyContext } from '@/contexts/CurrencyContext';
 import { formatCurrencyPrice } from '@/lib/currency';
 import { productService } from '@/services/productService';
-import { useCartStore } from '@/store/cartStore';
+import { useCart } from '@/hooks/useCart';
+import { useCartStore } from '@/store/cartStore'; // Still needed for selector if useCart doesn't expose everything?
+// Actually useCart exposes everything.
+// Let's verify useCart returns.
 import { Product } from '@/types/api';
 import { ArrowLeft, Minus, Plus, ShoppingBag, ShoppingCart, Trash2 } from 'lucide-react';
 import Image from 'next/image';
@@ -17,13 +20,13 @@ export default function CartPage() {
     const { selectedCurrency } = useCurrencyContext();
     const {
         items,
-        updateQuantity,
-        removeItem,
         total,
         itemCount,
-        clearCart,
-        addItem
-    } = useCartStore();
+        updateCartQuantity, // Hook action (syncs)
+        removeFromCart,     // Hook action (syncs)
+        clearCartItems,     // Hook action (syncs)
+        addToCart           // Hook action (syncs)
+    } = useCart();
 
     const [mounted, setMounted] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -63,7 +66,7 @@ export default function CartPage() {
     const addToCartFromReco = (product: Product) => {
         try {
             if (!product) return;
-            addItem(product, 1);
+            addToCart(product, 1);
         } catch (e) {
             console.error('Failed to add recommended product to cart:', e);
         }
@@ -117,7 +120,7 @@ export default function CartPage() {
                                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                         onClick={() => {
                                             if (confirm('Bn c chc mun xa tt c sn phm trong gi hng?')) {
-                                                clearCart();
+                                                clearCartItems();
                                             }
                                         }}
                                     >
@@ -179,7 +182,7 @@ export default function CartPage() {
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 className="h-10 w-10 p-0 hover:bg-gray-100"
-                                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                                onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
                                                                 disabled={item.quantity <= 1 || loading}
                                                             >
                                                                 <Minus className="h-4 w-4" />
@@ -191,7 +194,7 @@ export default function CartPage() {
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 className="h-10 w-10 p-0 hover:bg-gray-100"
-                                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                                onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
                                                                 disabled={loading}
                                                             >
                                                                 <Plus className="h-4 w-4" />
@@ -210,7 +213,7 @@ export default function CartPage() {
                                                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                                             onClick={() => {
                                                                 if (confirm('Bn c chc mun xa sn phm ny khi gi hng?')) {
-                                                                    removeItem(item.id);
+                                                                    removeFromCart(item.id);
                                                                 }
                                                             }}
                                                         >

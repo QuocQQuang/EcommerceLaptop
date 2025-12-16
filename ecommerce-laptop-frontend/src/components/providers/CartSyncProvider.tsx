@@ -1,26 +1,18 @@
 'use client';
 
 import { useCart } from '@/hooks/useCart';
+import { useCartStore } from '@/store/cartStore';
 import { useEffect } from 'react';
 
 export function CartSyncProvider({ children }: { children: React.ReactNode }) {
-    const { refreshCart, itemCount } = useCart();
+    const { refreshCart } = useCart();
+    const { sessionId } = useCartStore();
 
-    // 1. Initial Fetch on Mount
     useEffect(() => {
-        refreshCart();
-    }, [refreshCart]);
-
-    // 2. Listen for 'cart:refresh' events (from Chat or other sources)
-    useEffect(() => {
-        const handleRefresh = () => {
-            console.log(' CartSync: Refreshing cart from event...');
+        if (sessionId) {
             refreshCart();
-        };
-
-        window.addEventListener('cart:refresh', handleRefresh);
-        return () => window.removeEventListener('cart:refresh', handleRefresh);
-    }, [refreshCart]);
+        }
+    }, [sessionId, refreshCart]);
 
     return <>{children}</>;
 }

@@ -132,39 +132,53 @@ export function useCart() {
 
     const refreshCart = useCallback(async () => {
         try {
-            if (sessionId) {
-                const cart = await cartService.getCart(sessionId);
+            if (!sessionId) return;
 
-                // Map Backend Flat DTO to Frontend Nested Structure
-                const mappedItems: any[] = (cart.items || []).map((item: any) => ({
-                    ...item,
-                    product: {
-                        id: item.productId,
-                        name: item.productName,
-                        sku: item.productSku,
-                        imageUrl: item.productImageUrl,
-                        brand: item.brand,
-                        price: item.unitPrice,
-                        // Defaults for required Product fields
-                        slug: item.productSku?.toLowerCase().replace(/\s+/g, '-') || 'unknown-product',
-                        description: '',
-                        type: 'Laptop',
-                        isActive: true,
-                        isFeatured: false,
-                        stockQuantity: item.stockQuantity,
-                        images: [],
-                        specifications: [],
-                        categories: [],
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                    }
-                }));
+            const cart = await cartService.getCart(sessionId);
+            if (cart && cart.items) {
+                // Backend returns flat DTO (productName, productImageUrl, etc.)
+                // Frontend Store expects nested Product object.
+                // We need to map it to avoid "Cannot read properties of undefined (reading 'imageUrl')"
+                const mappedItems = cart.items.map((item: any) => {
+                    // Check if it's already in correct format (has item.product)
+                    if (item.product) return item;
+
+                    // Otherwise map from flat DTO
+                    return {
+                        ...item,
+                        product: {
+                            id: item.productId,
+                            name: item.productName || 'Unknown Product',
+                            sku: item.productSku || 'UNKNOWN',
+                            imageUrl: item.productImageUrl || '',
+                            brand: item.brand,
+                            price: item.unitPrice, // Fallback
+                            // Required fallback fields to satisfy Product interface
+                            description: '',
+                            slug: '',
+                            type: 'Laptop',
+                            isActive: item.isAvailable ?? true,
+                            stockQuantity: item.stockQuantity ?? 0,
+                            images: item.productImageUrl ? [{ imageUrl: item.productImageUrl, isPrimary: true }] : [],
+                            categories: [],
+                            specifications: [],
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString(),
+                            isVariant: false,
+                            isBaseProduct: true,
+                            variants: []
+                        }
+                    };
+                });
 
                 setItems(mappedItems);
-                calculateTotals();
+
+                // Recalculate totals based on the fetched data
+                // calculateTotals(); // Store calculates based on items
             }
         } catch (error) {
             console.error('Error refreshing cart:', error);
+            // Silent error for sync - don't spam toast on every page load
         }
     }, [sessionId, setItems, calculateTotals]);
 
@@ -176,7 +190,7 @@ export function useCart() {
         removeFromCart,
         updateCartQuantity,
         clearCartItems,
-        refreshCart,
+        refreshCart, // Expose for SyncProvider
         isEmpty: items.length === 0,
     };
 }
