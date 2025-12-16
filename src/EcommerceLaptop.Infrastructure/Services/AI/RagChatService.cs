@@ -241,7 +241,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                                 var stockStatus = quantityInStock > 0 
                                     ? $"Stock: {quantityInStock} (In Stock)" 
                                     : "Out of Stock";
-                                return $"[Product Info] (ID: {product.Id}): {product.Name}\nPrice: ${product.Price}\n{stockStatus}\nDetails: {r.Content}";
+                                return $"**Product ID: {product.Id}**\nName: {product.Name}\nPrice: ${product.Price}\n{stockStatus}\nDescription: {r.Content}";
                             }
                             return $"[Product Info]: {r.Content}";
                         }));

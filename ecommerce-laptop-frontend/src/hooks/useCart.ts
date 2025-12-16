@@ -130,6 +130,44 @@ export function useCart() {
         }
     }, [clearCart, sessionId]);
 
+    const refreshCart = useCallback(async () => {
+        try {
+            if (sessionId) {
+                const cart = await cartService.getCart(sessionId);
+
+                // Map Backend Flat DTO to Frontend Nested Structure
+                const mappedItems: any[] = (cart.items || []).map((item: any) => ({
+                    ...item,
+                    product: {
+                        id: item.productId,
+                        name: item.productName,
+                        sku: item.productSku,
+                        imageUrl: item.productImageUrl,
+                        brand: item.brand,
+                        price: item.unitPrice,
+                        // Defaults for required Product fields
+                        slug: item.productSku?.toLowerCase().replace(/\s+/g, '-') || 'unknown-product',
+                        description: '',
+                        type: 'Laptop',
+                        isActive: true,
+                        isFeatured: false,
+                        stockQuantity: item.stockQuantity,
+                        images: [],
+                        specifications: [],
+                        categories: [],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                    }
+                }));
+
+                setItems(mappedItems);
+                calculateTotals();
+            }
+        } catch (error) {
+            console.error('Error refreshing cart:', error);
+        }
+    }, [sessionId, setItems, calculateTotals]);
+
     return {
         items,
         total,
@@ -138,6 +176,7 @@ export function useCart() {
         removeFromCart,
         updateCartQuantity,
         clearCartItems,
+        refreshCart,
         isEmpty: items.length === 0,
     };
 }

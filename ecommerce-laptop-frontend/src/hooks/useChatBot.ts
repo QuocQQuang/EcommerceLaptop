@@ -135,6 +135,22 @@ export const useChatBot = (userToken?: string | null) => {
                                 if (lastMsg) return [...prev.slice(0, -1), { ...lastMsg, isStreaming: false }];
                                 return prev;
                             });
+
+                            // [NEW] Trigger Cart Refresh if message indicates addition
+                            // Wait for state to settle
+                            setTimeout(() => {
+                                const msgs = messagesRef.current;
+                                const last = msgs[msgs.length - 1];
+                                if (last && last.role === 'assistant') {
+                                    const contentLower = last.content.toLowerCase();
+                                    // Check for "added...cart" or "thm...gi"
+                                    const isAdded = /(added| thm|successful).*(cart|gi hng)/i.test(contentLower);
+                                    if (isAdded) {
+                                        console.log(' ChatBot: Detected add-to-cart, triggering refresh...');
+                                        window.dispatchEvent(new Event('cart:refresh'));
+                                    }
+                                }
+                            }, 200);
                         }
                     }
                     else if (type === 'error') {

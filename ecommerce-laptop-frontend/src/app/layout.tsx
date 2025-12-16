@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { CartSyncProvider } from '@/components/providers/CartSyncProvider';
 import { Providers } from "./providers";
 
 const inter = Inter({
@@ -90,7 +91,9 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
-          {children}
+          <CartSyncProvider>
+            {children}
+          </CartSyncProvider>
           <CompareBar />
           <Toaster />
           {/* Debug logger: enable in development or when NEXT_PUBLIC_DEBUG === 'true'.
