@@ -30,8 +30,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             {/* Message Content */}
             <div className={`flex flex-col max-w-[75%] ${isUser ? 'items-end' : 'items-start'}`}>
                 <div className={`px-4 py-2.5 ${isAI
-                        ? 'bg-neutral-50 border border-neutral-100 rounded-2xl'
-                        : 'bg-neutral-900 text-white rounded-2xl rounded-br-sm'
+                    ? 'bg-neutral-50 border border-neutral-100 rounded-2xl'
+                    : 'bg-neutral-900 text-white rounded-2xl rounded-br-sm'
                     }`}>
                     {isAI ? (
                         <div className="prose prose-sm max-w-none prose-neutral">
@@ -44,9 +44,19 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                                     li: ({ children }) => <li className="mb-1 text-neutral-800">{children}</li>,
                                     strong: ({ children }) => <strong className="font-semibold text-neutral-900">{children}</strong>,
                                     code: ({ children }) => <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-xs font-mono text-neutral-900">{children}</code>,
+                                    a: ({ children, href }) => (
+                                        <a
+                                            href={href}
+                                            className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                                            target={href?.startsWith('/') ? '_self' : '_blank'}
+                                            rel={href?.startsWith('/') ? undefined : 'noopener noreferrer'}
+                                        >
+                                            {children}
+                                        </a>
+                                    ),
                                 }}
                             >
-                                {message.content}
+                                {message.content.replace(/(ng nhp|login)/gi, '[$1](/auth?mode=login)').replace(/(ng k|register|to ti khon)/gi, '[$1](/auth?mode=register)')}
                             </ReactMarkdown>
                         </div>
                     ) : (
