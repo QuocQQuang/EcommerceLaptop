@@ -60,6 +60,7 @@ public class MetadataEvent : ChatStreamEvent
     public int ItemsFound { get; set; }
     public bool CacheHit { get; set; }
     public long ElapsedMs { get; set; }
+    public string? SessionId { get; set; }
 }
 
 // Complete Event (Final Summary)

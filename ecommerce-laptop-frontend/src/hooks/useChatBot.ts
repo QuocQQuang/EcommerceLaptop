@@ -16,6 +16,7 @@ export const useChatBot = (userToken?: string | null) => {
     // Refs for safe access in callbacks
     const isStreamingRef = useRef(false);
     const messagesRef = useRef<ChatMessage[]>([]);
+    const currentSessionIdRef = useRef<string | null>(null);
 
     // Sync ref with state
     useEffect(() => {
@@ -120,9 +121,15 @@ export const useChatBot = (userToken?: string | null) => {
                             return prev;
                         });
                     }
-                    else if (type === 'status' || type === 'progress' || type === 'complete') {
+                    else if (type === 'status' || type === 'progress' || type === 'complete' || type === 'metadata') {
                         if (evt.message) {
                             setStatusMessage(evt.message);
+                        }
+
+                        // Capture Session ID
+                        if (type === 'metadata' && evt.sessionId) { // CamelCase from JSON
+                            console.log(' Session Established:', evt.sessionId);
+                            currentSessionIdRef.current = evt.sessionId;
                         }
 
                         // Check for completion or error
@@ -204,7 +211,8 @@ export const useChatBot = (userToken?: string | null) => {
 
             // Invoke Hub Method
             // Signature: SendQuery(string query, QueryOptions? options = null)
-            await connection.invoke('SendQuery', content, { sessionId: null });
+            const sessionId = currentSessionIdRef.current;
+            await connection.invoke('SendQuery', content, { sessionId });
 
         } catch (e) {
             console.error('Send failed', e);

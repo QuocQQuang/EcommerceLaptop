@@ -121,7 +121,13 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                  if (cachedResponse != null)
                  {
                      _metricsService.RecordCacheHit(true);
-                     yield return new MetadataEvent { ProcessingStage = "Cache", CacheHit = true, ElapsedMs = stopwatch.ElapsedMilliseconds };
+                     yield return new MetadataEvent 
+                     { 
+                         ProcessingStage = "Cache", 
+                         CacheHit = true, 
+                         ElapsedMs = stopwatch.ElapsedMilliseconds,
+                         SessionId = sessionId 
+                     };
                      yield return new TokenEvent { Token = cachedResponse.Content, Index = 0 };
                      
                      await _persistenceService.SaveMessageAsync(sessionId, "user", query);
@@ -138,6 +144,16 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                      yield break;
                  }
             }
+            
+            // Send Initial Metadata with SessionID to Client
+            yield return new MetadataEvent 
+            { 
+                 ProcessingStage = "Init", 
+                 ItemsFound = 0, 
+                 CacheHit = false, 
+                 ElapsedMs = 0,
+                 SessionId = sessionId 
+            };
             
             string contextString = "";
             List<string> sources = new();
