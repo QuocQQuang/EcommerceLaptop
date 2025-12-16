@@ -262,7 +262,7 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
         "style-src 'self' 'unsafe-inline' https:",
         "font-src 'self' https: data:",
         "img-src 'self' data: https: blob:",
-        "connect-src 'self' https:",
+        "connect-src 'self' https: wss:",
         "frame-src 'self' https:",
         "object-src 'none'",
         "base-uri 'self'",

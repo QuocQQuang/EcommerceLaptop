@@ -78,8 +78,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("Production", policy =>
     {
         policy.WithOrigins(
-                "https://ecommerce-laptop-frontend.vercel.app",
-                "https://ecommerce-laptop-enterprise.vercel.app/",
+                "https://ecommerce-laptop-enterprise.vercel.app",
                 "https://a33lprojecct.id.vn"  // Frontend custom domain nu c
             )
             .AllowAnyMethod()
@@ -95,14 +94,14 @@ builder.Services.AddCors(options =>
                 "http://localhost:3001", "https://localhost:3001",
                 "http://localhost:3002", "https://localhost:3002",
                 "http://127.0.0.1:3000", "https://127.0.0.1:3000",
-                "https://ecommerce-laptop-frontend.vercel.app",
-                "https://ecommerce-laptop-frontend-git-*.vercel.app",
+                "https://ecommerce-laptop-enterprise.vercel.app",
+                "https://ecommerce-laptop-enterprise-git-*.vercel.app",
                 "https://a33lprojecct.id.vn"
               )
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials()
-              .SetIsOriginAllowed(origin => origin.StartsWith("https://ecommerce-laptop-frontend") ||
+              .SetIsOriginAllowed(origin => origin.StartsWith("https://ecommerce-laptop-enterprise") ||
                                            origin.StartsWith("http://localhost:") ||
                                            origin.StartsWith("https://localhost:") ||
                                            origin.StartsWith("http://127.0.0.1:") ||
