@@ -32,6 +32,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
         private readonly IProductService _productService;
         private readonly IChatPersistenceService _persistenceService;
         private readonly IToolRegistry _toolRegistry;
+        private readonly Infrastructure.Services.AI.Plugins.RagChatToolsPlugin _toolsPlugin;
         private readonly ILogger<RagChatService> _logger;
 
         private const string CollectionName = "products";
@@ -48,6 +49,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             IProductService productService,
             IChatPersistenceService persistenceService,
             IToolRegistry toolRegistry,
+            Infrastructure.Services.AI.Plugins.RagChatToolsPlugin toolsPlugin,
             ILogger<RagChatService> logger)
         {
             _embeddingService = embeddingService;
@@ -61,6 +63,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             _productService = productService;
             _persistenceService = persistenceService;
             _toolRegistry = toolRegistry;
+            _toolsPlugin = toolsPlugin;
             _logger = logger;
         }
 
@@ -267,21 +270,12 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             }
             else if (RequiresToolCalling(intent))
             {
-                // Tool Calling Path for transactional intents
-                yield return new ProgressEvent { Stage = "Tools", Message = "Preparing tools...", Progress = 0.5 };
-                
+                // Tool Calling Path: Enable tools and let SK handle it
+                yield return new ProgressEvent { Stage = "Tools", Message = "Analyzing request with tools...", Progress = 0.5 };
                 _logger.LogInformation("Tool calling path activated for intent: {Intent}", intent);
                 
-                // Placeholder - Full implementation will include OpenAI function calling
-                contextString = intent switch
-                {
-                    Core.Enums.UserIntent.OrderStatus => "Order status checking is currently being implemented. Please check your email for order updates or contact support.",
-                    Core.Enums.UserIntent.CartManagement => "Cart management through chat is coming soon. Please use the shopping cart page to manage your items.",
-                    Core.Enums.UserIntent.AccountManagement => "Account management through chat is coming soon. Please use the account settings page.",
-                    _ => "This feature is currently being implemented."
-                };
-                
-                _logger.LogInformation("Tool calling placeholder response generated for intent: {Intent}", intent);
+                // Provide context hint to LLM but do NOT force a hardcoded response
+                contextString = $"User Intent: {intent}. Use available tools to satisfy the request if needed.";
             }
 
             yield return new ProgressEvent { Stage = "Generation", Message = "Generating response...", Progress = 0.8 };
@@ -310,7 +304,11 @@ Context:
             await _persistenceService.SaveMessageAsync(sessionId, "user", query);
             chatHistory.AddUserMessage(query);
 
-            var executionSettings = new OpenAIPromptExecutionSettings() { Temperature = 0.7 };
+            var executionSettings = new OpenAIPromptExecutionSettings() 
+            { 
+                Temperature = 0.7,
+                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+            };
             var responses = chatCompletionService.GetStreamingChatMessageContentsAsync(chatHistory, executionSettings, kernel, cancellationToken);
             string fullResponse = "";
 
@@ -399,6 +397,9 @@ Context:
         {
             var config = await _configProvider.GetConfigAsync();
             var builder = Kernel.CreateBuilder();
+            
+            // Register Tools Plugin
+            builder.Plugins.AddFromObject(_toolsPlugin, "RagChatTools");
 
             var httpClient = _httpClientFactory.CreateClient("llm-client");
 

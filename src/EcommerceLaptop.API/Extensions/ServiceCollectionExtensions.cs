@@ -125,6 +125,7 @@ public static class ServiceCollectionExtensions
         // Tool Calling Infrastructure
         services.AddSingleton<IToolRegistry, ToolRegistry>();
         services.AddScoped<Infrastructure.Services.AI.Tools.GetProductInventoryTool>();
+        services.AddScoped<Infrastructure.Services.AI.Plugins.RagChatToolsPlugin>();
         services.AddHostedService<ToolRegistrationService>();
 
         // Background Jobs (Hangfire)
