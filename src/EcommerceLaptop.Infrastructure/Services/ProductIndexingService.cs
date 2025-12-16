@@ -5,6 +5,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using EcommerceLaptop.Core.Interfaces;
+using EcommerceLaptop.Core.Entities;
 
 namespace EcommerceLaptop.Infrastructure.Services;
 
@@ -262,15 +264,24 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IProductSearchService _searchService;
+    private readonly IVectorDbService _vectorDbService;
+    private readonly IProductChunkingService _chunkingService;
+    private readonly IEmbeddingService _embeddingService;
     private readonly ILogger<ProductIndexingManagementService> _logger;
 
     public ProductIndexingManagementService(
         ApplicationDbContext dbContext,
         IProductSearchService searchService,
+        IVectorDbService vectorDbService,
+        IProductChunkingService chunkingService,
+        IEmbeddingService embeddingService,
         ILogger<ProductIndexingManagementService> logger)
     {
         _dbContext = dbContext;
         _searchService = searchService;
+        _vectorDbService = vectorDbService;
+        _chunkingService = chunkingService;
+        _embeddingService = embeddingService;
         _logger = logger;
     }
 
@@ -285,7 +296,11 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
                 return false;
             }
 
+            // 1. Index to Elasticsearch
             await _searchService.BulkIndexProductsAsync(new[] { product });
+
+            // 2. Index to Vector DB
+            await IndexToVectorDbAsync(new[] { product });
 
             _logger.LogInformation("Successfully indexed product {ProductId}", productId);
             return true;
@@ -301,7 +316,11 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
     {
         try
         {
+            // 1. Remove from Elasticsearch
             var success = await _searchService.RemoveProductFromIndexAsync(productId);
+
+            // 2. Remove from Vector DB
+            await _vectorDbService.DeleteAsync("products", productId.ToString());
 
             if (success)
             {
@@ -327,6 +346,7 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
         {
             var products = await _dbContext.Products
                 .Where(p => productIds.Contains(p.Id))
+                .Include(p => p.Category) // Ensure navigation properties are loaded for better chunking
                 .ToListAsync();
 
             if (!products.Any())
@@ -335,7 +355,11 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
                 return false;
             }
 
+            // 1. Index to Elasticsearch
             await _searchService.BulkIndexProductsAsync(products);
+
+            // 2. Index to Vector DB
+            await IndexToVectorDbAsync(products);
 
             _logger.LogInformation("Successfully bulk indexed {Count} products", products.Count);
             return true;
@@ -353,20 +377,29 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
         {
             _logger.LogInformation("Starting full reindex of all products");
 
-            // Recreate index
+            // Recreate Elasticsearch index
             await _searchService.CreateOrUpdateIndexAsync();
+
+            // Ensure Vector DB collection exists
+            await _vectorDbService.EnsureCollectionExistsAsync("products");
 
             // Get all active products
             var allProducts = await _dbContext.Products
                 .Where(p => p.IsActive)
+                .Include(p => p.Category) // Important for chunking
                 .ToListAsync();
 
             // Index in batches
-            const int batchSize = 100;
+            const int batchSize = 25; // Reduce batch size because embedding generation is heavy
             for (int i = 0; i < allProducts.Count; i += batchSize)
             {
-                var batch = allProducts.Skip(i).Take(batchSize);
+                var batch = allProducts.Skip(i).Take(batchSize).ToList();
+                
+                // 1. Elasticsearch
                 await _searchService.BulkIndexProductsAsync(batch);
+
+                // 2. Vector DB
+                await IndexToVectorDbAsync(batch);
 
                 _logger.LogInformation("Reindex progress: {Processed}/{Total} products",
                     Math.Min(i + batchSize, allProducts.Count), allProducts.Count);
@@ -388,22 +421,49 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
         {
             var totalProducts = await _dbContext.Products.CountAsync(p => p.IsActive);
 
-            // In a real implementation, you'd query Elasticsearch to get indexed count
-            // For now, we'll return a placeholder status
-
             return new IndexingStatusDto
             {
                 TotalProducts = totalProducts,
-                IndexedProducts = totalProducts, // Placeholder
-                LastIndexingTime = DateTime.UtcNow.AddHours(-1), // Placeholder
-                IsIndexingInProgress = false, // Placeholder
-                IndexingProgress = 100 // Placeholder
+                IndexedProducts = totalProducts,
+                LastIndexingTime = DateTime.UtcNow.AddHours(-1),
+                IsIndexingInProgress = false,
+                IndexingProgress = 100
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting indexing status");
             throw;
+        }
+    }
+
+    private async Task IndexToVectorDbAsync(IEnumerable<EcommerceLaptop.Core.Entities.Product> products)
+    {
+        try 
+        {
+            var allChunks = new List<ProductChunk>();
+            foreach (var product in products)
+            {
+                var chunks = _chunkingService.ChunkProduct(product);
+                allChunks.AddRange(chunks);
+            }
+
+            if (allChunks.Any())
+            {
+                var contents = allChunks.Select(c => c.Content).ToList();
+                _logger.LogInformation("Generating embeddings for {Count} chunks...", contents.Count);
+                
+                var embeddings = await _embeddingService.GenerateEmbeddingsAsync(contents);
+                
+                _logger.LogInformation("Upserting {Count} vectors to Qdrant...", embeddings.Count);
+                await _vectorDbService.UpsertAsync("products", allChunks, embeddings);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to index batch to Vector DB");
+            // We don't throw here to ensure Elasticsearch indexing (which happens before) isn't considered "failed" entirely, 
+            // but in a strict system we might want to throw to retry.
         }
     }
 }

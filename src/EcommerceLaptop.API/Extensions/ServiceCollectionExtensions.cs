@@ -133,6 +133,8 @@ public static class ServiceCollectionExtensions
         
         services.AddScoped<IProductIndexingService, ProductIndexingJob>();
         services.AddScoped<ProductIndexingJob>(); // Optional: if concrete type is needed elsewhere
+        
+        services.AddScoped<IProductIndexingManagementService, ProductIndexingManagementService>();
 
         return services;
     }

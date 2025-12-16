@@ -17,7 +17,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
         public QdrantVectorDbService(IConfiguration configuration)
         {
-            var host = configuration["VectorDb:Endpoint"] ?? "http://localhost:6333";
+            var host = configuration["VectorDb:Endpoint"] ?? "http://localhost:6334";
             _client = new QdrantClient(new Uri(host));
             _vectorSize = 1536; // OpenAI text-embedding-3-small
         }

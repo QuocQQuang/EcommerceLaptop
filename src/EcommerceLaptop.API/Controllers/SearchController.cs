@@ -5,6 +5,8 @@ using EcommerceLaptop.Core.Interfaces.Services;
 using EcommerceLaptop.API.DTOs;
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.API.Controllers;
+using EcommerceLaptop.Core.Interfaces;
+using EcommerceLaptop.Infrastructure.Services;
 
 namespace EcommerceLaptop.API.Controllers;
 
@@ -311,6 +313,24 @@ public class SearchController(
         else
         {
             return ErrorResponse("Failed to remove product from search index");
+        }
+    }
+
+    /// <summary>
+    /// Triggers re-indexing of all products into the Vector DB (Admin only)
+    /// </summary>
+    [HttpPost("vector/reindex")]
+    [Authorize(Roles = "Admin")] // Require Admin role for reindexing
+    public async Task<IActionResult> ReindexVectorDb([FromServices] IProductIndexingManagementService indexingService)
+    {
+        try 
+        {
+            await indexingService.ReindexAllProductsAsync();
+            return SuccessResponse(new { message = "Vector DB re-indexing triggered successfully." });
+        }
+        catch (Exception ex)
+        {
+            return ErrorResponse($"Failed to re-index Vector DB: {ex.Message}");
         }
     }
 
