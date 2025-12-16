@@ -160,7 +160,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
             // 3. Routing based on Intent
             Console.WriteLine($"[DEBUG] Intent: {intent}");
-            if (intent == Core.Enums.UserIntent.ProductSearch)
+            if (intent == Core.Enums.UserIntent.ProductSearch || intent == Core.Enums.UserIntent.CartManagement)
             {
                 yield return new ProgressEvent { Stage = "Retrieval", Message = "Searching products...", Progress = 0.5 };
                 
