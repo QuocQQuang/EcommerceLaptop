@@ -216,13 +216,13 @@ public record RoleDto(
 /// Unified login request that supports context-aware authentication
 /// </summary>
 public record UnifiedLoginRequest(
-    [property: Required(ErrorMessage = "Email l bt buc")]
-    [property: EmailAddress(ErrorMessage = "nh dng email khng hp l")]
-    [property: StringLength(255, ErrorMessage = "Email khng c vt qu 255 k t")]
+    [Required(ErrorMessage = "Email l bt buc")]
+    [EmailAddress(ErrorMessage = "nh dng email khng hp l")]
+    [StringLength(255, ErrorMessage = "Email khng c vt qu 255 k t")]
     string Email,
 
-    [property: Required(ErrorMessage = "Mt khu l bt buc")]
-    [property: StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu phi c t nht 8 k t v khng qu 100 k t")]
+    [Required(ErrorMessage = "Mt khu l bt buc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu phi c t nht 8 k t v khng qu 100 k t")]
     string Password,
 
     AuthContext? Context = null,
@@ -233,60 +233,64 @@ public record UnifiedLoginRequest(
 /// <summary>
 /// Unified registration request that supports context-aware registration
 /// </summary>
-public record UnifiedRegisterRequest(
-    [property: Required(ErrorMessage = "Email l bt buc")]
-    [property: EmailAddress(ErrorMessage = "nh dng email khng hp l")]
-    [property: StringLength(255, ErrorMessage = "Email khng c vt qu 255 k t")]
-    string Email,
+public record UnifiedRegisterRequest
+{
+    [Required(ErrorMessage = "Email l bt buc")]
+    [EmailAddress(ErrorMessage = "nh dng email khng hp l")]
+    [StringLength(255, ErrorMessage = "Email khng c vt qu 255 k t")]
+    public string Email { get; init; } = default!;
 
-    [property: Required(ErrorMessage = "Mt khu l bt buc")]
-    [property: StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu phi c t nht 8 k t v khng qu 100 k t")]
-    [property: RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", ErrorMessage = "Mt khu phi cha t nht 1 ch hoa, 1 ch thng, 1 s v 1 k t c bit")]
-    string Password,
+    [Required(ErrorMessage = "Mt khu l bt buc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu phi c t nht 8 k t v khng qu 100 k t")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", ErrorMessage = "Mt khu phi cha t nht 1 ch hoa, 1 ch thng, 1 s v 1 k t c bit")]
+    public string Password { get; init; } = default!;
 
-    [property: Required(ErrorMessage = "Xc nhn mt khu l bt buc")]
-    [property: Compare("Password", ErrorMessage = "Mt khu xc nhn khng khp")]
-    string ConfirmPassword,
+    [Required(ErrorMessage = "Xc nhn mt khu l bt buc")]
+    [Compare("Password", ErrorMessage = "Mt khu xc nhn khng khp")]
+    public string ConfirmPassword { get; init; } = default!;
 
-    [property: Required(ErrorMessage = "Tn l bt buc")]
-    [property: StringLength(100, MinimumLength = 3, ErrorMessage = "Tn phi c t nht 3 k t v khng qu 100 k t")]
-    [property: RegularExpression(@"^[a-zA-Z-\s]+$", ErrorMessage = "Tn ch c cha ch ci v khong trng")]
-    string FirstName,
+    [Required(ErrorMessage = "Tn l bt buc")]
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "Tn phi c t nht 3 k t v khng qu 100 k t")]
+    [RegularExpression(@"^[a-zA-Z-\s]+$", ErrorMessage = "Tn ch c cha ch ci v khong trng")]
+    public string FirstName { get; init; } = default!;
 
-    [property: Required(ErrorMessage = "H l bt buc")]
-    [property: StringLength(100, MinimumLength = 3, ErrorMessage = "H phi c t nht 3 k t v khng qu 100 k t")]
-    [property: RegularExpression(@"^[a-zA-Z-\s]+$", ErrorMessage = "H ch c cha ch ci v khong trng")]
-    string LastName,
+    [Required(ErrorMessage = "H l bt buc")]
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "H phi c t nht 3 k t v khng qu 100 k t")]
+    [RegularExpression(@"^[a-zA-Z-\s]+$", ErrorMessage = "H ch c cha ch ci v khong trng")]
+    public string LastName { get; init; } = default!;
 
-    [property: Phone(ErrorMessage = "S in thoi khng hp l")]
-    [property: StringLength(20, ErrorMessage = "S in thoi khng c vt qu 20 k t")]
-    string? PhoneNumber = null,
+    [Phone(ErrorMessage = "S in thoi khng hp l")]
+    [StringLength(20, ErrorMessage = "S in thoi khng c vt qu 20 k t")]
+    public string? PhoneNumber { get; init; }
 
-    [property: Required(ErrorMessage = "Bn phi ng  vi iu khon")]
-    bool AcceptTerms = false,
+    [Required(ErrorMessage = "Bn phi ng  vi iu khon")]
+    public bool AcceptTerms { get; init; } = false;
 
-    AuthContext? Context = null,
-    string? IpAddress = null,
-    string? UserAgent = null);
+    public AuthContext? Context { get; init; }
+    public string? IpAddress { get; init; }
+    public string? UserAgent { get; init; }
+}
 
 /// <summary>
 /// Unified change password request
 /// </summary>
-public record UnifiedChangePasswordRequest(
-    [property: Required(ErrorMessage = "Mt khu hin ti l bt buc")]
-    [property: StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu hin ti phi c t nht 8 k t v khng qu 100 k t")]
-    string CurrentPassword,
+public record UnifiedChangePasswordRequest
+{
+    [Required(ErrorMessage = "Mt khu hin ti l bt buc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu hin ti phi c t nht 8 k t v khng qu 100 k t")]
+    public string CurrentPassword { get; init; } = default!;
 
-    [property: Required(ErrorMessage = "Mt khu mi l bt buc")]
-    [property: StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu mi phi c t nht 8 k t v khng qu 100 k t")]
-    [property: RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", ErrorMessage = "Mt khu mi phi cha t nht 1 ch hoa, 1 ch thng, 1 s v 1 k t c bit")]
-    string NewPassword,
+    [Required(ErrorMessage = "Mt khu mi l bt buc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu mi phi c t nht 8 k t v khng qu 100 k t")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", ErrorMessage = "Mt khu mi phi cha t nht 1 ch hoa, 1 ch thng, 1 s v 1 k t c bit")]
+    public string NewPassword { get; init; } = default!;
 
-    [property: Required(ErrorMessage = "Xc nhn mt khu mi l bt buc")]
-    [property: Compare("NewPassword", ErrorMessage = "Mt khu xc nhn khng khp")]
-    string ConfirmPassword,
+    [Required(ErrorMessage = "Xc nhn mt khu mi l bt buc")]
+    [Compare("NewPassword", ErrorMessage = "Mt khu xc nhn khng khp")]
+    public string ConfirmPassword { get; init; } = default!;
 
-    AuthContext? Context = null);
+    public AuthContext? Context { get; init; }
+}
 
 /// <summary>
 /// Unified forgot password request

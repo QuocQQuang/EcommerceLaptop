@@ -6,7 +6,7 @@ export const options = {
     duration: '30s',
 };
 
-const BASE_URL = 'http://localhost:5000/api/chat'; // Adjust port if needed
+const BASE_URL = 'http://host.docker.internal:5129/api/chat'; // Adjust port if needed
 
 export default function () {
     const payload = JSON.stringify({

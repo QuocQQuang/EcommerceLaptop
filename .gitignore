@@ -23,7 +23,7 @@ pnpm-debug.log*
 *.iml
 
 # ---- Environment files ----
-
+*.txt
 .direnv/
 
 # ---- Docker local state ----
