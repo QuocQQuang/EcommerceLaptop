@@ -223,7 +223,11 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
                             if (pid.HasValue && productDict.TryGetValue(pid.Value, out var product))
                             {
-                                return $"[Product Info]: {product.Name}\nPrice: ${product.Price}\nStock: 10 (In Stock)\nDetails: {r.Content}";
+                                var quantityInStock = product.Inventory?.QuantityInStock ?? 0;
+                                var stockStatus = quantityInStock > 0 
+                                    ? $"Stock: {quantityInStock} (In Stock)" 
+                                    : "Out of Stock";
+                                return $"[Product Info]: {product.Name}\nPrice: ${product.Price}\n{stockStatus}\nDetails: {r.Content}";
                             }
                             return $"[Product Info]: {r.Content}";
                         }));
