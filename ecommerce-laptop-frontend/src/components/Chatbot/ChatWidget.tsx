@@ -67,7 +67,7 @@ const ChatWidget = () => {
                     </div>
 
                     {/* Messages Area */}
-                    <div className="flex-1 overflow-y-auto p-4 bg-gray-50 scrollbar-thin scrollbar-thumb-gray-200">
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 bg-gray-50 scrollbar-thin scrollbar-thumb-gray-200">
                         {messages.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-gray-400 text-center space-y-2">
                                 <MessageCircle size={48} className="opacity-20" />
