@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -218,4 +218,44 @@
 
 .blog-content hr {
   @apply border-gray-300 my-6;
+}
+
+/* Custom Chat Animations */
+@keyframes breathing {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes slideUpFade {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-breathing {
+  animation: breathing 3s ease-in-out infinite;
+}
+
+.animate-slide-up-fade {
+  animation: slideUpFade 0.3s ease-out;
+}
+
+/* Monospace font utility */
+.font-mono-tech {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
 }

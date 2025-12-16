@@ -1,87 +1,76 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { EnrichedProduct } from '../../types/chat';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 
 interface ProductCarouselProps {
     products: EnrichedProduct[];
 }
 
 const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) => {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const itemsPerPage = 2;
-
     if (!products || products.length === 0) return null;
 
-    const visibleProducts = products.slice(currentIndex, currentIndex + itemsPerPage);
-    const hasNext = currentIndex + itemsPerPage < products.length;
-    const hasPrev = currentIndex > 0;
-
-    const handleNext = () => {
-        if (hasNext) setCurrentIndex(prev => prev + itemsPerPage);
-    };
-
-    const handlePrev = () => {
-        if (hasPrev) setCurrentIndex(prev => prev - itemsPerPage);
-    };
-
     return (
-        <div className="mt-4 w-full max-w-full flex flex-col items-center">
-            <div className="grid grid-cols-2 gap-2 w-full">
-                {visibleProducts.map((product) => (
+        <div className="mt-2 w-full">
+            {/* Horizontal Scroll Container */}
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2">
+                {products.map((product) => (
                     <div
                         key={product.id}
-                        className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col"
+                        className="flex-shrink-0 w-[200px] bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 snap-start flex flex-col"
                     >
-                        <div className="relative h-24 bg-gray-100 rounded-t-lg overflow-hidden">
+                        {/* Product Image */}
+                        <div className="relative h-32 bg-slate-50 rounded-t-xl overflow-hidden">
                             <img
                                 src={product.thumbnailUrl || '/placeholder-laptop.jpg'}
                                 alt={product.name}
                                 className="object-cover w-full h-full"
                             />
                             {product.inStock && (
-                                <span className="absolute top-1 right-1 bg-green-100 text-green-800 text-[10px] px-1.5 py-0.5 rounded-full">
+                                <span className="absolute top-2 right-2 bg-teal-100 text-teal-700 text-[10px] px-2 py-0.5 rounded-full font-medium">
                                     In Stock
                                 </span>
                             )}
                         </div>
-                        <div className="p-2 flex flex-col flex-1">
-                            <h4 className="text-xs font-semibold line-clamp-2 h-8" title={product.name}>{product.name}</h4>
-                            <div className="flex justify-between items-center mt-1">
-                                <span className="text-blue-600 font-bold text-xs">${product.price.toLocaleString()}</span>
+
+                        {/* Product Info */}
+                        <div className="p-3 flex flex-col flex-1">
+                            <h4 className="text-xs font-semibold text-slate-800 line-clamp-2 h-8 mb-2" title={product.name}>
+                                {product.name}
+                            </h4>
+
+                            {/* Price - Monospace */}
+                            <div className="flex items-baseline gap-2 mb-3">
+                                <span className="text-indigo-600 font-bold font-mono-tech text-sm">
+                                    ${product.price.toLocaleString()}
+                                </span>
+                                {product.originalPrice && product.originalPrice > product.price && (
+                                    <span className="text-slate-400 line-through text-xs font-mono-tech">
+                                        ${product.originalPrice.toLocaleString()}
+                                    </span>
+                                )}
                             </div>
+
+                            {/* CTA Button */}
                             <a
                                 href={`/products/${product.slug || product.id}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="mt-auto block w-full text-center bg-blue-600 hover:bg-blue-700 text-white text-[10px] py-1 rounded transition-colors"
+                                className="mt-auto flex items-center justify-center gap-1.5 w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-2 rounded-lg active:scale-95 transition-all font-medium"
                             >
-                                View
+                                <span>View Details</span>
+                                <ExternalLink size={12} />
                             </a>
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* Pagination Controls */}
-            {(products.length > itemsPerPage) && (
-                <div className="flex items-center space-x-4 mt-2">
-                    <button
-                        onClick={handlePrev}
-                        disabled={!hasPrev}
-                        className={`p-1 rounded-full ${hasPrev ? 'bg-gray-200 hover:bg-gray-300 text-gray-700' : 'bg-gray-100 text-gray-300 cursor-not-allowed'}`}
-                    >
-                        <ChevronLeft size={16} />
-                    </button>
-                    <span className="text-xs text-gray-400">
-                        {Math.ceil((currentIndex + 1) / itemsPerPage)} / {Math.ceil(products.length / itemsPerPage)}
+            {/* Scroll Hint */}
+            {products.length > 1 && (
+                <div className="text-center mt-2">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wide">
+                         Scroll for more 
                     </span>
-                    <button
-                        onClick={handleNext}
-                        disabled={!hasNext}
-                        className={`p-1 rounded-full ${hasNext ? 'bg-gray-200 hover:bg-gray-300 text-gray-700' : 'bg-gray-100 text-gray-300 cursor-not-allowed'}`}
-                    >
-                        <ChevronRight size={16} />
-                    </button>
                 </div>
             )}
         </div>

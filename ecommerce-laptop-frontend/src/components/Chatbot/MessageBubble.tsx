@@ -13,15 +13,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
     const isUser = message.role === 'user';
 
     return (
-        <div className={`flex w-full mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex w-full mb-4 animate-slide-up-fade ${isUser ? 'justify-end' : 'justify-start'}`}>
             <div className="flex flex-col w-full">
-                {/* 1. Constraint Text Area */}
+                {/* Message Content Area */}
                 <div className={`flex max-w-[85%] md:max-w-[75%] ${isUser ? 'self-end flex-row-reverse' : 'self-start flex-row'}`}>
 
                     {/* Avatar (Assistant only) */}
                     {!isUser && (
                         <div className="flex-shrink-0 mr-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs shadow-md">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/20 flex items-center justify-center text-white text-[10px] font-semibold">
                                 AI
                             </div>
                         </div>
@@ -29,16 +29,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
 
                     <div className={`flex flex-col min-w-0 w-full ${isUser ? 'items-end' : 'items-start'}`}>
                         <div
-                            className={`px-4 py-2 rounded-2xl shadow-sm text-sm ${isUser
-                                ? 'bg-blue-600 text-white rounded-tr-none'
-                                : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none'
+                            className={`px-4 py-3 rounded-2xl shadow-sm text-sm ${isUser
+                                    ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white font-medium rounded-tr-sm shadow-md'
+                                    : 'bg-slate-50 border border-slate-100 text-slate-700 rounded-tl-sm'
                                 }`}
                         >
                             {/* Interactive Loading State */}
                             {message.isStreaming && message.content === '' ? (
                                 <TypingIndicator />
                             ) : (
-                                <div className="prose prose-sm max-w-none dark:prose-invert">
+                                <div className={`prose prose-sm max-w-none ${isUser ? 'prose-invert' : ''}`}>
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                         {message.content}
                                     </ReactMarkdown>
@@ -46,20 +46,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                             )}
                         </div>
 
-                        {/* Streaming Cursor (optional visual flair) */}
+                        {/* Streaming Cursor */}
                         {!isUser && message.isStreaming && message.content !== '' && (
-                            <span className="text-gray-400 text-xs mt-1 animate-pulse">Typing...</span>
+                            <span className="text-slate-400 text-xs mt-1 animate-pulse">Typing...</span>
                         )}
 
-                        <span className="text-[10px] text-gray-400 mt-1 px-1">
+                        <span className="text-[10px] text-slate-400 mt-1 px-1">
                             {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                     </div>
                 </div>
 
-                {/* 2. Full Width Product Carousel (Outside Constraint) */}
+                {/* Full Width Product Carousel (Outside Constraint) */}
                 {!isUser && message.products && message.products.length > 0 && (
-                    <div className="w-full px-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="w-full px-1 mt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <ProductCarousel products={message.products} />
                     </div>
                 )}
