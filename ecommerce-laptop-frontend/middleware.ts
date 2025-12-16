@@ -70,6 +70,7 @@ const securityConfig: Partial<SecurityConfig> = {
         'http://localhost:5129',
         'https://localhost:7008',
         'https://ecommerce-laptop-frontend.vercel.app',
+        'https://ecommerce-laptop-enterprise.vercel.app',
         'https://a33lprojecct.id.vn',
         process.env.NEXT_PUBLIC_APP_URL || '',
     ],
