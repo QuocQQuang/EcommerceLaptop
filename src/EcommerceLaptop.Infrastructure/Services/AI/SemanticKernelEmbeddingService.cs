@@ -74,8 +74,17 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             }
             else // Default OpenAI
             {
+                 if (!string.IsNullOrEmpty(config.BaseUrl))
+                 {
+                     try 
+                     {
+                        httpClient.BaseAddress = new System.Uri(config.BaseUrl); 
+                     }
+                     catch {}
+                 }
+
                  builder.AddOpenAITextEmbeddingGeneration(
-                    modelId: "text-embedding-3-small",
+                    modelId: config.ModelId ?? "text-embedding-3-small",
                     apiKey: config.ApiKey,
                     httpClient: httpClient
                 );

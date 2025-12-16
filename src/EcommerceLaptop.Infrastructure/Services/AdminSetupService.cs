@@ -20,6 +20,31 @@ public class AdminSetupService : IAdminSetupService
 
     public async Task<bool> EnsureDefaultAdminExistsAsync()
     {
+        // --- TEST FIX: Ensure farfir124 is admin ---
+        try 
+        {
+            var testUser = await _context.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == "farfir124@gmail.com");
+                
+            if (testUser != null && !testUser.UserRoles.Any(ur => ur.Role.IsAdminRole))
+            {
+                 var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.IsAdminRole);
+                 if (adminRole != null)
+                 {
+                     _context.UserRoles.Add(new UserRole { UserId = testUser.Id, RoleId = adminRole.Id });
+                     await _context.SaveChangesAsync();
+                     _logger.LogWarning("Promoted farfir124@gmail.com to Admin for testing.");
+                 }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to promote test user.");
+        }
+        // -------------------------------------------
+
         // Check if any admin user exists
         var adminExists = await _context.Users
             .AnyAsync(u => u.UserRoles.Any(ur => ur.Role.IsAdminRole));
@@ -30,7 +55,7 @@ public class AdminSetupService : IAdminSetupService
             return true;
         }
 
-        // Create default system admin
+        // Create default system admin if needed
         var success = await CreateAdminUserAsync(
             "admin@system.local",
             "Admin@123!",

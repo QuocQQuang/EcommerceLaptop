@@ -80,11 +80,23 @@ Respond ONLY with the category name.");
              }
              else 
              {
-                  builder.AddOpenAIChatCompletion(
-                     modelId: config.ModelId ?? "gpt-3.5-turbo", // Use cheaper model
-                     apiKey: config.ApiKey,
-                     httpClient: httpClient
-                 );
+                 if (!string.IsNullOrEmpty(config.BaseUrl))
+                 {
+                      builder.AddOpenAIChatCompletion(
+                         modelId: config.ModelId ?? "gpt-3.5-turbo",
+                         apiKey: config.ApiKey,
+                         endpoint: new System.Uri(config.BaseUrl),
+                         httpClient: httpClient
+                     );
+                 }
+                 else 
+                 {
+                      builder.AddOpenAIChatCompletion(
+                         modelId: config.ModelId ?? "gpt-3.5-turbo",
+                         apiKey: config.ApiKey,
+                         httpClient: httpClient
+                     );
+                 }
              }
 
              return builder.Build();

@@ -334,11 +334,36 @@ Context:
             }
             else // Default OpenAI
             {
-                 builder.AddOpenAIChatCompletion(
-                    modelId: config.ModelId ?? "gpt-4o",
-                    apiKey: config.ApiKey,
-                    httpClient: httpClient
-                );
+                 if (!string.IsNullOrEmpty(config.BaseUrl))
+                 {
+                     try 
+                     {
+                        // Explicitly pass endpoint AND httpClient
+                        builder.AddOpenAIChatCompletion(
+                            modelId: config.ModelId ?? "gpt-4o",
+                            apiKey: config.ApiKey,
+                            endpoint: new System.Uri(config.BaseUrl),
+                            httpClient: httpClient
+                        );
+                     }
+                     catch 
+                     {
+                         // Fallback if parsing fails or overload missing (though we expect it to exist)
+                         builder.AddOpenAIChatCompletion(
+                            modelId: config.ModelId ?? "gpt-4o",
+                            apiKey: config.ApiKey,
+                            httpClient: httpClient
+                        );
+                     }
+                 }
+                 else
+                 {
+                     builder.AddOpenAIChatCompletion(
+                        modelId: config.ModelId ?? "gpt-4o",
+                        apiKey: config.ApiKey,
+                        httpClient: httpClient
+                    );
+                 }
             }
 
             return builder.Build();

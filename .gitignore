@@ -25,11 +25,11 @@ pnpm-debug.log*
 # ---- Environment files ----
 *.txt
 .direnv/
-
+FULL_CODE_CONTEXT.md
 # ---- Docker local state ----
 docker-data/
 docker-compose.override.yml
-
+.txt
 # ---- Node / Next.js (frontend) ----
 node_modules/
 ecommerce-laptop-frontend/node_modules/
@@ -150,3 +150,7 @@ tmp/**
 *.ps1.tmp
 *.ps1.old
 *.ps1.~*
+
+# Whitelist for testing
+!build_lmstudio.txt
+!tests/test_lmstudio.ps1
