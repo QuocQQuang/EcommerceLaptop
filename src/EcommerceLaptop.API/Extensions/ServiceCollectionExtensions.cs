@@ -97,7 +97,22 @@ public static class ServiceCollectionExtensions
         
         // Llm Client with Resilience
         services.AddHttpClient("llm-client")
-            .AddStandardResilienceHandler();
+            .AddStandardResilienceHandler(options => 
+            {
+                // Total timeout for the entire request execution including retries
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
+
+                // Retry policy configuration
+                options.Retry.MaxRetryAttempts = 3;
+                options.Retry.BackoffType =Polly.DelayBackoffType.Exponential;
+                options.Retry.Delay = TimeSpan.FromSeconds(1);
+
+                // Circuit breaker configuration
+                options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(60);
+                options.CircuitBreaker.FailureRatio = 0.5;
+                options.CircuitBreaker.MinimumThroughput = 5;
+                options.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
+            });
 
         // Metrics
         services.AddSingleton<IRagMetricsService, RagMetricsService>();
@@ -429,7 +444,7 @@ public static class ServiceCollectionExtensions
 
         // Background Services
         services.AddHostedService<EmailBackgroundService>();
-        services.AddHostedService<ProductIndexingService>();
+        // services.AddHostedService<ProductIndexingService>(); // Replaced by event-driven ProductIndexingJob
 
         // AutoMapper
         services.AddAutoMapper(typeof(Program));

@@ -7,7 +7,7 @@ namespace EcommerceLaptop.Core.Interfaces
     {
         Task EnsureCollectionExistsAsync(string collectionName);
         Task UpsertAsync(string collectionName, IEnumerable<ProductChunk> chunks, IList<float[]> embeddings);
-        Task RemoveAsync(string collectionName, string id);
+        Task DeleteAsync(string collectionName, string id);
         Task<List<SearchResult>> SearchAsync(string collectionName, float[] vector, int limit = 10, Dictionary<string, object>? filter = null);
     }
 

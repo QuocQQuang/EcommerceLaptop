@@ -8,6 +8,7 @@ using EcommerceLaptop.Core.Interfaces;
 using EcommerceLaptop.Infrastructure.Data;
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.Interfaces.Services;
+using EcommerceLaptop.Core.Services;
 
 namespace EcommerceLaptop.Infrastructure.Jobs
 {
@@ -17,6 +18,7 @@ namespace EcommerceLaptop.Infrastructure.Jobs
         private readonly IProductChunkingService _chunkingService;
         private readonly IEmbeddingService _embeddingService;
         private readonly IVectorDbService _vectorDbService;
+        private readonly IProductSearchService _searchService;
         private readonly ILogger<ProductIndexingJob> _logger;
 
         private const int BatchSize = 100;
@@ -27,12 +29,14 @@ namespace EcommerceLaptop.Infrastructure.Jobs
             IProductChunkingService chunkingService,
             IEmbeddingService embeddingService,
             IVectorDbService vectorDbService,
+            IProductSearchService searchService,
             ILogger<ProductIndexingJob> logger)
         {
             _context = context;
             _chunkingService = chunkingService;
             _embeddingService = embeddingService;
             _vectorDbService = vectorDbService;
+            _searchService = searchService;
             _logger = logger;
         }
 
@@ -44,6 +48,9 @@ namespace EcommerceLaptop.Infrastructure.Jobs
             {
                 // Ensure collection exists
                 await _vectorDbService.EnsureCollectionExistsAsync(CollectionName);
+                
+                // Ensure ES index exists
+                await _searchService.CreateOrUpdateIndexAsync();
 
                 int processedCount = 0;
                 int offset = 0;
@@ -60,6 +67,9 @@ namespace EcommerceLaptop.Infrastructure.Jobs
                     if (!products.Any()) break;
 
                     await ProcessBatchAsync(products);
+                    
+                    // Also sync to Elasticsearch
+                    await _searchService.BulkIndexProductsAsync(products);
 
                     processedCount += products.Count;
                     offset += BatchSize;
@@ -95,6 +105,10 @@ namespace EcommerceLaptop.Infrastructure.Jobs
                  }
                  
                  await ProcessBatchAsync(new List<Product> { product });
+                 
+                 // Sync to ES
+                 await _searchService.IndexProductAsync(product);
+                 
                  _logger.LogInformation("Product {ProductId} indexed successfully.", productId);
              }
              catch (Exception ex)
@@ -109,14 +123,18 @@ namespace EcommerceLaptop.Infrastructure.Jobs
             _logger.LogInformation("Deleting product {ProductId} from index...", productId);
             try
             {
-                // Delete all chunks associated with this product_id from vector DB
-                await _vectorDbService.RemoveAsync(CollectionName, productId.ToString());
-                _logger.LogInformation("Product {ProductId} deleted from index.", productId);
+                // Logic to delete from vector DB
+                await _vectorDbService.DeleteAsync(CollectionName, productId.ToString());
+                
+                // Sync to ES
+                await _searchService.RemoveProductFromIndexAsync(productId);
+                
+                 _logger.LogInformation("Product {ProductId} deleted from index.", productId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting product {ProductId} from index.", productId);
-                throw;
+                 _logger.LogError(ex, "Error deleting product {ProductId} from index.", productId);
+                 throw;
             }
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Embeddings;
+using System.Net.Http;
 using Microsoft.SemanticKernel.Connectors.OpenAI; // Added
 using EcommerceLaptop.Core.Interfaces;
 
@@ -12,10 +13,12 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
     public class SemanticKernelEmbeddingService : IEmbeddingService
     {
         private readonly ILlmConfigProvider _configProvider;
+        private readonly IHttpClientFactory _httpClientFactory;
         
-        public SemanticKernelEmbeddingService(ILlmConfigProvider configProvider)
+        public SemanticKernelEmbeddingService(ILlmConfigProvider configProvider, IHttpClientFactory httpClientFactory)
         {
             _configProvider = configProvider;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<float[]> GenerateEmbeddingAsync(string text)
@@ -40,33 +43,41 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             
             var builder = Kernel.CreateBuilder();
 
+            var httpClient = _httpClientFactory.CreateClient("llm-client");
+
             if (config.Provider == "Azure")
             {
                 builder.AddAzureOpenAITextEmbeddingGeneration(
                     deploymentName: "text-embedding-3-small", 
                     endpoint: config.BaseUrl!,
-                    apiKey: config.ApiKey
+                    apiKey: config.ApiKey,
+                    httpClient: httpClient
                 );
             }
             else if (config.Provider == "Ollama")
             {
                  // Workaround for Ollama using OpenAI connector with custom endpoint
-                 // Note: AddOpenAITextEmbeddingGeneration does not support endpoint in some versions.
-                 // We might need to use HttpClient or specific constructor if API allows.
-                 // For now, let's assume OpenAI connector is used for standard OpenAI.
-                 // If Ollama is needed, we usually point BaseAddress of HttpClient.
+                 if (!string.IsNullOrEmpty(config.BaseUrl))
+                 {
+                     try 
+                     {
+                        httpClient.BaseAddress = new System.Uri(config.BaseUrl); 
+                     }
+                     catch {}
+                 }
                  
                  builder.AddOpenAITextEmbeddingGeneration(
                     modelId: "all-minilm",
                     apiKey: "dummy",
-                    httpClient: new System.Net.Http.HttpClient { BaseAddress = new Uri(config.BaseUrl ?? "http://localhost:11434/v1") }
+                    httpClient: httpClient
                 );
             }
             else // Default OpenAI
             {
                  builder.AddOpenAITextEmbeddingGeneration(
                     modelId: "text-embedding-3-small",
-                    apiKey: config.ApiKey
+                    apiKey: config.ApiKey,
+                    httpClient: httpClient
                 );
             }
 

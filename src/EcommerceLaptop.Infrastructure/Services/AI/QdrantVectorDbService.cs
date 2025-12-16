@@ -69,26 +69,36 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             }
         }
 
-        public async Task RemoveAsync(string collectionName, string id)
+        public async Task DeleteAsync(string collectionName, string id)
         {
-            // Delete all points with matching product_id in payload
-            // Since we use random UUIDs for point IDs, we filter by product_id metadata
-            var filter = new Filter
+            // Delete points where "product_id" matches the given id.
+            // Assuming 'id' passed here is the product ID (e.g. "123").
+            // Chunk metadata has "product_id" as integer.
+            
+            if (long.TryParse(id, out var productId))
             {
-                Must =
+                var filter = new Filter
                 {
-                    new Condition
-                    {
-                        Field = new FieldCondition
+                    Must = {
+                        new Condition
                         {
-                            Key = "product_id",
-                            Match = new Match { Integer = int.Parse(id) }
+                            Field = new FieldCondition
+                            {
+                                Key = "product_id",
+                                Match = new Match { Integer = productId }
+                            }
                         }
                     }
-                }
-            };
+                };
 
-            await _client.DeleteAsync(collectionName, filter);
+                await _client.DeleteAsync(collectionName, filter);
+            }
+            else
+            {
+                // Fallback or log if ID isn't an integer, though in our system it should be.
+                // If we were deleting by specific point ID (UUID), we would use different logic.
+                // But for product re-indexing, we delete ALL chunks for that product.
+            }
         }
 
         public async Task<List<SearchResult>> SearchAsync(string collectionName, float[] vector, int limit = 10, Dictionary<string, object>? filter = null)

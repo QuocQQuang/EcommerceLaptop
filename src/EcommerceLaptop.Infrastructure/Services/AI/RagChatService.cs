@@ -218,35 +218,71 @@ Context:
             chatHistory.AddUserMessage(query);
 
             var executionSettings = new OpenAIPromptExecutionSettings() { Temperature = 0.7 };
-            
             var responses = chatCompletionService.GetStreamingChatMessageContentsAsync(chatHistory, executionSettings, kernel, cancellationToken);
-            
-            var fullResponseBuilder = new StringBuilder();
-            int index = 0;
-            
-            await foreach (var content in responses)
-            {
-                if (cancellationToken.IsCancellationRequested) break;
+            string fullResponse = "";
 
-                if (!string.IsNullOrEmpty(content.Content))
+            // Resilience: Manual enumeration to handle exceptions gracefully (yield not allowed in try-catch)
+            var enumerator = responses.GetAsyncEnumerator(cancellationToken);
+            try
+            {
+                var fullResponseBuilder = new StringBuilder();
+                int index = 0;
+
+                while (true)
                 {
-                    fullResponseBuilder.Append(content.Content);
-                    yield return new TokenEvent 
-                    { 
-                        Token = content.Content, 
-                        Index = index++
-                    };
-                    tokenCount++;
+                    bool hasNext = false;
+                    Exception? iterationException = null;
+
+                    try
+                    {
+                        hasNext = await enumerator.MoveNextAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        iterationException = ex;
+                    }
+
+                    if (iterationException != null)
+                    {
+                         // Log error if logger available, or just fallback
+                         // _metricsService.RecordError("ChatStreamError", iterationException.Message); 
+                         
+                         yield return new ErrorEvent
+                         {
+                             Code = "LLM_SERVICE_UNAVAILABLE",
+                             Message = "I'm having trouble connecting to my brain right now. Please try again in a moment.",
+                             Recoverable = true
+                         };
+                         yield break;
+                    }
+
+                    if (!hasNext) break;
+
+                    var content = enumerator.Current;
+                    if (!string.IsNullOrEmpty(content.Content))
+                    {
+                        fullResponseBuilder.Append(content.Content);
+                        yield return new TokenEvent 
+                        { 
+                            Token = content.Content, 
+                            Index = index++
+                        };
+                        tokenCount++;
+                    }
+                }
+                
+                fullResponse = fullResponseBuilder.ToString();
+                
+                // Save assistant response
+                if (!string.IsNullOrEmpty(fullResponse))
+                {
+                     await _persistenceService.SaveMessageAsync(sessionId, "assistant", fullResponse);
+                     await _cacheService.CacheResponseAsync(query, fullResponse);
                 }
             }
-            
-            string fullResponse = fullResponseBuilder.ToString();
-            
-            // Save assistant response
-            if (!string.IsNullOrEmpty(fullResponse))
+            finally
             {
-                 await _persistenceService.SaveMessageAsync(sessionId, "assistant", fullResponse);
-                 await _cacheService.CacheResponseAsync(query, fullResponse);
+                await enumerator.DisposeAsync();
             }
             
             stopwatch.Stop();
