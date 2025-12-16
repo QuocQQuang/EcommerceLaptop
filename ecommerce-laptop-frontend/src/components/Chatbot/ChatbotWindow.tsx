@@ -58,6 +58,12 @@ export function ChatbotWindow({
         }
     };
 
+    const handleConsultation = (productName: string) => {
+        if (!isStreaming) {
+            onSendMessage(`T vn v ${productName}`);
+        }
+    };
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -136,7 +142,10 @@ export function ChatbotWindow({
                                             <MessageBubble message={message} />
                                             {message.products && message.products.length > 0 && (
                                                 <div className="mt-2">
-                                                    <ProductCarousel products={message.products} />
+                                                    <ProductCarousel
+                                                        products={message.products}
+                                                        onConsult={handleConsultation}
+                                                    />
                                                 </div>
                                             )}
                                         </div>

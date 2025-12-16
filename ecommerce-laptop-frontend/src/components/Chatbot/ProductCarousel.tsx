@@ -2,7 +2,7 @@
 
 import { EnrichedProduct } from '@/types/chat';
 import { useCart } from '@/hooks/useCart';
-import { ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -10,9 +10,10 @@ import { useState } from 'react';
 
 interface ProductCarouselProps {
     products: EnrichedProduct[];
+    onConsult?: (productName: string) => void;
 }
 
-export function ProductCarousel({ products }: ProductCarouselProps) {
+export function ProductCarousel({ products, onConsult }: ProductCarouselProps) {
     const { addToCart } = useCart();
     const [currentPage, setCurrentPage] = useState(0);
     const itemsPerPage = 2;
@@ -122,8 +123,8 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
                         {/* Stock Status */}
                         <div className="mb-2">
                             <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${product.inStock
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-red-100 text-red-700'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700'
                                 }`}>
                                 {product.inStock ? 'Cn hng' : 'Ht hng'}
                             </span>
@@ -133,23 +134,35 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
                         <div className="flex-grow"></div>
 
                         {/* Price and Action */}
-                        <div className="flex justify-between items-center mt-3 border-t border-neutral-100 pt-2">
-                            <div className="flex flex-col">
-                                <span className="font-bold text-sm font-mono">${product.price.toLocaleString()}</span>
-                                {product.originalPrice && product.originalPrice > product.price && (
-                                    <span className="text-[10px] text-neutral-400 line-through font-mono">
-                                        ${product.originalPrice.toLocaleString()}
-                                    </span>
-                                )}
+                        <div className="mt-3 border-t border-neutral-100 pt-2">
+                            <div className="flex justify-between items-center mb-2">
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-sm font-mono">${product.price.toLocaleString()}</span>
+                                    {product.originalPrice && product.originalPrice > product.price && (
+                                        <span className="text-[10px] text-neutral-400 line-through font-mono">
+                                            ${product.originalPrice.toLocaleString()}
+                                        </span>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => handleAddToCart(product)}
+                                    disabled={!product.inStock}
+                                    className="bg-neutral-900 text-white p-1.5 rounded-lg hover:bg-neutral-800 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors"
+                                    aria-label={`Thm ${product.name} vo gi hng`}
+                                >
+                                    <ShoppingCart size={14} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleAddToCart(product)}
-                                disabled={!product.inStock}
-                                className="bg-neutral-900 text-white p-1.5 rounded-lg hover:bg-neutral-800 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors"
-                                aria-label={`Thm ${product.name} vo gi hng`}
-                            >
-                                <ShoppingCart size={14} />
-                            </button>
+                            {onConsult && (
+                                <button
+                                    onClick={() => onConsult(product.name)}
+                                    className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-neutral-700 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-lg transition-colors"
+                                    aria-label={`T vn v ${product.name}`}
+                                >
+                                    <MessageCircle size={12} />
+                                    <span>T vn</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}
@@ -163,8 +176,8 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
                             key={index}
                             onClick={() => setCurrentPage(index)}
                             className={`w-1.5 h-1.5 rounded-full transition-all ${index === currentPage
-                                    ? 'bg-neutral-900 w-4'
-                                    : 'bg-neutral-300 hover:bg-neutral-400'
+                                ? 'bg-neutral-900 w-4'
+                                : 'bg-neutral-300 hover:bg-neutral-400'
                                 }`}
                             aria-label={`Go to page ${index + 1}`}
                         />
