@@ -100,7 +100,10 @@ public static class ServiceCollectionExtensions
             .AddStandardResilienceHandler(options => 
             {
                 // Total timeout for the entire request execution including retries
-                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(90);
+
+                // Timeout per individual attempt (prevent cutting off slow LLM responses)
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30);
 
                 // Retry policy configuration
                 options.Retry.MaxRetryAttempts = 3;
