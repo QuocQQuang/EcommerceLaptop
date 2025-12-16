@@ -8,7 +8,7 @@ import { ChatbotWindow } from './ChatbotWindow';
 
 export function ChatbotProvider() {
     const { data: session } = useSession();
-    const userToken = (session as any)?.user?.accessToken || null;
+    const userToken = (session as any)?.accessToken || null;
 
     const {
         isOpen,

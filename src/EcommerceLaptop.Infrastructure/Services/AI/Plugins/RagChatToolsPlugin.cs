@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Linq;
+using System.Text;
 
 namespace EcommerceLaptop.Infrastructure.Services.AI.Plugins;
 
@@ -17,6 +19,7 @@ public class RagChatToolsPlugin
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly Core.Interfaces.IVectorDbService _vectorDbService; 
     private readonly Core.Interfaces.IEmbeddingService _embeddingService;
+    private readonly IOrderService _orderService;
     private readonly ILogger<RagChatToolsPlugin> _logger;
 
     public RagChatToolsPlugin(
@@ -25,6 +28,7 @@ public class RagChatToolsPlugin
         IHttpContextAccessor httpContextAccessor,
         Core.Interfaces.IVectorDbService vectorDbService,
         Core.Interfaces.IEmbeddingService embeddingService,
+        IOrderService orderService,
         ILogger<RagChatToolsPlugin> logger)
     {
         _toolRegistry = toolRegistry;
@@ -32,6 +36,7 @@ public class RagChatToolsPlugin
         _httpContextAccessor = httpContextAccessor;
         _vectorDbService = vectorDbService;
         _embeddingService = embeddingService;
+        _orderService = orderService;
         _logger = logger;
     }
 
@@ -71,14 +76,83 @@ public class RagChatToolsPlugin
     // ... GetProductInventory (unchanged) ...
 
     [KernelFunction]
-    [Description("Check the status of an order")]
+    [Description("Check the status of a specific order by ID")]
     public async Task<string> CheckOrderStatus(
         [Description("The Order ID to check")] int orderId)
     {
-        // Placeholder for now, can be connected to real tool later
-         _logger.LogInformation("RagChatToolsPlugin: CheckOrderStatus called for OrderId {OrderId}", orderId);
-         await Task.Delay(100); // Simulate work
-         return "Processing (In Transit) - Estimated Delivery: Dec 20, 2025";
+         var (userId, sessionId) = GetUserContext();
+         
+         // Validate UserId is an Integer (Authenticated)
+         if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out _)) 
+            return "Please login to view order status.";
+
+         try
+         {
+             _logger.LogInformation("RagChatToolsPlugin: CheckOrderStatus called for OrderId {OrderId}, UserId {UserId}", orderId, userId);
+             var order = await _orderService.GetOrderDetailsAsync(orderId);
+             
+             // Security check
+             if (order == null) return $"Order #{orderId} not found.";
+             if (order.CustomerId.ToString() != userId) return "You do not have permission to view this order.";
+
+             return $@"
+### Order #{order.Id}
+- **Status:** {order.Status}
+- **Date:** {order.CreatedAt:MMM dd, yyyy}
+- **Total:** ${order.TotalAmount:N2}
+- **Items:**
+{string.Join("\n", order.Items.Select(i => $"  - {i.ProductName} x{i.Quantity}"))}
+
+[Tracking Info]: {order.TrackingNumber ?? "N/A"}
+";
+         }
+         catch (Exception ex)
+         {
+             _logger.LogError(ex, "Error checking order status");
+             return $"Error retrieving order: {ex.Message}";
+         }
+    }
+
+    [KernelFunction]
+    [Description("Get a list of the user's recent orders")]
+    public async Task<string> GetMyOrders()
+    {
+        var (userId, sessionId) = GetUserContext();
+        
+        // Validate UserId is an Integer (Authenticated)
+        if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out _)) 
+            return "Please login to view your orders.";
+
+        try
+        {
+            _logger.LogInformation("RagChatToolsPlugin: GetMyOrders called for UserId {UserId}", userId);
+            
+            // Fetch last 5 orders
+            var result = await _orderService.GetCustomerOrdersAsync(int.Parse(userId), 1, 5);
+            
+            if (result.Items == null || !result.Items.Any())
+            {
+                return "You have no orders yet.";
+            }
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Here are your recent orders:");
+            sb.AppendLine("| Order # | Date | Status | Total |");
+            sb.AppendLine("|---|---|---|---|");
+            
+            foreach (var order in result.Items)
+            {
+                sb.AppendLine($"| {order.Id} | {order.CreatedAt:MMM dd} | {order.Status} | ${order.TotalAmount:N2} |");
+            }
+            sb.AppendLine("\nAsk for a specific order ID to see more details.");
+
+            return sb.ToString();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user orders");
+            return $"Error retrieving orders: {ex.Message}";
+        }
     }
 
     [KernelFunction]
@@ -89,23 +163,40 @@ public class RagChatToolsPlugin
     {
         var (userId, sessionId) = GetUserContext();
         
-        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
+        // Determine effective User ID and Cart Session ID
+        string? effectiveUserId = null;
+        string? effectiveCartSessionId = sessionId; // Default to chat session, but override if guest
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            if (int.TryParse(userId, out _))
+            {
+                effectiveUserId = userId; // It's a real User ID
+            }
+            else
+            {
+                // userId is a String/GUID -> It's a Guest Cart Session ID (passed from ChatHub fallback)
+                effectiveCartSessionId = userId;
+            }
+        }
+        
+        if (string.IsNullOrEmpty(effectiveUserId) && string.IsNullOrEmpty(effectiveCartSessionId))
         {
             return "Error: Could not identify user session. Please verify your connection.";
         }
 
         try 
         {
-            _logger.LogInformation("RagChatToolsPlugin: AddToCart called for ProductId {ProductId}, userId {UserId}, sessionId {SessionId}", productId, userId, sessionId);
+            _logger.LogInformation("RagChatToolsPlugin: AddToCart called for ProductId {ProductId}. RealUserId: {RealUserId}, CartSessionId: {CartSessionId}", productId, effectiveUserId, effectiveCartSessionId);
             
             var request = new AddToCartDto 
             { 
                 ProductId = productId, 
                 Quantity = quantity,
-                SessionId = sessionId
+                SessionId = effectiveCartSessionId
             };
 
-            var result = await _cartService.AddToCartAsync(request, userId);
+            var result = await _cartService.AddToCartAsync(request, effectiveUserId);
             
             // Format result
             var itemCount = result.Summary.ItemCount;
@@ -124,12 +215,31 @@ public class RagChatToolsPlugin
     public async Task<string> GetCart()
     {
         var (userId, sessionId) = GetUserContext();
-        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId)) return "Error: Could not identify user session.";
+        
+        // Determine effective User ID and Cart Session ID
+        string? effectiveUserId = null;
+        string? effectiveCartSessionId = sessionId; // Default to chat session, but override if guest
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            if (int.TryParse(userId, out _))
+            {
+                effectiveUserId = userId;
+            }
+            else
+            {
+                // userId is a String/GUID -> It's a Guest Cart Session ID
+                effectiveCartSessionId = userId;
+            }
+        }
+
+        if (string.IsNullOrEmpty(effectiveUserId) && string.IsNullOrEmpty(effectiveCartSessionId)) 
+            return "Error: Could not identify user session.";
 
         try
         {
-            _logger.LogInformation("RagChatToolsPlugin: GetCart called for userId {UserId}, sessionId {SessionId}", userId, sessionId);
-            var cart = await _cartService.GetCartAsync(userId, sessionId);
+            _logger.LogInformation("RagChatToolsPlugin: GetCart called. RealUserId: {RealUserId}, CartSessionId: {CartSessionId}", effectiveUserId, effectiveCartSessionId);
+            var cart = await _cartService.GetCartAsync(effectiveUserId, effectiveCartSessionId);
             
             if (cart.Items.Count == 0) return "Your cart is empty.";
             
