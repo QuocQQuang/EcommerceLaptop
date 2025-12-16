@@ -9,6 +9,7 @@ public class ProductsByIdsSpecification : BaseSpecification<Product>
     {
         AddInclude(p => p.Inventory);
         AddInclude(p => p.Category);
+        AddInclude(p => p.Images);
         ApplyNoTracking();
     }
 }

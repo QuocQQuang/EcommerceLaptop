@@ -204,6 +204,8 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                                      Description = product.Description,
                                      Price = product.Price,
                                      RelevanceScore = result.Score,
+                                     ImageUrl = product.Images?.OrderByDescending(x => x.IsPrimary).ThenBy(x => x.SortOrder).FirstOrDefault()?.ImageUrl,
+                                     Slug = GenerateSlugFromName(product.Name),
                                      Rank = rank++
                                  });
                              }
@@ -458,5 +460,50 @@ Context:
 
             return builder.Build();
         }
+    }
+
+    private static string GenerateSlugFromName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "product";
+
+        return name.ToLowerInvariant()
+            .Replace(" ", "-")
+            .Replace("&", "and")
+            .Replace("/", "-")
+            .Replace("\\", "-")
+            .Replace("(", "")
+            .Replace(")", "")
+            .Replace("[", "")
+            .Replace("]", "")
+            .Replace("{", "")
+            .Replace("}", "")
+            .Replace(".", "")
+            .Replace(",", "")
+            .Replace(":", "")
+            .Replace(";", "")
+            .Replace("'", "")
+            .Replace("\"", "")
+            .Replace("!", "")
+            .Replace("?", "")
+            .Replace("@", "")
+            .Replace("#", "")
+            .Replace("$", "")
+            .Replace("%", "")
+            .Replace("^", "")
+            .Replace("*", "")
+            .Replace("+", "")
+            .Replace("=", "")
+            .Replace("|", "")
+            .Replace("~", "")
+            .Replace("`", "")
+            .Replace("<", "")
+            .Replace(">", "")
+            .Replace("\t", "")
+            .Replace("\n", "")
+            .Replace("\r", "")
+            .Replace("--", "-")
+            .Replace("---", "-")
+            .Trim('-');
     }
 }

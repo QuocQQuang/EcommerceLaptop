@@ -45,6 +45,7 @@ public class ProductEvent : ChatStreamEvent
     // Optional: Add Price/Image if needed for UI, but Card usually fetches details or has basic info
     public decimal Price { get; set; }
     public string ImageUrl { get; set; }
+    public string Slug { get; set; }
 }
 
 // Metadata Event (Stats)
