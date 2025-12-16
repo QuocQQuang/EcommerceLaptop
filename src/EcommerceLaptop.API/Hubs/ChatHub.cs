@@ -7,7 +7,7 @@ using EcommerceLaptop.Core.DTOs.Chat;
 
 namespace EcommerceLaptop.API.Hubs
 {
-    [Authorize]
+    // [Authorize] // Allow anonymous for Guest access
     public class ChatHub : Hub
     {
         private readonly IChatService _chatService;
@@ -20,7 +20,27 @@ namespace EcommerceLaptop.API.Hubs
         public async Task SendQuery(string query, QueryOptions? options = null)
         {
             var cancellationToken = Context.ConnectionAborted;
+            
+            // Try get Authenticated User ID or Guest ID from Header
             var userId = Context.UserIdentifier;
+            if (string.IsNullOrEmpty(userId))
+            {
+                var httpContext = Context.GetHttpContext();
+                if (httpContext != null)
+                {
+                    // Check Header (fallback if valid)
+                    if (httpContext.Request.Headers.TryGetValue("X-Guest-Id", out var guestIdHeader))
+                    {
+                        userId = guestIdHeader.ToString();
+                    }
+                    // Check Query String (Primary for WebSockets)
+                    else if (httpContext.Request.Query.TryGetValue("guest_id", out var guestIdQuery))
+                    {
+                        userId = guestIdQuery.ToString();
+                    }
+                }
+            }
+
             var sessionId = options?.SessionId;
 
             try

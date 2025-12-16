@@ -537,7 +537,7 @@ public class IdentityService : IIdentityService
                                                  ur.Role.Name.ToLower().Contains("admin")));
         return context switch
         {
-            AuthContext.Customer => !isAdmin,
+            AuthContext.Customer => true, // Allow admins to login as customers
             AuthContext.Admin => isAdmin,
             AuthContext.Employee => isAdmin,
             AuthContext.Partner => !isAdmin,
