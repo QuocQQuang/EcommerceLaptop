@@ -26,11 +26,11 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products }) => {
 
     return (
         <div className="mt-4 w-full max-w-full flex flex-col items-center">
-            <div className="flex w-full space-x-2">
+            <div className="grid grid-cols-2 gap-2 w-full">
                 {visibleProducts.map((product) => (
                     <div
                         key={product.id}
-                        className="flex-1 w-1/2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col"
+                        className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col"
                     >
                         <div className="relative h-24 bg-gray-100 rounded-t-lg overflow-hidden">
                             <img
