@@ -10,7 +10,7 @@ import { useState } from 'react';
 
 interface ProductCarouselProps {
     products: EnrichedProduct[];
-    onConsult?: (productName: string) => void;
+    onConsult?: (productName: string) => void;//
 }
 
 export function ProductCarousel({ products, onConsult }: ProductCarouselProps) {
