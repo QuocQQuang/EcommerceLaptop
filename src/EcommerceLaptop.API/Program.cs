@@ -79,7 +79,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "https://ecommerce-laptop-frontend.vercel.app",
-                "https://ecommerce-laptop-frontend-git-*.vercel.app",
+                "https://ecommerce-laptop-enterprise.vercel.app/",
                 "https://a33lprojecct.id.vn"  // Frontend custom domain nu c
             )
             .AllowAnyMethod()

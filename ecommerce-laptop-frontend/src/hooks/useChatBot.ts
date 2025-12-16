@@ -3,7 +3,9 @@ import * as signalR from '@microsoft/signalr';
 import { v4 as uuidv4 } from 'uuid';
 import { ChatMessage, EnrichedProduct } from '../types/chat';
 
-const HUB_URL = 'http://localhost:5129/chatHub';
+// Use environment variable for API base URL, fallback to localhost for development
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5129';
+const HUB_URL = `${API_BASE.replace('/api', '')}/chatHub`;
 
 export const useChatBot = (userToken?: string | null) => {
     const [isOpen, setIsOpen] = useState(false);
