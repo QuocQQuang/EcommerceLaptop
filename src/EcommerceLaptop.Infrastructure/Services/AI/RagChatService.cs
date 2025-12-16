@@ -94,35 +94,36 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             }
 
             // 1. Check Cache
-            yield return new ProgressEvent { Stage = "Cache", Message = "Checking cache...", Progress = 0.2 };
-            var cachedResponse = await _cacheService.GetCachedResponseAsync(query);
-            if (cachedResponse != null)
-            {
-                _metricsService.RecordCacheHit(true);
-                yield return new MetadataEvent { ProcessingStage = "Cache", CacheHit = true, ElapsedMs = stopwatch.ElapsedMilliseconds };
+            // yield return new ProgressEvent { Stage = "Cache", Message = "Checking cache...", Progress = 0.2 };
+            // var cachedResponse = await _cacheService.GetCachedResponseAsync(query);
+            // if (cachedResponse != null)
+            // {
+            //     _metricsService.RecordCacheHit(true);
+            //     yield return new MetadataEvent { ProcessingStage = "Cache", CacheHit = true, ElapsedMs = stopwatch.ElapsedMilliseconds };
                 
-                // Stream cached response as a single big token or simulate streaming?
-                // For better UX, usually we just return it. 
-                // But the protocol expects TokenEvents.
-                // We'll treat the whole cached content as one token for simplicity, or split it if we want "streaming" feel.
-                yield return new TokenEvent { Token = cachedResponse.Content, Index = 0 };
+            //     // Stream cached response as a single big token or simulate streaming?
+            //     // For better UX, usually we just return it. 
+            //     // But the protocol expects TokenEvents.
+            //     // We'll treat the whole cached content as one token for simplicity, or split it if we want "streaming" feel.
+            //     // yield return new TokenEvent { Token = cachedResponse.Content, Index = 0 };
                 
-                yield return new CompleteEvent 
-                { 
-                    QueryId = System.Guid.NewGuid().ToString(),
-                    TotalTokens = cachedResponse.Content.Length / 4, // Estimate
-                    DurationMs = stopwatch.ElapsedMilliseconds,
-                    CacheHit = true,
-                    ModelUsed = "Cache"
-                };
+            //     // yield return new CompleteEvent 
+            //     // { 
+            //     //     QueryId = System.Guid.NewGuid().ToString(),
+            //     //     TotalTokens = cachedResponse.Content.Length / 4, // Estimate
+            //     //     DurationMs = stopwatch.ElapsedMilliseconds,
+            //     //     CacheHit = true,
+            //     //     ModelUsed = "Cache"
+            //     // };
                 
-                // Save interaction to history even if cached?
-                // Yes, otherwise context is lost.
-                await _persistenceService.SaveMessageAsync(sessionId, "user", query);
-                await _persistenceService.SaveMessageAsync(sessionId, "assistant", cachedResponse.Content);
+            //     // // Save interaction to history even if cached?
+            //     // // Yes, otherwise context is lost.
+            //     // await _persistenceService.SaveMessageAsync(sessionId, "user", query);
+            //     // await _persistenceService.SaveMessageAsync(sessionId, "assistant", cachedResponse.Content);
                 
-                yield break;
-            }
+            //     // yield break;
+            // }
+            Console.WriteLine("!!! NEW CODE RUNNING - CACHE DISABLED !!!");
             _metricsService.RecordCacheHit(false);
 
             // 2. Intent Classification
