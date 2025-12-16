@@ -149,7 +149,7 @@ export function ChatbotWindow({
                                                 {shouldShowProducts && (
                                                     <div className="mt-2 mb-4">
                                                         <ProductCarousel
-                                                            products={message.products}
+                                                            products={message.products || []}
                                                             onConsult={handleConsultation}
                                                         />
                                                     </div>
