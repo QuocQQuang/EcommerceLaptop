@@ -105,7 +105,7 @@ export const useChatBot = (userToken?: string | null) => {
                             price: evt.price || evt.Price,
                             thumbnailUrl: evt.imageUrl || evt.ImageUrl,
                             inStock: true,
-                            slug: evt.id || evt.Id
+                            slug: evt.slug || evt.Slug || evt.id || evt.Id
                         } as EnrichedProduct;
 
                         setMessages(prev => {

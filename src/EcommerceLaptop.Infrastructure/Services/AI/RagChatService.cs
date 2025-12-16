@@ -227,19 +227,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                             }
                             return $"[Product Info]: {r.Content}";
                         }));
-                            if (r.Metadata.TryGetValue("product_id", out var pidObj))
-                            {
-                                if (pidObj is int i) pid = i;
-                                else if (pidObj is long l) pid = (int)l;
-                                else if (pidObj is string s && int.TryParse(s, out var parsed)) pid = parsed;
-                            }
 
-                            if (pid.HasValue && productDict.TryGetValue(pid.Value, out var product))
-                            {
-                                return $"[Product Info]: {product.Name}\nPrice: ${product.Price}\nStock: 10 (In Stock)\nDetails: {r.Content}";
-                            }
-                            return $"[Product Info]: {r.Content}";
-                        }));
                     }
                     else
                     {
@@ -460,7 +448,7 @@ Context:
 
             return builder.Build();
         }
-    }
+
 
     private static string GenerateSlugFromName(string name)
     {
@@ -506,4 +494,5 @@ Context:
             .Replace("---", "-")
             .Trim('-');
     }
+}
 }
