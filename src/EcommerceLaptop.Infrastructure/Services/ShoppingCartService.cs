@@ -144,9 +144,10 @@ public class ShoppingCartService : IShoppingCartService
             else
             {
                 // Validate stock
-                if (cartItem.Product.Inventory.AvailableQuantity < updateCartDto.Quantity)
+                var availableQty = cartItem.Product?.Inventory?.AvailableQuantity ?? 0;
+                if (availableQty < updateCartDto.Quantity)
                 {
-                    throw new InvalidOperationException($"Insufficient stock. Available: {cartItem.Product.Inventory.AvailableQuantity}, Requested: {updateCartDto.Quantity}");
+                    throw new InvalidOperationException($"Insufficient stock. Available: {availableQty}, Requested: {updateCartDto.Quantity}");
                 }
 
                 // Update item

@@ -72,18 +72,23 @@ export function useCart() {
 
     const removeFromCart = useCallback(async (itemId: number) => {
         try {
+            console.log('FrontEnd Debug: Removing item', itemId, 'Session:', sessionId);
             removeItem(itemId);
 
             // Sync with backend
             if (sessionId) {
+                console.log('FrontEnd Debug: Sending DELETE request for', itemId);
                 await cartService.removeCartItem(itemId, sessionId);
+                console.log('FrontEnd Debug: DELETE request success');
+            } else {
+                console.warn('FrontEnd Debug: No session ID');
             }
 
             toast.success(' xa khi gi hng', {
                 description: 'Sn phm  c xa khi gi hng',
             });
         } catch (error) {
-            console.error('Error removing from cart:', error);
+            console.error('FrontEnd Debug: Error removing from cart:', error);
             toast.error('Li', {
                 description: 'Khng th xa sn phm khi gi hng',
             });

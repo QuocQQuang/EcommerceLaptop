@@ -15,17 +15,23 @@ public class RagChatToolsPlugin
     private readonly IToolRegistry _toolRegistry;
     private readonly IShoppingCartService _cartService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly Core.Interfaces.IVectorDbService _vectorDbService; 
+    private readonly Core.Interfaces.IEmbeddingService _embeddingService;
     private readonly ILogger<RagChatToolsPlugin> _logger;
 
     public RagChatToolsPlugin(
         IToolRegistry toolRegistry,
         IShoppingCartService cartService,
         IHttpContextAccessor httpContextAccessor,
+        Core.Interfaces.IVectorDbService vectorDbService,
+        Core.Interfaces.IEmbeddingService embeddingService,
         ILogger<RagChatToolsPlugin> logger)
     {
         _toolRegistry = toolRegistry;
         _cartService = cartService;
         _httpContextAccessor = httpContextAccessor;
+        _vectorDbService = vectorDbService;
+        _embeddingService = embeddingService;
         _logger = logger;
     }
 
@@ -146,5 +152,43 @@ public class RagChatToolsPlugin
         _logger.LogInformation("RagChatToolsPlugin: GetUserAccount called");
         await Task.Delay(100);
         return "User access verified. Profile viewing not yet implemented.";
+    }
+
+    [KernelFunction]
+    [Description("Search for products by name or description to find their IDs and details")]
+    public async Task<string> SearchProducts(
+        [Description("The search query (e.g., 'Dell XPS 13', 'gaming laptop')")] string query)
+    {
+        try
+        {
+            _logger.LogInformation("RagChatToolsPlugin: SearchProducts called for query '{Query}'", query);
+
+            var embedding = await _embeddingService.GenerateEmbeddingAsync(query);
+            var searchResults = await _vectorDbService.SearchAsync("products", embedding, limit: 3);
+
+            if (!searchResults.Any())
+            {
+                return "No products found matching that query.";
+            }
+
+            var resultString = string.Join("\n\n", searchResults.Select(r => 
+            {
+                // Extract Product ID safely from metadata
+                string pidStr = "Unknown";
+                if (r.Metadata.TryGetValue("product_id", out var pidObj))
+                {
+                    pidStr = pidObj.ToString() ?? "Unknown";
+                }
+
+                return $"[Product Found]\nID: {pidStr}\nDetails: {r.Content}\nScore: {r.Score:F2}";
+            }));
+
+            return $"Found the following products. Use the exact ID to perform actions.\n\n{resultString}";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching products in tool");
+            return $"Error searching products: {ex.Message}";
+        }
     }
 }

@@ -212,9 +212,8 @@ export default function CartPage() {
                                                             size="sm"
                                                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                                             onClick={() => {
-                                                                if (confirm('Bn c chc mun xa sn phm ny khi gi hng?')) {
-                                                                    removeFromCart(item.id);
-                                                                }
+                                                                console.log('FrontEnd Debug: Delete Button Clicked for Item', item.id);
+                                                                removeFromCart(item.id);
                                                             }}
                                                         >
                                                             <Trash2 className="h-4 w-4" />
