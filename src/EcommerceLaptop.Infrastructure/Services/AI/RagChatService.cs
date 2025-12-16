@@ -88,6 +88,9 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                  sessionId = await _persistenceService.CreateSessionAsync(effectiveUserId, title);
             }
 
+            // Ensure tools have correct context (SignalR workaround)
+            _toolsPlugin.SetContext(userId, sessionId);
+
             yield return new ProgressEvent { Stage = "Validation", Message = "Validating input...", Progress = 0.1 };
 
             // 0. Guardrails (Input)
@@ -103,42 +106,38 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                 yield break;
             }
 
-            // 1. Check Cache
-            // yield return new ProgressEvent { Stage = "Cache", Message = "Checking cache...", Progress = 0.2 };
-            // var cachedResponse = await _cacheService.GetCachedResponseAsync(query);
-            // if (cachedResponse != null)
-            // {
-            //     _metricsService.RecordCacheHit(true);
-            //     yield return new MetadataEvent { ProcessingStage = "Cache", CacheHit = true, ElapsedMs = stopwatch.ElapsedMilliseconds };
-                
-            //     // Stream cached response as a single big token or simulate streaming?
-            //     // For better UX, usually we just return it. 
-            //     // But the protocol expects TokenEvents.
-            //     // We'll treat the whole cached content as one token for simplicity, or split it if we want "streaming" feel.
-            //     // yield return new TokenEvent { Token = cachedResponse.Content, Index = 0 };
-                
-            //     // yield return new CompleteEvent 
-            //     // { 
-            //     //     QueryId = System.Guid.NewGuid().ToString(),
-            //     //     TotalTokens = cachedResponse.Content.Length / 4, // Estimate
-            //     //     DurationMs = stopwatch.ElapsedMilliseconds,
-            //     //     CacheHit = true,
-            //     //     ModelUsed = "Cache"
-            //     // };
-                
-            //     // // Save interaction to history even if cached?
-            //     // // Yes, otherwise context is lost.
-            //     // await _persistenceService.SaveMessageAsync(sessionId, "user", query);
-            //     // await _persistenceService.SaveMessageAsync(sessionId, "assistant", cachedResponse.Content);
-                
-            //     // yield break;
-            // }
-            _logger.LogWarning("!!! NEW CODE RUNNING - CACHE DISABLED !!!");
-            _metricsService.RecordCacheHit(false);
+            // 1. Guardrails (Already passed)
+
 
             // 2. Intent Classification
             yield return new ProgressEvent { Stage = "Intent", Message = "Understanding query...", Progress = 0.3 };
             var intent = await _intentClassifier.ClassifyIntentAsync(query);
+            
+            // Smart Cache: Only cache/retrieve for static intents (GeneralChat, Support)
+            // Skip cache for ProductSearch (Real-time Inventory) and Transactional Tools
+            if (intent == Core.Enums.UserIntent.GeneralChat || intent == Core.Enums.UserIntent.Support)
+            {
+                 var cachedResponse = await _cacheService.GetCachedResponseAsync(query);
+                 if (cachedResponse != null)
+                 {
+                     _metricsService.RecordCacheHit(true);
+                     yield return new MetadataEvent { ProcessingStage = "Cache", CacheHit = true, ElapsedMs = stopwatch.ElapsedMilliseconds };
+                     yield return new TokenEvent { Token = cachedResponse.Content, Index = 0 };
+                     
+                     await _persistenceService.SaveMessageAsync(sessionId, "user", query);
+                     await _persistenceService.SaveMessageAsync(sessionId, "assistant", cachedResponse.Content);
+                     
+                     yield return new CompleteEvent 
+                     { 
+                         QueryId = System.Guid.NewGuid().ToString(),
+                         TotalTokens = cachedResponse.Content.Length / 4, 
+                         DurationMs = stopwatch.ElapsedMilliseconds,
+                         CacheHit = true,
+                         ModelUsed = "Cache"
+                     };
+                     yield break;
+                 }
+            }
             
             string contextString = "";
             List<string> sources = new();
@@ -162,12 +161,16 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                     var productIds = searchResults
                         .Select(r => 
                         {
+                            try { System.IO.File.AppendAllText("rag_debug.txt", $"[DEBUG] Result {r.Id} ALL Keys: {string.Join(", ", r.Metadata.Keys)}\n"); } catch {}
+                            
                             _logger.LogWarning($"[DEBUG] Processing result {r.Id}. Metadata Keys: {string.Join(", ", r.Metadata.Keys)}");
                             if (r.Metadata.TryGetValue("product_id", out var pidObj))
                             {
                                 _logger.LogWarning($"[DEBUG] Found product_id: {pidObj} ({pidObj.GetType().Name})");
                                 if (pidObj is int i) return i;
                                 if (pidObj is long l) return (int)l;
+                                if (pidObj is double d) return (int)d;
+                                if (pidObj is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.Number) return je.GetInt32();
                                 if (pidObj is string s && int.TryParse(s, out var parsed)) return parsed;
                             }
                             else 
@@ -222,8 +225,13 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                             int? pid = null;
                             if (r.Metadata.TryGetValue("product_id", out var pidObj))
                             {
+                                // Debug logging to file
+                                try { System.IO.File.AppendAllText("rag_debug.txt", $"[DEBUG] Result {r.Id} Metadata Keys: {string.Join(", ", r.Metadata.Keys)}\nValue Type: {pidObj?.GetType().Name}\nValue: {pidObj}\n"); } catch {}
+
                                 if (pidObj is int i) pid = i;
                                 else if (pidObj is long l) pid = (int)l;
+                                else if (pidObj is double d) pid = (int)d;
+                                else if (pidObj is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.Number) pid = je.GetInt32();
                                 else if (pidObj is string s && int.TryParse(s, out var parsed)) pid = parsed;
                             }
 
@@ -365,10 +373,15 @@ Context:
                 fullResponse = fullResponseBuilder.ToString();
                 
                 // Save assistant response
-                if (!string.IsNullOrEmpty(fullResponse))
+                 if (!string.IsNullOrEmpty(fullResponse))
                 {
                      await _persistenceService.SaveMessageAsync(sessionId, "assistant", fullResponse);
-                     await _cacheService.CacheResponseAsync(query, fullResponse);
+                     
+                     // Smart Cache Save: Only for static intents
+                     if (intent == Core.Enums.UserIntent.GeneralChat || intent == Core.Enums.UserIntent.Support)
+                     {
+                        await _cacheService.CacheResponseAsync(query, fullResponse);
+                     }
                 }
             }
             finally

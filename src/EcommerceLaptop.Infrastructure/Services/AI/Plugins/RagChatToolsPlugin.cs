@@ -29,32 +29,40 @@ public class RagChatToolsPlugin
         _logger = logger;
     }
 
-    private string? GetUserId() => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    private string? _explicitUserId;
+    private string? _explicitSessionId;
 
-    [KernelFunction]
-    [Description("Get real-time inventory information for a specific product including stock quantity and availability")]
-    public async Task<string> GetProductInventory(
-        [Description("The ID of the product to check inventory for")] int productId)
+    public void SetContext(string? userId, string? sessionId)
     {
-        _logger.LogInformation("RagChatToolsPlugin: GetProductInventory called for ProductId {ProductId}", productId);
-
-        var parameters = new Dictionary<string, object>
-        {
-            { "productId", productId }
-        };
-
-        var result = await _toolRegistry.ExecuteToolAsync("get_product_inventory", parameters);
-
-        if (result.Success)
-        {
-            return JsonSerializer.Serialize(result.Data);
-        }
-        else
-        {
-            _logger.LogWarning("RagChatToolsPlugin: Tool execution failed: {ErrorMessage}", result.ErrorMessage);
-            return $"Error: {result.ErrorMessage}";
-        }
+        _explicitUserId = userId;
+        _explicitSessionId = sessionId;
     }
+
+    private (string? userId, string? sessionId) GetUserContext()
+    {
+        // Prioritize explicit context set by RagChatService (SignalR safe)
+        if (!string.IsNullOrEmpty(_explicitUserId) || !string.IsNullOrEmpty(_explicitSessionId))
+        {
+            return (_explicitUserId, _explicitSessionId);
+        }
+
+        var context = _httpContextAccessor.HttpContext;
+        var userId = context?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        // Try get session id from header or cookie
+        string? sessionId = null;
+        if (context != null)
+        {
+            if (context.Request.Cookies.TryGetValue("elevate-session-id", out var cookieSession)) // Assuming cookie name
+                sessionId = cookieSession;
+            else if (context.Request.Headers.TryGetValue("X-Session-ID", out var headerSession))
+                sessionId = headerSession.ToString();
+        }
+        
+        return (userId, sessionId);
+    }
+
+    // ... GetProductInventory (unchanged) ...
 
     [KernelFunction]
     [Description("Check the status of an order")]
@@ -73,23 +81,22 @@ public class RagChatToolsPlugin
         [Description("The Product ID to add")] int productId,
         [Description("Quantity to add")] int quantity = 1)
     {
-        var userId = GetUserId();
-        // Fallback for demo/dev if not logged in (optional, but good for testing)
-        // userId ??= "guest-session"; 
+        var (userId, sessionId) = GetUserContext();
         
-        if (string.IsNullOrEmpty(userId))
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId))
         {
-            return "Error: Users must be logged in to add items to cart.";
+            return "Error: Could not identify user session. Please verify your connection.";
         }
 
         try 
         {
-            _logger.LogInformation("RagChatToolsPlugin: AddToCart called for ProductId {ProductId}, userId {UserId}", productId, userId);
+            _logger.LogInformation("RagChatToolsPlugin: AddToCart called for ProductId {ProductId}, userId {UserId}, sessionId {SessionId}", productId, userId, sessionId);
             
             var request = new AddToCartDto 
             { 
                 ProductId = productId, 
-                Quantity = quantity 
+                Quantity = quantity,
+                SessionId = sessionId
             };
 
             var result = await _cartService.AddToCartAsync(request, userId);
@@ -110,13 +117,13 @@ public class RagChatToolsPlugin
     [Description("Get the current items in the user's shopping cart")]
     public async Task<string> GetCart()
     {
-        var userId = GetUserId();
-        if (string.IsNullOrEmpty(userId)) return "Error: You must be logged in to view your cart.";
+        var (userId, sessionId) = GetUserContext();
+        if (string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId)) return "Error: Could not identify user session.";
 
         try
         {
-            _logger.LogInformation("RagChatToolsPlugin: GetCart called for userId {UserId}", userId);
-            var cart = await _cartService.GetCartAsync(userId, null);
+            _logger.LogInformation("RagChatToolsPlugin: GetCart called for userId {UserId}, sessionId {SessionId}", userId, sessionId);
+            var cart = await _cartService.GetCartAsync(userId, sessionId);
             
             if (cart.Items.Count == 0) return "Your cart is empty.";
             
