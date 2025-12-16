@@ -116,6 +116,7 @@ public class ShoppingCartService : IShoppingCartService
             {
                 cartItem = await _context.CartItems
                     .Include(ci => ci.Product)
+                        .ThenInclude(p => p.Inventory)
                     .Include(ci => ci.ShoppingCart)
                     .FirstOrDefaultAsync(ci => ci.Id == updateCartDto.CartItemId && 
                                              ci.ShoppingCart!.UserId == userIdInt);
@@ -124,6 +125,7 @@ public class ShoppingCartService : IShoppingCartService
             {
                 cartItem = await _context.CartItems
                     .Include(ci => ci.Product)
+                        .ThenInclude(p => p.Inventory)
                     .Include(ci => ci.CartSession)
                     .FirstOrDefaultAsync(ci => ci.Id == updateCartDto.CartItemId && 
                                              ci.CartSession!.SessionId == updateCartDto.SessionId);
