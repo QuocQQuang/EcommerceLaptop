@@ -153,4 +153,4 @@ tmp/**
 
 # Whitelist for testing
 !build_lmstudio.txt
-!tests/test_lmstudio.ps1
+!tests/*.ps1

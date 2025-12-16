@@ -69,69 +69,100 @@ export const useChatBot = (userToken?: string | null) => {
 
                 // --- Event Listeners ---
 
-                connection.on('ReceiveToken', (token: string) => {
-                    setIsStreaming(true);
-                    isStreamingRef.current = true;
+                // --- Event Listeners ---
+                // Backend sends generic 'ReceiveEvent' with payload
+                connection.on('ReceiveEvent', (evt: any) => {
+                    // evt.type might be "token", "product", "status", "error" etc.
+                    const type = evt.type?.toLowerCase();
 
-                    setMessages(prev => {
-                        const lastMsg = prev[prev.length - 1];
-                        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.isStreaming) {
-                            // Append to existing streaming message
-                            const updatedMsg = { ...lastMsg, content: lastMsg.content + token };
-                            return [...prev.slice(0, -1), updatedMsg];
-                        } else {
-                            // Start new message chunk (rare case if sync is off)
-                            // Usually we push a placeholder before, so this implies finding the last one
+                    if (type === 'token') {
+                        const token = evt.token;
+                        setIsStreaming(true);
+                        isStreamingRef.current = true;
+
+                        setMessages(prev => {
+                            const lastMsg = prev[prev.length - 1];
+                            if (lastMsg && lastMsg.role === 'assistant' && lastMsg.isStreaming) {
+                                return [...prev.slice(0, -1), { ...lastMsg, content: lastMsg.content + token }];
+                            }
                             return prev;
-                        }
-                    });
-                });
+                        });
+                    }
+                    else if (type === 'product') {
+                        // Backend sends individual ProductEvent or list? 
+                        // Check ChatStreamEvents.cs: ProductEvent is a single event.
+                        // But frontend expects list in bubble. 
+                        // We might need to accumulate products or check how backend streams them.
+                        // RagChatService.cs yields new ProductEvent... so we get one by one?
+                        // Frontend MessageBubble expects products array. 
+                        // Let's assume we append to the list of products in the message.
 
-                connection.on('ReceiveProductContext', (productsJson: string) => {
-                    try {
-                        const products: EnrichedProduct[] = JSON.parse(productsJson);
+                        const product = {
+                            id: evt.id,
+                            name: evt.name,
+                            price: evt.price,
+                            thumbnailUrl: evt.imageUrl, // Map from ImageUrl
+                            inStock: true, // Default
+                            slug: evt.id // Use ID as slug fallback
+                        } as EnrichedProduct;
+
                         setMessages(prev => {
                             const lastMsg = prev[prev.length - 1];
                             if (lastMsg && lastMsg.role === 'assistant') {
-                                return [...prev.slice(0, -1), { ...lastMsg, products }];
+                                const products = lastMsg.products || [];
+                                // Avoid duplicates
+                                if (!products.find(p => p.id === product.id)) {
+                                    return [...prev.slice(0, -1), { ...lastMsg, products: [...products, product] }];
+                                }
                             }
                             return prev;
                         });
-                    } catch (e) {
-                        console.error('Failed to parse products', e);
                     }
-                });
-
-                connection.on('ReceiveStatus', (status: string) => {
-                    // e.g. "thinking", "searching", "completed", "error"
-                    if (status === 'completed' || status === 'error') {
+                    else if (type === 'status' || type === 'progress' || type === 'complete') {
+                        // Check for completion or error
+                        if (evt.message === 'completed' || type === 'error' || type === 'complete') {
+                            setIsStreaming(false);
+                            isStreamingRef.current = false;
+                            setMessages(prev => {
+                                const lastMsg = prev[prev.length - 1];
+                                if (lastMsg) return [...prev.slice(0, -1), { ...lastMsg, isStreaming: false }];
+                                return prev;
+                            });
+                        }
+                    }
+                    else if (type === 'error') {
                         setIsStreaming(false);
-                        isStreamingRef.current = false;
-
-                        // Mark last message as not streaming
-                        setMessages(prev => {
-                            const lastMsg = prev[prev.length - 1];
-                            if (lastMsg) {
-                                return [...prev.slice(0, -1), { ...lastMsg, isStreaming: false }];
-                            }
-                            return prev;
-                        });
+                        setMessages(prev => [...prev.slice(0, -1), {
+                            id: uuidv4(),
+                            role: 'assistant',
+                            content: `Error: ${evt.message}`,
+                            isStreaming: false,
+                            timestamp: new Date()
+                        }]);
                     }
                 });
 
                 // Keep-alive or Welcome logic could go here
+
+                connection.onclose(() => {
+                    console.warn(' Connection closed');
+                    setIsConnected(false);
+                    setIsStreaming(false);
+                });
+
             } catch (err) {
                 console.error(' Connection failed: ', err);
                 setIsConnected(false);
+                setIsStreaming(false);
             }
         };
 
         startConnection();
 
         return () => {
-            connection.off('ReceiveToken');
-            connection.off('ReceiveProductContext');
-            connection.off('ReceiveStatus');
+            connection.off('ReceiveEvent');
+            // connection.onclose cleanup not strictly needed as connection stops
+            // connection.off('ReceiveToken'); // Old listeners
         };
     }, [connection]);
 
@@ -164,14 +195,8 @@ export const useChatBot = (userToken?: string | null) => {
             let guestId = localStorage.getItem('guest_id') || "anonymous";
 
             // Invoke Hub Method
-            // Signature: SendMessage(string user, string message, string? guestId)
-            // Or typically we send an object.
-            // Based on backend implementation: 
-            // await Clients.Caller.SendAsync("ReceiveToken", ...)
-
-            // We need to match the Hub method name. Usually 'SendMessage'.
-            // Ensure we pass the right args.
-            await connection.invoke('SendMessage', "user", content);
+            // Signature: SendQuery(string query, QueryOptions? options = null)
+            await connection.invoke('SendQuery', content, { sessionId: null });
 
         } catch (e) {
             console.error('Send failed', e);

@@ -137,54 +137,77 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             {
                 yield return new ProgressEvent { Stage = "Retrieval", Message = "Searching products...", Progress = 0.5 };
                 
-                // RAG Flow
-                var embedding = await _embeddingService.GenerateEmbeddingAsync(query);
-                var searchResults = await _vectorDbService.SearchAsync(CollectionName, embedding, limit: 5);
-                
-                // Real-time Data Enrichment
-                var productIds = searchResults
-                    .Where(r => int.TryParse(r.Id, out _))
-                    .Select(r => int.Parse(r.Id))
-                    .ToList();
+                List<ProductEvent> foundProducts = new();
+                string? retrievalError = null;
 
-                if (productIds.Any())
+                try
                 {
-                    var products = await _productService.GetProductsByIdsAsync(productIds);
-                    var productDict = products.ToDictionary(p => p.Id);
+                    // RAG Flow
+                    var embedding = await _embeddingService.GenerateEmbeddingAsync(query);
+                    var searchResults = await _vectorDbService.SearchAsync(CollectionName, embedding, limit: 5);
+                    
+                    // Real-time Data Enrichment
+                    var productIds = searchResults
+                        .Where(r => int.TryParse(r.Id, out _))
+                        .Select(r => int.Parse(r.Id))
+                        .Distinct() // Keep distinct fix
+                        .ToList();
 
-                    // Emit Product Events
-                    int rank = 1;
-                    foreach (var result in searchResults)
+                    if (productIds.Any())
                     {
-                         if (int.TryParse(result.Id, out int pid) && productDict.TryGetValue(pid, out var product))
-                         {
-                             yield return new ProductEvent
-                             {
-                                 Id = product.Id.ToString(),
-                                 Name = product.Name,
-                                 Description = product.Description,
-                                 Price = product.Price,
-                                 RelevanceScore = result.Score,
-                                 Rank = rank++
-                             };
-                         }
-                    }
+                        var products = await _productService.GetProductsByIdsAsync(productIds);
+                        var productDict = products.ToDictionary(p => p.Id);
 
-                    contextString = string.Join("\n\n", searchResults.Select(r => 
-                    {
-                        if (int.TryParse(r.Id, out int pid) && productDict.TryGetValue(pid, out var product))
+                        // Collect Product Events
+                        int rank = 1;
+                        foreach (var result in searchResults)
                         {
-                            return $"[Product Info]: {product.Name}\nPrice: ${product.Price}\nStock: 10 (In Stock)\nDetails: {r.Content}";
+                             if (int.TryParse(result.Id, out int pid) && productDict.TryGetValue(pid, out var product))
+                             {
+                                 foundProducts.Add(new ProductEvent
+                                 {
+                                     Id = product.Id.ToString(),
+                                     Name = product.Name,
+                                     Description = product.Description,
+                                     Price = product.Price,
+                                     RelevanceScore = result.Score,
+                                     Rank = rank++
+                                 });
+                             }
                         }
-                        return $"[Product Info]: {r.Content}";
-                    }));
+
+                        contextString = string.Join("\n\n", searchResults.Select(r => 
+                        {
+                            if (int.TryParse(r.Id, out int pid) && productDict.TryGetValue(pid, out var product))
+                            {
+                                return $"[Product Info]: {product.Name}\nPrice: ${product.Price}\nStock: 10 (In Stock)\nDetails: {r.Content}";
+                            }
+                            return $"[Product Info]: {r.Content}";
+                        }));
+                    }
+                    else
+                    {
+                        contextString = string.Join("\n\n", searchResults.Select(r => $"[Product Info]: {r.Content}"));
+                    }
+                    
+                    sources = searchResults.Select(r => r.Id).ToList();
+                }
+                catch (Exception ex)
+                {
+                    retrievalError = ex.Message;
+                }
+
+                if (retrievalError != null)
+                {
+                    yield return new ProgressEvent { Stage = "Retrieval_Failed", Message = $"Search failed: {retrievalError}. Falling back to general knowledge.", Progress = 0.5 };
                 }
                 else
                 {
-                    contextString = string.Join("\n\n", searchResults.Select(r => $"[Product Info]: {r.Content}"));
+                    foreach (var p in foundProducts)
+                    {
+                        yield return p;
+                    }
                 }
-                
-                sources = searchResults.Select(r => r.Id).ToList();
             }
             else if (intent == Core.Enums.UserIntent.Support)
             {
@@ -295,8 +318,11 @@ Context:
                 TotalTokens = tokenCount,
                 DurationMs = stopwatch.ElapsedMilliseconds,
                 CacheHit = false,
-                ModelUsed = "GPT-4o" // Placeholder, ideally get from config
+                ModelUsed = "GPT-4o" 
             };
+            
+            // Signal frontend to stop typing indicator
+            yield return new ProgressEvent { Stage = "Done", Message = "completed", Progress = 1.0 };
         }
 
         private async Task<Kernel> BuildKernelAsync()
@@ -306,14 +332,23 @@ Context:
 
             var httpClient = _httpClientFactory.CreateClient("llm-client");
 
-            if (config.Provider == "Azure")
-            {
-                builder.AddAzureOpenAIChatCompletion(
-                    deploymentName: config.ModelId ?? "gpt-4o",
-                    endpoint: config.BaseUrl!,
-                    apiKey: config.ApiKey,
-                    httpClient: httpClient
-                );
+                if (config.BaseUrl?.Contains("openrouter.ai") == true)
+                {
+                    httpClient.DefaultRequestHeaders.Remove("HTTP-Referer");
+                    httpClient.DefaultRequestHeaders.Add("HTTP-Referer", "https://ecommercelaps.com"); 
+                    
+                    httpClient.DefaultRequestHeaders.Remove("X-Title");
+                    httpClient.DefaultRequestHeaders.Add("X-Title", "EcommerceLaptop");
+                }
+                
+                if (config.Provider == "Azure")
+                {
+                    builder.AddAzureOpenAIChatCompletion(
+                        deploymentName: config.ModelId ?? "gpt-4o",
+                        endpoint: config.BaseUrl!,
+                        apiKey: config.ApiKey,
+                        httpClient: httpClient
+                    );
             }
             else if (config.Provider == "Ollama")
             {

@@ -74,17 +74,28 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             }
             else // Default OpenAI
             {
+                 // Default OpenAI or OpenRouter
                  if (!string.IsNullOrEmpty(config.BaseUrl))
                  {
                      try 
                      {
                         httpClient.BaseAddress = new System.Uri(config.BaseUrl); 
+                        
+                        // Add OpenRouter specific headers if needed
+                        if (config.BaseUrl.Contains("openrouter.ai"))
+                        {
+                            httpClient.DefaultRequestHeaders.Remove("HTTP-Referer");
+                            httpClient.DefaultRequestHeaders.Add("HTTP-Referer", "https://ecommercelaps.com");
+                            
+                            httpClient.DefaultRequestHeaders.Remove("X-Title");
+                            httpClient.DefaultRequestHeaders.Add("X-Title", "EcommerceLaptop");
+                        }
                      }
                      catch {}
                  }
 
                  builder.AddOpenAITextEmbeddingGeneration(
-                    modelId: config.ModelId ?? "text-embedding-3-small",
+                    modelId: "text-embedding-3-small", // Force embedding model, don't use Chat Model ID
                     apiKey: config.ApiKey,
                     httpClient: httpClient
                 );
