@@ -55,17 +55,17 @@ export const useCartStore = create<CartState>()(
 
                 if (existingItem) {
                     set(state => ({
-                        items: state.items.map(item =>
-                            variantId
+                        items: state.items.map(item => {
+                            const isMatch = variantId
                                 ? (item.productId === productId && item.variantId === variantId)
-                                : (item.productId === productId && !item.variantId)
-                                    ? {
-                                        ...item,
-                                        quantity: item.quantity + quantity,
-                                        totalPrice: (item.quantity + quantity) * item.unitPrice
-                                    }
-                                    : item
-                        )
+                                : (item.productId === productId && !item.variantId);
+
+                            return isMatch ? {
+                                ...item,
+                                quantity: item.quantity + quantity,
+                                totalPrice: (item.quantity + quantity) * item.unitPrice
+                            } : item;
+                        })
                     }));
                 } else {
                     const newItem: CartItem = {

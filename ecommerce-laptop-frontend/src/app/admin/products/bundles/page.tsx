@@ -16,6 +16,7 @@ import {
     DialogTitle
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
     Table,
     TableBody,
@@ -92,7 +93,7 @@ const mockBundles: Bundle[] = [
                     isActive: true,
                     productType: 'Laptop',
                     variants: []
-                } as Product,
+                } as any,
                 quantity: 1,
                 isRequired: true
             },
@@ -107,7 +108,7 @@ const mockBundles: Bundle[] = [
                     isActive: true,
                     productType: 'Accessory',
                     variants: []
-                } as Product,
+                } as any,
                 quantity: 1,
                 isRequired: false
             }

@@ -545,24 +545,8 @@ function CheckoutContent() {
                     });
                     clearCart(); // Clear cart before redirect to payment gateway
 
-                    // Check if this is PayPal payment
-                    if (data.paymentMethod === 'PayPal') {
-                        // Open PayPal in new window
-                        const paypalWindow = window.open(
-                            paymentUrl,
-                            'paypal_payment',
-                            'width=800,height=600,scrollbars=yes,resizable=yes'
-                        );
-
-                        if (!paypalWindow) {
-                            toast.error('Khng th m ca s PayPal. Vui lng cho php popup v th li.', { id: toastId });
-                        } else {
-                            toast.success(' m ca s PayPal. Vui lng hon thnh thanh ton trong ca s mi.', { id: toastId });
-                        }
-                    } else {
-                        // Redirect to other payment gateways
-                        window.location.href = paymentUrl;
-                    }
+                    // Redirect to payment gateways
+                    window.location.href = paymentUrl;
                 } else {
                     logger.error(' Payment initialization failed', {
                         errorMessage: result.errorMessage,

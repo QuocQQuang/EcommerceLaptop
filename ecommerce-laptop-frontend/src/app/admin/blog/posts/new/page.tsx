@@ -37,7 +37,7 @@ import 'react-quill-new/dist/quill.snow.css';
 const ReactQuill = dynamic(
     () => import('react-quill-new').then(mod => mod.default),
     { ssr: false }
-);
+) as any;
 
 interface BlogEditorState {
     blog: Partial<CreateBlogRequest>;
@@ -681,7 +681,7 @@ export default function NewBlogPage() {
                             <div className={cn("border rounded-lg", state.errors.content && "border-red-500")}>
                                 <ReactQuill
                                     value={state.blog.content || ''}
-                                    onChange={(value) => updateBlog('content', value)}
+                                    onChange={(value: string) => updateBlog('content', value)}
                                     modules={quillModules}
                                     formats={quillFormats}
                                     placeholder="Vit ni dung bi vit ca bn  y..."

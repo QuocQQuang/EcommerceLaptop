@@ -288,18 +288,7 @@ const getStatusBadge = (status: string) => {
   );
 };
 
-const getPromotionValue = (promotion: Promotion) => {
-  switch (promotion.type) {
-    case 'percentage':
-      return `${promotion.value}%`;
-    case 'fixed_amount':
-      return formatCurrency(promotion.value);
-    case 'free_shipping':
-      return 'Min ph';
-    default:
-      return promotion.value.toString();
-  }
-};
+
 
 const isPromotionExpired = (endDate: string) => {
   return new Date(endDate) < new Date();
@@ -323,6 +312,19 @@ export default function PromotionsPage() {
   // Helper functions
   const formatCurrency = (amount: number) => {
     return formatCurrencyPrice(amount, selectedCurrency);
+  };
+
+  const getPromotionValue = (promotion: Promotion) => {
+    switch (promotion.type) {
+      case 'percentage':
+        return `${promotion.value}%`;
+      case 'fixed_amount':
+        return formatCurrency(promotion.value);
+      case 'free_shipping':
+        return 'Min ph';
+      default:
+        return promotion.value.toString();
+    }
   };
   const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(null);
 

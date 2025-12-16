@@ -71,7 +71,7 @@ export function Price({
                             <span className={cn('font-bold text-red-600', sizeClasses[size === 'lg' ? 'md' : 'sm'])}>
                                 {vndDiscount}
                             </span>
-                            <span className={cn('text-gray-500 line-through text-xs', sizeClasses[size === 'lg' ? 'sm' : 'xs'])}>
+                            <span className={cn('text-gray-500 line-through', size === 'lg' ? sizeClasses.sm : 'text-xs')}>
                                 {vndPrice}
                             </span>
                         </>

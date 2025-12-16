@@ -681,6 +681,10 @@ export interface Blog {
     tags?: BlogTag[];
     tagIds?: number[]; // Now supported
     viewCount: number;
+    allowComments?: boolean;
+    readingTime?: number;
+    shareCount?: number;
+    featuredImageAlt?: string;
     commentCount?: number; // Computed
     likeCount?: number;
     createdAt: string;

@@ -129,7 +129,7 @@ export default function AddProductPage() {
     comparePrice: '',
     costPrice: '',
     stock: '',
-    lowStockThreshold: '5',
+
     weight: '',
     dimensions: '',
     status: 'active',

@@ -420,7 +420,7 @@ export default function ProductAnalyticsPage() {
                             <CardContent>
                                 <div className="text-2xl font-bold">
                                     {formatCurrency(
-                                        bundleAnalytics?.reduce((sum, item) => sum + item.averageOrderValue, 0) / (bundleAnalytics?.length || 1) || 0
+                                        (bundleAnalytics?.reduce((sum, item) => sum + item.averageOrderValue, 0) ?? 0) / (bundleAnalytics?.length || 1) || 0
                                     )}
                                 </div>
                                 <p className="text-xs text-muted-foreground">
@@ -436,7 +436,7 @@ export default function ProductAnalyticsPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">
-                                    {(bundleAnalytics?.reduce((sum, item) => sum + item.conversionRate, 0) / (bundleAnalytics?.length || 1) || 0).toFixed(1)}%
+                                    {((bundleAnalytics?.reduce((sum, item) => sum + item.conversionRate, 0) ?? 0) / (bundleAnalytics?.length || 1) || 0).toFixed(1)}%
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                     Conversion rate

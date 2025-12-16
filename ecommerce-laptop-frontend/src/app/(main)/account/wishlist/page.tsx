@@ -107,7 +107,10 @@ export default function WishlistPage() {
             specifications: [],
             categories: [],
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
+            isVariant: false,
+            isBaseProduct: true,
+            variants: []
         };
 
         addToCart(productForCart, 1);

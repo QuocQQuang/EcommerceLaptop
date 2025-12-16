@@ -45,7 +45,7 @@ const ReactQuill = dynamic(
             </div>
         )
     }
-);
+) as any;
 
 interface BlogEditorState {
     blog: Blog | null;

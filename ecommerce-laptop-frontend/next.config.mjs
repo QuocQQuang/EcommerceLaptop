@@ -12,34 +12,36 @@ const nextConfig = {
     images: {
         // Explicit domain allow list (simpler than only remotePatterns for many common CDNs)
         // NOTE: If backend returns additional hosts (Cloudinary, S3, etc.), add them here.
-        domains: [
-            'i.imgur.com',
-            'images.unsplash.com',
-            'source.unsplash.com',
-            'i.ibb.co',
-            'qr.sepay.vn',
-            'localhost',
-            'plus.unsplash.com'// dev API hosted images if served directly
-        ],
-        // remotePatterns give finer control (port/path); keep localhost + any special patterns
+        // remotePatterns give finer control and replacement for deprecated domains
         remotePatterns: [
             {
                 protocol: 'http',
                 hostname: 'localhost',
-                port: '5129',
-                pathname: '/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'i.imgur.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'source.unsplash.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'plus.unsplash.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'i.ibb.co',
             },
             {
                 protocol: 'https',
                 hostname: 'qr.sepay.vn',
-                pathname: '/**',
             },
-            // (Optional) example pattern stub to copy when adding new CDN with path scoping
-            // {
-            //     protocol: 'https',
-            //     hostname: 'cdn.example.com',
-            //     pathname: '/products/**',
-            // },
         ],
         formats: ['image/webp', 'image/avif'],
         deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -130,44 +132,9 @@ const nextConfig = {
         ]
     },
 
-    // Webpack optimization
-    webpack: (config, { isServer }) => {
-        if (!isServer) {
-            config.resolve.fallback = {
-                ...config.resolve.fallback,
-                fs: false,
-                net: false,
-                tls: false,
-            }
-        }
 
-        // Bundle splitting optimization
-        config.optimization = {
-            ...config.optimization,
-            splitChunks: {
-                chunks: 'all',
-                cacheGroups: {
-                    vendor: {
-                        test: /[\\/]node_modules[\\/]/,
-                        name: 'vendors',
-                        chunks: 'all',
-                    },
-                },
-            },
-        }
 
-        return config
-    },
 
-    // Disable ESLint during builds for faster compilation
-    eslint: {
-        ignoreDuringBuilds: true,
-    },
-
-    // Disable TypeScript checking during builds for faster compilation
-    typescript: {
-        ignoreBuildErrors: true,
-    },
 
     // Basic build configuration
     trailingSlash: false,
