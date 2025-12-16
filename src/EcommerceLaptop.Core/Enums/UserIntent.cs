@@ -5,6 +5,9 @@ namespace EcommerceLaptop.Core.Enums
         Unknown,
         ProductSearch,
         GeneralChat,
-        Support
+        Support,
+        OrderStatus,
+        CartManagement,
+        AccountManagement
     }
 }

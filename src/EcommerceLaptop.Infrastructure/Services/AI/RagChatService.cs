@@ -31,6 +31,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
         private readonly IIntentClassifier _intentClassifier;
         private readonly IProductService _productService;
         private readonly IChatPersistenceService _persistenceService;
+        private readonly IToolRegistry _toolRegistry;
         private readonly ILogger<RagChatService> _logger;
 
         private const string CollectionName = "products";
@@ -46,6 +47,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             IIntentClassifier intentClassifier,
             IProductService productService,
             IChatPersistenceService persistenceService,
+            IToolRegistry toolRegistry,
             ILogger<RagChatService> logger)
         {
             _embeddingService = embeddingService;
@@ -58,6 +60,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             _intentClassifier = intentClassifier;
             _productService = productService;
             _persistenceService = persistenceService;
+            _toolRegistry = toolRegistry;
             _logger = logger;
         }
 
@@ -261,6 +264,24 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             else if (intent == Core.Enums.UserIntent.Support)
             {
                 contextString = "Store Policy: We offer 30-day returns. Warranty is 1 year for all laptops. Shipping is free for orders over $500.";
+            }
+            else if (RequiresToolCalling(intent))
+            {
+                // Tool Calling Path for transactional intents
+                yield return new ProgressEvent { Stage = "Tools", Message = "Preparing tools...", Progress = 0.5 };
+                
+                _logger.LogInformation("Tool calling path activated for intent: {Intent}", intent);
+                
+                // Placeholder - Full implementation will include OpenAI function calling
+                contextString = intent switch
+                {
+                    Core.Enums.UserIntent.OrderStatus => "Order status checking is currently being implemented. Please check your email for order updates or contact support.",
+                    Core.Enums.UserIntent.CartManagement => "Cart management through chat is coming soon. Please use the shopping cart page to manage your items.",
+                    Core.Enums.UserIntent.AccountManagement => "Account management through chat is coming soon. Please use the account settings page.",
+                    _ => "This feature is currently being implemented."
+                };
+                
+                _logger.LogInformation("Tool calling placeholder response generated for intent: {Intent}", intent);
             }
 
             yield return new ProgressEvent { Stage = "Generation", Message = "Generating response...", Progress = 0.8 };
@@ -498,5 +519,13 @@ Context:
             .Replace("---", "-")
             .Trim('-');
     }
+
+    private static bool RequiresToolCalling(Core.Enums.UserIntent intent) => intent switch
+    {
+        Core.Enums.UserIntent.OrderStatus => true,
+        Core.Enums.UserIntent.CartManagement => true,
+        Core.Enums.UserIntent.AccountManagement => true,
+        _ => false
+    };
 }
 }

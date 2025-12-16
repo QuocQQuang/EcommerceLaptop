@@ -122,6 +122,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IChatPersistenceService, ChatPersistenceService>();
         services.AddScoped<IChatService, RagChatService>();
 
+        // Tool Calling Infrastructure
+        services.AddSingleton<IToolRegistry, ToolRegistry>();
+        services.AddScoped<Infrastructure.Services.AI.Tools.GetProductInventoryTool>();
+        services.AddHostedService<ToolRegistrationService>();
+
         // Background Jobs (Hangfire)
         services.AddHangfire(config => config
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
