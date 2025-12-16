@@ -137,21 +137,37 @@ export function ChatbotWindow({
                                 </div>
                             ) : (
                                 <>
-                                    {messages.map((message) => (
-                                        <div key={message.id}>
-                                            <MessageBubble message={message} />
-                                            {message.products && message.products.length > 0 && (
-                                                <div className="mt-2">
-                                                    <ProductCarousel
-                                                        products={message.products}
-                                                        onConsult={handleConsultation}
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                    {messages.map((message, index) => {
+                                        const isLastMessage = index === messages.length - 1;
+                                        // Only show products if: not last message OR (last message AND not streaming)
+                                        const shouldShowProducts = message.products && message.products.length > 0 && !isLastMessage;
+
+                                        return (
+                                            <div key={message.id}>
+                                                <MessageBubble message={message} />
+                                                {shouldShowProducts && (
+                                                    <div className="mt-2 mb-4">
+                                                        <ProductCarousel
+                                                            products={message.products}
+                                                            onConsult={handleConsultation}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
 
                                     {isStreaming && <TypingIndicator />}
+
+                                    {/* Show products for last message only when NOT streaming */}
+                                    {!isStreaming && messages.length > 0 && messages[messages.length - 1].products && messages[messages.length - 1].products!.length > 0 && (
+                                        <div className="mt-2 mb-4">
+                                            <ProductCarousel
+                                                products={messages[messages.length - 1].products!}
+                                                onConsult={handleConsultation}
+                                            />
+                                        </div>
+                                    )}
 
                                     {statusMessage && (
                                         <div className="text-xs text-neutral-500 italic px-2">
