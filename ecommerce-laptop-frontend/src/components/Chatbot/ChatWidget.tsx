@@ -17,7 +17,8 @@ const ChatWidget = () => {
         messages,
         isStreaming,
         sendMessage,
-        isConnected
+        isConnected,
+        statusMessage
     } = useChatBot(userToken);
 
     const [inputValue, setInputValue] = React.useState('');
@@ -30,7 +31,7 @@ const ChatWidget = () => {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, isStreaming]);
+    }, [messages, isStreaming, statusMessage]);
 
     const handleSend = async () => {
         if (!inputValue.trim()) return;
@@ -78,6 +79,13 @@ const ChatWidget = () => {
                                 {messages.map((msg) => (
                                     <MessageBubble key={msg.id} message={msg} />
                                 ))}
+                                {/* Status Indicator Bubbles */}
+                                {isStreaming && statusMessage && (
+                                    <div className="flex items-center space-x-2 text-xs text-gray-500 ml-2 mb-2 animate-pulse">
+                                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
+                                        <span>{statusMessage}</span>
+                                    </div>
+                                )}
                                 <div ref={messagesEndRef} />
                             </>
                         )}

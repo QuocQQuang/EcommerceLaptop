@@ -133,6 +133,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             List<string> sources = new();
 
             // 3. Routing based on Intent
+            Console.WriteLine($"[DEBUG] Intent: {intent}");
             if (intent == Core.Enums.UserIntent.ProductSearch)
             {
                 yield return new ProgressEvent { Stage = "Retrieval", Message = "Searching products...", Progress = 0.5 };
@@ -203,6 +204,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                 }
                 else
                 {
+                    Console.WriteLine($"[DEBUG] Found {foundProducts.Count} products.");
                     foreach (var p in foundProducts)
                     {
                         yield return p;

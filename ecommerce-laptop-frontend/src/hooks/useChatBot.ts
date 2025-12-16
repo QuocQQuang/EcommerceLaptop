@@ -11,6 +11,7 @@ export const useChatBot = (userToken?: string | null) => {
     const [isStreaming, setIsStreaming] = useState(false);
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
     const [isConnected, setIsConnected] = useState(false);
+    const [statusMessage, setStatusMessage] = useState<string>('');
 
     // Refs for safe access in callbacks
     const isStreamingRef = useRef(false);
@@ -96,14 +97,15 @@ export const useChatBot = (userToken?: string | null) => {
                         // RagChatService.cs yields new ProductEvent... so we get one by one?
                         // Frontend MessageBubble expects products array. 
                         // Let's assume we append to the list of products in the message.
+                        console.log(' Product Event received:', evt);
 
                         const product = {
-                            id: evt.id,
-                            name: evt.name,
-                            price: evt.price,
-                            thumbnailUrl: evt.imageUrl, // Map from ImageUrl
-                            inStock: true, // Default
-                            slug: evt.id // Use ID as slug fallback
+                            id: evt.id || evt.Id,
+                            name: evt.name || evt.Name,
+                            price: evt.price || evt.Price,
+                            thumbnailUrl: evt.imageUrl || evt.ImageUrl,
+                            inStock: true,
+                            slug: evt.id || evt.Id
                         } as EnrichedProduct;
 
                         setMessages(prev => {
@@ -119,9 +121,14 @@ export const useChatBot = (userToken?: string | null) => {
                         });
                     }
                     else if (type === 'status' || type === 'progress' || type === 'complete') {
+                        if (evt.message) {
+                            setStatusMessage(evt.message);
+                        }
+
                         // Check for completion or error
                         if (evt.message === 'completed' || type === 'error' || type === 'complete') {
                             setIsStreaming(false);
+                            setStatusMessage(''); // Clear status
                             isStreamingRef.current = false;
                             setMessages(prev => {
                                 const lastMsg = prev[prev.length - 1];
@@ -148,6 +155,7 @@ export const useChatBot = (userToken?: string | null) => {
                     console.warn(' Connection closed');
                     setIsConnected(false);
                     setIsStreaming(false);
+                    setStatusMessage('');
                 });
 
             } catch (err) {
@@ -218,6 +226,7 @@ export const useChatBot = (userToken?: string | null) => {
         messages,
         isStreaming,
         sendMessage,
-        isConnected
+        isConnected,
+        statusMessage
     };
 };
