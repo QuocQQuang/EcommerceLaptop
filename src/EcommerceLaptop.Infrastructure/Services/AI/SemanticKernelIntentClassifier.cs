@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Net.Http;
+using Microsoft.Extensions.Logging;
 
 namespace EcommerceLaptop.Infrastructure.Services.AI
 {
@@ -12,13 +13,16 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
     {
          private readonly ILlmConfigProvider _configProvider;
          private readonly IHttpClientFactory _httpClientFactory;
+         private readonly Microsoft.Extensions.Logging.ILogger<SemanticKernelIntentClassifier> _logger;
 
         public SemanticKernelIntentClassifier(
             ILlmConfigProvider configProvider,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            Microsoft.Extensions.Logging.ILogger<SemanticKernelIntentClassifier> logger)
         {
             _configProvider = configProvider;
             _httpClientFactory = httpClientFactory;
+            _logger = logger;
         }
 
         public async Task<UserIntent> ClassifyIntentAsync(string query)
@@ -65,8 +69,16 @@ Instructions:
             var result = await chat.GetChatMessageContentAsync(history);
             var intentString = result.Content?.Trim() ?? "";
 
-            Console.WriteLine($"[IntentClassifier] Raw Output: '{intentString}'");
+            _logger.LogWarning("[IntentClassifier] Raw Output: '{IntentString}'", intentString);
 
+            var intent = ParseIntentFromOutput(intentString);
+            _logger.LogWarning("[IntentClassifier] Parsed Intent: {Intent}", intent);
+
+            return intent;
+        }
+
+        public static UserIntent ParseIntentFromOutput(string intentString)
+        {
             // 1. Try exact match
             if (Enum.TryParse<UserIntent>(intentString, true, out var intent))
             {
@@ -81,14 +93,12 @@ Instructions:
                 {
                     if (Enum.TryParse<UserIntent>(name, true, out var fallbackIntent))
                     {
-                        Console.WriteLine($"[IntentClassifier] Regex matched: {fallbackIntent}");
                         return fallbackIntent;
                     }
                 }
             }
 
             // Fallback
-            Console.WriteLine("[IntentClassifier] Failed to parse. Defaulting to GeneralChat.");
             return UserIntent.GeneralChat;
         }
 

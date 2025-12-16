@@ -27,6 +27,7 @@ namespace EcommerceLaptop.UnitTests.Services
             _mockBundleRepo = new Mock<IAsyncRepository<Bundle>>();
             _mockImageRepo = new Mock<IAsyncRepository<ProductImage>>();
             _mockOrderItemRepo = new Mock<IAsyncRepository<OrderItem>>();
+            var mockDispatcher = new Mock<IDomainEventDispatcher>();
             
             _service = new ProductService(
                 _mockProductRepo.Object,
@@ -34,7 +35,8 @@ namespace EcommerceLaptop.UnitTests.Services
                 _mockAccessoryRepo.Object,
                 _mockBundleRepo.Object,
                 _mockImageRepo.Object,
-                _mockOrderItemRepo.Object
+                _mockOrderItemRepo.Object,
+                mockDispatcher.Object
             );
         }
 

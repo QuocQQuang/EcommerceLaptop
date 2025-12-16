@@ -15,6 +15,7 @@ using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.Interfaces.Services;
 using System.Threading;
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace EcommerceLaptop.Infrastructure.Services.AI
 {
@@ -30,6 +31,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
         private readonly IIntentClassifier _intentClassifier;
         private readonly IProductService _productService;
         private readonly IChatPersistenceService _persistenceService;
+        private readonly ILogger<RagChatService> _logger;
 
         private const string CollectionName = "products";
 
@@ -43,7 +45,8 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             IGuardrailService guardrailService,
             IIntentClassifier intentClassifier,
             IProductService productService,
-            IChatPersistenceService persistenceService)
+            IChatPersistenceService persistenceService,
+            ILogger<RagChatService> logger)
         {
             _embeddingService = embeddingService;
             _vectorDbService = vectorDbService;
@@ -55,6 +58,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             _intentClassifier = intentClassifier;
             _productService = productService;
             _persistenceService = persistenceService;
+            _logger = logger;
         }
 
         public async IAsyncEnumerable<ChatStreamEvent> StreamChatAsync(
@@ -123,7 +127,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                 
             //     // yield break;
             // }
-            Console.WriteLine("!!! NEW CODE RUNNING - CACHE DISABLED !!!");
+            _logger.LogWarning("!!! NEW CODE RUNNING - CACHE DISABLED !!!");
             _metricsService.RecordCacheHit(false);
 
             // 2. Intent Classification

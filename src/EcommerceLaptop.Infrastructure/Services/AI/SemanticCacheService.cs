@@ -24,6 +24,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
         public async Task<ChatResponseChunk?> GetCachedResponseAsync(string query)
         {
+            Console.WriteLine("!!! SEMANTIC CACHE SERVICE ACCESSED !!!");
             var key = GenerateCacheKey(query);
             var cachedData = await _cache.GetStringAsync(key);
 
