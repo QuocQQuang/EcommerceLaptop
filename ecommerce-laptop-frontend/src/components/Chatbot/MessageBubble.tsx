@@ -1,71 +1,64 @@
-import React from 'react';
+'use client';
+
+import { ChatMessage } from '@/types/chat';
+import { Bot, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ChatMessage } from '../../types/chat';
-import ProductCarousel from './ProductCarousel';
-import TypingIndicator from './TypingIndicator';
 
 interface MessageBubbleProps {
     message: ChatMessage;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
+export function MessageBubble({ message }: MessageBubbleProps) {
+    const isAI = message.role === 'assistant';
     const isUser = message.role === 'user';
 
+    if (!isAI && !isUser) return null;
+
     return (
-        <div className={`flex w-full mb-4 animate-slide-up-fade ${isUser ? 'justify-end' : 'justify-start'}`}>
-            <div className="flex flex-col w-full">
-                {/* Message Content Area */}
-                <div className={`flex max-w-[85%] md:max-w-[75%] ${isUser ? 'self-end flex-row-reverse' : 'self-start flex-row'}`}>
+        <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'} mb-4`}>
+            {/* Avatar */}
+            <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${isAI ? 'bg-neutral-100' : 'bg-neutral-900'
+                }`}>
+                {isAI ? (
+                    <Bot className="w-5 h-5 text-neutral-700" />
+                ) : (
+                    <User className="w-5 h-5 text-white" />
+                )}
+            </div>
 
-                    {/* Avatar (Assistant only) */}
-                    {!isUser && (
-                        <div className="flex-shrink-0 mr-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/20 flex items-center justify-center text-white text-[10px] font-semibold">
-                                AI
-                            </div>
+            {/* Message Content */}
+            <div className={`flex flex-col max-w-[75%] ${isUser ? 'items-end' : 'items-start'}`}>
+                <div className={`px-4 py-2.5 ${isAI
+                        ? 'bg-neutral-50 border border-neutral-100 rounded-2xl'
+                        : 'bg-neutral-900 text-white rounded-2xl rounded-br-sm'
+                    }`}>
+                    {isAI ? (
+                        <div className="prose prose-sm max-w-none prose-neutral">
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    p: ({ children }) => <p className="mb-2 last:mb-0 text-neutral-800">{children}</p>,
+                                    ul: ({ children }) => <ul className="mb-2 last:mb-0 ml-4 list-disc text-neutral-800">{children}</ul>,
+                                    ol: ({ children }) => <ol className="mb-2 last:mb-0 ml-4 list-decimal text-neutral-800">{children}</ol>,
+                                    li: ({ children }) => <li className="mb-1 text-neutral-800">{children}</li>,
+                                    strong: ({ children }) => <strong className="font-semibold text-neutral-900">{children}</strong>,
+                                    code: ({ children }) => <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-xs font-mono text-neutral-900">{children}</code>,
+                                }}
+                            >
+                                {message.content}
+                            </ReactMarkdown>
                         </div>
+                    ) : (
+                        <p className="text-sm leading-relaxed">{message.content}</p>
                     )}
-
-                    <div className={`flex flex-col min-w-0 w-full ${isUser ? 'items-end' : 'items-start'}`}>
-                        <div
-                            className={`px-4 py-3 rounded-2xl shadow-sm text-sm ${isUser
-                                    ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white font-medium rounded-tr-sm shadow-md'
-                                    : 'bg-slate-50 border border-slate-100 text-slate-700 rounded-tl-sm'
-                                }`}
-                        >
-                            {/* Interactive Loading State */}
-                            {message.isStreaming && message.content === '' ? (
-                                <TypingIndicator />
-                            ) : (
-                                <div className={`prose prose-sm max-w-none ${isUser ? 'prose-invert' : ''}`}>
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                        {message.content}
-                                    </ReactMarkdown>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Streaming Cursor */}
-                        {!isUser && message.isStreaming && message.content !== '' && (
-                            <span className="text-slate-400 text-xs mt-1 animate-pulse">Typing...</span>
-                        )}
-
-                        <span className="text-[10px] text-slate-400 mt-1 px-1">
-                            {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                    </div>
                 </div>
 
-                {/* Full Width Product Carousel (Outside Constraint) */}
-                {!isUser && message.products && message.products.length > 0 && (
-                    <div className="w-full px-1 mt-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <ProductCarousel products={message.products} />
-                    </div>
-                )}
+                {/* Timestamp */}
+                <span className="text-[10px] text-neutral-400 mt-1 px-1">
+                    {message.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                </span>
             </div>
         </div>
     );
-};
-
-export default MessageBubble;
+}

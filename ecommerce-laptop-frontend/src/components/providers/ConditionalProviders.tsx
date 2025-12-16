@@ -6,7 +6,7 @@ import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { ReactNode, useState } from 'react';
-import ChatWidget from '@/components/Chatbot/ChatWidget'; // Integrated ChatWidget
+import { ChatbotProvider } from '@/components/Chatbot/ChatbotProvider';
 
 interface ConditionalProvidersProps {
     children: ReactNode;
@@ -53,7 +53,7 @@ export function ConditionalProviders({ children }: ConditionalProvidersProps) {
                 <CurrencyProvider>
                     <CurrencyUpdateProvider>
                         {children}
-                        <ChatWidget />
+                        <ChatbotProvider />
                     </CurrencyUpdateProvider>
                 </CurrencyProvider>
             </CustomSessionProvider>

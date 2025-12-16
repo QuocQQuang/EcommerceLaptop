@@ -79,6 +79,7 @@ export const viewport: Viewport = {
 };
 
 import { CartSyncProvider } from "@/components/providers/CartSyncProvider";
+import { ChatbotProvider } from "@/components/Chatbot/ChatbotProvider";
 
 export default function RootLayout({
   children,
@@ -96,6 +97,7 @@ export default function RootLayout({
             {children}
           </CartSyncProvider>
           <CompareBar />
+          <ChatbotProvider />
           <Toaster />
           {/* Debug logger: enable in development or when NEXT_PUBLIC_DEBUG === 'true'.
         For production, set NEXT_PUBLIC_DEBUG=true in Vercel Environment Variables
