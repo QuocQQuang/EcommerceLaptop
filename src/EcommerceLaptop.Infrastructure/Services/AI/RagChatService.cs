@@ -329,10 +329,10 @@ Output JSON ONLY:
                 {
                     _logger.LogInformation($"[DEBUG] Found {foundProducts.Count} products.");
                     
-                    // FIX: Only show visual product cards if the user explicitly WANTED to search.
+                    // FIX: Only show visual product cards if the user explicitly WANTED to search OR ASKED FOR ADVICE.
                     // For CartManagement (e.g. "add this to cart"), we need RAG for context/ID, 
                     // but we shouldn't spam the chat with product cards again.
-                    if (intent == Core.Enums.UserIntent.ProductSearch)
+                    if (intent == Core.Enums.UserIntent.ProductSearch || intent == Core.Enums.UserIntent.ProductAdvice)
                     {
                         foreach (var p in foundProducts)
                         {
