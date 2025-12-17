@@ -126,10 +126,44 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
         {
             try
             {
-                 // TODO: Implement Filters if neede
+                Qdrant.Client.Grpc.Filter? qdrantFilter = null;
+                if (filter != null && filter.Any())
+                {
+                    var conditions = new List<Condition>();
+                    foreach (var kvp in filter)
+                    {
+                        if (kvp.Key == "price_max" && kvp.Value is double maxPrice)
+                        {
+                            conditions.Add(new Condition { Filter = new Filter { Must = { new Condition { Field = new FieldCondition { Key = "price", Range = new Qdrant.Client.Grpc.Range { Lte = maxPrice } } } } } });
+                        }
+                        else if (kvp.Key == "price_min" && kvp.Value is double minPrice)
+                        {
+                            conditions.Add(new Condition { Filter = new Filter { Must = { new Condition { Field = new FieldCondition { Key = "price", Range = new Qdrant.Client.Grpc.Range { Gte = minPrice } } } } } });
+                        }
+                        else if (kvp.Key == "category_id" && kvp.Value is string catId) // Qdrant stores ints as ints, but sometimes we might pass strings. Handle carefully.
+                        {
+                             // Assuming metadata stores int for IDs
+                             if (long.TryParse(catId, out var cid))
+                                conditions.Add(new Condition { Field = new FieldCondition { Key = "category_id", Match = new Match { Integer = cid } } });
+                        }
+                        else // Exact match for others (e.g. brand_id)
+                        {
+                             if (kvp.Value is int i) conditions.Add(new Condition { Field = new FieldCondition { Key = kvp.Key, Match = new Match { Integer = i } } });
+                             else if (kvp.Value is long l) conditions.Add(new Condition { Field = new FieldCondition { Key = kvp.Key, Match = new Match { Integer = l } } });
+                             else if (kvp.Value is string s) conditions.Add(new Condition { Field = new FieldCondition { Key = kvp.Key, Match = new Match { Keyword = s } } }); // Keyword likely better for string tags
+                        }
+                    }
+
+                    if (conditions.Any())
+                    {
+                        qdrantFilter = new Filter { Must = { conditions } };
+                    }
+                }
+
                 var results = await _client.SearchAsync(
                     collectionName,
                     vector,
+                    filter: qdrantFilter,
                     limit: (ulong)limit
                 );
                 return MapResults(results);

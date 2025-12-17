@@ -163,7 +163,9 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
             // 3. Routing based on Intent
             Console.WriteLine($"[DEBUG] Intent: {intent}");
-            if (intent == Core.Enums.UserIntent.ProductSearch || intent == Core.Enums.UserIntent.CartManagement)
+            if (intent == Core.Enums.UserIntent.ProductSearch || 
+                intent == Core.Enums.UserIntent.CartManagement ||
+                intent == Core.Enums.UserIntent.ProductAdvice)
             {
                 yield return new ProgressEvent { Stage = "Retrieval", Message = "Searching products...", Progress = 0.5 };
                 
@@ -172,29 +174,70 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
                 try
                 {
-                    // RAG Flow
-                    var embedding = await _embeddingService.GenerateEmbeddingAsync(query);
-                    var searchResults = await _vectorDbService.SearchAsync(CollectionName, embedding, limit: 5);
+                    // STEP 5 & 7: Query Rewriting and Hard Filter Extraction
+                    // We need a lightweight Kernel/Service for this pre-processing step
+                    var preProcessKernel = await BuildKernelAsync();
+                    var chatService = preProcessKernel.GetRequiredService<IChatCompletionService>();
+                    
+                    var rewritingHistory = new ChatHistory();
+                    rewritingHistory.AddSystemMessage(@"You are a Search Optimizer for a Laptop Store.
+Analyze the user's query and extract:
+1. 'rewritten_query': A keyword-test optimized English version of the query for Vector Search (e.g., 'laptop gaming' -> 'gaming laptop high performance discrete gpu').
+2. 'filters': A dictionary of hard filters if explicitly stated. Supported keys: 'price_min' (double), 'price_max' (double), 'category_id' (int, 4=Gaming, 5=Thin&Light, 6=Business, 7=Apple), 'brand_id' (int).
+3. 'sort': 'price_asc' or 'price_desc' if requested.
+
+Output JSON ONLY:
+{
+  ""rewritten_query"": ""string"",
+  ""filters"": { ""price_max"": 20000000, ""category_id"": ""4"" }
+}");
+                    rewritingHistory.AddUserMessage(query);
+
+                    var rewriteSettings = new OpenAIPromptExecutionSettings { Temperature = 0.1, ResponseFormat = "json_object" }; // Force JSON
+                    var rewriteResult = await chatService.GetChatMessageContentAsync(rewritingHistory, rewriteSettings, preProcessKernel);
+                    
+                    string optimizedQuery = query;
+                    Dictionary<string, object>? hardFilters = null;
+
+                    try 
+                    {
+                        var json = System.Text.Json.JsonDocument.Parse(rewriteResult.Content!);
+                        if (json.RootElement.TryGetProperty("rewritten_query", out var rq)) optimizedQuery = rq.GetString() ?? query;
+                        
+                        if (json.RootElement.TryGetProperty("filters", out var f) && f.ValueKind == System.Text.Json.JsonValueKind.Object)
+                        {
+                            hardFilters = new Dictionary<string, object>();
+                            foreach (var prop in f.EnumerateObject())
+                            {
+                                if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number)
+                                    hardFilters[prop.Name] = prop.Value.GetDouble();
+                                else if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.String)
+                                    hardFilters[prop.Name] = prop.Value.GetString()!;
+                            }
+                        }
+                        _logger.LogInformation($"[RAG] Rewrote '{query}' to '{optimizedQuery}'. Filters: {System.Text.Json.JsonSerializer.Serialize(hardFilters)}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "[RAG] Failed to parse rewrite result. Using original query.");
+                    }
+
+                    // RAG Flow with Optimized Query and Filters
+                    var embedding = await _embeddingService.GenerateEmbeddingAsync(optimizedQuery);
+                    var searchResults = await _vectorDbService.SearchAsync(CollectionName, embedding, limit: 10, filter: hardFilters);
                     
                     // Real-time Data Enrichment
                     var productIds = searchResults
                         .Select(r => 
                         {
-                            try { System.IO.File.AppendAllText("rag_debug.txt", $"[DEBUG] Result {r.Id} ALL Keys: {string.Join(", ", r.Metadata.Keys)}\n"); } catch {}
-                            
-                            _logger.LogWarning($"[DEBUG] Processing result {r.Id}. Metadata Keys: {string.Join(", ", r.Metadata.Keys)}");
+                            // ... existing ID extraction logic ... (keeping it concise for this replacement)
                             if (r.Metadata.TryGetValue("product_id", out var pidObj))
                             {
-                                _logger.LogWarning($"[DEBUG] Found product_id: {pidObj} ({pidObj.GetType().Name})");
                                 if (pidObj is int i) return i;
                                 if (pidObj is long l) return (int)l;
-                                if (pidObj is double d) return (int)d;
+                                if (pidObj is double d) return (int)d; // Json number
                                 if (pidObj is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.Number) return je.GetInt32();
                                 if (pidObj is string s && int.TryParse(s, out var parsed)) return parsed;
-                            }
-                            else 
-                            {
-                                _logger.LogWarning($"[DEBUG] product_id NOT FOUND in metadata for result {r.Id}");
                             }
                             return (int?)null;
                         })
@@ -284,10 +327,17 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                 }
                 else
                 {
-                    Console.WriteLine($"[DEBUG] Found {foundProducts.Count} products.");
-                    foreach (var p in foundProducts)
+                    _logger.LogInformation($"[DEBUG] Found {foundProducts.Count} products.");
+                    
+                    // FIX: Only show visual product cards if the user explicitly WANTED to search.
+                    // For CartManagement (e.g. "add this to cart"), we need RAG for context/ID, 
+                    // but we shouldn't spam the chat with product cards again.
+                    if (intent == Core.Enums.UserIntent.ProductSearch)
                     {
-                        yield return p;
+                        foreach (var p in foundProducts)
+                        {
+                            yield return p;
+                        }
                     }
                 }
             }

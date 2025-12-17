@@ -4,6 +4,7 @@ namespace EcommerceLaptop.Core.Enums
     {
         Unknown,
         ProductSearch,
+        ProductAdvice, // New intent for consultation without forcing visual search results
         GeneralChat,
         Support,
         OrderStatus,

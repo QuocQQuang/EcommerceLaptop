@@ -210,7 +210,7 @@ function PromotionContent() {
               </div>
               <div className="text-center p-4 border border-orange-200 rounded-lg">
                 <h5 className="font-semibold text-orange-900 mb-2">Laptop Gaming</h5>
-                <div className="text-lg font-bold text-orange-600">5-20 triu</div>
+                <div className="text-lg font-bold text-orange-600">Di 2000$</div>
                 <p className="text-sm text-orange-700">RTX 20/30/40 series</p>
               </div>
               <div className="text-center p-4 border border-orange-200 rounded-lg">
