@@ -78,5 +78,10 @@ export const llmService = {
     async testEmbedding(): Promise<{ success: boolean, latencyMs: number, dimensions: number, message: string }> {
         const { data } = await api.post('/llm/test-embedding');
         return data;
+    },
+
+    async reindexVectorDb(): Promise<any> {
+        const { data } = await api.post('/search/vector/reindex');
+        return data;
     }
 };

@@ -320,7 +320,7 @@ public class SearchController(
     /// Triggers re-indexing of all products into the Vector DB (Admin only)
     /// </summary>
     [HttpPost("vector/reindex")]
-    [Authorize(Roles = "Admin")] // Require Admin role for reindexing
+    [Authorize(Policy = "AdminOnly")] // Require AdminOnly policy (more robust than Role check)
     public async Task<IActionResult> ReindexVectorDb([FromServices] IProductIndexingManagementService indexingService)
     {
         try 

@@ -548,7 +548,6 @@ export default function LlmConfigPage() {
                                 <div className="flex items-center gap-4">
                                     <button
                                         onClick={async () => {
-                                            setTestChatResult(null); // Reuse state slightly or creating new if needed, but for now simple alert/display
                                             try {
                                                 const res = await llmService.testEmbedding();
                                                 alert(`Success!\nLatency: ${res.latencyMs}ms\nDimensions: ${res.dimensions}\nMessage: ${res.message}`);
@@ -559,6 +558,21 @@ export default function LlmConfigPage() {
                                         className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2"
                                     >
                                         <Play size={16} /> Test Embedding Speed
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            if (!confirm('This will Re-index ALL products to Qdrant using the current embedding model. Continue?')) return;
+                                            try {
+                                                alert("Triggering Re-index... Check backend logs for progress.");
+                                                await llmService.reindexVectorDb();
+                                                alert("Re-index triggered successfully!");
+                                            } catch (e: any) {
+                                                alert("Failed: " + e.message);
+                                            }
+                                        }}
+                                        className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2"
+                                    >
+                                        <Sliders size={16} /> Re-index Vector DB
                                     </button>
                                     <p className="text-sm text-gray-500">
                                         Tests the <b>dedicated</b> embedding provider configured in <code>appsettings.json</code>.
