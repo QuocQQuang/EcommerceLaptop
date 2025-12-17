@@ -92,11 +92,7 @@ export default function LlmConfigPage() {
             name: '',
             modelId: '',
             apiKey: '',
-            configJson: JSON.stringify({
-                temperature: 0.7,
-                max_tokens: 4096,
-                streaming: true
-            }, null, 2),
+            configJson: '{}',
             isActive: true
         });
     };
@@ -527,7 +523,7 @@ export default function LlmConfigPage() {
 
 // Helpers
 interface FormInputProps {
-    label: string;
+    label?: string;
     value: any;
     onChange: (val: string) => void;
     type?: string;
@@ -537,7 +533,7 @@ interface FormInputProps {
 function FormInput({ label, value, onChange, type = "text", placeholder = "" }: FormInputProps) {
     return (
         <div>
-            <label className="block text-sm font-medium mb-1">{label}</label>
+            {label && <label className="block text-sm font-medium mb-1">{label}</label>}
             <input
                 type={type}
                 className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -583,14 +579,16 @@ function VisualConfigEditor({ jsonString, onChange }: { jsonString: string, onCh
     }, [jsonString]);
 
     const updateConfig = (key: string, value: any) => {
-        let newConfig = { ...config, [key]: value };
+        let newConfig = { ...config };
 
-        // Sparse Payload Logic: Remove keys if they match defaults
-        if (key === 'temperature' && value === 1.0) delete newConfig.temperature;
-        if (key === 'top_p' && value === 1.0) delete newConfig.top_p;
-        if (key === 'frequency_penalty' && value === 0) delete newConfig.frequency_penalty;
-        if (key === 'presence_penalty' && value === 0) delete newConfig.presence_penalty;
-        // if (key === 'max_tokens' && value === 4096) delete newConfig.max_tokens; // Keep max_tokens explicit usually
+        if (value === undefined || value === null) {
+            delete newConfig[key];
+        } else {
+            newConfig[key] = value;
+        }
+
+        // Auto-cleanup sparse defaults if desired, or keep explicit if user set them.
+        // For now, we respect the user's explicit choices via the UI toggles/inputs.
 
         setConfig(newConfig);
         onChange(JSON.stringify(newConfig, null, 2));
@@ -617,6 +615,15 @@ function VisualConfigEditor({ jsonString, onChange }: { jsonString: string, onCh
                     onValueChange={([val]) => updateConfig('temperature', val)}
                 />
                 <p className="text-xs text-gray-400">Controls randomness: 1.0 is neutral/raw.</p>
+                <div className="flex justify-end">
+                    <button
+                        onClick={() => updateConfig('temperature', undefined)}
+                        className="text-xs text-red-400 hover:text-red-500 hover:underline"
+                        title="Remove this parameter from JSON"
+                    >
+                        Unset / Remove
+                    </button>
+                </div>
             </div>
 
             {/* Top P */}
@@ -635,6 +642,14 @@ function VisualConfigEditor({ jsonString, onChange }: { jsonString: string, onCh
                     step={0.05}
                     onValueChange={([val]) => updateConfig('top_p', val)}
                 />
+                <div className="flex justify-end mt-1">
+                    <button
+                        onClick={() => updateConfig('top_p', undefined)}
+                        className="text-xs text-red-400 hover:text-red-500 hover:underline"
+                    >
+                        Unset
+                    </button>
+                </div>
             </div>
 
             {/* Frequency & Presence Penalty */}
@@ -669,26 +684,41 @@ function VisualConfigEditor({ jsonString, onChange }: { jsonString: string, onCh
 
             {/* Max Tokens */}
             <div className="space-y-3">
-                <div className="flex justify-between">
-                    <Label>Max Tokens</Label>
-                    <span className="text-sm font-mono bg-white px-2 rounded border">{config.max_tokens ?? 4096}</span>
+                <div className="flex justify-between items-center">
+                    <Label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={config.max_tokens !== undefined}
+                            onChange={(e) => updateConfig('max_tokens', e.target.checked ? 4096 : undefined)}
+                            className="rounded border-gray-300"
+                        />
+                        Max Tokens
+                    </Label>
+                    {config.max_tokens !== undefined && (
+                        <span className="text-sm font-mono bg-white px-2 rounded border">{config.max_tokens}</span>
+                    )}
                 </div>
-                <div className="flex gap-4 items-center">
-                    <Slider
-                        className="flex-1"
-                        value={[config.max_tokens ?? 4096]}
-                        min={128}
-                        max={32000}
-                        step={128}
-                        onValueChange={([val]) => updateConfig('max_tokens', val)}
-                    />
-                    <input
-                        type="number"
-                        className="w-20 p-1 text-sm border rounded text-right"
-                        value={config.max_tokens ?? 4096}
-                        onChange={(e) => updateConfig('max_tokens', parseInt(e.target.value))}
-                    />
-                </div>
+                {config.max_tokens !== undefined && (
+                    <div className="flex gap-4 items-center">
+                        <Slider
+                            className="flex-1"
+                            value={[config.max_tokens]}
+                            min={128}
+                            max={32000}
+                            step={128}
+                            onValueChange={([val]) => updateConfig('max_tokens', val)}
+                        />
+                        <input
+                            type="number"
+                            className="w-20 p-1 text-sm border rounded text-right"
+                            value={config.max_tokens}
+                            onChange={(e) => updateConfig('max_tokens', parseInt(e.target.value))}
+                        />
+                    </div>
+                )}
+                {config.max_tokens === undefined && (
+                    <p className="text-xs text-gray-400">Not sent (using provider default)</p>
+                )}
             </div>
 
             {/* Extra Params */}
@@ -706,10 +736,18 @@ function VisualConfigEditor({ jsonString, onChange }: { jsonString: string, onCh
                 <div className="flex items-center justify-between border p-2 rounded bg-white">
                     <Label>Streaming</Label>
                     <Switch
-                        checked={config.streaming !== false}
-                        onCheckedChange={(checked) => updateConfig('streaming', checked)}
+                        checked={config.streaming === true}
+                        onCheckedChange={(checked) => updateConfig('streaming', checked ? true : undefined)}
                     />
                 </div>
+            </div>
+            <div className="pt-2 text-right">
+                <button
+                    onClick={() => { setConfig({}); onChange('{}'); }}
+                    className="text-xs text-red-500 hover:underline"
+                >
+                    Clear All Config
+                </button>
             </div>
         </div>
     );
