@@ -17,11 +17,16 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
     {
         private readonly ApplicationDbContext _context;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly Core.Interfaces.ILlmConfigProvider _llmConfigProvider;
 
-        public LlmManagementService(ApplicationDbContext context, IHttpClientFactory httpClientFactory)
+        public LlmManagementService(
+            ApplicationDbContext context, 
+            IHttpClientFactory httpClientFactory,
+            Core.Interfaces.ILlmConfigProvider llmConfigProvider)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;
+            _llmConfigProvider = llmConfigProvider;
         }
 
         // Provider Management
@@ -131,6 +136,9 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             setting.SettingValue = profileId.ToString();
             setting.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
+            
+            // Invalidate cache so new config takes effect immediately
+            _llmConfigProvider.InvalidateCache();
         }
         
         // Testing

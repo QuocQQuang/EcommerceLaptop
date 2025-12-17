@@ -64,6 +64,15 @@ export const llmService = {
         await api.post(`/llm/profiles/${profileId}/activate`);
     },
 
+    async getActiveProfile(): Promise<{ id: number; name: string; providerId: number } | null> {
+        try {
+            const { data } = await api.get('/llm/profiles/active');
+            return data;
+        } catch (error) {
+            return null;
+        }
+    },
+
     // Click & Play Utilities
     async fetchRemoteModels(req: { baseUrl: string, apiKey: string, providerType: string }): Promise<string[]> {
         const { data } = await api.post('/llm/providers/models', req);

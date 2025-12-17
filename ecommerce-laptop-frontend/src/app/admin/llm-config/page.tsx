@@ -9,6 +9,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 export default function LlmConfigPage() {
     const [providers, setProviders] = useState<LlmProvider[]>([]);
@@ -17,6 +18,7 @@ export default function LlmConfigPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'date-error'>('idle');
+    const [activeProfileId, setActiveProfileId] = useState<number | null>(null);
 
     // Forms State
     const [isEditingProvider, setIsEditingProvider] = useState(false);
@@ -35,7 +37,7 @@ export default function LlmConfigPage() {
             }
         } catch (e) {
             console.error(e);
-            alert("Xa tht bi");
+            toast.error("Xa tht bi");
         }
     };
 
@@ -55,6 +57,11 @@ export default function LlmConfigPage() {
         try {
             const data = await llmService.getAllProviders();
             setProviders(data);
+
+            // Fetch Active Profile
+            const active = await llmService.getActiveProfile();
+            if (active) setActiveProfileId(active.id);
+
             if (data.length > 0 && !selectedProvider) {
                 // setSelectedProvider(data[0]); 
                 // Don't auto-select to keep UI clean initially
@@ -131,7 +138,7 @@ export default function LlmConfigPage() {
             }
         } catch (e) {
             console.error(e);
-            alert('Lu tht bi');
+            toast.error('Lu tht bi');
         } finally {
             setIsSaving(false);
         }
@@ -164,7 +171,7 @@ export default function LlmConfigPage() {
             setIsEditingProfile(false);
         } catch (e) {
             console.error(e);
-            alert('Xa tht bi');
+            toast.error('Xa tht bi');
         } finally {
             setIsSaving(false);
         }
@@ -179,8 +186,14 @@ export default function LlmConfigPage() {
 
     const handleActivateProfile = async () => {
         if (!selectedProfile) return;
-        await llmService.activateProfile(selectedProfile.id);
-        alert(` kch hot: ${selectedProfile.name}`);
+        try {
+            await llmService.activateProfile(selectedProfile.id);
+            setActiveProfileId(selectedProfile.id);
+            toast.success(` kch hot: ${selectedProfile.name}`);
+        } catch (e: any) {
+            console.error(e);
+            toast.error("Kch hot tht bi");
+        }
     };
 
     const handleDeleteProfile = async () => {
@@ -203,10 +216,10 @@ export default function LlmConfigPage() {
                 providerType: formData.type || selectedProvider?.type || 'openai'
             });
             setFetchedModels(models);
-            // alert(`Fetched ${models.length} models`);
+            toast.success(`Fetched ${models.length} models`);
         } catch (e: any) {
             console.error(e);
-            alert("Failed to fetch models: " + (e.response?.data?.message || e.message));
+            toast.error("Failed to fetch models: " + (e.response?.data?.message || e.message));
         } finally {
             setIsFetchingModels(false);
         }
@@ -290,6 +303,11 @@ export default function LlmConfigPage() {
                                         >
                                             <Settings size={14} />
                                             {profile.name}
+                                            {activeProfileId === profile.id && (
+                                                <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">
+                                                    ACTIVE
+                                                </span>
+                                            )}
                                         </div>
                                     ))}
                                     <button
@@ -550,9 +568,9 @@ export default function LlmConfigPage() {
                                         onClick={async () => {
                                             try {
                                                 const res = await llmService.testEmbedding();
-                                                alert(`Success!\nLatency: ${res.latencyMs}ms\nDimensions: ${res.dimensions}\nMessage: ${res.message}`);
+                                                toast.success(`Success! Latency: ${res.latencyMs}ms`);
                                             } catch (e: any) {
-                                                alert("Failed: " + e.message);
+                                                toast.error("Failed: " + e.message);
                                             }
                                         }}
                                         className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2"
