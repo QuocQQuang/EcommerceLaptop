@@ -24,6 +24,21 @@ export default function LlmConfigPage() {
     const [isVisualMode, setIsVisualMode] = useState(true);
     const [formData, setFormData] = useState<any>({});
 
+    const handleDeleteProvider = async (provider: LlmProvider) => {
+        if (!confirm(`Bn c chc chn mun xa nh cung cp "${provider.name}" v tt c cu hnh lin quan?`)) return;
+        try {
+            await llmService.deleteProvider(provider.id);
+            await loadProviders();
+            if (selectedProvider?.id === provider.id) {
+                setSelectedProvider(null);
+                setSelectedProfile(null);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Xa tht bi");
+        }
+    };
+
     // Click & Play State
     const [fetchedModels, setFetchedModels] = useState<string[]>([]);
     const [isFetchingModels, setIsFetchingModels] = useState(false);
@@ -116,7 +131,7 @@ export default function LlmConfigPage() {
             }
         } catch (e) {
             console.error(e);
-            alert('Failed to save provider');
+            alert('Lu tht bi');
         } finally {
             setIsSaving(false);
         }
@@ -149,7 +164,7 @@ export default function LlmConfigPage() {
             setIsEditingProfile(false);
         } catch (e) {
             console.error(e);
-            alert('Failed to save profile');
+            alert('Xa tht bi');
         } finally {
             setIsSaving(false);
         }
@@ -165,11 +180,11 @@ export default function LlmConfigPage() {
     const handleActivateProfile = async () => {
         if (!selectedProfile) return;
         await llmService.activateProfile(selectedProfile.id);
-        alert(`Activated profile: ${selectedProfile.name}`);
+        alert(` kch hot: ${selectedProfile.name}`);
     };
 
     const handleDeleteProfile = async () => {
-        if (!selectedProfile || !confirm('Are you sure you want to delete this profile?')) return;
+        if (!selectedProfile || !confirm('Bn c chc chn mun xa cu hnh ny?')) return;
         await llmService.deleteProfile(selectedProfile.id);
         setSelectedProfile(null);
         loadProviders();
@@ -233,20 +248,29 @@ export default function LlmConfigPage() {
 
                 <div className="flex-1 overflow-y-auto p-2 space-y-2">
                     {isLoading ? (
-                        <div className="p-4 text-center text-gray-500">Loading...</div>
+                        <div className="p-4 text-center text-gray-500">ang ti...</div>
                     ) : providers.map(provider => (
                         <div key={provider.id} className="border rounded-lg overflow-hidden">
                             <div
                                 onClick={() => handleSelectProvider(provider)}
-                                className={`p-3 cursor-pointer flex justify-between items-center transition ${selectedProvider?.id === provider.id
+                                className={`p-3 cursor-pointer flex justify-between items-center transition group ${selectedProvider?.id === provider.id
                                     ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200'
                                     : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                                     }`}
                             >
                                 <span className="font-medium">{provider.name}</span>
-                                <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300">
-                                    {provider.type}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300">
+                                        {provider.type}
+                                    </span>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleDeleteProvider(provider); }}
+                                        className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition"
+                                        title="Xa nh cung cp"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Profiles List (nested) */}
@@ -272,7 +296,7 @@ export default function LlmConfigPage() {
                                         onClick={(e) => { e.stopPropagation(); handleNewProfile(); }}
                                         className="w-full text-xs text-center py-2 text-blue-600 hover:underline"
                                     >
-                                        + Add Profile
+                                        + Thm Cu Hnh
                                     </button>
                                 </div>
                             )}
@@ -286,7 +310,7 @@ export default function LlmConfigPage() {
                 {!selectedProvider && !isEditingProvider ? (
                     <div className="h-full flex flex-col items-center justify-center text-gray-400">
                         <Server size={48} className="mb-4 opacity-50" />
-                        <p>Select a provider or create a new one</p>
+                        <p>Chn nh cung cp hoc to mi</p>
                     </div>
                 ) : (
                     <div className="space-y-6 max-w-3xl">
@@ -294,10 +318,10 @@ export default function LlmConfigPage() {
                         <div className="flex justify-between items-center border-b pb-4">
                             <div>
                                 <h1 className="text-2xl font-bold">
-                                    {isEditingProvider ? 'New Provider' : selectedProfile ? selectedProfile.name : selectedProvider?.name}
+                                    {isEditingProvider ? 'Nh Cung Cp Mi' : selectedProfile ? selectedProfile.name : selectedProvider?.name}
                                 </h1>
                                 <p className="text-gray-500 text-sm">
-                                    {selectedProfile ? `Profile for ${selectedProvider?.name}` : 'Provider Configuration'}
+                                    {selectedProfile ? `Cu hnh cho ${selectedProvider?.name}` : 'Qun l Nh Cung Cp'}
                                 </p>
                             </div>
                             {selectedProfile && !isEditingProfile && (
@@ -315,13 +339,13 @@ export default function LlmConfigPage() {
                                         onClick={handleActivateProfile}
                                         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                                     >
-                                        Activate
+                                        Kch Hot
                                     </button>
                                     <button
                                         onClick={() => setIsEditingProfile(true)}
                                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                     >
-                                        Edit
+                                        Sa
                                     </button>
                                 </div>
                             )}
@@ -347,9 +371,9 @@ export default function LlmConfigPage() {
                                 <FormInput label="Website" value={formData.website} onChange={(v) => setFormData({ ...formData, website: v })} />
 
                                 <div className="pt-4 flex justify-end gap-3">
-                                    <button onClick={() => setIsEditingProvider(false)} className="px-4 py-2 text-gray-600">Cancel</button>
+                                    <button onClick={() => setIsEditingProvider(false)} className="px-4 py-2 text-gray-600">Hy</button>
                                     <button onClick={handleSaveProvider} className="px-4 py-2 bg-blue-600 text-white rounded-lg" disabled={isSaving}>
-                                        {isSaving ? 'Saving...' : 'Create Provider'}
+                                        {isSaving ? 'ang lu...' : 'To Nh Cung Cp'}
                                     </button>
                                 </div>
                             </div>
@@ -371,7 +395,7 @@ export default function LlmConfigPage() {
                                         </div>
                                         <div className="col-span-2 flex justify-end">
                                             <button onClick={handleDeleteProfile} className="text-red-500 hover:text-red-700 flex items-center gap-1 text-sm">
-                                                <Trash2 size={16} /> Delete Profile
+                                                <Trash2 size={16} /> Xa Cu Hnh
                                             </button>
                                         </div>
                                     </div>
@@ -390,7 +414,7 @@ export default function LlmConfigPage() {
                                                     disabled={isFetchingModels}
                                                 >
                                                     {isFetchingModels ? <Loader2 size={12} className="animate-spin" /> : <CloudDownload size={12} />}
-                                                    Fetch Models
+                                                    Ti DS Model
                                                 </button>
                                             </div>
                                             {fetchedModels.length > 0 ? (
@@ -438,7 +462,7 @@ export default function LlmConfigPage() {
                                                     </div>
                                                 </div>
                                                 <span className="text-xs text-gray-500">
-                                                    {isVisualMode ? 'Visual adjustments' : 'Advanced JSON config'}
+                                                    {isVisualMode ? 'Chnh sa trc quan' : 'Cu hnh JSON nng cao'}
                                                 </span>
                                             </div>
 
@@ -469,11 +493,11 @@ export default function LlmConfigPage() {
                                                 }}
                                                 className="px-4 py-2 text-gray-600"
                                             >
-                                                Cancel
+                                                Hy
                                             </button>
                                             <button onClick={handleSaveProfile} className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2" disabled={isSaving}>
                                                 <Save size={18} />
-                                                {isSaving ? 'Saving...' : 'Save Profile'}
+                                                {isSaving ? 'ang lu...' : 'Lu Cu Hnh'}
                                             </button>
                                         </div>
                                     </div>
