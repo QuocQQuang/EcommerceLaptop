@@ -25,6 +25,9 @@ public static class DataInitializer
         // Seed demo customers, inventory, and 100 orders
         OrderDemoDataSeeder.SeedIfEmpty(context, logger);
 
+        // Seed extended product data from JSON (Laptops from IDs 10+)
+        ProductDataSeeder.SeedFromJson(context, logger);
+
         // Normalize laptop specifications to canonical sets for easier filtering
         LaptopSpecificsSeeder.NormalizeSpecs(context, logger);
 

@@ -399,6 +399,10 @@ namespace EcommerceLaptop.Infrastructure.Data
                 new BundleItem { Id = 2, BundleId = 100, ProductId = 3, Quantity = 1, DiscountPercentage = 20.0m }  // Logitech MX Master 3S
             );
 
+
+
+            SeedMoreProducts(modelBuilder, seedDate);
+
             // Seed inventory records
             modelBuilder.Entity<Inventory>().HasData(
                 new Inventory { Id = 1, ProductId = 1, QuantityInStock = 50, ReservedQuantity = 0, ReorderLevel = 10, MaxStockLevel = 100, WarehouseLocation = "WH-A-001", LastStockUpdate = seedDate },
@@ -407,8 +411,6 @@ namespace EcommerceLaptop.Infrastructure.Data
                 new Inventory { Id = 4, ProductId = 4, QuantityInStock = 25, ReservedQuantity = 0, ReorderLevel = 5, MaxStockLevel = 50, WarehouseLocation = "WH-B-002", LastStockUpdate = seedDate },
                 new Inventory { Id = 100, ProductId = 100, QuantityInStock = 10, ReservedQuantity = 0, ReorderLevel = 2, MaxStockLevel = 20, WarehouseLocation = "WH-BUNDLE-001", LastStockUpdate = seedDate }
             );
-
-            SeedMoreProducts(modelBuilder, seedDate);
 
             // Seed sample coupon
             modelBuilder.Entity<Coupon>().HasData(

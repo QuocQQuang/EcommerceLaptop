@@ -42,4 +42,10 @@
     <ProjectReference Include="..\EcommerceLaptop.Infrastructure\EcommerceLaptop.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Seed\Data\laptops.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
