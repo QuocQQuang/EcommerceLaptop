@@ -20,6 +20,8 @@ namespace EcommerceLaptop.Core.Interfaces.Services
         Task UpdateProfileAsync(LlmProfile profile);
         Task DeleteProfileAsync(int id);
         Task SetActiveProfileAsync(int profileId);
+        Task<int?> GetActiveRewritingProfileIdAsync();
+        Task SetActiveRewritingProfileAsync(int? profileId);
         
         // Testing & Utilities
         Task<bool> TestConnectionAsync(int profileId);

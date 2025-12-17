@@ -73,6 +73,39 @@ export const llmService = {
         }
     },
 
+    // Rewriting Profile
+    async getActiveRewritingProfileId(): Promise<number | null> {
+        try {
+            const { data } = await api.get('/llm/rewriting-profile');
+            return data.profileId;
+        } catch (error) {
+            return null;
+        }
+    },
+
+    async setActiveRewritingProfile(profileId: number | null): Promise<void> {
+        await api.post('/llm/rewriting-profile', { profileId });
+    },
+
+    // System Settings (Quick Access)
+    async getSystemSetting<T>(key: string): Promise<T | null> {
+        try {
+            const { data } = await api.get(`/systemsettings/${key}`);
+            return data ? JSON.parse(data.settingValue) : null;
+            // Note: Use simple value if not JSON, but currently assuming typed usage or manual parsing
+        } catch (error) {
+            // Fallback to raw string if JSON parse fails or just return string
+            try {
+                const { data } = await api.get(`/systemsettings/${key}`);
+                return (data?.settingValue as unknown as T) ?? null;
+            } catch { return null; }
+        }
+    },
+
+    async updateSystemSetting(key: string, value: string, category: string = 'RAG'): Promise<void> {
+        await api.put(`/systemsettings/${key}`, { value, category });
+    },
+
     // Click & Play Utilities
     async fetchRemoteModels(req: { baseUrl: string, apiKey: string, providerType: string }): Promise<string[]> {
         const { data } = await api.post('/llm/providers/models', req);

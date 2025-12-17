@@ -37,6 +37,18 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
         private readonly ILogger<RagChatService> _logger;
 
         private const string CollectionName = "products";
+        
+        // Main chat kernel caching
+        private static readonly SemaphoreSlim _kernelLock = new(1, 1);
+        private static Kernel? _cachedKernel;
+        private static string? _lastConfigHash;
+        
+        // Rewriting kernel caching (separate profile)
+        private static Kernel? _cachedRewritingKernel;
+        private static int? _lastRewritingProfileId;
+        
+        private readonly ISystemSettingsService _systemSettings;
+        private readonly ILlmManagementService _llmManagement;
 
         public RagChatService(
             IEmbeddingService embeddingService,
@@ -52,6 +64,8 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             IChatPersistenceService persistenceService,
             IToolRegistry toolRegistry,
             Infrastructure.Services.AI.Plugins.RagChatToolsPlugin toolsPlugin,
+            ISystemSettingsService systemSettings,
+            ILlmManagementService llmManagement,
             ILogger<RagChatService> logger)
         {
             _embeddingService = embeddingService;
@@ -67,7 +81,12 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             _persistenceService = persistenceService;
             _toolRegistry = toolRegistry;
             _toolsPlugin = toolsPlugin;
+            _systemSettings = systemSettings;
+            _llmManagement = llmManagement;
             _logger = logger;
+            
+            // Subscribe to config invalidation
+            _configProvider.OnConfigInvalidated += InvalidateCachedKernel;
         }
 
         public async IAsyncEnumerable<ChatStreamEvent> StreamChatAsync(
@@ -174,13 +193,19 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
                 try
                 {
-                    // STEP 5 & 7: Query Rewriting and Hard Filter Extraction
-                    // We need a lightweight Kernel/Service for this pre-processing step
-                    var preProcessKernel = await BuildKernelAsync();
-                    var chatService = preProcessKernel.GetRequiredService<IChatCompletionService>();
+                    var config = await _configProvider.GetConfigAsync();
                     
-                    var rewritingHistory = new ChatHistory();
-                    rewritingHistory.AddSystemMessage(@"You are a Search Optimizer for a Laptop Store.
+                    bool enableRewriting = await _systemSettings.GetSettingValueAsync<bool>("EnableQueryRewriting", true);
+                    string optimizedQuery = query;
+                    Dictionary<string, object>? hardFilters = null;
+
+                    if (enableRewriting)
+                    {
+                        var rewritingKernel = await GetOrCreateRewritingKernelAsync() ?? await GetOrCreateKernelAsync();
+                        var chatService = rewritingKernel.GetRequiredService<IChatCompletionService>();
+                        
+                        var rewritingHistory = new ChatHistory();
+                        rewritingHistory.AddSystemMessage(@"You are a Search Optimizer for a Laptop Store.
 Analyze the user's query and extract:
 1. 'rewritten_query': A keyword-test optimized English version of the query for Vector Search (e.g., 'laptop gaming' -> 'gaming laptop high performance discrete gpu').
 2. 'filters': A dictionary of hard filters if explicitly stated. Supported keys: 'price_min' (double), 'price_max' (double), 'category_id' (int, 4=Gaming, 5=Thin&Light, 6=Business, 7=Apple), 'brand_id' (int).
@@ -191,40 +216,44 @@ Output JSON ONLY:
   ""rewritten_query"": ""string"",
   ""filters"": { ""price_max"": 20000000, ""category_id"": ""4"" }
 }");
-                    rewritingHistory.AddUserMessage(query);
+                        rewritingHistory.AddUserMessage(query);
 
-                    var rewriteSettings = new OpenAIPromptExecutionSettings { Temperature = 0.1, ResponseFormat = "json_object" }; // Force JSON
-                    var rewriteResult = await chatService.GetChatMessageContentAsync(rewritingHistory, rewriteSettings, preProcessKernel);
-                    
-                    string optimizedQuery = query;
-                    Dictionary<string, object>? hardFilters = null;
-
-                    try 
-                    {
-                        var json = System.Text.Json.JsonDocument.Parse(rewriteResult.Content!);
-                        if (json.RootElement.TryGetProperty("rewritten_query", out var rq)) optimizedQuery = rq.GetString() ?? query;
+                        var rewriteSettings = new OpenAIPromptExecutionSettings { Temperature = 0.1, ResponseFormat = "json_object" };
                         
-                        if (json.RootElement.TryGetProperty("filters", out var f) && f.ValueKind == System.Text.Json.JsonValueKind.Object)
+                        try 
                         {
-                            hardFilters = new Dictionary<string, object>();
-                            foreach (var prop in f.EnumerateObject())
+                            var rewriteResult = await chatService.GetChatMessageContentAsync(rewritingHistory, rewriteSettings, rewritingKernel);
+                            var json = System.Text.Json.JsonDocument.Parse(rewriteResult.Content!);
+                            
+                            if (json.RootElement.TryGetProperty("rewritten_query", out var rq)) optimizedQuery = rq.GetString() ?? query;
+                            
+                            if (json.RootElement.TryGetProperty("filters", out var f) && f.ValueKind == System.Text.Json.JsonValueKind.Object)
                             {
-                                if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number)
-                                    hardFilters[prop.Name] = prop.Value.GetDouble();
-                                else if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.String)
-                                    hardFilters[prop.Name] = prop.Value.GetString()!;
+                                hardFilters = new Dictionary<string, object>();
+                                foreach (var prop in f.EnumerateObject())
+                                {
+                                    if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number)
+                                        hardFilters[prop.Name] = prop.Value.GetDouble();
+                                    else if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.String)
+                                        hardFilters[prop.Name] = prop.Value.GetString()!;
+                                }
                             }
+                            _logger.LogInformation($"[RAG] Rewrote '{query}' to '{optimizedQuery}'. Filters: {System.Text.Json.JsonSerializer.Serialize(hardFilters)}");
                         }
-                        _logger.LogInformation($"[RAG] Rewrote '{query}' to '{optimizedQuery}'. Filters: {System.Text.Json.JsonSerializer.Serialize(hardFilters)}");
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "[RAG] Failed to parse rewrite result. Using original query.");
+                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        _logger.LogWarning(ex, "[RAG] Failed to parse rewrite result. Using original query.");
+                        _logger.LogInformation("[RAG] Query rewriting disabled, using original query");
                     }
 
                     // RAG Flow with Optimized Query and Filters
+                    var limit = await _systemSettings.GetSettingValueAsync<int>("ProductCarouselLimit", 5);
                     var embedding = await _embeddingService.GenerateEmbeddingAsync(optimizedQuery);
-                    var searchResults = await _vectorDbService.SearchAsync(CollectionName, embedding, limit: 10, filter: hardFilters);
+                    var searchResults = await _vectorDbService.SearchAsync(CollectionName, embedding, limit: limit, filter: hardFilters);
                     
                     // Real-time Data Enrichment
                     var productIds = searchResults
@@ -366,7 +395,7 @@ Output JSON ONLY:
             yield return new ProgressEvent { Stage = "Generation", Message = "Generating response...", Progress = 0.8 };
 
             // 4. Prepare Kernel & Chat
-            var kernel = await BuildKernelAsync();
+            var kernel = await GetOrCreateKernelAsync();
             var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
 
             var chatHistory = new ChatHistory();
@@ -486,10 +515,20 @@ Context:
             yield return new ProgressEvent { Stage = "Done", Message = "completed", Progress = 1.0 };
         }
 
+
+
         private async Task<Kernel> BuildKernelAsync()
         {
-            var config = await _configProvider.GetConfigAsync();
+             var config = await _configProvider.GetConfigAsync();
+             return await BuildKernelFromConfigAsync(config);
+        }
+
+        private async Task<Kernel> BuildKernelFromConfigAsync(LlmConfiguration config)
+        {
             var builder = Kernel.CreateBuilder();
+            
+            // Use config model
+            var effectiveModelId = config.ModelId;
             
             // Register Tools Plugin
             builder.Plugins.AddFromObject(_toolsPlugin, "RagChatTools");
@@ -518,7 +557,7 @@ Context:
             if (config.Provider.Equals("Azure", StringComparison.OrdinalIgnoreCase))
             {
                 builder.AddAzureOpenAIChatCompletion(
-                    deploymentName: config.ModelId ?? "gpt-4o",
+                    deploymentName: effectiveModelId ?? "gpt-4o",
                     endpoint: config.BaseUrl!,
                     apiKey: config.ApiKey,
                     httpClient: httpClient
@@ -537,7 +576,7 @@ Context:
                  }
 
                  builder.AddOpenAIChatCompletion(
-                    modelId: config.ModelId ?? "llama3",
+                    modelId: effectiveModelId ?? "llama3",
                     apiKey: "dummy", // Ollama doesn't typically need a key
                     httpClient: httpClient
                 );
@@ -551,7 +590,7 @@ Context:
                      {
                         // Some SK extensions need the endpoint explicitly passed if it's not default OpenAI
                         builder.AddOpenAIChatCompletion(
-                            modelId: config.ModelId ?? "gpt-4o",
+                            modelId: effectiveModelId ?? "gpt-4o",
                             apiKey: config.ApiKey,
                             endpoint: new System.Uri(config.BaseUrl),
                             httpClient: httpClient
@@ -561,7 +600,7 @@ Context:
                      {
                          // Fallback mechanism
                          builder.AddOpenAIChatCompletion(
-                            modelId: config.ModelId ?? "gpt-4o",
+                            modelId: effectiveModelId ?? "gpt-4o",
                             apiKey: config.ApiKey,
                             httpClient: httpClient
                         );
@@ -571,7 +610,7 @@ Context:
                  {
                      // Standard OpenAI
                      builder.AddOpenAIChatCompletion(
-                        modelId: config.ModelId ?? "gpt-4o",
+                        modelId: effectiveModelId ?? "gpt-4o",
                         apiKey: config.ApiKey,
                         httpClient: httpClient
                     );
@@ -579,6 +618,88 @@ Context:
             }
 
             return builder.Build();
+        }
+
+        private async Task<Kernel> GetOrCreateKernelAsync()
+        {
+            var config = await _configProvider.GetConfigAsync();
+            var configHash = ComputeConfigHash(config);
+            
+            // Fast path: return cached kernel if config unchanged
+            if (_cachedKernel != null && _lastConfigHash == configHash)
+                return _cachedKernel;
+            
+            // Slow path: rebuild kernel with lock
+            await _kernelLock.WaitAsync();
+            try
+            {
+                // Double-check pattern
+                if (_cachedKernel != null && _lastConfigHash == configHash)
+                    return _cachedKernel;
+                
+                _logger.LogInformation("[PERF] Building new Kernel for config: {ConfigHash}", configHash);
+                _cachedKernel = await BuildKernelAsync();
+                _lastConfigHash = configHash;
+                return _cachedKernel;
+            }
+            finally
+            {
+                _kernelLock.Release();
+            }
+        }
+
+        private async Task<Kernel?> GetOrCreateRewritingKernelAsync()
+        {
+            var profileId = await _llmManagement.GetActiveRewritingProfileIdAsync();
+            if (!profileId.HasValue) return null; // Rewriting disabled
+
+            // Fast path
+            if (_cachedRewritingKernel != null && _lastRewritingProfileId == profileId.Value)
+                return _cachedRewritingKernel;
+
+            await _kernelLock.WaitAsync();
+            try
+            {
+                 // Double check
+                 if (_cachedRewritingKernel != null && _lastRewritingProfileId == profileId.Value)
+                    return _cachedRewritingKernel;
+
+                 // Build new rewriting kernel
+                 var config = await _configProvider.GetConfigForProfileAsync(profileId.Value);
+                 if (config == null) 
+                 {
+                     _logger.LogWarning("[RAG] Optimized rewriting profile {ProfileId} not found, falling back to disabled", profileId);
+                     return null;
+                 }
+
+                 _logger.LogInformation("[PERF] Building Rewriting Kernel for profile {ProfileId}", profileId);
+                 _cachedRewritingKernel = await BuildKernelFromConfigAsync(config);
+                 _lastRewritingProfileId = profileId.Value;
+                 
+                 return _cachedRewritingKernel;
+            }
+            finally 
+            {
+                 _kernelLock.Release();
+            }
+        }
+
+        private void InvalidateCachedKernel()
+        {
+            _cachedKernel = null;
+            _lastConfigHash = null;
+            
+            // Also invalidate rewriting kernel
+            _cachedRewritingKernel = null;
+            _lastRewritingProfileId = null;
+            
+            _logger.LogInformation("[PERF] Kernel cache (main & rewriting) invalidated due to config change");
+        }
+
+        private string ComputeConfigHash(LlmConfiguration config)
+        {
+            // Hash based on critical config that affects kernel setup
+            return $"{config.Provider}:{config.ModelId}:{config.BaseUrl}:{config.ApiKey?.GetHashCode()}";
         }
 
 

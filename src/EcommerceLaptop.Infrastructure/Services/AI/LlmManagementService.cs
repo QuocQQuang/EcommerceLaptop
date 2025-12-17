@@ -18,15 +18,18 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
         private readonly ApplicationDbContext _context;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly Core.Interfaces.ILlmConfigProvider _llmConfigProvider;
+        private readonly ISystemSettingsService _systemSettings;
 
         public LlmManagementService(
             ApplicationDbContext context, 
             IHttpClientFactory httpClientFactory,
-            Core.Interfaces.ILlmConfigProvider llmConfigProvider)
+            Core.Interfaces.ILlmConfigProvider llmConfigProvider,
+            ISystemSettingsService systemSettings)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;
             _llmConfigProvider = llmConfigProvider;
+            _systemSettings = systemSettings;
         }
 
         // Provider Management
@@ -305,6 +308,25 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                     Latency = $"{sw.ElapsedMilliseconds}ms"
                 };
             }
+        }
+
+        // Rewriting Profile Management
+        public async Task<int?> GetActiveRewritingProfileIdAsync()
+        {
+            var value = await _systemSettings.GetSettingValueAsync<string>("ActiveRewritingProfileId");
+            return string.IsNullOrEmpty(value) ? null : int.TryParse(value, out var id) ? id : null;
+        }
+
+        public async Task SetActiveRewritingProfileAsync(int? profileId)
+        {
+            await _systemSettings.UpsertSettingAsync(
+                "ActiveRewritingProfileId", 
+                profileId?.ToString() ?? string.Empty, // Use empty string instead of null
+                "RAG",
+                "LLM Profile ID used for query rewriting (null = disabled)");
+            
+            // Invalidate config cache to trigger rewriting kernel rebuild
+            _llmConfigProvider.InvalidateCache();
         }
     }
 }

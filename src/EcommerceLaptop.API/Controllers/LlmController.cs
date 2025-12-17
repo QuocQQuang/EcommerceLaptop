@@ -13,10 +13,12 @@ namespace EcommerceLaptop.API.Controllers
     public class LlmController : ControllerBase
     {
         private readonly ILlmManagementService _llmService;
+        private readonly ISystemSettingsService _systemSettings;
 
-        public LlmController(ILlmManagementService llmService)
+        public LlmController(ILlmManagementService llmService, ISystemSettingsService systemSettings)
         {
             _llmService = llmService;
+            _systemSettings = systemSettings;
         }
 
         // --- Providers ---
@@ -99,6 +101,22 @@ namespace EcommerceLaptop.API.Controllers
             return NoContent();
         }
 
+        // --- Rewriting Profile ---
+
+        [HttpGet("rewriting-profile")]
+        public async Task<IActionResult> GetActiveRewritingProfile()
+        {
+            var profileId = await _llmService.GetActiveRewritingProfileIdAsync();
+            return Ok(new { profileId });
+        }
+
+        [HttpPost("rewriting-profile")]
+        public async Task<IActionResult> SetActiveRewritingProfile([FromBody] UpdateRewritingProfileRequest request)
+        {
+            await _llmService.SetActiveRewritingProfileAsync(request.ProfileId);
+            return Ok();
+        }
+
         [HttpPost("profiles/{id}/test")]
         public async Task<IActionResult> TestConnection(int id)
         {
@@ -162,5 +180,11 @@ namespace EcommerceLaptop.API.Controllers
                 });
             }
         }
+    }
+
+
+    public class UpdateRewritingProfileRequest
+    {
+        public int? ProfileId { get; set; }
     }
 }

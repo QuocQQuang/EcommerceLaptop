@@ -432,6 +432,43 @@ namespace EcommerceLaptop.Infrastructure.Data
                     CreatedAt = seedDate
                 }
             );
+
+            // Seed RAG-related System Settings
+            modelBuilder.Entity<SystemSetting>().HasData(
+                new SystemSetting
+                {
+                    Id = 100,
+                    Category = "RAG",
+                    SettingKey = "EnableQueryRewriting",
+                    SettingValue = "true",
+                    DataType = "boolean",
+                    Description = "Global toggle for RAG query rewriting feature",
+                    CreatedAt = seedDate,
+                    UpdatedAt = seedDate
+                },
+                new SystemSetting
+                {
+                    Id = 101,
+                    Category = "RAG",
+                    SettingKey = "ActiveRewritingProfileId",
+                    SettingValue = null,
+                    DataType = "int",
+                    Description = "LLM Profile ID used for query rewriting (null = disabled)",
+                    CreatedAt = seedDate,
+                    UpdatedAt = seedDate
+                },
+                new SystemSetting
+                {
+                    Id = 102,
+                    Category = "RAG",
+                    SettingKey = "ProductCarouselLimit",
+                    SettingValue = "5",
+                    DataType = "int",
+                    Description = "Number of products to display in chat carousel",
+                    CreatedAt = seedDate,
+                    UpdatedAt = seedDate
+                }
+            );
         }
 
         private static void SeedMoreProducts(ModelBuilder modelBuilder, DateTime seedDate)

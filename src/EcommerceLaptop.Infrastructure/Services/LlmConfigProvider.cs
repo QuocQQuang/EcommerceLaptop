@@ -20,6 +20,9 @@ namespace EcommerceLaptop.Infrastructure.Services
 
         private const string CacheKey = "llm_config_v2";
         private const string RedisCacheKey = "global:llm_config_v2";
+        
+        // Event for notifying cache invalidation
+        public event Action? OnConfigInvalidated;
 
         public LlmConfigProvider(
             ApplicationDbContext context,
@@ -89,6 +92,7 @@ namespace EcommerceLaptop.Infrastructure.Services
         {
             _memoryCache.Remove(CacheKey);
             _distributedCache.Remove(RedisCacheKey);
+            OnConfigInvalidated?.Invoke(); // Notify subscribers
         }
 
         private async Task<LlmConfiguration> LoadFromDatabaseAsync()
@@ -114,27 +118,41 @@ namespace EcommerceLaptop.Infrastructure.Services
             }
 
             // 2. Map Profile to LlmConfiguration
+            return MapToConfiguration(profile);
+        }
+
+        public async Task<LlmConfiguration?> GetConfigForProfileAsync(int profileId)
+        {
+             var profile = await _context.LlmProfiles
+                .Include(p => p.Provider)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == profileId);
+                
+             if (profile == null) return null;
+             
+             return MapToConfiguration(profile);
+        }
+
+        private LlmConfiguration MapToConfiguration(LlmProfile profile)
+        {
             var config = new LlmConfiguration
             {
                 Provider = profile.Provider.Type,
                 ModelId = profile.ModelId,
-                ApiKey = profile.ApiKey ?? string.Empty, // Value conversion handles decryption
+                ApiKey = profile.ApiKey ?? string.Empty,
                 BaseUrl = profile.Provider.BaseUrl
             };
             
-            // 3. Parse JSON config
             if (!string.IsNullOrEmpty(profile.ConfigJson))
             {
                 try 
                 {
-                    var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                     var doc = JsonDocument.Parse(profile.ConfigJson);
                     
                     if (doc.RootElement.TryGetProperty("temperature", out var temp)) config.Temperature = temp.GetDouble();
                     if (doc.RootElement.TryGetProperty("max_tokens", out var max)) config.MaxTokens = max.GetInt32();
                     if (doc.RootElement.TryGetProperty("streaming", out var stream)) config.StreamingEnabled = stream.GetBoolean();
                     
-                    // Parse Headers
                      if (doc.RootElement.TryGetProperty("headers", out var headers))
                      {
                          foreach(var prop in headers.EnumerateObject())
@@ -143,7 +161,6 @@ namespace EcommerceLaptop.Infrastructure.Services
                          }
                      }
                      
-                     // Parse everything else into AdvancedOptions
                      foreach(var prop in doc.RootElement.EnumerateObject())
                      {
                          string key = prop.Name.ToLower();
@@ -162,10 +179,9 @@ namespace EcommerceLaptop.Infrastructure.Services
                 }
                 catch 
                 { 
-                    // Ignore JSON parse errors, stick to defaults
+                    // Ignore JSON parse errors
                 }
             }
-
             return config;
         }
 

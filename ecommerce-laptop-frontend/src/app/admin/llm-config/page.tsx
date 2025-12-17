@@ -42,6 +42,13 @@ export default function LlmConfigPage() {
     const [testChatResult, setTestChatResult] = useState<any>(null);
     const [isTestingChat, setIsTestingChat] = useState(false);
 
+    // Global RAG State
+    const [globalEnableRewriting, setGlobalEnableRewriting] = useState(true);
+    const [globalRewritingProfileId, setGlobalRewritingProfileId] = useState<number | null>(null);
+    const [globalCarouselLimit, setGlobalCarouselLimit] = useState(5);
+
+
+
     useEffect(() => {
         loadProviders();
     }, []);
@@ -55,6 +62,16 @@ export default function LlmConfigPage() {
             // Fetch Active Profile
             const active = await llmService.getActiveProfile();
             if (active) setActiveProfileId(active.id);
+
+            // Fetch Global RAG Settings
+            const rewritingEnabled = await llmService.getSystemSetting<boolean>('EnableQueryRewriting');
+            setGlobalEnableRewriting(rewritingEnabled ?? true);
+
+            const rewritingProfileId = await llmService.getActiveRewritingProfileId();
+            setGlobalRewritingProfileId(rewritingProfileId);
+
+            const carouselLimit = await llmService.getSystemSetting<number>('ProductCarouselLimit');
+            setGlobalCarouselLimit(carouselLimit ?? 5);
 
             // Maintain selection if possible, else clear
             // if (data.length > 0 && !selectedProvider) { ... }
@@ -262,6 +279,21 @@ export default function LlmConfigPage() {
             setTestChatResult({ success: false, error: e.message });
         } finally {
             setIsTestingChat(false);
+        }
+    };
+
+    const handleSaveGlobalConfig = async () => {
+        setIsSaving(true);
+        try {
+            await llmService.updateSystemSetting('EnableQueryRewriting', String(globalEnableRewriting));
+            await llmService.setActiveRewritingProfile(globalRewritingProfileId);
+            await llmService.updateSystemSetting('ProductCarouselLimit', String(globalCarouselLimit));
+            toast.success(" lu cu hnh RAG Global");
+        } catch (e) {
+            console.error(e);
+            toast.error("Lu tht bi");
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -513,6 +545,8 @@ export default function LlmConfigPage() {
                                                     <Label className="text-muted-foreground">JSON Config</Label>
                                                     <pre className="text-xs bg-muted p-3 rounded-lg overflow-x-auto border max-h-[200px]">{selectedProfile.configJson}</pre>
                                                 </div>
+
+                                                <RagConfigSummary configJson={selectedProfile.configJson} />
                                             </div>
                                             <div className="space-y-6 border-l pl-6">
                                                 <div className="space-y-2">
@@ -585,6 +619,82 @@ export default function LlmConfigPage() {
                                     </CardContent>
                                 </Card>
                             )}
+
+                            {/* --- Global RAG Configuration (New) --- */}
+                            {!isEditingProfile && !isEditingProvider && (
+                                <Card className="shadow-md border-blue-200 dark:border-blue-900 bg-blue-50/20">
+                                    <CardHeader className="pb-3 border-b">
+                                        <div className="flex justify-between items-center">
+                                            <CardTitle className="text-lg flex items-center gap-2">
+                                                <Zap className="h-5 w-5 text-blue-600" /> Global RAG Configuration
+                                            </CardTitle>
+                                            <Button size="sm" onClick={handleSaveGlobalConfig} disabled={isSaving}>
+                                                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                                Lu Cu Hnh Global
+                                            </Button>
+                                        </div>
+                                        <CardDescription>Cu hnh p dng cho ton b h thng RAG chatbot, c lp vi profile Chat chnh.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="p-6 space-y-6">
+                                        {/* Enable Query Rewriting */}
+                                        <div className="flex items-center justify-between p-4 bg-white/60 dark:bg-black/20 rounded-md border">
+                                            <div className="space-y-0.5">
+                                                <Label htmlFor="global-enable-rewriting" className="text-sm font-medium cursor-pointer">Enable Query Rewriting</Label>
+                                                <p className="text-xs text-muted-foreground">
+                                                    S dng LLM ring bit  ti u cu hi v trch xut filters trc khi tm kim.
+                                                </p>
+                                            </div>
+                                            <Switch
+                                                id="global-enable-rewriting"
+                                                checked={globalEnableRewriting}
+                                                onCheckedChange={setGlobalEnableRewriting}
+                                            />
+                                        </div>
+
+                                        {/* Active Rewriting Profile */}
+                                        <div className="space-y-2">
+                                            <Label>Profile dng cho Rewriting</Label>
+                                            <Select
+                                                value={globalRewritingProfileId?.toString() || "null"}
+                                                onValueChange={(v) => setGlobalRewritingProfileId(v === "null" ? null : parseInt(v))}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Chn profile..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="null">-- Disabled / Use Main Profile --</SelectItem>
+                                                    {providers.flatMap(p => p.profiles || []).map(profile => (
+                                                        <SelectItem key={profile.id} value={profile.id.toString()}>
+                                                            {profile.name} ({profile.modelId})
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <p className="text-xs text-muted-foreground">
+                                                Chn mt profile nh/nhanh (v d: gpt-4o-mini, llama3)  gim chi ph v  tr rewriting.
+                                                Nu  trng, h thng s fallback v Main Chat Profile.
+                                            </p>
+                                        </div>
+
+                                        {/* Product Carousel Limit */}
+                                        <div className="space-y-2">
+                                            <Label>Product Carousel Limit: {globalCarouselLimit}</Label>
+                                            <div className="flex gap-4 items-center">
+                                                <Slider
+                                                    className="flex-1"
+                                                    value={[globalCarouselLimit]}
+                                                    min={3}
+                                                    max={10}
+                                                    step={1}
+                                                    onValueChange={([v]) => setGlobalCarouselLimit(v)}
+                                                />
+                                                <div className="w-12 text-center font-mono text-sm border rounded py-1">{globalCarouselLimit}</div>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">S lng sn phm ti a tr v trong Carousel.</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
                         </>
                     )}
                 </div>
@@ -596,6 +706,43 @@ export default function LlmConfigPage() {
 function providerDisplayName(provider: LlmProvider | null) {
     if (!provider) return '...';
     return provider.name;
+}
+
+function RagConfigSummary({ configJson }: { configJson?: string }) {
+    if (!configJson) return null;
+    try {
+        const config = JSON.parse(configJson);
+        const rewriting = config.enable_query_rewriting ?? true;
+
+        return (
+            <div className="grid gap-1 pt-2">
+                <div className="flex items-center gap-2">
+                    <Zap className="h-3 w-3 text-blue-500" />
+                    <Label className="text-blue-600 dark:text-blue-400 font-semibold text-xs uppercase">RAG Settings</Label>
+                </div>
+                <div className="bg-blue-50/50 dark:bg-blue-950/20 p-2 rounded-md border border-blue-100 dark:border-blue-900 text-xs space-y-1">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Query Rewriting:</span>
+                        <span className={`font-medium ${rewriting ? 'text-green-600' : 'text-red-500'}`}>
+                            {rewriting ? 'Enabled' : 'Disabled'}
+                        </span>
+                    </div>
+                    {rewriting && config.rewriting_model_id && (
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Rewriter Model:</span>
+                            <span className="font-mono bg-white dark:bg-black px-1 rounded border">{config.rewriting_model_id}</span>
+                        </div>
+                    )}
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Carousel Limit:</span>
+                        <span className="font-medium">{config.product_carousel_limit ?? 5} items</span>
+                    </div>
+                </div>
+            </div>
+        );
+    } catch {
+        return null;
+    }
 }
 
 function VisualConfigEditor({ jsonString, onChange }: { jsonString: string, onChange: (val: string) => void }) {
@@ -704,6 +851,8 @@ function VisualConfigEditor({ jsonString, onChange }: { jsonString: string, onCh
                 </div>
             )}
 
+
+
             <Separator />
 
             {/* Add Parameter Section */}
@@ -768,6 +917,6 @@ function VisualConfigEditor({ jsonString, onChange }: { jsonString: string, onCh
                     <Trash2 className="h-4 w-4 mr-2" /> Clear All Config
                 </Button>
             </div>
-        </div>
+        </div >
     );
 }
