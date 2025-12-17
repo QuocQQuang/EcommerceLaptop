@@ -73,5 +73,10 @@ export const llmService = {
     async testChat(req: { baseUrl: string, apiKey: string, modelId: string, message: string }): Promise<any> {
         const { data } = await api.post('/llm/test-chat', req);
         return data;
+    },
+
+    async testEmbedding(): Promise<{ success: boolean, latencyMs: number, dimensions: number, message: string }> {
+        const { data } = await api.post('/llm/test-embedding');
+        return data;
     }
 };

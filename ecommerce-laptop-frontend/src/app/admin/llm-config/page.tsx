@@ -537,7 +537,34 @@ export default function LlmConfigPage() {
                                     </div>
                                 )}
                             </div>
-                        )}
+                            </div>
+                )}
+
+                {/* Embedding Test Section */}
+                {isEditingProfile === false && (
+                    <div className="border-t pt-6 mt-6">
+                        <h3 className="font-semibold flex items-center gap-2 mb-4">
+                            <Sliders size={18} /> Embedding Latency Test
+                        </h3>
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={async () => {
+                                    setTestChatResult(null); // Reuse state slightly or creating new if needed, but for now simple alert/display
+                                    try {
+                                        const res = await llmService.testEmbedding();
+                                        alert(`Success!\nLatency: ${res.latencyMs}ms\nDimensions: ${res.dimensions}\nMessage: ${res.message}`);
+                                    } catch (e: any) {
+                                        alert("Failed: " + e.message);
+                                    }
+                                }}
+                                className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2"
+                            >
+                                <Play size={16} /> Test Embedding Speed
+                            </button>
+                            <p className="text-sm text-gray-500">
+                                Tests the <b>dedicated</b> embedding provider configured in <code>appsettings.json</code>.
+                            </p>
+                        </div>
                     </div>
                 )}
             </div>

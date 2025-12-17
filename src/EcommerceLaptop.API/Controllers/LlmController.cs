@@ -136,5 +136,31 @@ namespace EcommerceLaptop.API.Controllers
              var result = await _llmService.TestChatAsync(request);
              return Ok(result);
         }
+
+        [HttpPost("test-embedding")]
+        public async Task<IActionResult> TestEmbedding([FromServices] EcommerceLaptop.Core.Interfaces.IEmbeddingService embeddingService)
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            try 
+            {
+                var vector = await embeddingService.GenerateEmbeddingAsync("Test latency string");
+                sw.Stop();
+                return Ok(new { 
+                    success = true, 
+                    latencyMs = sw.ElapsedMilliseconds, 
+                    dimensions = vector.Length,
+                    message = $"Embedding generated in {sw.ElapsedMilliseconds}ms ({vector.Length} dims)"
+                });
+            }
+            catch (Exception ex)
+            {
+                sw.Stop();
+                return BadRequest(new { 
+                    success = false, 
+                    latencyMs = sw.ElapsedMilliseconds, 
+                    message = ex.Message 
+                });
+            }
+        }
     }
 }
