@@ -446,26 +446,37 @@ Context:
 
             var httpClient = _httpClientFactory.CreateClient("llm-client");
 
-                if (config.BaseUrl?.Contains("openrouter.ai") == true)
-                {
-                    httpClient.DefaultRequestHeaders.Remove("HTTP-Referer");
-                    httpClient.DefaultRequestHeaders.Add("HTTP-Referer", "https://ecommercelaps.com"); 
-                    
-                    httpClient.DefaultRequestHeaders.Remove("X-Title");
-                    httpClient.DefaultRequestHeaders.Add("X-Title", "EcommerceLaptop");
-                }
-                
-                if (config.Provider == "Azure")
-                {
-                    builder.AddAzureOpenAIChatCompletion(
-                        deploymentName: config.ModelId ?? "gpt-4o",
-                        endpoint: config.BaseUrl!,
-                        apiKey: config.ApiKey,
-                        httpClient: httpClient
-                    );
-            }
-            else if (config.Provider == "Ollama")
+            // Apply global headers from configuration
+            if (config.Headers != null)
             {
+                foreach (var header in config.Headers)
+                {
+                    if (httpClient.DefaultRequestHeaders.Contains(header.Key))
+                        httpClient.DefaultRequestHeaders.Remove(header.Key);
+                    
+                    httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                }
+            }
+
+            // Special handling for legacy OpenRouter setup if not in headers
+            if (config.BaseUrl?.Contains("openrouter.ai") == true && !httpClient.DefaultRequestHeaders.Contains("HTTP-Referer"))
+            {
+                 httpClient.DefaultRequestHeaders.Add("HTTP-Referer", "https://ecommercelaps.com");
+                 httpClient.DefaultRequestHeaders.Add("X-Title", "EcommerceLaptop");
+            }
+
+            if (config.Provider.Equals("Azure", StringComparison.OrdinalIgnoreCase))
+            {
+                builder.AddAzureOpenAIChatCompletion(
+                    deploymentName: config.ModelId ?? "gpt-4o",
+                    endpoint: config.BaseUrl!,
+                    apiKey: config.ApiKey,
+                    httpClient: httpClient
+                );
+            }
+            else if (config.Provider.Equals("Ollama", StringComparison.OrdinalIgnoreCase))
+            {
+                 // Ollama typically runs on localhost endpoint, often without auth
                  if (!string.IsNullOrEmpty(config.BaseUrl))
                  {
                      try 
@@ -477,17 +488,18 @@ Context:
 
                  builder.AddOpenAIChatCompletion(
                     modelId: config.ModelId ?? "llama3",
-                    apiKey: "dummy",
+                    apiKey: "dummy", // Ollama doesn't typically need a key
                     httpClient: httpClient
                 );
             }
-            else // Default OpenAI
+            else // Default OpenAI and Compatible Services (DeepSeek, OpenRouter, etc.)
             {
+                 // If BaseUrl is provided, configure the client to use it
                  if (!string.IsNullOrEmpty(config.BaseUrl))
                  {
                      try 
                      {
-                        // Explicitly pass endpoint AND httpClient
+                        // Some SK extensions need the endpoint explicitly passed if it's not default OpenAI
                         builder.AddOpenAIChatCompletion(
                             modelId: config.ModelId ?? "gpt-4o",
                             apiKey: config.ApiKey,
@@ -497,7 +509,7 @@ Context:
                      }
                      catch 
                      {
-                         // Fallback if parsing fails or overload missing (though we expect it to exist)
+                         // Fallback mechanism
                          builder.AddOpenAIChatCompletion(
                             modelId: config.ModelId ?? "gpt-4o",
                             apiKey: config.ApiKey,
@@ -507,6 +519,7 @@ Context:
                  }
                  else
                  {
+                     // Standard OpenAI
                      builder.AddOpenAIChatCompletion(
                         modelId: config.ModelId ?? "gpt-4o",
                         apiKey: config.ApiKey,

@@ -357,6 +357,13 @@ export const getAdminMenuItems = (user: AdminUser | null) => {
       href: '/admin/settings',
       requiredPermission: PERMISSIONS.SETTINGS_READ,
     },
+    {
+      id: 'llm-config',
+      label: 'AI Config',
+      icon: 'Bot',
+      href: '/admin/llm-config',
+      requiredPermission: PERMISSIONS.SETTINGS_READ, // Using Settings permission for now
+    },
   ];
 
   // Filter menu items based on user permissions

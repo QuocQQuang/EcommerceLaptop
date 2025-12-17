@@ -89,6 +89,7 @@ public static class ServiceCollectionExtensions
 
         // AI Configuration Provider
         services.AddScoped<ILlmConfigProvider, LlmConfigProvider>();
+        services.AddScoped<ILlmManagementService, LlmManagementService>();
 
         // AI Ingestion Pipeline
         services.AddScoped<IProductChunkingService, ProductChunkingService>();

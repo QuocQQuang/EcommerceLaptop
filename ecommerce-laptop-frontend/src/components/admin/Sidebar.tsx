@@ -16,7 +16,8 @@ import {
   Settings,
   Shield,
   ShoppingCart,
-  Users
+  Users,
+  Bot
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -32,6 +33,7 @@ const iconMap = {
   Settings,
   FileText,
   BarChart3,
+  Bot
 };
 
 interface SidebarProps {

@@ -45,7 +45,26 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
             var httpClient = _httpClientFactory.CreateClient("llm-client");
 
-            if (config.Provider == "Azure")
+            // Apply global headers from configuration
+            if (config.Headers != null)
+            {
+                foreach (var header in config.Headers)
+                {
+                    if (httpClient.DefaultRequestHeaders.Contains(header.Key))
+                        httpClient.DefaultRequestHeaders.Remove(header.Key);
+                    
+                    httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                }
+            }
+
+             // Special handling for legacy OpenRouter if needed (though typically used for chat, not embedding)
+            if (config.BaseUrl?.Contains("openrouter.ai") == true && !httpClient.DefaultRequestHeaders.Contains("HTTP-Referer"))
+            {
+                 httpClient.DefaultRequestHeaders.Add("HTTP-Referer", "https://ecommercelaps.com");
+                 httpClient.DefaultRequestHeaders.Add("X-Title", "EcommerceLaptop");
+            }
+
+            if (config.Provider.Equals("Azure", StringComparison.OrdinalIgnoreCase))
             {
                 builder.AddAzureOpenAITextEmbeddingGeneration(
                     deploymentName: "text-embedding-3-small", 
@@ -54,9 +73,8 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                     httpClient: httpClient
                 );
             }
-            else if (config.Provider == "Ollama")
+            else if (config.Provider.Equals("Ollama", StringComparison.OrdinalIgnoreCase))
             {
-                 // Workaround for Ollama using OpenAI connector with custom endpoint
                  if (!string.IsNullOrEmpty(config.BaseUrl))
                  {
                      try 
@@ -74,28 +92,17 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             }
             else // Default OpenAI
             {
-                 // Default OpenAI or OpenRouter
                  if (!string.IsNullOrEmpty(config.BaseUrl))
                  {
                      try 
                      {
                         httpClient.BaseAddress = new System.Uri(config.BaseUrl); 
-                        
-                        // Add OpenRouter specific headers if needed
-                        if (config.BaseUrl.Contains("openrouter.ai"))
-                        {
-                            httpClient.DefaultRequestHeaders.Remove("HTTP-Referer");
-                            httpClient.DefaultRequestHeaders.Add("HTTP-Referer", "https://ecommercelaps.com");
-                            
-                            httpClient.DefaultRequestHeaders.Remove("X-Title");
-                            httpClient.DefaultRequestHeaders.Add("X-Title", "EcommerceLaptop");
-                        }
                      }
                      catch {}
                  }
 
                  builder.AddOpenAITextEmbeddingGeneration(
-                    modelId: "text-embedding-3-small", // Force embedding model, don't use Chat Model ID
+                    modelId: "text-embedding-3-small",
                     apiKey: config.ApiKey,
                     httpClient: httpClient
                 );

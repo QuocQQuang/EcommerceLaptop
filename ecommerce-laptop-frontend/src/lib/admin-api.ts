@@ -140,7 +140,7 @@ export interface SystemSettings {
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5129/api';
 
 // Create axios instance with default config
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',

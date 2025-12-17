@@ -140,6 +140,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<ChatSession> ChatSessions { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
 
+    // LLM Provider Management
+    public DbSet<LlmProvider> LlmProviders { get; set; }
+    public DbSet<LlmProfile> LlmProfiles { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -796,6 +800,39 @@ public class ApplicationDbContext : DbContext
                 .WithMany(e => e.BlogPostTags)
                 .HasForeignKey(e => e.BlogTagId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // LLM Provider Configuration
+        modelBuilder.Entity<LlmProvider>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Type).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.BaseUrl).HasMaxLength(255);
+            entity.Property(e => e.Website).HasMaxLength(255);
+            
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.HasIndex(e => e.Type);
+        });
+
+        modelBuilder.Entity<LlmProfile>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.ModelId).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.ConfigJson).HasColumnType("nvarchar(max)");
+            
+            // Encrypt API Key
+            entity.Property(e => e.ApiKey)
+                  .HasMaxLength(500)
+                  .HasConversion(v => FieldEncryption.Encrypt(v), v => FieldEncryption.Decrypt(v));
+
+            entity.HasOne(e => e.Provider)
+                  .WithMany(p => p.Profiles)
+                  .HasForeignKey(e => e.ProviderId)
+                  .OnDelete(DeleteBehavior.Cascade);
+                  
+            entity.HasIndex(e => e.ProviderId);
         });
 
         // UserActivityLog configuration

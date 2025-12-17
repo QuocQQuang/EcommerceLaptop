@@ -12,5 +12,6 @@ namespace EcommerceLaptop.Core.Models.AI
         public int MaxTokens { get; set; } = 4096;
         public bool StreamingEnabled { get; set; } = true;
         public Dictionary<string, object> AdvancedOptions { get; set; } = new Dictionary<string, object>();
+        public Dictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
     }
 }
