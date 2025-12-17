@@ -257,9 +257,10 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             // Add key specs in natural language for reinforcement
             if (product is Laptop l)
             {
-                profile += $"Cu hnh: CPU {l.CpuBrand} {l.CpuModel}, RAM {l.RamCapacityGB}GB, {l.GpuBrand} {l.GpuModel}.\n";
-                // Add soft filters helper
-                profile += $"[FilterTags]: Price:{product.Price}, Weight:{l.WeightKg}kg, RAM:{l.RamCapacityGB}GB\n";
+                profile += $"Cu hnh: CPU {l.CpuBrand} {l.CpuModel}, RAM {l.RamCapacityGB}GB, SSD {l.StorageCapacityGB}GB, {l.GpuBrand} {l.GpuModel}, Mn hnh {l.DisplaySizeInches} inch.\n";
+                if (!string.IsNullOrEmpty(l.Color)) profile += $"Mu sc: {l.Color}.\n";
+                // Add soft filters helper including Storage
+                profile += $"[FilterTags]: Price:{product.Price}, Weight:{l.WeightKg}kg, RAM:{l.RamCapacityGB}GB, Storage:{l.StorageCapacityGB}GB\n";
             }
 
             return profile;
