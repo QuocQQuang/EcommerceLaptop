@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.Interfaces.Services;
+using EcommerceLaptop.Core.DTOs.AI;
 using System.Threading.Tasks;
 
 namespace EcommerceLaptop.API.Controllers
@@ -111,6 +112,29 @@ namespace EcommerceLaptop.API.Controllers
         {
             await _llmService.SetActiveProfileAsync(id);
             return Ok(new { message = "Profile activated" });
+        }
+
+        // --- Click & Play Utilities ---
+
+        [HttpPost("providers/models")]
+        public async Task<IActionResult> FetchModels([FromBody] FetchModelsRequest request)
+        {
+            try
+            {
+                var models = await _llmService.FetchRemoteModelsAsync(request);
+                return Ok(models);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("test-chat")]
+        public async Task<IActionResult> TestChat([FromBody] TestChatRequest request)
+        {
+             var result = await _llmService.TestChatAsync(request);
+             return Ok(result);
         }
     }
 }

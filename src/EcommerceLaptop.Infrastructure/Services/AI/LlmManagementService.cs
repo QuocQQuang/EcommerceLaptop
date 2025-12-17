@@ -175,5 +175,128 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                 return false;
             }
         }
+        public async Task<IEnumerable<string>> FetchRemoteModelsAsync(EcommerceLaptop.Core.DTOs.AI.FetchModelsRequest request)
+        {
+            var httpClient = _httpClientFactory.CreateClient("llm-fetch");
+            var baseUrl = request.BaseUrl?.TrimEnd('/');
+            if (string.IsNullOrEmpty(baseUrl)) baseUrl = "https://api.openai.com/v1";
+
+            var reqMsg = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/models");
+            if (!string.IsNullOrEmpty(request.ApiKey))
+            {
+                reqMsg.Headers.Add("Authorization", $"Bearer {request.ApiKey}");
+            }
+
+            if (request.CustomHeaders != null)
+            {
+                foreach (var header in request.CustomHeaders)
+                {
+                    reqMsg.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+            }
+            
+            // Special handling for OpenRouter generic logic if needed, but CustomHeaders should cover it.
+
+            var response = await httpClient.SendAsync(reqMsg);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(content);
+            
+            var models = new List<string>();
+            if (doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var element in data.EnumerateArray())
+                {
+                    if (element.TryGetProperty("id", out var id))
+                    {
+                        models.Add(id.GetString() ?? "");
+                    }
+                }
+            }
+            return models.OrderBy(m => m);
+        }
+
+        public async Task<EcommerceLaptop.Core.DTOs.AI.ChatTestResponse> TestChatAsync(EcommerceLaptop.Core.DTOs.AI.TestChatRequest request)
+        {
+            var httpClient = _httpClientFactory.CreateClient("llm-test-chat");
+            var baseUrl = request.BaseUrl?.TrimEnd('/');
+            if (string.IsNullOrEmpty(baseUrl)) baseUrl = "https://api.openai.com/v1";
+
+            var reqMsg = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/chat/completions");
+            if (!string.IsNullOrEmpty(request.ApiKey))
+            {
+                reqMsg.Headers.Add("Authorization", $"Bearer {request.ApiKey}");
+            }
+
+            if (request.CustomHeaders != null)
+            {
+                foreach (var header in request.CustomHeaders)
+                {
+                    reqMsg.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+            }
+
+            var payload = new
+            {
+                model = request.ModelId,
+                messages = new[] { new { role = "user", content = request.Message } },
+                max_tokens = 50
+            };
+
+            reqMsg.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                var response = await httpClient.SendAsync(reqMsg);
+                sw.Stop();
+                var latency = $"{sw.ElapsedMilliseconds}ms";
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(content);
+                    string? reply = null;
+                    
+                    // Standard OpenAI format: choices[0].message.content
+                    if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
+                    {
+                        var firstChoice = choices[0];
+                        if (firstChoice.TryGetProperty("message", out var message) && message.TryGetProperty("content", out var contentProp))
+                        {
+                            reply = contentProp.GetString();
+                        }
+                    }
+
+                    return new EcommerceLaptop.Core.DTOs.AI.ChatTestResponse
+                    {
+                        Success = true,
+                        Message = reply ?? "Success (No content)",
+                        Latency = latency
+                    };
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return new EcommerceLaptop.Core.DTOs.AI.ChatTestResponse
+                    {
+                        Success = false,
+                        Error = $"API Error ({response.StatusCode}): {errorContent}",
+                        Latency = latency
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                sw.Stop();
+                return new EcommerceLaptop.Core.DTOs.AI.ChatTestResponse
+                {
+                    Success = false,
+                    Error = $"Connection Failed: {ex.Message}",
+                    Latency = $"{sw.ElapsedMilliseconds}ms"
+                };
+            }
+        }
     }
 }

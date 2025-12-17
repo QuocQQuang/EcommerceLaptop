@@ -21,7 +21,9 @@ namespace EcommerceLaptop.Core.Interfaces.Services
         Task DeleteProfileAsync(int id);
         Task SetActiveProfileAsync(int profileId);
         
-        // Testing
+        // Testing & Utilities
         Task<bool> TestConnectionAsync(int profileId);
+        Task<IEnumerable<string>> FetchRemoteModelsAsync(EcommerceLaptop.Core.DTOs.AI.FetchModelsRequest request);
+        Task<EcommerceLaptop.Core.DTOs.AI.ChatTestResponse> TestChatAsync(EcommerceLaptop.Core.DTOs.AI.TestChatRequest request);
     }
 }

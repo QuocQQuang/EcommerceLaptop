@@ -62,5 +62,16 @@ export const llmService = {
 
     async activateProfile(profileId: number): Promise<void> {
         await api.post(`/llm/profiles/${profileId}/activate`);
+    },
+
+    // Click & Play Utilities
+    async fetchRemoteModels(req: { baseUrl: string, apiKey: string, providerType: string }): Promise<string[]> {
+        const { data } = await api.post('/llm/providers/models', req);
+        return data;
+    },
+
+    async testChat(req: { baseUrl: string, apiKey: string, modelId: string, message: string }): Promise<any> {
+        const { data } = await api.post('/llm/test-chat', req);
+        return data;
     }
 };

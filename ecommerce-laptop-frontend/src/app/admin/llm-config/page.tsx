@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { llmService } from '@/services/llmService';
 import { LlmProvider, LlmProfile } from '@/types/llm';
 import {
-    Plus, Server, Settings, Save, Trash2, Play, CheckCircle, XCircle, FileJson, Sliders
+    Plus, Server, Settings, Save, Trash2, Play, CheckCircle, XCircle, FileJson, Sliders, CloudDownload, MessageSquare, Loader2
 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
@@ -23,6 +23,13 @@ export default function LlmConfigPage() {
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [isVisualMode, setIsVisualMode] = useState(true);
     const [formData, setFormData] = useState<any>({});
+
+    // Click & Play State
+    const [fetchedModels, setFetchedModels] = useState<string[]>([]);
+    const [isFetchingModels, setIsFetchingModels] = useState(false);
+    const [testChatMsg, setTestChatMsg] = useState("Hello");
+    const [testChatResult, setTestChatResult] = useState<any>(null);
+    const [isTestingChat, setIsTestingChat] = useState(false);
 
     useEffect(() => {
         loadProviders();
@@ -172,6 +179,46 @@ export default function LlmConfigPage() {
         loadProviders();
     };
 
+    const handleFetchModels = async () => {
+        if (!formData.apiKey && !selectedProfile?.apiKey) {
+            alert("Please enter API Key first");
+            return;
+        }
+        setIsFetchingModels(true);
+        try {
+            const models = await llmService.fetchRemoteModels({
+                baseUrl: formData.baseUrl || selectedProvider?.baseUrl || '',
+                apiKey: formData.apiKey || selectedProfile?.apiKey || '',
+                providerType: formData.type || selectedProvider?.type || 'openai'
+            });
+            setFetchedModels(models);
+            // alert(`Fetched ${models.length} models`);
+        } catch (e: any) {
+            console.error(e);
+            alert("Failed to fetch models: " + (e.response?.data?.message || e.message));
+        } finally {
+            setIsFetchingModels(false);
+        }
+    };
+
+    const handleTestChat = async () => {
+        setIsTestingChat(true);
+        setTestChatResult(null);
+        try {
+            const res = await llmService.testChat({
+                baseUrl: formData.baseUrl || selectedProvider?.baseUrl || selectedProfile?.provider?.baseUrl || '',
+                apiKey: formData.apiKey || selectedProfile?.apiKey || '',
+                modelId: formData.modelId || selectedProfile?.modelId || '',
+                message: testChatMsg
+            });
+            setTestChatResult(res);
+        } catch (e: any) {
+            setTestChatResult({ success: false, error: e.message });
+        } finally {
+            setIsTestingChat(false);
+        }
+    };
+
     return (
         <div className="flex h-[calc(100vh-100px)] gap-6 p-6">
             {/* Left Sidebar: Providers List */}
@@ -318,12 +365,12 @@ export default function LlmConfigPage() {
                                 {!isEditingProfile ? (
                                     /* Read Only View */
                                     <div className="grid grid-cols-2 gap-6">
-                                        <DetailItem label="Model ID" value={selectedProfile.modelId} />
-                                        <DetailItem label="API Key" value={selectedProfile.apiKey ? '' : 'Not Set'} />
+                                        <DetailItem label="Model ID" value={selectedProfile?.modelId} />
+                                        <DetailItem label="API Key" value={selectedProfile?.apiKey ? '' : 'Not Set'} />
                                         <div className="col-span-2">
                                             <label className="block text-sm font-medium text-gray-500 mb-1">Configuration (JSON)</label>
                                             <pre className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg text-sm font-mono overflow-auto max-h-60 border">
-                                                {selectedProfile.configJson}
+                                                {selectedProfile?.configJson}
                                             </pre>
                                         </div>
                                         <div className="col-span-2 flex justify-end">
@@ -336,7 +383,41 @@ export default function LlmConfigPage() {
                                     /* Edit Form */
                                     <div className="space-y-4">
                                         <FormInput label="Profile Name" value={formData.name} onChange={(v) => setFormData({ ...formData, name: v })} placeholder="e.g. Production GPT-4" />
-                                        <FormInput label="Model ID" value={formData.modelId} onChange={(v) => setFormData({ ...formData, modelId: v })} placeholder="e.g. gpt-4o" />
+
+                                        {/* Model ID with Fetch */}
+                                        <div>
+                                            <div className="flex justify-between items-center mb-1">
+                                                <label className="block text-sm font-medium">Model ID</label>
+                                                <button
+                                                    onClick={handleFetchModels}
+                                                    className="text-xs flex items-center gap-1 text-blue-600 hover:underline disabled:opacity-50"
+                                                    disabled={isFetchingModels}
+                                                >
+                                                    {isFetchingModels ? <Loader2 size={12} className="animate-spin" /> : <CloudDownload size={12} />}
+                                                    Fetch Models
+                                                </button>
+                                            </div>
+                                            {fetchedModels.length > 0 ? (
+                                                <div className="flex gap-2">
+                                                    <select
+                                                        className="flex-1 p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                                                        value={formData.modelId}
+                                                        onChange={(e) => setFormData({ ...formData, modelId: e.target.value })}
+                                                    >
+                                                        <option value="">Select a model...</option>
+                                                        {fetchedModels.map(m => <option key={m} value={m}>{m}</option>)}
+                                                    </select>
+                                                    <button onClick={() => setFetchedModels([])} className="px-2 text-gray-400 hover:text-gray-600" title="Manual Input"><Settings size={16} /></button>
+                                                </div>
+                                            ) : (
+                                                <FormInput
+                                                    value={formData.modelId}
+                                                    onChange={(v) => setFormData({ ...formData, modelId: v })}
+                                                    placeholder="e.g. gpt-4o"
+                                                />
+                                            )}
+                                        </div>
+
                                         <FormInput label="API Key" type="password" value={formData.apiKey} onChange={(v) => setFormData({ ...formData, apiKey: v })} placeholder="sk-..." />
 
                                         <div>
@@ -403,15 +484,57 @@ export default function LlmConfigPage() {
                                 )}
                             </div>
                         )}
+
+                        {/* Quick Chat Test Section */}
+                        {(isEditingProfile || selectedProfile) && (
+                            <div className="border-t pt-6 mt-6">
+                                <h3 className="font-semibold flex items-center gap-2 mb-4">
+                                    <MessageSquare size={18} /> Quick Chat Test
+                                </h3>
+                                <div className="flex gap-2 mb-2">
+                                    <input
+                                        className="flex-1 p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                                        value={testChatMsg}
+                                        onChange={(e) => setTestChatMsg(e.target.value)}
+                                        placeholder="Type a message..."
+                                    />
+                                    <button
+                                        onClick={handleTestChat}
+                                        disabled={isTestingChat}
+                                        className="bg-purple-600 text-white px-4 rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        {isTestingChat ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
+                                        Send
+                                    </button>
+                                </div>
+                                {testChatResult && (
+                                    <div className={`p-3 rounded-lg text-sm ${testChatResult.success ? 'bg-green-50 border border-green-200 text-green-900' : 'bg-red-50 border border-red-200 text-red-900'}`}>
+                                        <div className="flex justify-between font-semibold mb-1">
+                                            <span>{testChatResult.success ? 'Success' : 'Error'}</span>
+                                            <span className="opacity-70">{testChatResult.latency}</span>
+                                        </div>
+                                        <div className="whitespace-pre-wrap">{testChatResult.message || testChatResult.error}</div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
 
 // Helpers
-function FormInput({ label, value, onChange, type = "text", placeholder = "" }: any) {
+interface FormInputProps {
+    label: string;
+    value: any;
+    onChange: (val: string) => void;
+    type?: string;
+    placeholder?: string;
+}
+
+function FormInput({ label, value, onChange, type = "text", placeholder = "" }: FormInputProps) {
     return (
         <div>
             <label className="block text-sm font-medium mb-1">{label}</label>
