@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using EcommerceLaptop.Core.Interfaces;
 using EcommerceLaptop.Core.DTOs.Chat;
+using Microsoft.Extensions.Logging;
 
 namespace EcommerceLaptop.API.Hubs
 {
@@ -11,10 +12,12 @@ namespace EcommerceLaptop.API.Hubs
     public class ChatHub : Hub
     {
         private readonly IChatService _chatService;
+        private readonly ILogger<ChatHub> _logger;
 
-        public ChatHub(IChatService chatService)
+        public ChatHub(IChatService chatService, ILogger<ChatHub> logger)
         {
             _chatService = chatService;
+            _logger = logger;
         }
 
         public async Task SendQuery(string query, QueryOptions? options = null)
@@ -57,10 +60,12 @@ namespace EcommerceLaptop.API.Hubs
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error processing chat query: {Message}", ex.Message);
+                
                 await Clients.Caller.SendAsync("ReceiveEvent", new ErrorEvent 
                 { 
                     Code = "SYSTEM_ERROR", 
-                    Message = ex.Message,
+                    Message = "I'm encountering a temporary server issue. Please try again in a few moments.",
                     Recoverable = false
                 }, cancellationToken);
             }
