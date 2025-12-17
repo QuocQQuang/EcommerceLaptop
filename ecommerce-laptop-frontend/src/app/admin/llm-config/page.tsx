@@ -4,12 +4,21 @@ import { useState, useEffect } from 'react';
 import { llmService } from '@/services/llmService';
 import { LlmProvider, LlmProfile } from '@/types/llm';
 import {
-    Plus, Server, Settings, Save, Trash2, Play, CheckCircle, XCircle, FileJson, Sliders, CloudDownload, MessageSquare, Loader2
+    Plus, Server, Settings, Save, Trash2, Play, CheckCircle, XCircle, FileJson, Sliders, CloudDownload, MessageSquare, Loader2,
+    Cpu,
+    Globe,
+    Zap
 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Separator } from '@/components/ui/separator';
 
 export default function LlmConfigPage() {
     const [providers, setProviders] = useState<LlmProvider[]>([]);
@@ -25,21 +34,6 @@ export default function LlmConfigPage() {
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [isVisualMode, setIsVisualMode] = useState(true);
     const [formData, setFormData] = useState<any>({});
-
-    const handleDeleteProvider = async (provider: LlmProvider) => {
-        if (!confirm(`Bn c chc chn mun xa nh cung cp "${provider.name}" v tt c cu hnh lin quan?`)) return;
-        try {
-            await llmService.deleteProvider(provider.id);
-            await loadProviders();
-            if (selectedProvider?.id === provider.id) {
-                setSelectedProvider(null);
-                setSelectedProfile(null);
-            }
-        } catch (e) {
-            console.error(e);
-            toast.error("Xa tht bi");
-        }
-    };
 
     // Click & Play State
     const [fetchedModels, setFetchedModels] = useState<string[]>([]);
@@ -62,14 +56,29 @@ export default function LlmConfigPage() {
             const active = await llmService.getActiveProfile();
             if (active) setActiveProfileId(active.id);
 
-            if (data.length > 0 && !selectedProvider) {
-                // setSelectedProvider(data[0]); 
-                // Don't auto-select to keep UI clean initially
-            }
+            // Maintain selection if possible, else clear
+            // if (data.length > 0 && !selectedProvider) { ... }
         } catch (error) {
             console.error("Failed to load providers", error);
+            toast.error("Khng th ti danh sch nh cung cp");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleDeleteProvider = async (provider: LlmProvider) => {
+        if (!confirm(`Bn c chc chn mun xa nh cung cp "${provider.name}" v tt c cu hnh lin quan?`)) return;
+        try {
+            await llmService.deleteProvider(provider.id);
+            await loadProviders();
+            if (selectedProvider?.id === provider.id) {
+                setSelectedProvider(null);
+                setSelectedProfile(null);
+            }
+            toast.success(" xa nh cung cp");
+        } catch (e) {
+            console.error(e);
+            toast.error("Xa tht bi");
         }
     };
 
@@ -120,21 +129,21 @@ export default function LlmConfigPage() {
     };
 
     const handleSaveProvider = async () => {
+        if (!formData.name) {
+            toast.error("Tn nh cung cp l bt buc");
+            return;
+        }
         setIsSaving(true);
         try {
-            if (selectedProvider && !isEditingProvider) {
-                // Update specific logic if needed, but currently reused
-            }
-
             if (isEditingProvider && !selectedProvider) {
                 // Create
                 const created = await llmService.createProvider(formData);
                 setProviders([...providers, created]);
                 setSelectedProvider(created);
                 setIsEditingProvider(false);
+                toast.success(" to nh cung cp mi");
             } else if (selectedProvider) {
-                // Update
-                // await llmService.updateProvider(selectedProvider.id, formData); // TODO: Implement update UI for provider
+                // Update implementation would go here
             }
         } catch (e) {
             console.error(e);
@@ -145,33 +154,38 @@ export default function LlmConfigPage() {
     };
 
     const handleSaveProfile = async () => {
+        if (!formData.name || !formData.modelId) {
+            toast.error("Tn cu hnh v Model ID l bt buc");
+            return;
+        }
         setIsSaving(true);
         try {
             const profileData = { ...formData };
             if (!profileData.providerId && selectedProvider) profileData.providerId = selectedProvider.id;
 
             // Validate API Key
-            if (profileData.apiKey === '') delete profileData.apiKey; // Don't send empty string if update
+            if (profileData.apiKey === '') delete profileData.apiKey;
 
             if (selectedProfile) {
                 await llmService.updateProfile(selectedProfile.id, profileData);
-                // Reload providers to refresh profile list in state (simplest way)
                 await loadProviders();
-                // Find and re-select
+                // Re-select logic
                 const updatedProvider = providers.find(p => p.id === selectedProvider?.id);
                 if (updatedProvider) {
                     const updatedProfile = updatedProvider.profiles?.find(p => p.id === selectedProfile.id);
                     if (updatedProfile) setSelectedProfile(updatedProfile);
                 }
+                toast.success(" cp nht cu hnh");
             } else {
                 const created = await llmService.createProfile(profileData);
                 await loadProviders();
                 setSelectedProfile(created);
+                toast.success(" to cu hnh mi");
             }
             setIsEditingProfile(false);
         } catch (e) {
             console.error(e);
-            toast.error('Xa tht bi');
+            toast.error('Lu tht bi');
         } finally {
             setIsSaving(false);
         }
@@ -182,6 +196,8 @@ export default function LlmConfigPage() {
         setTestStatus('idle');
         const success = await llmService.testConnection(selectedProfile.id);
         setTestStatus(success ? 'success' : 'date-error');
+        if (success) toast.success("Kt ni thnh cng!");
+        else toast.error("Kt ni tht bi. Kim tra API Key v URL.");
     };
 
     const handleActivateProfile = async () => {
@@ -198,14 +214,20 @@ export default function LlmConfigPage() {
 
     const handleDeleteProfile = async () => {
         if (!selectedProfile || !confirm('Bn c chc chn mun xa cu hnh ny?')) return;
-        await llmService.deleteProfile(selectedProfile.id);
-        setSelectedProfile(null);
-        loadProviders();
+        try {
+            await llmService.deleteProfile(selectedProfile.id);
+            setSelectedProfile(null);
+            await loadProviders();
+            toast.success(" xa cu hnh");
+        } catch (e) {
+            console.error(e);
+            toast.error("Xa tht bi");
+        }
     };
 
     const handleFetchModels = async () => {
         if (!formData.apiKey && !selectedProfile?.apiKey) {
-            alert("Please enter API Key first");
+            toast.error("Vui lng nhp API Key trc");
             return;
         }
         setIsFetchingModels(true);
@@ -216,10 +238,10 @@ export default function LlmConfigPage() {
                 providerType: formData.type || selectedProvider?.type || 'openai'
             });
             setFetchedModels(models);
-            toast.success(`Fetched ${models.length} models`);
+            toast.success(` tm thy ${models.length} models`);
         } catch (e: any) {
             console.error(e);
-            toast.error("Failed to fetch models: " + (e.response?.data?.message || e.message));
+            toast.error("Li khi ti danh sch models: " + (e.response?.data?.message || e.message));
         } finally {
             setIsFetchingModels(false);
         }
@@ -244,594 +266,507 @@ export default function LlmConfigPage() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-100px)] gap-6 p-6">
-            {/* Left Sidebar: Providers List */}
-            <div className="w-1/3 min-w-[300px] border rounded-xl bg-white dark:bg-gray-800 shadow-sm overflow-hidden flex flex-col">
-                <div className="p-4 border-b flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
-                    <h2 className="font-semibold text-lg flex items-center gap-2">
-                        <Server size={20} /> Providers
-                    </h2>
-                    <button
-                        onClick={handleNewProvider}
-                        className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                    >
-                        <Plus size={18} />
-                    </button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-2 space-y-2">
-                    {isLoading ? (
-                        <div className="p-4 text-center text-gray-500">ang ti...</div>
-                    ) : providers.map(provider => (
-                        <div key={provider.id} className="border rounded-lg overflow-hidden">
-                            <div
-                                onClick={() => handleSelectProvider(provider)}
-                                className={`p-3 cursor-pointer flex justify-between items-center transition group ${selectedProvider?.id === provider.id
-                                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200'
-                                    : 'hover:bg-gray-50 dark:hover:bg-gray-700'
-                                    }`}
-                            >
-                                <span className="font-medium">{provider.name}</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300">
-                                        {provider.type}
-                                    </span>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleDeleteProvider(provider); }}
-                                        className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition"
-                                        title="Xa nh cung cp"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Profiles List (nested) */}
-                            {selectedProvider?.id === provider.id && (
-                                <div className="bg-gray-50 dark:bg-gray-900/30 p-2 space-y-1">
-                                    {provider.profiles && provider.profiles.map(profile => (
-                                        <div
-                                            key={profile.id}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleSelectProfile(profile);
-                                            }}
-                                            className={`pl-4 p-2 text-sm rounded cursor-pointer flex items-center gap-2 ${selectedProfile?.id === profile.id
-                                                ? 'bg-white dark:bg-gray-800 shadow-sm text-blue-600 font-medium'
-                                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'
-                                                }`}
-                                        >
-                                            <Settings size={14} />
-                                            {profile.name}
-                                            {activeProfileId === profile.id && (
-                                                <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">
-                                                    ACTIVE
-                                                </span>
-                                            )}
-                                        </div>
-                                    ))}
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleNewProfile(); }}
-                                        className="w-full text-xs text-center py-2 text-blue-600 hover:underline"
-                                    >
-                                        + Thm Cu Hnh
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
+        <div className="container mx-auto py-6 space-y-6">
+            <div className="flex flex-col gap-2">
+                <h1 className="text-3xl font-bold tracking-tight">Cu hnh LLM (AI)</h1>
+                <p className="text-muted-foreground">
+                    Qun l cc nh cung cp AI, cu hnh profile v kim tra kt ni.
+                </p>
             </div>
 
-            {/* Right Panel: Editor */}
-            <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-6 overflow-y-auto">
-                {!selectedProvider && !isEditingProvider ? (
-                    <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                        <Server size={48} className="mb-4 opacity-50" />
-                        <p>Chn nh cung cp hoc to mi</p>
-                    </div>
-                ) : (
-                    <div className="space-y-6 max-w-3xl">
-                        {/* Header */}
-                        <div className="flex justify-between items-center border-b pb-4">
-                            <div>
-                                <h1 className="text-2xl font-bold">
-                                    {isEditingProvider ? 'Nh Cung Cp Mi' : selectedProfile ? selectedProfile.name : selectedProvider?.name}
-                                </h1>
-                                <p className="text-gray-500 text-sm">
-                                    {selectedProfile ? `Cu hnh cho ${selectedProvider?.name}` : 'Qun l Nh Cung Cp'}
-                                </p>
-                            </div>
-                            {selectedProfile && !isEditingProfile && (
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={handleTestConnection}
-                                        className="px-4 py-2 border rounded-lg hover:bg-gray-50 flex items-center gap-2"
-                                    >
-                                        {testStatus === 'success' ? <CheckCircle className="text-green-500" size={18} /> :
-                                            testStatus === 'date-error' ? <XCircle className="text-red-500" size={18} /> :
-                                                <Play size={18} />}
-                                        Test
-                                    </button>
-                                    <button
-                                        onClick={handleActivateProfile}
-                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                                    >
-                                        Kch Hot
-                                    </button>
-                                    <button
-                                        onClick={() => setIsEditingProfile(true)}
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                    >
-                                        Sa
-                                    </button>
-                                </div>
-                            )}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+
+                {/* --- Left Sidebar: Providers List --- */}
+                <Card className="md:col-span-4 shadow-md">
+                    <CardHeader className="pb-3 border-b bg-muted/20">
+                        <div className="flex justify-between items-center">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Server className="h-5 w-5" /> Nh Cung Cp
+                            </CardTitle>
+                            <Button size="sm" onClick={handleNewProvider}>
+                                <Plus className="h-4 w-4 mr-1" /> Thm
+                            </Button>
                         </div>
-
-                        {/* Provider Form */}
-                        {(isEditingProvider) && (
-                            <div className="space-y-4">
-                                <FormInput label="Provider Name" value={formData.name} onChange={(v) => setFormData({ ...formData, name: v })} placeholder="e.g. OpenRouter" />
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Type</label>
-                                    <select
-                                        className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                                        value={formData.type}
-                                        onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                    >
-                                        <option value="openai">OpenAI Compatible</option>
-                                        <option value="azure">Azure OpenAI</option>
-                                        <option value="ollama">Ollama</option>
-                                    </select>
-                                </div>
-                                <FormInput label="Base URL" value={formData.baseUrl} onChange={(v) => setFormData({ ...formData, baseUrl: v })} placeholder="https://api.openai.com/v1" />
-                                <FormInput label="Website" value={formData.website} onChange={(v) => setFormData({ ...formData, website: v })} />
-
-                                <div className="pt-4 flex justify-end gap-3">
-                                    <button onClick={() => setIsEditingProvider(false)} className="px-4 py-2 text-gray-600">Hy</button>
-                                    <button onClick={handleSaveProvider} className="px-4 py-2 bg-blue-600 text-white rounded-lg" disabled={isSaving}>
-                                        {isSaving ? 'ang lu...' : 'To Nh Cung Cp'}
-                                    </button>
-                                </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        {isLoading ? (
+                            <div className="p-8 text-center text-muted-foreground">
+                                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                                ang ti...
                             </div>
-                        )}
-
-                        {/* Profile Editor */}
-                        {(isEditingProfile || (selectedProfile && !isEditingProfile)) && (
-                            <div className="space-y-6">
-                                {!isEditingProfile ? (
-                                    /* Read Only View */
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <DetailItem label="Model ID" value={selectedProfile?.modelId} />
-                                        <DetailItem label="API Key" value={selectedProfile?.apiKey ? '' : 'Not Set'} />
-                                        <div className="col-span-2">
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">Configuration (JSON)</label>
-                                            <pre className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg text-sm font-mono overflow-auto max-h-60 border">
-                                                {selectedProfile?.configJson}
-                                            </pre>
-                                        </div>
-                                        <div className="col-span-2 flex justify-end">
-                                            <button onClick={handleDeleteProfile} className="text-red-500 hover:text-red-700 flex items-center gap-1 text-sm">
-                                                <Trash2 size={16} /> Xa Cu Hnh
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    /* Edit Form */
-                                    <div className="space-y-4">
-                                        <FormInput label="Profile Name" value={formData.name} onChange={(v) => setFormData({ ...formData, name: v })} placeholder="e.g. Production GPT-4" />
-
-                                        {/* Model ID with Fetch */}
-                                        <div>
-                                            <div className="flex justify-between items-center mb-1">
-                                                <label className="block text-sm font-medium">Model ID</label>
-                                                <button
-                                                    onClick={handleFetchModels}
-                                                    className="text-xs flex items-center gap-1 text-blue-600 hover:underline disabled:opacity-50"
-                                                    disabled={isFetchingModels}
-                                                >
-                                                    {isFetchingModels ? <Loader2 size={12} className="animate-spin" /> : <CloudDownload size={12} />}
-                                                    Ti DS Model
-                                                </button>
+                        ) : (
+                            <div className="divide-y max-h-[600px] overflow-y-auto">
+                                {providers.map(provider => (
+                                    <div key={provider.id} className="group">
+                                        <div
+                                            onClick={() => handleSelectProvider(provider)}
+                                            className={`p-4 cursor-pointer transition-colors hover:bg-muted/50 ${selectedProvider?.id === provider.id ? 'bg-muted/80' : ''}`}
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="font-semibold">{provider.name}</div>
+                                                <Badge variant="outline" className="uppercase text-[10px]">{provider.type}</Badge>
                                             </div>
-                                            {fetchedModels.length > 0 ? (
-                                                <div className="flex gap-2">
-                                                    <select
-                                                        className="flex-1 p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                                                        value={formData.modelId}
-                                                        onChange={(e) => setFormData({ ...formData, modelId: e.target.value })}
+
+                                            {/* Nested Profiles */}
+                                            {selectedProvider?.id === provider.id && (
+                                                <div className="mt-3 space-y-2 pl-2 border-l-2 border-primary/20">
+                                                    {provider.profiles && provider.profiles.map(profile => (
+                                                        <div
+                                                            key={profile.id}
+                                                            onClick={(e) => { e.stopPropagation(); handleSelectProfile(profile); }}
+                                                            className={`text-sm p-2 rounded-md cursor-pointer flex items-center justify-between transition-colors ${selectedProfile?.id === profile.id
+                                                                ? 'bg-primary/10 text-primary font-medium'
+                                                                : 'hover:bg-muted text-muted-foreground'}`}
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <Settings className="h-3 w-3" />
+                                                                {profile.name}
+                                                            </div>
+                                                            {activeProfileId === profile.id && (
+                                                                <Badge variant="default" className="bg-green-600 hover:bg-green-700 text-[10px] h-5">ACTIVE</Badge>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="w-full justify-start text-xs h-8"
+                                                        onClick={(e) => { e.stopPropagation(); handleNewProfile(); }}
                                                     >
-                                                        <option value="">Select a model...</option>
-                                                        {fetchedModels.map(m => <option key={m} value={m}>{m}</option>)}
-                                                    </select>
-                                                    <button onClick={() => setFetchedModels([])} className="px-2 text-gray-400 hover:text-gray-600" title="Manual Input"><Settings size={16} /></button>
+                                                        <Plus className="h-3 w-3 mr-2" /> Thm Profile
+                                                    </Button>
                                                 </div>
-                                            ) : (
-                                                <FormInput
-                                                    value={formData.modelId}
-                                                    onChange={(v) => setFormData({ ...formData, modelId: v })}
-                                                    placeholder="e.g. gpt-4o"
-                                                />
                                             )}
                                         </div>
+                                    </div>
+                                ))}
+                                {providers.length === 0 && (
+                                    <div className="p-8 text-center text-muted-foreground text-sm">
+                                        Cha c nh cung cp no.
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
 
-                                        <FormInput label="API Key" type="password" value={formData.apiKey} onChange={(v) => setFormData({ ...formData, apiKey: v })} placeholder="sk-..." />
-
+                {/* --- Right Panel: Main Content --- */}
+                <div className="md:col-span-8 space-y-6">
+                    {!selectedProvider && !isEditingProvider ? (
+                        <Card className="min-h-[400px] flex flex-col items-center justify-center text-center p-8 border-dashed">
+                            <div className="bg-muted/50 p-6 rounded-full mb-4">
+                                <Cpu className="h-10 w-10 text-muted-foreground" />
+                            </div>
+                            <h3 className="text-xl font-semibold mb-2">Cha chn cu hnh</h3>
+                            <p className="text-muted-foreground max-w-sm">
+                                Vui lng chn mt nh cung cp t danh sch bn tri hoc to mi  bt u cu hnh.
+                            </p>
+                        </Card>
+                    ) : (
+                        <>
+                            <Card className="shadow-md">
+                                <CardHeader className="border-b bg-muted/10 pb-4">
+                                    <div className="flex justify-between items-start">
                                         <div>
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div className="flex items-center gap-2">
-                                                    <Label>Configuration Mode</Label>
-                                                    <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-                                                        <button
-                                                            onClick={() => setIsVisualMode(true)}
-                                                            className={`p-1.5 rounded-md transition ${isVisualMode ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                                                            title="Visual Editor"
-                                                        >
-                                                            <Sliders size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setIsVisualMode(false)}
-                                                            className={`p-1.5 rounded-md transition ${!isVisualMode ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                                                            title="Raw JSON"
-                                                        >
-                                                            <FileJson size={16} />
-                                                        </button>
+                                            <CardTitle>{isEditingProvider ? 'To Nh Cung Cp Mi' : (selectedProfile ? `Cu hnh: ${selectedProfile.name}` : providerDisplayName(selectedProvider))}</CardTitle>
+                                            <CardDescription>
+                                                {selectedProfile ? `ID: ${selectedProfile.modelId}  Provider: ${selectedProvider?.name}` : 'Thng tin chung nh cung cp'}
+                                            </CardDescription>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            {selectedProfile && !isEditingProfile && (
+                                                <>
+                                                    <Button variant="outline" size="sm" onClick={handleTestConnection}>
+                                                        {testStatus === 'success' ? <CheckCircle className="h-4 w-4 text-green-500 mr-2" /> :
+                                                            testStatus === 'date-error' ? <XCircle className="h-4 w-4 text-red-500 mr-2" /> :
+                                                                <Zap className="h-4 w-4 mr-2" />}
+                                                        Test
+                                                    </Button>
+                                                    <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={handleActivateProfile}>
+                                                        <CheckCircle className="h-4 w-4 mr-2" /> Kch Hot
+                                                    </Button>
+                                                    <Button variant="secondary" size="sm" onClick={() => setIsEditingProfile(true)}>
+                                                        Sa
+                                                    </Button>
+                                                </>
+                                            )}
+                                            {selectedProvider && !isEditingProvider && !selectedProfile && (
+                                                <Button variant="destructive" size="sm" onClick={() => handleDeleteProvider(selectedProvider)}>
+                                                    <Trash2 className="h-4 w-4 mr-2" /> Xa Provider
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="p-6">
+
+                                    {/* --- Provider Edit Form --- */}
+                                    {isEditingProvider && (
+                                        <div className="space-y-4 max-w-xl">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="provider-name">Tn Nh Cung Cp</Label>
+                                                <Input id="provider-name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="VD: OpenRouter, OpenAI..." />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="provider-type">Loi (Type)</Label>
+                                                <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v })}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Chn loi" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="openai">OpenAI Compatible</SelectItem>
+                                                        <SelectItem value="azure">Azure OpenAI</SelectItem>
+                                                        <SelectItem value="ollama">Ollama</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="base-url">Base URL</Label>
+                                                <Input id="base-url" value={formData.baseUrl} onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })} placeholder="https://api.openai.com/v1" />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="website">Website Documentation</Label>
+                                                <Input id="website" value={formData.website} onChange={(e) => setFormData({ ...formData, website: e.target.value })} placeholder="https://..." />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* --- Profile Edit Form --- */}
+                                    {(isEditingProfile) && (
+                                        <div className="space-y-6">
+                                            <div className="grid md:grid-cols-2 gap-4">
+                                                <div className="grid gap-2">
+                                                    <Label>Tn Profile Display</Label>
+                                                    <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="VD: GPT-4 Production" />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label className="flex justify-between items-center">
+                                                        <span>Model ID</span>
+                                                        <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={handleFetchModels} disabled={isFetchingModels}>
+                                                            {isFetchingModels ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <CloudDownload className="h-3 w-3 mr-1" />}
+                                                            Ly DS t Server
+                                                        </Button>
+                                                    </Label>
+                                                    <div className="flex gap-2">
+                                                        {fetchedModels.length > 0 ? (
+                                                            <Select value={formData.modelId} onValueChange={(v) => setFormData({ ...formData, modelId: v })}>
+                                                                <SelectTrigger className="flex-1">
+                                                                    <SelectValue placeholder="Chn model" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {fetchedModels.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        ) : (
+                                                            <Input value={formData.modelId} onChange={(e) => setFormData({ ...formData, modelId: e.target.value })} placeholder="VD: gpt-3.5-turbo" />
+                                                        )}
                                                     </div>
                                                 </div>
-                                                <span className="text-xs text-gray-500">
-                                                    {isVisualMode ? 'Chnh sa trc quan' : 'Cu hnh JSON nng cao'}
-                                                </span>
                                             </div>
 
-                                            {isVisualMode ? (
-                                                <VisualConfigEditor
-                                                    jsonString={formData.configJson || '{}'}
-                                                    onChange={(newJson) => setFormData({ ...formData, configJson: newJson })}
-                                                />
-                                            ) : (
-                                                <div>
+                                            <div className="grid gap-2">
+                                                <Label>API Key</Label>
+                                                <Input type="password" value={formData.apiKey} onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })} placeholder="sk-..." />
+                                                <p className="text-[10px] text-muted-foreground"> trng nu mun gi nguyn Key c (khi cp nht).</p>
+                                            </div>
+
+                                            <Separator />
+
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <Label>Cu hnh nng cao (JSON)</Label>
+                                                    <div className="flex items-center bg-muted p-1 rounded-md">
+                                                        <Button variant={isVisualMode ? 'secondary' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setIsVisualMode(true)}>Visual</Button>
+                                                        <Button variant={!isVisualMode ? 'secondary' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setIsVisualMode(false)}>JSON</Button>
+                                                    </div>
+                                                </div>
+
+                                                {isVisualMode ? (
+                                                    <VisualConfigEditor
+                                                        jsonString={formData.configJson || '{}'}
+                                                        onChange={(newJson) => setFormData({ ...formData, configJson: newJson })}
+                                                    />
+                                                ) : (
                                                     <textarea
-                                                        className="w-full h-60 p-3 font-mono text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none"
+                                                        className="w-full min-h-[200px] p-3 font-mono text-sm border rounded-md bg-muted/50"
                                                         value={formData.configJson}
                                                         onChange={(e) => setFormData({ ...formData, configJson: e.target.value })}
                                                     />
-                                                    <p className="text-xs text-gray-500 mt-1">
-                                                        Valid JSON required.
-                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* --- Detail Read View --- */}
+                                    {selectedProfile && !isEditingProfile && (
+                                        <div className="grid md:grid-cols-2 gap-8">
+                                            <div className="space-y-4">
+                                                <div className="grid gap-1">
+                                                    <Label className="text-muted-foreground">Model ID</Label>
+                                                    <div className="font-mono bg-muted/30 px-3 py-1 rounded inline-block">{selectedProfile.modelId}</div>
                                                 </div>
-                                            )}
+                                                <div className="grid gap-1">
+                                                    <Label className="text-muted-foreground">API Key</Label>
+                                                    <div className="font-mono text-muted-foreground"></div>
+                                                </div>
+                                                <div className="grid gap-1">
+                                                    <Label className="text-muted-foreground">JSON Config</Label>
+                                                    <pre className="text-xs bg-muted p-3 rounded-lg overflow-x-auto border max-h-[200px]">{selectedProfile.configJson}</pre>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-6 border-l pl-6">
+                                                <div className="space-y-2">
+                                                    <h4 className="font-medium flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Quick Chat Test</h4>
+                                                    <div className="flex gap-2">
+                                                        <Input
+                                                            placeholder="Type a message..."
+                                                            value={testChatMsg}
+                                                            onChange={(e) => setTestChatMsg(e.target.value)}
+                                                        />
+                                                        <Button onClick={handleTestChat} disabled={isTestingChat}>
+                                                            {isTestingChat ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                                                        </Button>
+                                                    </div>
+                                                    {testChatResult && (
+                                                        <div className={`text-sm p-3 rounded-md border ${testChatResult.success ? 'bg-green-500/10 border-green-200 text-green-700' : 'bg-red-500/10 border-red-200 text-red-700'}`}>
+                                                            <div className="font-semibold text-xs mb-1 flex justify-between">
+                                                                <span>{testChatResult.success ? 'RESPONSE' : 'ERROR'}</span>
+                                                                <span>{testChatResult.latency}</span>
+                                                            </div>
+                                                            <div>{testChatResult.message || testChatResult.error}</div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-
-                                        <div className="pt-4 flex justify-end gap-3">
-                                            <button
-                                                onClick={() => {
-                                                    setIsEditingProfile(false);
-                                                    if (!selectedProfile) setSelectedProfile(null);
-                                                }}
-                                                className="px-4 py-2 text-gray-600"
-                                            >
-                                                Hy
-                                            </button>
-                                            <button onClick={handleSaveProfile} className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2" disabled={isSaving}>
-                                                <Save size={18} />
-                                                {isSaving ? 'ang lu...' : 'Lu Cu Hnh'}
-                                            </button>
-                                        </div>
-                                    </div>
+                                    )}
+                                </CardContent>
+                                {(isEditingProvider || isEditingProfile) && (
+                                    <CardFooter className="flex justify-end gap-2 bg-muted/10 py-4">
+                                        <Button variant="ghost" onClick={() => { setIsEditingProvider(false); setIsEditingProfile(false); }}>Hy b</Button>
+                                        <Button onClick={isEditingProvider ? handleSaveProvider : handleSaveProfile} disabled={isSaving}>
+                                            {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                            {isEditingProvider ? 'To Provider' : 'Lu Thay i'}
+                                        </Button>
+                                    </CardFooter>
                                 )}
-                            </div>
-                        )}
+                            </Card>
 
-                        {/* Quick Chat Test Section */}
-                        {(isEditingProfile || selectedProfile) && (
-                            <div className="border-t pt-6 mt-6">
-                                <h3 className="font-semibold flex items-center gap-2 mb-4">
-                                    <MessageSquare size={18} /> Quick Chat Test
-                                </h3>
-                                <div className="flex gap-2 mb-2">
-                                    <input
-                                        className="flex-1 p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                                        value={testChatMsg}
-                                        onChange={(e) => setTestChatMsg(e.target.value)}
-                                        placeholder="Type a message..."
-                                    />
-                                    <button
-                                        onClick={handleTestChat}
-                                        disabled={isTestingChat}
-                                        className="bg-purple-600 text-white px-4 rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
-                                    >
-                                        {isTestingChat ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
-                                        Send
-                                    </button>
-                                </div>
-                                {testChatResult && (
-                                    <div className={`p-3 rounded-lg text-sm ${testChatResult.success ? 'bg-green-50 border border-green-200 text-green-900' : 'bg-red-50 border border-red-200 text-red-900'}`}>
-                                        <div className="flex justify-between font-semibold mb-1">
-                                            <span>{testChatResult.success ? 'Success' : 'Error'}</span>
-                                            <span className="opacity-70">{testChatResult.latency}</span>
-                                        </div>
-                                        <div className="whitespace-pre-wrap">{testChatResult.message || testChatResult.error}</div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Embedding Test Section */}
-                        {isEditingProfile === false && (
-                            <div className="border-t pt-6 mt-6">
-                                <h3 className="font-semibold flex items-center gap-2 mb-4">
-                                    <Sliders size={18} /> Embedding Latency Test
-                                </h3>
-                                <div className="flex items-center gap-4">
-                                    <button
-                                        onClick={async () => {
+                            {/* --- System Actions (Only when not editing) --- */}
+                            {!isEditingProfile && !isEditingProvider && (
+                                <Card>
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="text-lg flex items-center gap-2"><Settings className="h-5 w-5" /> System Utilities</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="flex flex-wrap gap-4">
+                                        <Button variant="outline" onClick={async () => {
                                             try {
                                                 const res = await llmService.testEmbedding();
-                                                toast.success(`Success! Latency: ${res.latencyMs}ms`);
+                                                toast.success(`Embedding Test Success! Latency: ${res.latencyMs}ms`);
                                             } catch (e: any) {
                                                 toast.error("Failed: " + e.message);
                                             }
-                                        }}
-                                        className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2"
-                                    >
-                                        <Play size={16} /> Test Embedding Speed
-                                    </button>
-                                    <button
-                                        onClick={async () => {
-                                            if (!confirm('This will Re-index ALL products to Qdrant using the current embedding model. Continue?')) return;
+                                        }}>
+                                            <Sliders className="h-4 w-4 mr-2" /> Test Embedding
+                                        </Button>
+
+                                        <Button variant="outline" onClick={async () => {
+                                            if (!confirm('Hnh ng ny s Re-index li ton b sn phm. Cn mt khong thi gian. Tip tc?')) return;
                                             try {
-                                                alert("Triggering Re-index... Check backend logs for progress.");
+                                                toast.info("ang bt u Re-index...");
                                                 await llmService.reindexVectorDb();
-                                                alert("Re-index triggered successfully!");
+                                                toast.success(" yu cu Re-index thnh cng.");
                                             } catch (e: any) {
-                                                alert("Failed: " + e.message);
+                                                toast.error("Failed: " + e.message);
                                             }
-                                        }}
-                                        className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2"
-                                    >
-                                        <Sliders size={16} /> Re-index Vector DB
-                                    </button>
-                                    <p className="text-sm text-gray-500">
-                                        Tests the <b>dedicated</b> embedding provider configured in <code>appsettings.json</code>.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                                        }}>
+                                            <Globe className="h-4 w-4 mr-2" /> Re-index Vector DB
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );
 }
 
-// Helpers
-interface FormInputProps {
-    label?: string;
-    value: any;
-    onChange: (val: string) => void;
-    type?: string;
-    placeholder?: string;
-}
-
-function FormInput({ label, value, onChange, type = "text", placeholder = "" }: FormInputProps) {
-    return (
-        <div>
-            {label && <label className="block text-sm font-medium mb-1">{label}</label>}
-            <input
-                type={type}
-                className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none"
-                value={value || ''}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder={placeholder}
-            />
-        </div>
-    );
-}
-
-function DetailItem({ label, value }: any) {
-    return (
-        <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
-            <div className="font-medium">{value}</div>
-        </div>
-    );
+function providerDisplayName(provider: LlmProvider | null) {
+    if (!provider) return '...';
+    return provider.name;
 }
 
 function VisualConfigEditor({ jsonString, onChange }: { jsonString: string, onChange: (val: string) => void }) {
     const [config, setConfig] = useState<any>({});
     const [error, setError] = useState<string | null>(null);
 
-    // Default values
-    const DEFAULTS = {
-        temperature: 1.0,
-        top_p: 1.0,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-        streaming: true,
-        max_tokens: 4096
-    };
+    // Add Parameter State
+    const [newKey, setNewKey] = useState("");
+    const [newType, setNewType] = useState("string");
+    const [newValue, setNewValue] = useState("");
 
     useEffect(() => {
         try {
-            const parsed = JSON.parse(jsonString || '{ }');
+            const parsed = JSON.parse(jsonString || '{}');
             setConfig(parsed);
             setError(null);
         } catch (e) {
-            setError("Invalid JSON - Switching to Visual Mode reset this. Please fix in Raw Mode.");
+            setError("Invalid JSON detected. Switched to safe mode.");
         }
     }, [jsonString]);
 
     const updateConfig = (key: string, value: any) => {
         let newConfig = { ...config };
-
-        if (value === undefined || value === null) {
-            delete newConfig[key];
-        } else {
-            newConfig[key] = value;
-        }
-
-        // Auto-cleanup sparse defaults if desired, or keep explicit if user set them.
-        // For now, we respect the user's explicit choices via the UI toggles/inputs.
-
+        if (value === undefined || value === null) delete newConfig[key];
+        else newConfig[key] = value;
         setConfig(newConfig);
         onChange(JSON.stringify(newConfig, null, 2));
     };
 
-    if (error) return <div className="text-red-500 text-sm p-4 bg-red-50 rounded border border-red-200">{error}</div>;
+    const handleAddParam = () => {
+        if (!newKey) return;
+        let val: any = newValue;
+        if (newType === 'number') val = parseFloat(newValue) || 0;
+        if (newType === 'boolean') val = (newValue.toLowerCase() === 'true');
+
+        updateConfig(newKey, val);
+        setNewKey("");
+        setNewValue("");
+    };
+
+    if (error) return <div className="text-destructive text-sm p-4 bg-destructive/10 rounded-md">{error}</div>;
 
     return (
-        <div className="space-y-6 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border">
-            {/* Temperature */}
-            <div className="space-y-3">
-                <div className="flex justify-between">
-                    <Label className="flex items-center gap-2">
-                        Temperature
-                        {config.temperature === undefined && <span className="text-xs text-gray-400 font-normal">(Default: 1.0)</span>}
-                    </Label>
-                    <span className="text-sm font-mono bg-white px-2 rounded border">{config.temperature ?? 1.0}</span>
+        <div className="space-y-4 bg-card border rounded-lg p-4">
+            {Object.keys(config).length === 0 ? (
+                <div className="text-center text-muted-foreground text-sm py-8 border-2 border-dashed rounded-lg bg-muted/10">
+                    Configuration is empty. Add parameters below.
                 </div>
-                <Slider
-                    value={[config.temperature ?? 1.0]}
-                    min={0}
-                    max={2}
-                    step={0.1}
-                    onValueChange={([val]) => updateConfig('temperature', val)}
-                />
-                <p className="text-xs text-gray-400">Controls randomness: 1.0 is neutral/raw.</p>
-                <div className="flex justify-end">
-                    <button
-                        onClick={() => updateConfig('temperature', undefined)}
-                        className="text-xs text-red-400 hover:text-red-500 hover:underline"
-                        title="Remove this parameter from JSON"
-                    >
-                        Unset / Remove
-                    </button>
-                </div>
-            </div>
-
-            {/* Top P */}
-            <div className="space-y-3">
-                <div className="flex justify-between">
-                    <Label className="flex items-center gap-2">
-                        Top P
-                        {config.top_p === undefined && <span className="text-xs text-gray-400 font-normal">(Default: 1.0)</span>}
-                    </Label>
-                    <span className="text-sm font-mono bg-white px-2 rounded border">{config.top_p ?? 1.0}</span>
-                </div>
-                <Slider
-                    value={[config.top_p ?? 1.0]}
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    onValueChange={([val]) => updateConfig('top_p', val)}
-                />
-                <div className="flex justify-end mt-1">
-                    <button
-                        onClick={() => updateConfig('top_p', undefined)}
-                        className="text-xs text-red-400 hover:text-red-500 hover:underline"
-                    >
-                        Unset
-                    </button>
-                </div>
-            </div>
-
-            {/* Frequency & Presence Penalty */}
-            <div className="grid grid-cols-2 gap-6">
+            ) : (
                 <div className="space-y-3">
-                    <div className="flex justify-between">
-                        <Label className="text-xs">Frequency Penalty</Label>
-                        <span className="text-xs font-mono">{config.frequency_penalty ?? 0}</span>
-                    </div>
-                    <Slider
-                        value={[config.frequency_penalty ?? 0]}
-                        min={-2}
-                        max={2}
-                        step={0.1}
-                        onValueChange={([val]) => updateConfig('frequency_penalty', val)}
-                    />
-                </div>
-                <div className="space-y-3">
-                    <div className="flex justify-between">
-                        <Label className="text-xs">Presence Penalty</Label>
-                        <span className="text-xs font-mono">{config.presence_penalty ?? 0}</span>
-                    </div>
-                    <Slider
-                        value={[config.presence_penalty ?? 0]}
-                        min={-2}
-                        max={2}
-                        step={0.1}
-                        onValueChange={([val]) => updateConfig('presence_penalty', val)}
-                    />
-                </div>
-            </div>
+                    {Object.entries(config).map(([key, value]) => (
+                        <div key={key} className="flex gap-4 items-start p-3 bg-muted/30 rounded-lg group hover:bg-muted/50 transition border border-transparent hover:border-muted-foreground/20">
+                            <div className="flex-1 space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label className="font-mono text-xs font-semibold text-primary">{key}</Label>
+                                    <Badge variant="outline" className="text-[10px] h-4 leading-none text-muted-foreground">{typeof value}</Badge>
+                                </div>
 
-            {/* Max Tokens */}
-            <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                    <Label className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            checked={config.max_tokens !== undefined}
-                            onChange={(e) => updateConfig('max_tokens', e.target.checked ? 4096 : undefined)}
-                            className="rounded border-gray-300"
+                                {/* Dynamic Control */}
+                                {typeof value === 'boolean' ? (
+                                    <div className="flex items-center space-x-2 h-8">
+                                        <Switch
+                                            checked={value as boolean}
+                                            onCheckedChange={(c) => updateConfig(key, c)}
+                                        />
+                                        <span className="text-xs text-muted-foreground">{value ? 'True' : 'False'}</span>
+                                    </div>
+                                ) : typeof value === 'number' ? (
+                                    <div className="space-y-2">
+                                        <div className="flex gap-2 items-center">
+                                            <Slider
+                                                className="flex-1"
+                                                value={[value as number]}
+                                                min={0}
+                                                max={(value as number) <= 2 ? 2 : (value as number) <= 10 ? 10 : 8000}
+                                                step={(value as number) <= 2 ? 0.1 : 1}
+                                                onValueChange={([v]) => updateConfig(key, v)}
+                                            />
+                                            <Input
+                                                type="number"
+                                                className="w-20 h-8 text-xs font-mono text-right"
+                                                value={value as number}
+                                                onChange={(e) => updateConfig(key, parseFloat(e.target.value))}
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Input
+                                        value={value as string}
+                                        onChange={(e) => updateConfig(key, e.target.value)}
+                                        className="h-8 text-sm"
+                                    />
+                                )}
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive opacity-50 group-hover:opacity-100 transition"
+                                onClick={() => updateConfig(key, undefined)}
+                                title="Remove Parameter"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            <Separator />
+
+            {/* Add Parameter Section */}
+            <div className="grid gap-3 p-4 bg-muted/20 rounded-lg border border-dashed">
+                <Label className="text-xs font-semibold uppercase text-muted-foreground">Add New Parameter</Label>
+                <div className="flex gap-2">
+                    <Input
+                        placeholder="Key (e.g. top_k)"
+                        className="flex-1 h-8 text-sm font-mono"
+                        value={newKey}
+                        onChange={(e) => setNewKey(e.target.value)}
+                    />
+                    <Select value={newType} onValueChange={setNewType}>
+                        <SelectTrigger className="w-[110px] h-8 text-xs">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="string">String</SelectItem>
+                            <SelectItem value="number">Number</SelectItem>
+                            <SelectItem value="boolean">Boolean</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex gap-2">
+                    {newType === 'boolean' ? (
+                        <Select value={newValue} onValueChange={setNewValue}>
+                            <SelectTrigger className="flex-1 h-8 text-xs">
+                                <SelectValue placeholder="Select value" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="true">True</SelectItem>
+                                <SelectItem value="false">False</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    ) : (
+                        <Input
+                            type={newType === 'number' ? 'number' : 'text'}
+                            placeholder="Value"
+                            className="flex-1 h-8 text-sm"
+                            value={newValue}
+                            onChange={(e) => setNewValue(e.target.value)}
                         />
-                        Max Tokens
-                    </Label>
-                    {config.max_tokens !== undefined && (
-                        <span className="text-sm font-mono bg-white px-2 rounded border">{config.max_tokens}</span>
                     )}
+                    <Button
+                        size="sm"
+                        className="h-8 px-4"
+                        disabled={!newKey || !newValue}
+                        onClick={handleAddParam}
+                    >
+                        <Plus className="h-4 w-4 mr-1" /> Add
+                    </Button>
                 </div>
-                {config.max_tokens !== undefined && (
-                    <div className="flex gap-4 items-center">
-                        <Slider
-                            className="flex-1"
-                            value={[config.max_tokens]}
-                            min={128}
-                            max={32000}
-                            step={128}
-                            onValueChange={([val]) => updateConfig('max_tokens', val)}
-                        />
-                        <input
-                            type="number"
-                            className="w-20 p-1 text-sm border rounded text-right"
-                            value={config.max_tokens}
-                            onChange={(e) => updateConfig('max_tokens', parseInt(e.target.value))}
-                        />
-                    </div>
-                )}
-                {config.max_tokens === undefined && (
-                    <p className="text-xs text-gray-400">Not sent (using provider default)</p>
-                )}
             </div>
 
-            {/* Extra Params */}
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <Label className="mb-2 block">Top K</Label>
-                    <input
-                        type="number"
-                        className="w-full p-2 text-sm border rounded"
-                        value={config.top_k ?? ''}
-                        onChange={(e) => updateConfig('top_k', parseInt(e.target.value) || undefined)}
-                        placeholder="Optional"
-                    />
-                </div>
-                <div className="flex items-center justify-between border p-2 rounded bg-white">
-                    <Label>Streaming</Label>
-                    <Switch
-                        checked={config.streaming === true}
-                        onCheckedChange={(checked) => updateConfig('streaming', checked ? true : undefined)}
-                    />
-                </div>
-            </div>
-            <div className="pt-2 text-right">
-                <button
-                    onClick={() => { setConfig({}); onChange('{}'); }}
-                    className="text-xs text-red-500 hover:underline"
-                >
-                    Clear All Config
-                </button>
+            <div className="flex justify-end pt-2">
+                <Button variant="destructive" size="sm" onClick={() => {
+                    if (confirm("Clear entire configuration?")) {
+                        setConfig({});
+                        onChange("{}");
+                    }
+                }}>
+                    <Trash2 className="h-4 w-4 mr-2" /> Clear All Config
+                </Button>
             </div>
         </div>
     );
