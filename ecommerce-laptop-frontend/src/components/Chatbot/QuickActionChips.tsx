@@ -11,6 +11,7 @@ const QUICK_ACTIONS = [
     { label: 'Di 20 triu', query: 'Laptop di 2000$' },
     { label: 'Vn Phng', query: 'Laptop vn phng tt nht' },
     { label: 'Sng To', query: 'Laptop cho edit video v thit k' },
+    { label: 'Xem n hng', query: 'Cho ti xem n hng ca ti' },
 ];
 
 export function QuickActionChips({ onChipClick }: QuickActionChipsProps) {
