@@ -10,40 +10,37 @@ using System.Text.Json;
 using System.Linq;
 using System.Text;
 using EcommerceLaptop.Infrastructure.Services.Security;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EcommerceLaptop.Infrastructure.Services.AI.Plugins;
 
 public class RagChatToolsPlugin
 {
     private readonly IToolRegistry _toolRegistry;
-    private readonly IShoppingCartService _cartService;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly Core.Interfaces.IVectorDbService _vectorDbService; 
     private readonly Core.Interfaces.IEmbeddingService _embeddingService;
-    private readonly IOrderService _orderService;
+    private readonly IRateLimitingService _rateLimitingService;
     private readonly ILogger<RagChatToolsPlugin> _logger;
 
     public RagChatToolsPlugin(
         IToolRegistry toolRegistry,
-        IShoppingCartService cartService,
+        IServiceScopeFactory scopeFactory,
         IHttpContextAccessor httpContextAccessor,
         Core.Interfaces.IVectorDbService vectorDbService,
         Core.Interfaces.IEmbeddingService embeddingService,
-        IOrderService orderService,
         IRateLimitingService rateLimitingService,
         ILogger<RagChatToolsPlugin> logger)
     {
         _toolRegistry = toolRegistry;
-        _cartService = cartService;
+        _scopeFactory = scopeFactory;
         _httpContextAccessor = httpContextAccessor;
         _vectorDbService = vectorDbService;
         _embeddingService = embeddingService;
-        _orderService = orderService;
         _rateLimitingService = rateLimitingService;
         _logger = logger;
     }
-
-    private readonly IRateLimitingService _rateLimitingService;
 
     private string? _explicitUserId;
     private string? _explicitSessionId;
@@ -78,7 +75,7 @@ public class RagChatToolsPlugin
         return (userId, sessionId);
     }
 
-    // ... GetProductInventory (unchanged) ...
+    // ... GetProductInventory (unchanged would go here in full file, but focusing on replacement of relevant methods) ...
 
     [KernelFunction]
     [Description("Check the status of a specific order by ID")]
@@ -91,39 +88,43 @@ public class RagChatToolsPlugin
          if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out _)) 
             return "Please login to view order status.";
 
-         try
+         using (var scope = _scopeFactory.CreateScope())
          {
-             _logger.LogInformation("RagChatToolsPlugin: CheckOrderStatus called for OrderId {OrderId}, UserId {UserId}", orderId, userId);
-             
-             // Rate Limit Check
-             var rateLimitResult = await _rateLimitingService.CheckRateLimitAsync(userId, "tool:CheckOrderStatus", "TOOL");
-             if (!rateLimitResult.IsSuccess || !rateLimitResult.Data.IsAllowed)
-             {
-                 _logger.LogWarning("Rate limit exceeded for user {UserId} on tool CheckOrderStatus", userId);
-                 return "Rate limit exceeded. Please try again later.";
-             }
+             var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
 
-             var order = await _orderService.GetOrderDetailsAsync(orderId);
-             
-             // Security check - Unified response to prevent enumeration
-             // We check for both null (not found) and ownership mismatch
-             if (order == null || order.CustomerId.ToString() != userId) 
+             try
              {
-                 // Log the specific reason internally for security monitoring
-                 if (order == null)
+                 _logger.LogInformation("RagChatToolsPlugin: CheckOrderStatus called for OrderId {OrderId}, UserId {UserId}", orderId, userId);
+                 
+                 // Rate Limit Check
+                 var rateLimitResult = await _rateLimitingService.CheckRateLimitAsync(userId, "tool:CheckOrderStatus", "TOOL");
+                 if (!rateLimitResult.IsSuccess || !rateLimitResult.Data.IsAllowed)
                  {
-                     _logger.LogWarning("Security: Order lookup failed - Order #{OrderId} not found. Requested by User {UserId}", orderId, userId);
-                 }
-                 else
-                 {
-                     _logger.LogWarning("SECURITY ALERT: Authorization denied. User {UserId} attempted to access Order #{OrderId} belonging to Customer {OwnerId}", userId, orderId, order.CustomerId);
+                     _logger.LogWarning("Rate limit exceeded for user {UserId} on tool CheckOrderStatus", userId);
+                     return "Rate limit exceeded. Please try again later.";
                  }
 
-                 // Return generic message to user
-                 return $"Order #{orderId} not found.";
-             }
+                 var order = await orderService.GetOrderDetailsAsync(orderId);
+                 
+                 // Security check - Unified response to prevent enumeration
+                 // We check for both null (not found) and ownership mismatch
+                 if (order == null || order.CustomerId.ToString() != userId) 
+                 {
+                     // Log the specific reason internally for security monitoring
+                     if (order == null)
+                     {
+                         _logger.LogWarning("Security: Order lookup failed - Order #{OrderId} not found. Requested by User {UserId}", orderId, userId);
+                     }
+                     else
+                     {
+                         _logger.LogWarning("SECURITY ALERT: Authorization denied. User {UserId} attempted to access Order #{OrderId} belonging to Customer {OwnerId}", userId, orderId, order.CustomerId);
+                     }
 
-             return $@"
+                     // Return generic message to user
+                     return $"Order #{orderId} not found.";
+                 }
+
+                 return $@"
 ### Order #{order.Id}
 - **Status:** {order.Status}
 - **Date:** {order.CreatedAt:MMM dd, yyyy}
@@ -133,11 +134,12 @@ public class RagChatToolsPlugin
 
 [Tracking Info]: {order.TrackingNumber ?? "N/A"}
 ";
-         }
-         catch (Exception ex)
-         {
-             _logger.LogError(ex, "Error checking order status");
-             return "Unable to retrieve order details at this time.";
+             }
+             catch (Exception ex)
+             {
+                 _logger.LogError(ex, "Error checking order status");
+                 return "Unable to retrieve order details at this time.";
+             }
          }
     }
 
@@ -151,35 +153,40 @@ public class RagChatToolsPlugin
         if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out _)) 
             return "Please login to view your orders.";
 
-        try
+        using (var scope = _scopeFactory.CreateScope())
         {
-            _logger.LogInformation("RagChatToolsPlugin: GetMyOrders called for UserId {UserId}", userId);
+            var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
             
-            // Fetch last 5 orders
-            var result = await _orderService.GetCustomerOrdersAsync(int.Parse(userId), 1, 5);
-            
-            if (result.Items == null || !result.Items.Any())
+            try
             {
-                return "You have no orders yet.";
-            }
+                _logger.LogInformation("RagChatToolsPlugin: GetMyOrders called for UserId {UserId}", userId);
+                
+                // Fetch last 5 orders
+                var result = await orderService.GetCustomerOrdersAsync(int.Parse(userId), 1, 5);
+                
+                if (result.Items == null || !result.Items.Any())
+                {
+                    return "You have no orders yet.";
+                }
 
-            var sb = new System.Text.StringBuilder();
-            sb.AppendLine("Here are your recent orders:");
-            sb.AppendLine("| Order # | Date | Status | Total |");
-            sb.AppendLine("|---|---|---|---|");
-            
-            foreach (var order in result.Items)
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("Here are your recent orders:");
+                sb.AppendLine("| Order # | Date | Status | Total |");
+                sb.AppendLine("|---|---|---|---|");
+                
+                foreach (var order in result.Items)
+                {
+                    sb.AppendLine($"| {order.Id} | {order.CreatedAt:MMM dd} | {order.Status} | ${order.TotalAmount:N2} |");
+                }
+                sb.AppendLine("\nAsk for a specific order ID to see more details.");
+
+                return sb.ToString();
+            }
+            catch (Exception ex)
             {
-                sb.AppendLine($"| {order.Id} | {order.CreatedAt:MMM dd} | {order.Status} | ${order.TotalAmount:N2} |");
+                _logger.LogError(ex, "Error getting user orders");
+                return $"Error retrieving orders: {ex.Message}";
             }
-            sb.AppendLine("\nAsk for a specific order ID to see more details.");
-
-            return sb.ToString();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting user orders");
-            return $"Error retrieving orders: {ex.Message}";
         }
     }
 
@@ -213,28 +220,33 @@ public class RagChatToolsPlugin
             return "Error: Could not identify user session. Please verify your connection.";
         }
 
-        try 
+        using (var scope = _scopeFactory.CreateScope())
         {
-            _logger.LogInformation("RagChatToolsPlugin: AddToCart called for ProductId {ProductId}. RealUserId: {RealUserId}, CartSessionId: {CartSessionId}", productId, effectiveUserId, effectiveCartSessionId);
-            
-            var request = new AddToCartDto 
-            { 
-                ProductId = productId, 
-                Quantity = quantity,
-                SessionId = effectiveCartSessionId
-            };
+            var cartService = scope.ServiceProvider.GetRequiredService<IShoppingCartService>();
 
-            var result = await _cartService.AddToCartAsync(request, effectiveUserId);
-            
-            // Format result
-            var itemCount = result.Summary.ItemCount;
-            var total = result.Summary.TotalAmount;
-            return $"Successfully added product to cart. Cart now has {itemCount} items. Total value: ${total}.";
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding to cart");
-            return $"Error adding to cart: {ex.Message}";
+            try 
+            {
+                _logger.LogInformation("RagChatToolsPlugin: AddToCart called for ProductId {ProductId}. RealUserId: {RealUserId}, CartSessionId: {CartSessionId}", productId, effectiveUserId, effectiveCartSessionId);
+                
+                var request = new AddToCartDto 
+                { 
+                    ProductId = productId, 
+                    Quantity = quantity,
+                    SessionId = effectiveCartSessionId
+                };
+
+                var result = await cartService.AddToCartAsync(request, effectiveUserId);
+                
+                // Format result
+                var itemCount = result.Summary.ItemCount;
+                var total = result.Summary.TotalAmount;
+                return $"Successfully added product to cart. Cart now has {itemCount} items. Total value: ${total}.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding to cart");
+                return $"Error adding to cart: {ex.Message}";
+            }
         }
     }
 
@@ -264,21 +276,26 @@ public class RagChatToolsPlugin
         if (string.IsNullOrEmpty(effectiveUserId) && string.IsNullOrEmpty(effectiveCartSessionId)) 
             return "Error: Could not identify user session.";
 
-        try
+        using (var scope = _scopeFactory.CreateScope())
         {
-            _logger.LogInformation("RagChatToolsPlugin: GetCart called. RealUserId: {RealUserId}, CartSessionId: {CartSessionId}", effectiveUserId, effectiveCartSessionId);
-            var cart = await _cartService.GetCartAsync(effectiveUserId, effectiveCartSessionId);
-            
-            if (cart.Items.Count == 0) return "Your cart is empty.";
-            
-            // Format meaningful string for LLM
-            var itemsInfo = string.Join(", ", cart.Items.Select(i => $"{i.Quantity}x {i.ProductName} (${i.FinalPrice})"));
-            return $"Your cart contains {cart.Items.Count} items: {itemsInfo}. Total: ${cart.Summary.TotalAmount}.";
-        }
-        catch (Exception ex)
-        {
-             _logger.LogError(ex, "Error getting cart");
-            return $"Error getting cart: {ex.Message}";
+            var cartService = scope.ServiceProvider.GetRequiredService<IShoppingCartService>();
+
+            try
+            {
+                _logger.LogInformation("RagChatToolsPlugin: GetCart called. RealUserId: {RealUserId}, CartSessionId: {CartSessionId}", effectiveUserId, effectiveCartSessionId);
+                var cart = await cartService.GetCartAsync(effectiveUserId, effectiveCartSessionId);
+                
+                if (cart.Items.Count == 0) return "Your cart is empty.";
+                
+                // Format meaningful string for LLM
+                var itemsInfo = string.Join(", ", cart.Items.Select(i => $"{i.Quantity}x {i.ProductName} (${i.FinalPrice})"));
+                return $"Your cart contains {cart.Items.Count} items: {itemsInfo}. Total: ${cart.Summary.TotalAmount}.";
+            }
+            catch (Exception ex)
+            {
+                 _logger.LogError(ex, "Error getting cart");
+                return $"Error getting cart: {ex.Message}";
+            }
         }
     }
     

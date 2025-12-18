@@ -790,8 +790,12 @@ Context:
                  var orders = await _orderService.GetCustomerOrdersAsync(userId, 1, 5);
                  if (orders.Items.Any())
                  {
+                     var sb = new System.Text.StringBuilder();
+                     sb.AppendLine($"I found {orders.Items.Count} recent orders for you:");
+
                      foreach(var o in orders.Items)
                      {
+                         // Create event object for UI
                          events.Add(new Core.DTOs.Chat.OrderEvent 
                          {
                              Id = o.Id,
@@ -799,13 +803,13 @@ Context:
                              CreatedAt = o.CreatedAt,
                              TotalAmount = o.TotalAmount,
                              ItemCount = o.Items.Count,
-                             // OrderDto might not populate Items in list view, check if needed
-                             // Typically list view returns OrderDto which has Items property but it might be empty
-                             // Assuming it's populated or we accept empty list for list card
                              Items = o.Items.Select(i => $"{i.Quantity}x {i.ProductName}").ToList()
                          });
+
+                         // Build text context for LLM
+                         sb.AppendLine($"- Order #{o.Id} placed on {o.CreatedAt:MMM dd, yyyy}: Status {o.Status}, Total ${o.TotalAmount:N2}. ({o.Items.Count} items)");
                      }
-                     return (events, "Here are your recent orders.");
+                     return (events, sb.ToString());
                  }
                  return (events, "You have no orders yet.");
             }

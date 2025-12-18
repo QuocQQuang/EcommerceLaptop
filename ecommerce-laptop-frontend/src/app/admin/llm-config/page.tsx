@@ -626,7 +626,7 @@ export default function LlmConfigPage() {
                                     <CardHeader className="pb-3 border-b">
                                         <div className="flex justify-between items-center">
                                             <CardTitle className="text-lg flex items-center gap-2">
-                                                <Zap className="h-5 w-5 text-blue-600" /> Global RAG Configuration
+                                                <Zap className="h-5 w-5 text-blue-600" /> Global Configuration
                                             </CardTitle>
                                             <Button size="sm" onClick={handleSaveGlobalConfig} disabled={isSaving}>
                                                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
@@ -718,7 +718,7 @@ function RagConfigSummary({ configJson }: { configJson?: string }) {
             <div className="grid gap-1 pt-2">
                 <div className="flex items-center gap-2">
                     <Zap className="h-3 w-3 text-blue-500" />
-                    <Label className="text-blue-600 dark:text-blue-400 font-semibold text-xs uppercase">RAG Settings</Label>
+                    <Label className="text-blue-600 dark:text-blue-400 font-semibold text-xs uppercase">Global Settings</Label>
                 </div>
                 <div className="bg-blue-50/50 dark:bg-blue-950/20 p-2 rounded-md border border-blue-100 dark:border-blue-900 text-xs space-y-1">
                     <div className="flex justify-between">
