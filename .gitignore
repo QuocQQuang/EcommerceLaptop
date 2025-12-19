@@ -154,3 +154,8 @@ tmp/**
 # Whitelist for testing
 !build_lmstudio.txt
 !tests/*.ps1
+
+# ---- Application Secrets ----
+appsettings.json
+appsettings.*.json
+!appsettings.example.json
