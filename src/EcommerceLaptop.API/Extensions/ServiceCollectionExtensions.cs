@@ -24,7 +24,8 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Nest;
+using Typesense;
+using Typesense.Setup;
 
 namespace EcommerceLaptop.API.Extensions;
 
@@ -61,30 +62,20 @@ public static class ServiceCollectionExtensions
         // HttpContextAccessor for security logging
         services.AddHttpContextAccessor();
 
-        // Elasticsearch configuration
-        services.Configure<ElasticsearchSettings>(configuration.GetSection("Elasticsearch"));
-        
-        services.AddSingleton<IElasticClient>(provider =>
+        // Typesense Configuration
+        // Typesense Configuration
+        services.AddTypesenseClient(config =>
         {
-            var settings = configuration.GetSection("Elasticsearch").Get<ElasticsearchSettings>() 
-                ?? new ElasticsearchSettings();
-
-            var connectionSettings = new ConnectionSettings(new Uri(settings.Uri))
-                .DefaultIndex(settings.IndexName)
-                .RequestTimeout(settings.RequestTimeout)
-                .MaxRetryTimeout(settings.MaxRetryTimeout);
-
-            if (!string.IsNullOrEmpty(settings.Username) && !string.IsNullOrEmpty(settings.Password))
+            var typesenseConfig = configuration.GetSection("Typesense");
+            config.ApiKey = typesenseConfig["ApiKey"] ?? "xyz";
+            config.Nodes = new List<Node>
             {
-                connectionSettings.BasicAuthentication(settings.Username, settings.Password);
-            }
-
-            if (settings.EnableDebugMode)
-            {
-                connectionSettings.EnableDebugMode();
-            }
-
-            return new ElasticClient(connectionSettings);
+                new Node(
+                    typesenseConfig["Host"] ?? "localhost",
+                    typesenseConfig["Port"] ?? "8108",
+                    typesenseConfig["Protocol"] ?? "http"
+                )
+            };
         });
 
         // AI Configuration Provider

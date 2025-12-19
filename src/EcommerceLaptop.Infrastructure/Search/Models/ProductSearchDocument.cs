@@ -1,222 +1,74 @@
-using Nest;
-using EcommerceLaptop.Core.Entities;
+using System;
+using System.Text.Json.Serialization;
 
 namespace EcommerceLaptop.Infrastructure.Search.Models;
 
 /// <summary>
-/// Elasticsearch document model for product search
-/// Optimized for search performance and relevancy
+/// Typesense document model for product search
 /// </summary>
-[ElasticsearchType(RelationName = "product")]
 public class ProductSearchDocument
 {
-    /// <summary>
-    /// Product ID
-    /// </summary>
-    [Keyword]
-    public int Id { get; set; }
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Product name with enhanced search capabilities
-    /// </summary>
-    [Text(Analyzer = "standard", SearchAnalyzer = "standard")]
+    [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Product description for full-text search
-    /// </summary>
-    [Text(Analyzer = "standard")]
+    [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Product brand
-    /// </summary>
-    [Keyword]
+    [JsonPropertyName("brand")]
     public string Brand { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Product model
-    /// </summary>
-    [Keyword]
+    [JsonPropertyName("model")]
     public string Model { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Product price for range queries
-    /// </summary>
-    [Number(NumberType.Double)]
+    [JsonPropertyName("price")]
     public decimal Price { get; set; }
 
-    /// <summary>
-    /// Product SKU
-    /// </summary>
-    [Keyword]
+    [JsonPropertyName("sku")]
     public string SKU { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Whether product is active
-    /// </summary>
-    [Boolean]
+    [JsonPropertyName("is_active")]
     public bool IsActive { get; set; }
 
-    /// <summary>
-    /// Product type discriminator
-    /// </summary>
-    [Keyword]
+    [JsonPropertyName("product_type")]
     public string ProductType { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Creation timestamp
-    /// </summary>
-    [Date]
-    public DateTime CreatedAt { get; set; }
+    [JsonPropertyName("created_at")]
+    public long CreatedAt { get; set; } // Typesense prefers int64 timestamp
 
-    /// <summary>
-    /// Last update timestamp
-    /// </summary>
-    [Date]
-    public DateTime UpdatedAt { get; set; }
+    [JsonPropertyName("updated_at")]
+    public long UpdatedAt { get; set; }
 
-    // Laptop-specific properties
-    /// <summary>
-    /// Laptop series
-    /// </summary>
-    [Keyword]
-    public string? Series { get; set; }
-
-    /// <summary>
-    /// CPU brand (Intel, AMD)
-    /// </summary>
-    [Keyword]
+    // Laptop specific (optional)
+    [JsonPropertyName("cpu_brand")]
     public string? CpuBrand { get; set; }
-
-    /// <summary>
-    /// CPU model
-    /// </summary>
-    [Keyword]
-    public string? CpuModel { get; set; }
-
-    /// <summary>
-    /// CPU generation
-    /// </summary>
-    [Keyword]
-    public string? CpuGeneration { get; set; }
-
-    /// <summary>
-    /// Number of CPU cores
-    /// </summary>
-    [Number(NumberType.Integer)]
-    public int? CpuCores { get; set; }
-
-    /// <summary>
-    /// RAM type (DDR4, DDR5)
-    /// </summary>
-    [Keyword]
-    public string? RamType { get; set; }
-
-    /// <summary>
-    /// RAM capacity in GB
-    /// </summary>
-    [Number(NumberType.Integer)]
+    
+    [JsonPropertyName("ram_gb")]
     public int? RamCapacityGB { get; set; }
 
-    /// <summary>
-    /// Storage type (SSD, HDD, Hybrid)
-    /// </summary>
-    [Keyword]
-    public string? StorageType { get; set; }
-
-    /// <summary>
-    /// Storage capacity in GB
-    /// </summary>
-    [Number(NumberType.Integer)]
+    [JsonPropertyName("storage_gb")]
     public int? StorageCapacityGB { get; set; }
-
-    /// <summary>
-    /// GPU type (Integrated, Discrete)
-    /// </summary>
-    [Keyword]
-    public string? GpuType { get; set; }
-
-    /// <summary>
-    /// GPU brand (NVIDIA, AMD, Intel)
-    /// </summary>
-    [Keyword]
-    public string? GpuBrand { get; set; }
-
-    /// <summary>
-    /// GPU model
-    /// </summary>
-    [Keyword]
-    public string? GpuModel { get; set; }
-
-    /// <summary>
-    /// Screen size in inches
-    /// </summary>
-    [Number(NumberType.Double)]
+    
+    [JsonPropertyName("screen_size")]
     public decimal? ScreenSizeInches { get; set; }
 
-    /// <summary>
-    /// Screen resolution
-    /// </summary>
-    [Keyword]
-    public string? ScreenResolution { get; set; }
-
-    /// <summary>
-    /// Weight in kg
-    /// </summary>
-    [Number(NumberType.Double)]
-    public decimal? WeightKg { get; set; }
-
-    /// <summary>
-    /// Operating system
-    /// </summary>
-    [Keyword]
-    public string? OperatingSystem { get; set; }
-
-    /// <summary>
-    /// Available colors
-    /// </summary>
-    [Keyword]
-    public string[]? AvailableColors { get; set; }
-
-    /// <summary>
-    /// Product tags for enhanced searchability
-    /// </summary>
-    [Text(Analyzer = "keyword")]
-    public string[]? Tags { get; set; }
-
-    /// <summary>
-    /// Average rating
-    /// </summary>
-    [Number(NumberType.Double)]
+    // Aggregate fields
+    [JsonPropertyName("average_rating")]
     public decimal? AverageRating { get; set; }
 
-    /// <summary>
-    /// Review count
-    /// </summary>
-    [Number(NumberType.Integer)]
+    [JsonPropertyName("review_count")]
     public int ReviewCount { get; set; }
 
-    /// <summary>
-    /// Stock quantity
-    /// </summary>
-    [Number(NumberType.Integer)]
-    public int StockQuantity { get; set; }
-
-    /// <summary>
-    /// Whether product is in stock
-    /// </summary>
-    [Boolean]
+    [JsonPropertyName("in_stock")]
     public bool InStock { get; set; }
 
-    /// <summary>
-    /// Converts a Product entity to ProductSearchDocument
-    /// </summary>
-    public static ProductSearchDocument FromProduct(Product product)
+    public static ProductSearchDocument FromProduct(EcommerceLaptop.Core.Entities.Product product)
     {
-        var document = new ProductSearchDocument
+        var doc = new ProductSearchDocument
         {
-            Id = product.Id,
+            Id = product.Id.ToString(),
             Name = product.Name,
             Description = product.Description,
             Brand = product.Brand,
@@ -224,71 +76,26 @@ public class ProductSearchDocument
             Price = product.Price,
             SKU = product.SKU,
             IsActive = product.IsActive,
-            CreatedAt = product.CreatedAt,
-            UpdatedAt = product.UpdatedAt,
             ProductType = product.GetType().Name,
-            StockQuantity = product.Inventory?.QuantityInStock ?? 0,
+            CreatedAt = new DateTimeOffset(product.CreatedAt).ToUnixTimeSeconds(),
+            UpdatedAt = new DateTimeOffset(product.UpdatedAt).ToUnixTimeSeconds(),
             InStock = (product.Inventory?.QuantityInStock ?? 0) > 0,
             ReviewCount = product.Reviews?.Count ?? 0
         };
 
-        // Map laptop-specific properties
-        if (product is Laptop laptop)
+        if (product is EcommerceLaptop.Core.Entities.Laptop laptop)
         {
-            document.Series = laptop.Series;
-            document.CpuBrand = laptop.CpuBrand;
-            document.CpuModel = laptop.CpuModel;
-            document.CpuGeneration = laptop.CpuGeneration;
-            document.CpuCores = laptop.CpuCores;
-            document.RamType = laptop.RamType;
-            document.RamCapacityGB = laptop.RamCapacityGB;
-            document.StorageType = laptop.StorageType;
-            document.StorageCapacityGB = laptop.StorageCapacityGB;
-            document.GpuType = laptop.GpuType;
-            document.GpuBrand = laptop.GpuBrand;
-            document.GpuModel = laptop.GpuModel;
-            document.ScreenSizeInches = laptop.DisplaySizeInches;
-            document.ScreenResolution = laptop.DisplayResolution;
-            document.WeightKg = laptop.WeightKg;
-            // Note: OperatingSystem and AvailableColors properties don't exist in the current Laptop entity
-            // document.OperatingSystem = laptop.OperatingSystem;
-            // document.AvailableColors = laptop.AvailableColors?.ToArray();
+            doc.CpuBrand = laptop.CpuBrand;
+            doc.RamCapacityGB = laptop.RamCapacityGB;
+            doc.StorageCapacityGB = laptop.StorageCapacityGB;
+            doc.ScreenSizeInches = laptop.DisplaySizeInches;
         }
 
-        // Calculate average rating if reviews exist
         if (product.Reviews?.Any() == true)
         {
-            document.AverageRating = (decimal)product.Reviews.Average(r => r.Rating);
+            doc.AverageRating = (decimal)product.Reviews.Average(r => r.Rating);
         }
 
-        return document;
-    }
-
-    /// <summary>
-    /// Creates search tags based on product properties
-    /// </summary>
-    public void GenerateSearchTags()
-    {
-        var tags = new List<string>();
-        if (!string.IsNullOrEmpty(Brand)) tags.Add(Brand.ToLower());
-        if (!string.IsNullOrEmpty(Model)) tags.Add(Model.ToLower());
-        if (!string.IsNullOrEmpty(ProductType)) tags.Add(ProductType.ToLower());
-
-        if (!string.IsNullOrEmpty(CpuBrand))
-            tags.Add($"cpu-{CpuBrand.ToLower()}");
-
-        if (!string.IsNullOrEmpty(GpuBrand))
-            tags.Add($"gpu-{GpuBrand.ToLower()}");
-
-        if (RamCapacityGB.HasValue)
-            tags.Add($"ram-{RamCapacityGB}gb");
-
-        if (StorageCapacityGB.HasValue)
-            tags.Add($"storage-{StorageCapacityGB}gb");
-
-        if (!string.IsNullOrEmpty(StorageType))
-            tags.Add($"storage-{StorageType.ToLower()}");
-
-        Tags = tags.Where(t => !string.IsNullOrEmpty(t)).ToArray();
+        return doc;
     }
 }

@@ -35,6 +35,7 @@
     <PackageReference Include="ClosedXML" Version="0.102.2" />
     <!-- XML Processing for Invoice -->
     <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
+    <PackageReference Include="Typesense" Version="7.37.0" />
   </ItemGroup>
 
   <ItemGroup>

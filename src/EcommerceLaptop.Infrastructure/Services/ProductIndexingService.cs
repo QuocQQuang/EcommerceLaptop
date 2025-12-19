@@ -11,7 +11,7 @@ using EcommerceLaptop.Core.Entities;
 namespace EcommerceLaptop.Infrastructure.Services;
 
 /// <summary>
-/// Background service for indexing products to Elasticsearch
+/// Background service for indexing products to Typesense
 /// Handles bulk indexing, incremental updates, and scheduled reindexing
 /// </summary>
 public class ProductIndexingService : BackgroundService
@@ -95,7 +95,7 @@ public class ProductIndexingService : BackgroundService
                     var batch = productsToIndex.Skip(i).Take(batchSize);
                     await IndexProductBatch(searchService, batch, cancellationToken);
 
-                    // Small delay between batches to avoid overwhelming Elasticsearch
+                    // Small delay between batches to avoid overwhelming Typesense
                     await Task.Delay(200, cancellationToken); // Increase delay slightly
                 }
 
@@ -296,7 +296,7 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
                 return false;
             }
 
-            // 1. Index to Elasticsearch
+            // 1. Index to Typesense
             await _searchService.BulkIndexProductsAsync(new[] { product });
 
             // 2. Index to Vector DB
@@ -316,7 +316,7 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
     {
         try
         {
-            // 1. Remove from Elasticsearch
+            // 1. Remove from Typesense
             var success = await _searchService.RemoveProductFromIndexAsync(productId);
 
             // 2. Remove from Vector DB
@@ -355,7 +355,7 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
                 return false;
             }
 
-            // 1. Index to Elasticsearch
+            // 1. Index to Typesense
             await _searchService.BulkIndexProductsAsync(products);
 
             // 2. Index to Vector DB
@@ -377,7 +377,7 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
         {
             _logger.LogInformation("Starting full reindex of all products");
 
-            // Recreate Elasticsearch index
+            // Recreate Typesense index
             await _searchService.CreateOrUpdateIndexAsync();
 
             // Ensure Vector DB collection exists
@@ -395,7 +395,7 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
             {
                 var batch = allProducts.Skip(i).Take(batchSize).ToList();
                 
-                // 1. Elasticsearch
+                // 1. Typesense
                 await _searchService.BulkIndexProductsAsync(batch);
 
                 // 2. Vector DB
@@ -462,7 +462,7 @@ public class ProductIndexingManagementService : IProductIndexingManagementServic
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to index batch to Vector DB");
-            // We don't throw here to ensure Elasticsearch indexing (which happens before) isn't considered "failed" entirely, 
+            // We don't throw here to ensure Typesense indexing (which happens before) isn't considered "failed" entirely, 
             // but in a strict system we might want to throw to retry.
         }
     }

@@ -1,224 +1,40 @@
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Logging;
-using Nest;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Core.Entities;
-using EcommerceLaptop.Core.Configuration;
 using EcommerceLaptop.Infrastructure.Search.Models;
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Typesense;
+using System.Threading.Tasks;
+
+// Define default SearchResult to be the Core one, or better yet, just use full qualification for the return type
+using SearchResult = EcommerceLaptop.Core.Services.SearchResult<EcommerceLaptop.Core.Entities.Product>;
+using FacetedSearchResult = EcommerceLaptop.Core.Services.FacetedSearchResult<EcommerceLaptop.Core.Entities.Product>;
 
 namespace EcommerceLaptop.Infrastructure.Services;
 
-/// <summary>
-/// Advanced product search service implementation using Elasticsearch
-/// Provides comprehensive search capabilities with high performance and relevancy
-/// </summary>
 public class ProductSearchService : IProductSearchService
 {
-    private readonly IElasticClient _elasticClient;
-    private readonly ElasticsearchSettings _settings;
+    private readonly ITypesenseClient _client;
     private readonly ILogger<ProductSearchService> _logger;
-    private readonly string _productIndexName;
 
-    public ProductSearchService(
-        IElasticClient elasticClient,
-        IOptions<ElasticsearchSettings> settings,
-        ILogger<ProductSearchService> logger)
+    public ProductSearchService(ITypesenseClient client, ILogger<ProductSearchService> logger)
     {
-        _elasticClient = elasticClient;
-        _settings = settings.Value;
+        _client = client;
         _logger = logger;
-        _productIndexName = _settings.IndexName;
-    }
-
-    public async Task<SearchResult<Product>> SearchProductsAsync(ProductSearchRequest request)
-    {
-        var stopwatch = Stopwatch.StartNew();
-        
-        try
-        {
-            _logger.LogInformation("Performing product search: Query='{Query}', Page={Page}, PageSize={PageSize}", 
-                request.Query, request.Page, request.PageSize);
-
-            var searchDescriptor = new SearchDescriptor<ProductSearchDocument>()
-                .Index(_productIndexName)
-                .From((request.Page - 1) * request.PageSize)
-                .Size(request.PageSize)
-                .Query(q => BuildSearchQuery(q, request))
-                .Sort(s => BuildSortDescriptor(s, request.SortBy, request.SortDirection));
-
-            var response = await _elasticClient.SearchAsync<ProductSearchDocument>(searchDescriptor);
-
-            if (!response.IsValid)
-            {
-                _logger.LogError("Elasticsearch search failed: {Error}", response.OriginalException?.Message);
-                return new SearchResult<Product>();
-            }
-
-            stopwatch.Stop();
-
-            var result = new SearchResult<Product>
-            {
-                Items = response.Documents.Select(ConvertToProduct).Where(p => p != null).ToList()!,
-                TotalCount = (int)(response.Total),
-                Page = request.Page,
-                PageSize = request.PageSize,
-                SearchTime = stopwatch.ElapsedMilliseconds,
-                Query = request.Query ?? string.Empty
-            };
-
-            _logger.LogInformation("Search completed: Found {TotalCount} products in {SearchTime}ms", 
-                result.TotalCount, result.SearchTime);
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error performing product search");
-            stopwatch.Stop();
-            return new SearchResult<Product>();
-        }
-    }
-
-    public async Task<IEnumerable<string>> GetSearchSuggestionsAsync(string query, int maxSuggestions = 10)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
-            {
-                return Array.Empty<string>();
-            }
-
-            _logger.LogInformation("Getting search suggestions for: '{Query}'", query);
-
-            var searchDescriptor = new SearchDescriptor<ProductSearchDocument>()
-                .Index(_productIndexName)
-                .Size(maxSuggestions)
-                .Query(q => q
-                    .Bool(b => b
-                        .Should(
-                            s => s.Prefix(p => p.Field(f => f.Name).Value(query.ToLower())),
-                            s => s.Prefix(p => p.Field(f => f.Brand).Value(query.ToLower())),
-                            s => s.Prefix(p => p.Field(f => f.Model).Value(query.ToLower()))
-                        )
-                    )
-                )
-                .Source(s => s.Includes(i => i.Fields(f => f.Name, f => f.Brand, f => f.Model)));
-
-            var response = await _elasticClient.SearchAsync<ProductSearchDocument>(searchDescriptor);
-
-            if (!response.IsValid)
-            {
-                _logger.LogError("Search suggestions failed: {Error}", response.OriginalException?.Message);
-                return Array.Empty<string>();
-            }
-
-            var suggestions = response.Documents
-                .SelectMany(d => new[] { d.Name, d.Brand, d.Model })
-                .Where(s => !string.IsNullOrEmpty(s) && s.ToLower().Contains(query.ToLower()))
-                .Distinct()
-                .Take(maxSuggestions)
-                .ToArray();
-
-            return suggestions;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting search suggestions");
-            return Array.Empty<string>();
-        }
-    }
-
-    public async Task<FacetedSearchResult<Product>> FacetedSearchAsync(FacetedSearchRequest request)
-    {
-        try
-        {
-            _logger.LogInformation("Performing faceted search: Query='{Query}'", request.Query);
-
-            var searchDescriptor = new SearchDescriptor<ProductSearchDocument>()
-                .Index(_productIndexName)
-                .From((request.Page - 1) * request.PageSize)
-                .Size(request.PageSize)
-                .Query(q => BuildSearchQuery(q, request))
-                .Aggregations(a => BuildFacetAggregations(a));
-
-            var response = await _elasticClient.SearchAsync<ProductSearchDocument>(searchDescriptor);
-
-            if (!response.IsValid)
-            {
-                _logger.LogError("Faceted search failed: {Error}", response.OriginalException?.Message);
-                return new FacetedSearchResult<Product>();
-            }
-
-            var result = new FacetedSearchResult<Product>
-            {
-                Items = response.Documents.Select(ConvertToProduct).Where(p => p != null).ToList()!,
-                TotalCount = (int)(response.Total),
-                Page = request.Page,
-                PageSize = request.PageSize,
-                Query = request.Query ?? string.Empty,
-                Facets = ExtractFacets(response.Aggregations)
-            };
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error performing faceted search");
-            return new FacetedSearchResult<Product>();
-        }
-    }
-
-    public async Task<bool> IndexProductAsync(Product product)
-    {
-        try
-        {
-            _logger.LogInformation("Indexing product: {ProductId}", product.Id);
-
-            var document = ProductSearchDocument.FromProduct(product);
-            document.GenerateSearchTags();
-
-            var response = await _elasticClient.IndexDocumentAsync(document);
-
-            if (!response.IsValid)
-            {
-                _logger.LogError("Failed to index product {ProductId}: {Error}", 
-                    product.Id, response.OriginalException?.Message);
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error indexing product {ProductId}", product.Id);
-            return false;
-        }
     }
 
     public async Task<bool> BulkIndexProductsAsync(IEnumerable<Product> products)
     {
         try
         {
-            var documents = products.Select(p => 
+            var documents = products.Select(ProductSearchDocument.FromProduct).ToList();
+            if (!documents.Any()) return true;
+
+            var results = await _client.ImportDocuments("products", documents, 40, ImportType.Upsert);
+            var failedItems = results.Where(r => !r.Success).ToList();
+            
+            if (failedItems.Any())
             {
-                var doc = ProductSearchDocument.FromProduct(p);
-                doc.GenerateSearchTags();
-                return doc;
-            }).ToList();
-
-            _logger.LogInformation("Bulk indexing {Count} products", documents.Count);
-
-            var bulkRequest = new BulkRequest(_productIndexName)
-            {
-                Operations = documents.Select(d => new BulkIndexOperation<ProductSearchDocument>(d)).Cast<IBulkOperation>().ToList()
-            };
-
-            var response = await _elasticClient.BulkAsync(bulkRequest);
-
-            if (!response.IsValid || response.Errors)
-            {
-                _logger.LogError("Bulk indexing failed: {Error}", response.OriginalException?.Message);
+                _logger.LogError("Bulk index failed for {FailedCount} items. First error: {Error}", failedItems.Count, failedItems.First().Error);
                 return false;
             }
 
@@ -231,78 +47,52 @@ public class ProductSearchService : IProductSearchService
         }
     }
 
-    public async Task<bool> RemoveProductFromIndexAsync(int productId)
-    {
-        try
-        {
-            _logger.LogInformation("Removing product from index: {ProductId}", productId);
-
-            var response = await _elasticClient.DeleteAsync<ProductSearchDocument>(productId, d => d.Index(_productIndexName));
-
-            if (!response.IsValid)
-            {
-                _logger.LogError("Failed to remove product {ProductId} from index: {Error}", 
-                    productId, response.OriginalException?.Message);
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing product {ProductId} from index", productId);
-            return false;
-        }
-    }
-
-    public async Task<bool> UpdateProductInIndexAsync(Product product)
-    {
-        try
-        {
-            // For now, we'll just re-index the product
-            return await IndexProductAsync(product);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating product {ProductId} in index", product.Id);
-            return false;
-        }
-    }
-
     public async Task<bool> CreateOrUpdateIndexAsync()
     {
         try
         {
-            _logger.LogInformation("Creating or updating search index: {IndexName}", _productIndexName);
-
-            var existsResponse = await _elasticClient.Indices.ExistsAsync(_productIndexName);
-
-            if (existsResponse.Exists)
+            try 
             {
-                _logger.LogInformation("Index {IndexName} already exists", _productIndexName);
-                return true;
+                await _client.RetrieveCollection("products");
+                await _client.DeleteCollection("products");
+            }
+            catch (TypesenseApiNotFoundException)
+            {
+                // Collection does not exist, proceed to create
             }
 
-            var createIndexResponse = await _elasticClient.Indices.CreateAsync(_productIndexName, c => c
-                .Map<ProductSearchDocument>(m => m.AutoMap())
-                .Settings(s => s
-                    .NumberOfShards(1)
-                    .NumberOfReplicas(0)
-                ));
+            var schema = new Schema(
+                "products",
+                new List<Field>
+                {
+                    new Field("id", FieldType.String, false),
+                    new Field("name", FieldType.String, false),
+                    new Field("description", FieldType.String, false),
+                    new Field("brand", FieldType.String, true),
+                    new Field("model", FieldType.String, false),
+                    new Field("price", FieldType.Float, true),
+                    new Field("sku", FieldType.String, false),
+                    new Field("is_active", FieldType.Bool, false),
+                    new Field("product_type", FieldType.String, true),
+                    new Field("created_at", FieldType.Int64, false),
+                    new Field("updated_at", FieldType.Int64, false),
+                    new Field("cpu_brand", FieldType.String, true, true),
+                    new Field("ram_gb", FieldType.Int32, true, true),
+                    new Field("storage_gb", FieldType.Int32, true, true),
+                    new Field("screen_size", FieldType.Float, true, true),
+                    new Field("average_rating", FieldType.Float, true, true),
+                    new Field("review_count", FieldType.Int32, false),
+                    new Field("in_stock", FieldType.Bool, true)
+                },
+                "created_at"
+            );
 
-            if (!createIndexResponse.IsValid)
-            {
-                _logger.LogError("Failed to create index {IndexName}: {Error}", 
-                    _productIndexName, createIndexResponse.OriginalException?.Message);
-                return false;
-            }
-
-            _logger.LogInformation("Successfully created index: {IndexName}", _productIndexName);
+            await _client.CreateCollection(schema);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating or updating index");
+            _logger.LogError(ex, "Error creating Typesense index");
             return false;
         }
     }
@@ -311,228 +101,220 @@ public class ProductSearchService : IProductSearchService
     {
         try
         {
-            _logger.LogInformation("Deleting search index: {IndexName}", _productIndexName);
-
-            var response = await _elasticClient.Indices.DeleteAsync(_productIndexName);
-
-            if (!response.IsValid)
-            {
-                _logger.LogError("Failed to delete index {IndexName}: {Error}", 
-                    _productIndexName, response.OriginalException?.Message);
-                return false;
-            }
-
+            await _client.DeleteCollection("products");
+            return true;
+        }
+        catch (TypesenseApiNotFoundException)
+        {
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting index");
+            _logger.LogError(ex, "Error deleting Typesense index");
             return false;
         }
     }
 
-    private QueryContainer BuildSearchQuery(QueryContainerDescriptor<ProductSearchDocument> q, ProductSearchRequest request)
-    {
-        var queries = new List<QueryContainer>();
-
-        // Basic query matching
-        if (!string.IsNullOrWhiteSpace(request.Query))
-        {
-            queries.Add(q.MultiMatch(m => m
-                .Fields(f => f
-                    .Field(p => p.Name, boost: 2.0)
-                    .Field(p => p.Description)
-                    .Field(p => p.Brand, boost: 1.5)
-                    .Field(p => p.Model, boost: 1.5)
-                )
-                .Query(request.Query)
-                .Type(TextQueryType.BestFields)
-                .Fuzziness(Fuzziness.Auto)
-            ));
-        }
-
-        // Active filter
-        if (request.IsActive.HasValue)
-        {
-            queries.Add(q.Term(t => t.Field(f => f.IsActive).Value(request.IsActive.Value)));
-        }
-
-        // Brand filter
-        if (request.Brands?.Any() == true)
-        {
-            queries.Add(q.Terms(t => t.Field(f => f.Brand).Terms(request.Brands)));
-        }
-
-        // Product type filter
-        if (request.ProductTypes?.Any() == true)
-        {
-            queries.Add(q.Terms(t => t.Field(f => f.ProductType).Terms(request.ProductTypes)));
-        }
-
-        // Price range filter
-        if (request.MinPrice.HasValue || request.MaxPrice.HasValue)
-        {
-            queries.Add(q.Range(r => 
-            {
-                var range = r.Field(f => f.Price);
-                if (request.MinPrice.HasValue)
-                    range = range.GreaterThanOrEquals((double)request.MinPrice.Value);
-                if (request.MaxPrice.HasValue)
-                    range = range.LessThanOrEquals((double)request.MaxPrice.Value);
-                return range;
-            }));
-        }
-
-        return queries.Any() 
-            ? q.Bool(b => b.Must(queries.ToArray()))
-            : q.MatchAll();
-    }
-
-    private SortDescriptor<ProductSearchDocument> BuildSortDescriptor(
-        SortDescriptor<ProductSearchDocument> s, 
-        string? sortBy, 
-        string? sortDirection)
-    {
-        var isAscending = string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase);
-
-        return sortBy?.ToLower() switch
-        {
-            "price" => isAscending ? s.Ascending(p => p.Price) : s.Descending(p => p.Price),
-            "name" => isAscending ? s.Ascending(p => p.Name.Suffix("keyword")) : s.Descending(p => p.Name.Suffix("keyword")),
-            "created" => isAscending ? s.Ascending(p => p.CreatedAt) : s.Descending(p => p.CreatedAt),
-            "rating" => isAscending ? s.Ascending(p => p.AverageRating) : s.Descending(p => p.AverageRating),
-            _ => s.Descending(SortSpecialField.Score).Descending(p => p.CreatedAt)
-        };
-    }
-
-    private AggregationContainerDescriptor<ProductSearchDocument> BuildFacetAggregations(
-        AggregationContainerDescriptor<ProductSearchDocument> a)
-    {
-        return a
-            .Terms("brands", t => t.Field(f => f.Brand).Size(10))
-            .Terms("product_types", t => t.Field(f => f.ProductType).Size(10))
-            .Range("price_ranges", r => r.Field(f => f.Price).Ranges(
-                ranges => ranges.To(500),
-                ranges => ranges.From(500).To(1000),
-                ranges => ranges.From(1000).To(2000),
-                ranges => ranges.From(2000)
-            ));
-    }
-
-    private Dictionary<string, FacetResult> ExtractFacets(IReadOnlyDictionary<string, IAggregate> aggregations)
-    {
-        var facets = new Dictionary<string, FacetResult>();
-
-        foreach (var (key, agg) in aggregations)
-        {
-            if (agg is BucketAggregate bucketAgg)
-            {
-                facets[key] = new FacetResult
-                {
-                    Field = key,
-                    Values = bucketAgg.Items.OfType<KeyedBucket<object>>().Select(b => new FacetValue
-                    {
-                        Value = b.Key.ToString() ?? string.Empty,
-                        Count = (int)(b.DocCount ?? 0)
-                    }).ToList(),
-                    TotalCount = bucketAgg.Items.Sum(i => (int)(((KeyedBucket<object>)i).DocCount ?? 0))
-                };
-            }
-        }
-
-        return facets;
-    }
-
-    private Product? ConvertToProduct(ProductSearchDocument document)
+    public async Task<FacetedSearchResult> FacetedSearchAsync(FacetedSearchRequest request)
     {
         try
         {
-            // For now, we'll create a basic product representation
-            // In a real implementation, you might need to fetch the full product from the database
-            // or store more complete information in the search document
-
-            if (document.ProductType == "Laptop")
+            var searchParameters = new SearchParameters(request.Query, "name,description,brand,model,sku,cpu_brand")
             {
-                return new Laptop
+                Page = request.Page,
+                PerPage = request.PageSize,
+                FacetBy = request.FacetFields != null ? string.Join(",", request.FacetFields) : null
+            };
+
+            var searchResult = await _client.Search<ProductSearchDocument>("products", searchParameters);
+
+            var result = new FacetedSearchResult
+            {
+                Items = searchResult.Hits.Select(h => (EcommerceLaptop.Core.Entities.Product)new Laptop
                 {
-                    Id = document.Id,
-                    Name = document.Name,
-                    Description = document.Description,
-                    Brand = document.Brand,
-                    Model = document.Model,
-                    Price = document.Price,
-                    SKU = document.SKU,
-                    IsActive = document.IsActive,
-                    CreatedAt = document.CreatedAt,
-                    UpdatedAt = document.UpdatedAt,
-                    Series = document.Series ?? string.Empty,
-                    CpuBrand = document.CpuBrand ?? string.Empty,
-                    CpuModel = document.CpuModel ?? string.Empty,
-                    CpuGeneration = document.CpuGeneration ?? string.Empty,
-                    CpuCores = document.CpuCores ?? 0,
-                    RamType = document.RamType ?? string.Empty,
-                    RamCapacityGB = document.RamCapacityGB ?? 0,
-                    StorageType = document.StorageType ?? string.Empty,
-                    StorageCapacityGB = document.StorageCapacityGB ?? 0,
-                    GpuType = document.GpuType ?? string.Empty,
-                    GpuBrand = document.GpuBrand ?? string.Empty,
-                    GpuModel = document.GpuModel ?? string.Empty,
-                    DisplaySizeInches = document.ScreenSizeInches ?? 0,
-                    DisplayResolution = document.ScreenResolution ?? string.Empty,
-                    WeightKg = document.WeightKg ?? 0,
-                    Color = document.AvailableColors?.FirstOrDefault() ?? string.Empty
-                };
+                    Id = int.Parse(h.Document.Id),
+                    Name = h.Document.Name,
+                    Description = h.Document.Description,
+                    Brand = h.Document.Brand,
+                    Model = h.Document.Model,
+                    Price = h.Document.Price,
+                    CpuBrand = h.Document.CpuBrand ?? string.Empty,
+                    RamCapacityGB = h.Document.RamCapacityGB ?? 0,
+                    StorageCapacityGB = h.Document.StorageCapacityGB ?? 0,
+                    DisplaySizeInches = h.Document.ScreenSizeInches ?? 0,
+                }).ToList(),
+                TotalCount = searchResult.Found,
+                Page = searchResult.Page,
+                PageSize = request.PageSize,
+                SearchTime = searchResult.SearchTimeMs
+            };
+
+            if (searchResult.FacetCounts != null)
+            {
+                foreach (var facet in searchResult.FacetCounts)
+                {
+                    result.Facets[facet.FieldName] = new FacetResult
+                    {
+                        Field = facet.FieldName,
+                        Values = facet.Counts.Select(c => new FacetValue
+                        {
+                            Value = c.Value,
+                            Count = c.Count
+                        }).ToList()
+                    };
+                }
             }
 
-            return null;
+            return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error converting search document to product");
-            return null;
+            _logger.LogError(ex, "Error executing faceted search in Typesense");
+            return new FacetedSearchResult();
         }
     }
 
-    public async Task<SearchAnalytics> GetSearchAnalyticsAsync(DateTime from, DateTime to)
+    public async Task<IEnumerable<string>> GetSearchSuggestionsAsync(string query, int maxSuggestions = 10)
     {
         try
         {
-            _logger.LogInformation("Getting search analytics from {From} to {To}", from, to);
-
-            // For now, return empty analytics. In a real implementation, 
-            // you would query the analytics index or database
-            await Task.CompletedTask;
-            
-            return new SearchAnalytics
+            var searchParameters = new SearchParameters(query, "name")
             {
-                TotalSearches = 0,
-                AverageResponseTime = 0,
-                TopQueries = new List<TopSearchQuery>(),
-                ZeroResultQueries = new List<ZeroResultQuery>(),
-                SearchesByDay = new Dictionary<string, long>()
+                Prefix = true,
+                PerPage = maxSuggestions,
+                Page = 1,
+                IncludeFields = "name"
+            };
+
+            var searchResult = await _client.Search<ProductSearchDocument>("products", searchParameters);
+
+            return searchResult.Hits
+                .Select(h => h.Document.Name)
+                .Distinct()
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting search suggestions for {Query}", query);
+            return Enumerable.Empty<string>();
+        }
+    }
+
+    public async Task<bool> IndexProductAsync(EcommerceLaptop.Core.Entities.Product product)
+    {
+        return await IndexProductAsyncImplementation(product);
+    }
+    
+    public async Task<bool> UpdateProductInIndexAsync(Product product)
+    {
+        return await IndexProductAsyncImplementation(product);
+    }
+
+    private async Task<bool> IndexProductAsyncImplementation(EcommerceLaptop.Core.Entities.Product product)
+    {
+        try
+        {
+            var document = ProductSearchDocument.FromProduct(product);
+            await _client.UpsertDocument("products", document);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error indexing product {ProductId}", product.Id);
+            return false;
+        }
+    }
+
+    public async Task<bool> RemoveProductFromIndexAsync(int productId)
+    {
+        try
+        {
+            await _client.DeleteDocument<ProductSearchDocument>("products", productId.ToString());
+            return true;
+        }
+        catch (TypesenseApiNotFoundException)
+        {
+            // Document not found, technically a success as it's gone
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing product {ProductId} from Typesense index", productId);
+            return false;
+        }
+    }
+
+    public async Task<EcommerceLaptop.Core.Services.SearchResult<EcommerceLaptop.Core.Entities.Product>> SearchProductsAsync(ProductSearchRequest request)
+    {
+        try
+        {
+            var searchParameters = new SearchParameters(request.Query, "name,description,brand,model,sku,cpu_brand")
+            {
+                Page = request.Page,
+                PerPage = request.PageSize
+                // Add FilterBy, SortBy later
+            };
+
+            var searchResult = await _client.Search<ProductSearchDocument>("products", searchParameters);
+
+            return new EcommerceLaptop.Core.Services.SearchResult<EcommerceLaptop.Core.Entities.Product>
+            {
+                Items = searchResult.Hits.Select(h => (EcommerceLaptop.Core.Entities.Product)new Laptop 
+                { 
+                    Id = int.Parse(h.Document.Id),
+                    Name = h.Document.Name,
+                    Description = h.Document.Description,
+                    Brand = h.Document.Brand,
+                    Model = h.Document.Model,
+                    Price = h.Document.Price,
+                    CpuBrand = h.Document.CpuBrand ?? string.Empty,
+                    RamCapacityGB = h.Document.RamCapacityGB ?? 0,
+                    StorageCapacityGB = h.Document.StorageCapacityGB ?? 0,
+                    DisplaySizeInches = h.Document.ScreenSizeInches ?? 0,
+                    // Map other fields as needed
+                }).ToList(),
+                TotalCount = searchResult.Found,
+                Page = searchResult.Page,
+                PageSize = request.PageSize,
+                SearchTime = searchResult.SearchTimeMs
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting search analytics");
-            return new SearchAnalytics();
+            _logger.LogError(ex, "Error searching products in Typesense");
+            return new EcommerceLaptop.Core.Services.SearchResult<EcommerceLaptop.Core.Entities.Product> 
+            { 
+                Items = new List<EcommerceLaptop.Core.Entities.Product>(), 
+                TotalCount = 0, 
+                Page = request.Page, 
+                PageSize = request.PageSize 
+            };
         }
+    }
+
+
+    
+    public async Task<SearchAnalytics> GetSearchAnalyticsAsync(DateTime from, DateTime to)
+    {
+        // Typesense does not have built-in analytics API equivalent to Elasticsearch's aggregations
+        // For now, we return an empty result to avoid breaking the frontend
+        _logger.LogWarning("GetSearchAnalyticsAsync called but not implemented for Typesense backend");
+        
+        return Task.FromResult(new SearchAnalytics
+        {
+            TotalSearches = 0,
+            AverageResponseTime = 0,
+            TopQueries = new List<TopSearchQuery>(),
+            ZeroResultQueries = new List<ZeroResultQuery>(),
+            SearchesByDay = new Dictionary<string, long>()
+        }).Result;
     }
 
     public async Task RecordSearchQueryAsync(string query, int resultsCount, long responseTime)
     {
-        try
-        {
-            _logger.LogInformation("Recording search query: '{Query}', Results: {ResultsCount}, Time: {ResponseTime}ms", 
-                query, resultsCount, responseTime);
-
-            // For now, just log the query. In a real implementation,
-            // you would store this in an analytics index or database
-            await Task.CompletedTask;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error recording search query");
-        }
+        // Typesense can have analytics enabled via configuration, but for this migration
+        // we will just log the query for minimal observability
+        _logger.LogTrace("Search Query: {Query}, Results: {Results}, Time: {Time}ms", query, resultsCount, responseTime);
+        await Task.CompletedTask;
     }
 }
