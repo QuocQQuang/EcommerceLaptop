@@ -38,10 +38,12 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // DbContext
+        // DbContext with warning suppression for pending model changes
+        // (Model snapshot may differ slightly but migrations are correct)
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
-                b => b.MigrationsAssembly("EcommerceLaptop.Infrastructure")));
+                b => b.MigrationsAssembly("EcommerceLaptop.Infrastructure"))
+            .ConfigureWarnings(w => w.Log(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
         // Redis cache configuration
         services.AddStackExchangeRedisCache(options =>

@@ -193,25 +193,28 @@ public class LokiClient : ILokiClient
                     var logLine = value[1]?.ToString() ?? "";
                     var timestamp = DateTimeOffset.FromUnixTimeMilliseconds(timestampNs / 1_000_000).UtcDateTime;
                     
-                    // Extract from labels (low cardinality)
-                    var eventType = labels.GetValueOrDefault("EventType", "log_event");
-                    var severity = labels.GetValueOrDefault("Severity", labels.GetValueOrDefault("Level", "Info"));
-                    
-                    // Extract IP from log body (high cardinality - not a label anymore)
-                    var ip = ExtractIPFromLogLine(logLine);
-                    
-                    // Generate composite LokiId: timestamp_hash for React key compatibility
-                    var lokiId = (int)(timestampNs % int.MaxValue); // Pseudo-unique ID from nanosecond timestamp
-                    
-                    events.Add(new SecurityEvent
+                    // Try parsing as CompactJson first, fallback to legacy format
+                    var securityEvent = TryParseCompactJson(logLine, timestampNs, timestamp, labels);
+                    if (securityEvent != null)
                     {
-                        Id = lokiId, // Now unique per event (practically)
-                        EventType = eventType,
-                        Description = logLine,
-                        CreatedAt = timestamp,
-                        Severity = severity,
-                        IPAddress = ip
-                    });
+                        events.Add(securityEvent);
+                    }
+                    else
+                    {
+                        // Fallback: legacy text format
+                        var eventType = labels.GetValueOrDefault("EventType", "log_event");
+                        var severity = labels.GetValueOrDefault("Severity", labels.GetValueOrDefault("Level", "Info"));
+                        
+                        events.Add(new SecurityEvent
+                        {
+                            Id = (int)(timestampNs % int.MaxValue),
+                            EventType = eventType,
+                            Description = logLine,
+                            CreatedAt = timestamp,
+                            Severity = severity,
+                            IPAddress = "Unknown"
+                        });
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -223,30 +226,78 @@ public class LokiClient : ILokiClient
     }
     
     /// <summary>
-    /// Extracts IP address from structured log line.
-    /// Expected format: "... IP:{IPAddress} ..." or JSON with IPAddress field
+    /// Parses a CompactJson log line (Serilog.Formatting.Compact output).
+    /// Format: {"@t":"...","@mt":"template","@m":"rendered",..."Property":"value"...}
     /// </summary>
-    private static string ExtractIPFromLogLine(string logLine)
+    private SecurityEvent? TryParseCompactJson(string logLine, long timestampNs, DateTime timestamp, Dictionary<string, string> labels)
     {
-        // Try pattern: IP:{value}
-        var ipMatch = System.Text.RegularExpressions.Regex.Match(logLine, @"IP:([^\s]+)");
-        if (ipMatch.Success) return ipMatch.Groups[1].Value;
-        
-        // Try JSON extraction
+        // Quick check if it's JSON
+        if (string.IsNullOrEmpty(logLine) || !logLine.TrimStart().StartsWith("{"))
+            return null;
+            
         try
         {
-            if (logLine.Contains("\"IPAddress\""))
+            using var doc = System.Text.Json.JsonDocument.Parse(logLine);
+            var root = doc.RootElement;
+            
+            // Description: prefer @m (rendered message), fallback to @mt (template), then raw
+            string? description = null;
+            if (root.TryGetProperty("@m", out var mProp))
+                description = mProp.GetString();
+            else if (root.TryGetProperty("@mt", out var mtProp))
+                description = mtProp.GetString();
+            
+            // EventType: from label first (already indexed), then from JSON body
+            var eventType = labels.GetValueOrDefault("EventType", "");
+            if (string.IsNullOrEmpty(eventType) && root.TryGetProperty("EventType", out var etProp))
+                eventType = etProp.GetString() ?? "log_event";
+            if (string.IsNullOrEmpty(eventType))
+                eventType = "log_event";
+            
+            // Severity: from label first, then from @l, then fallback
+            var severity = labels.GetValueOrDefault("Severity", "");
+            if (string.IsNullOrEmpty(severity) && root.TryGetProperty("@l", out var levelProp))
+                severity = levelProp.GetString() ?? "Info";
+            if (string.IsNullOrEmpty(severity))
+                severity = labels.GetValueOrDefault("Level", "Info");
+            
+            // High-cardinality fields from JSON body (not labels)
+            string? ipAddress = null;
+            if (root.TryGetProperty("IPAddress", out var ipProp))
+                ipAddress = ipProp.GetString();
+            else if (root.TryGetProperty("ClientIp", out var clientIpProp))
+                ipAddress = clientIpProp.GetString();
+            
+            int? userId = null;
+            if (root.TryGetProperty("UserId", out var uidProp))
             {
-                var doc = System.Text.Json.JsonDocument.Parse(logLine);
-                if (doc.RootElement.TryGetProperty("IPAddress", out var ipProp))
-                {
-                    return ipProp.GetString() ?? "Unknown";
-                }
+                var uidStr = uidProp.ValueKind == System.Text.Json.JsonValueKind.Number 
+                    ? uidProp.GetInt32().ToString() 
+                    : uidProp.GetString();
+                if (int.TryParse(uidStr, out var uid))
+                    userId = uid;
             }
+            
+            string? correlationId = null;
+            if (root.TryGetProperty("CorrelationId", out var cidProp))
+                correlationId = cidProp.GetString();
+            
+            return new SecurityEvent
+            {
+                Id = (int)(timestampNs % int.MaxValue),
+                EventType = eventType,
+                Description = description ?? logLine, // Fallback to raw if no @m/@mt
+                CreatedAt = timestamp,
+                Severity = severity,
+                IPAddress = ipAddress ?? "Unknown",
+                UserId = userId,
+                CorrelationId = correlationId
+            };
         }
-        catch { /* Not JSON or no IPAddress field */ }
-        
-        return "Unknown";
+        catch
+        {
+            return null; // Not valid JSON, let caller use fallback
+        }
     }
 }
 

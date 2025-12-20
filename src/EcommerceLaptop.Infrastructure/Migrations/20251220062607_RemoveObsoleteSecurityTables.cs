@@ -11,14 +11,10 @@ namespace EcommerceLaptop.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "LoginAttempts");
-
-            migrationBuilder.DropTable(
-                name: "RateLimitViolations");
-
-            migrationBuilder.DropTable(
-                name: "SystemAuditLogs");
+            // Safe drop: only drop if table exists (prevents error when tables were already removed or never existed)
+            migrationBuilder.Sql("IF OBJECT_ID('dbo.LoginAttempts', 'U') IS NOT NULL DROP TABLE dbo.LoginAttempts;");
+            migrationBuilder.Sql("IF OBJECT_ID('dbo.RateLimitViolations', 'U') IS NOT NULL DROP TABLE dbo.RateLimitViolations;");
+            migrationBuilder.Sql("IF OBJECT_ID('dbo.SystemAuditLogs', 'U') IS NOT NULL DROP TABLE dbo.SystemAuditLogs;");
         }
 
         /// <inheritdoc />
