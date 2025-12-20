@@ -259,6 +259,16 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddSecurityServices(this IServiceCollection services, IConfiguration configuration)
     {
+        // CSRF Protection - Antiforgery tokens
+        services.AddAntiforgery(options =>
+        {
+            options.HeaderName = "X-CSRF-TOKEN";
+            options.Cookie.Name = "XSRF-TOKEN";
+            options.Cookie.HttpOnly = false; // Allow JS to read for header
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            options.Cookie.SameSite = SameSiteMode.Strict;
+        });
+
         // Security Services - IP Blocking, Rate Limiting, Audit Logging
         services.AddScoped<IIPBlockingService, IPBlockingService>();
         services.AddScoped<IRateLimitingService, RateLimitingService>();
@@ -298,6 +308,9 @@ public static class ServiceCollectionExtensions
 
                 context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 context.HttpContext.Response.Headers.Append("Retry-After", "900"); // 15 minutes
+                context.HttpContext.Response.Headers.Append("X-RateLimit-Limit", "10");
+                context.HttpContext.Response.Headers.Append("X-RateLimit-Remaining", "0");
+                context.HttpContext.Response.Headers.Append("X-RateLimit-Reset", DateTimeOffset.UtcNow.AddMinutes(15).ToUnixTimeSeconds().ToString());
                 context.HttpContext.Response.Headers.Append("X-RateLimit-Reason", "Rate limit exceeded");
                 
                 await context.HttpContext.Response.WriteAsync("Too many requests. Your IP has been temporarily blocked.", cancellationToken);

@@ -12,49 +12,95 @@ public class SecurityReportingController : ControllerBase
 {
     private readonly ILogger<SecurityReportingController> _logger;
     private readonly IIPBlockingService _ipBlockingService;
+    private readonly ISecurityEventService _securityEventService;
 
-    public SecurityReportingController(ILogger<SecurityReportingController> logger, IIPBlockingService ipBlockingService)
+    public SecurityReportingController(
+        ILogger<SecurityReportingController> logger, 
+        IIPBlockingService ipBlockingService,
+        ISecurityEventService securityEventService)
     {
         _logger = logger;
         _ipBlockingService = ipBlockingService;
+        _securityEventService = securityEventService;
     }
 
     [HttpPost("csp-report")]
-    public IActionResult ReportCspViolation([FromBody] JsonElement report)
+    public async Task<IActionResult> ReportCspViolation([FromBody] JsonElement report)
     {
-        // CSP reports are often noisy, so we log them with a specific event ID or category
-        // The browser typically sends 'csp-report' property or the violation directly
         var content = report.ToString();
-        _logger.LogWarning("CSP Violation Reported: {Content} | IP: {IP}", content, GetClientIp());
+        var clientIp = GetClientIp();
+        _logger.LogWarning("CSP Violation Reported: {Content} | IP: {IP}", content, clientIp);
 
-        // In a real scenario, you might parse this and store it in SecurityEvents if meaningful
+        // Persist to SecurityEvents table
+        await _securityEventService.LogEventAsync(
+            eventType: "csp_violation",
+            description: $"CSP violation: {content.Substring(0, Math.Min(500, content.Length))}",
+            userId: null,
+            adminUserId: null,
+            ipAddress: clientIp,
+            userAgent: Request.Headers["User-Agent"].ToString(),
+            correlationId: null,
+            metadata: new Dictionary<string, object> { ["report"] = content }
+        );
+
         return Ok();
     }
 
     [HttpPost("incident-report")]
-    public IActionResult ReportIncident([FromBody] SecurityIncidentReport request)
+    public async Task<IActionResult> ReportIncident([FromBody] SecurityIncidentReport request)
     {
         if (request == null) return BadRequest();
 
+        var clientIp = GetClientIp();
         _logger.LogWarning("Client Security Incident: {Type} | Details: {Details} | IP: {IP}", 
-            request.Type, request.Details, GetClientIp());
+            request.Type, request.Details, clientIp);
 
-        if (request.Type == "xss_attempt" || request.Type == "dev_tools_detected")
-        {
-             // Potential adaptive response: block IP if repeated
-        }
+        // Persist to SecurityEvents table
+        await _securityEventService.LogEventAsync(
+            eventType: $"client_incident_{request.Type}",
+            description: $"Client reported incident: {request.Type}",
+            userId: null,
+            adminUserId: null,
+            ipAddress: clientIp,
+            userAgent: request.UserAgent,
+            correlationId: null,
+            metadata: new Dictionary<string, object> 
+            { 
+                ["type"] = request.Type,
+                ["details"] = request.Details ?? new object(),
+                ["url"] = request.Url,
+                ["timestamp"] = request.Timestamp
+            }
+        );
 
         return Ok();
     }
 
     [HttpPost("alert")]
-    public IActionResult ReportAlert([FromBody] SecurityAlertRequest request)
+    public async Task<IActionResult> ReportAlert([FromBody] SecurityAlertRequest request)
     {
-        // Similar to incident-report but matching the frontend hook 'useSecurityMonitoring'
-        // which sends { type, pattern, content, timestamp, url }
-        
+        var clientIp = GetClientIp();
         _logger.LogWarning("Security Alert: {Type} | Pattern: {Pattern} | URL: {Url} | IP: {IP}", 
-            request.Type, request.Pattern, request.Url, GetClientIp());
+            request.Type, request.Pattern, request.Url, clientIp);
+
+        // Persist to SecurityEvents table
+        await _securityEventService.LogEventAsync(
+            eventType: $"client_alert_{request.Type}",
+            description: $"Security alert: {request.Type} matched pattern {request.Pattern}",
+            userId: null,
+            adminUserId: null,
+            ipAddress: clientIp,
+            userAgent: Request.Headers["User-Agent"].ToString(),
+            correlationId: null,
+            metadata: new Dictionary<string, object> 
+            { 
+                ["type"] = request.Type,
+                ["pattern"] = request.Pattern,
+                ["content"] = request.Content,
+                ["url"] = request.Url,
+                ["timestamp"] = request.Timestamp
+            }
+        );
 
         return Ok();
     }

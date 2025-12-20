@@ -291,6 +291,7 @@ public class AuthController(
     /// <returns>Registration result with tokens</returns>
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> Register([FromBody] UnifiedRegisterRequest request)
     {
         // Default to Customer context if not specified
@@ -431,6 +432,7 @@ public class AuthController(
     /// <returns>Forgot password result</returns>
     [HttpPost("forgot-password")]
     [AllowAnonymous]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> ForgotPassword([FromBody] UnifiedForgotPasswordRequest request)
     {
         _logger.LogInformation(" UNIFIED FORGOT PASSWORD - Email: {Email}", request.Email);
@@ -447,6 +449,7 @@ public class AuthController(
     /// <returns>Reset password result</returns>
     [HttpPost("reset-password")]
     [AllowAnonymous]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> ResetPassword([FromBody] UnifiedResetPasswordRequest request)
     {
         // Extract IP address and user agent for security logging
@@ -527,6 +530,7 @@ public class AuthController(
     /// <returns>Resend confirmation result</returns>
     [HttpPost("resend-confirmation")]
     [AllowAnonymous]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationRequest request)
     {
         if (string.IsNullOrEmpty(request.Email))

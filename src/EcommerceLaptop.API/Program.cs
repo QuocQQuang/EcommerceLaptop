@@ -12,7 +12,8 @@ using System.Threading.RateLimiting;
 using Hangfire;
 using EcommerceLaptop.API.Authorization;
 using EcommerceLaptop.API.Hubs; // Added
-using OpenTelemetry.Metrics; // For WithMetricsthorization;
+using OpenTelemetry.Metrics;
+using Microsoft.AspNetCore.Antiforgery;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -201,10 +202,18 @@ app.UseRateLimiter();
 app.UseSession(); // Enable session middleware for guest cart management
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery(); // CSRF Protection
 app.UseMiddleware<StructuredLoggingMiddleware>();
 
 app.MapHub<ChatHub>("/chatHub"); // Map ChatHub
 app.MapControllers();
+
+// CSRF Token endpoint for SPA frontend
+app.MapGet("/api/auth/csrf-token", (IAntiforgery antiforgery, HttpContext context) =>
+{
+    var tokens = antiforgery.GetAndStoreTokens(context);
+    return Results.Ok(new { token = tokens.RequestToken });
+}).AllowAnonymous();
 
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
