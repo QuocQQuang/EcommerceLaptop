@@ -600,6 +600,25 @@ export const adminAuth = {
   }
 };
 
+// Compatibility wrapper for code migrated from secure-admin-api.ts
+// Uses the same api instance with token-based auth
+export const secureAdminBackendApi = {
+  async authenticatedRequest<T>(config: {
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+    url: string;
+    data?: unknown;
+    params?: unknown;
+  }): Promise<T> {
+    const response = await api.request<T>({
+      method: config.method,
+      url: config.url,
+      data: config.data,
+      params: config.params,
+    });
+    return response.data;
+  }
+};
+
 // Permission constants - synchronized with backend schema
 export const PERMISSIONS = {
   // Dashboard
@@ -2200,3 +2219,7 @@ export const adjustStock = async (productId: number, quantityDelta: number) => {
 
 // Export the configured axios instance
 export default api;
+
+// Backward compatibility alias for services migrating from adminApi.ts
+// This allows services to import { adminApiClient } from '@/lib/admin-api'
+export const adminApiClient = api;

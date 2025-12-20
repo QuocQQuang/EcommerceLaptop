@@ -13,8 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
-import { hasPermission } from '@/lib/admin-api';
-import { secureAdminBackendApi } from '@/lib/secure-admin-api';
+import { hasPermission, secureAdminBackendApi } from '@/lib/admin-api';
 import {
   fetchAllSystemSettings,
   mapFromEmailNotifications,

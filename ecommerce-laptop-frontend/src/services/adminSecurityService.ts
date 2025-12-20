@@ -1,6 +1,6 @@
 // Admin Security Management Service - Comprehensive security operations
 
-import { adminApiClient } from '@/lib/adminApi';
+import { adminApiClient } from '@/lib/admin-api';
 import {
   CreateIPBlockRuleRequest,
   CreateRateLimitRuleRequest,

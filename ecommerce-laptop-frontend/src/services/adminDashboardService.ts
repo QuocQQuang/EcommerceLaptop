@@ -1,6 +1,6 @@
 // Admin Dashboard Service - Handles all dashboard-related API operations
 
-import { adminApiClient } from '@/lib/adminApi';
+import { adminApiClient } from '@/lib/admin-api';
 import {
   ApiResponse,
   DashboardKPIs,

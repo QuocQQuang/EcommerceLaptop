@@ -1,6 +1,6 @@
 // Admin User Management Service - Complete CRUD operations for admin users
 
-import { adminApiClient } from '@/lib/adminApi';
+import { adminApiClient } from '@/lib/admin-api';
 import {
   AdminUser,
   AdminUserListParams,
@@ -43,11 +43,11 @@ export class AdminUserService {
       '/admin/users',
       { params }
     );
-    
+
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || 'Failed to fetch admin users');
     }
-    
+
     return response.data.data;
   }
 
@@ -67,11 +67,11 @@ export class AdminUserService {
     const response = await this.client.get<ApiResponse<AdminUser>>(
       `/admin/users/${userId}`
     );
-    
+
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || 'Failed to fetch user details');
     }
-    
+
     return response.data.data;
   }
 
@@ -93,11 +93,11 @@ export class AdminUserService {
       '/admin/users',
       userData
     );
-    
+
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || 'Failed to create admin user');
     }
-    
+
     return response.data.data;
   }
 
@@ -120,11 +120,11 @@ export class AdminUserService {
       `/admin/users/${userId}`,
       userData
     );
-    
+
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || 'Failed to update admin user');
     }
-    
+
     return response.data.data;
   }
 
@@ -145,11 +145,11 @@ export class AdminUserService {
     const response = await this.client.delete<ApiResponse<boolean>>(
       `/admin/users/${userId}`
     );
-    
+
     if (!response.data.success) {
       throw new Error(response.data.message || 'Failed to delete admin user');
     }
-    
+
     return response.data.success;
   }
 
@@ -172,11 +172,11 @@ export class AdminUserService {
       `/admin/users/${userId}/status`,
       { isActive }
     );
-    
+
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || 'Failed to update user status');
     }
-    
+
     return response.data.data;
   }
 
@@ -197,11 +197,11 @@ export class AdminUserService {
     const response = await this.client.post<ApiResponse<boolean>>(
       `/admin/users/${userId}/reset-password`
     );
-    
+
     if (!response.data.success) {
       throw new Error(response.data.message || 'Failed to reset user password');
     }
-    
+
     return response.data.success;
   }
 
@@ -235,11 +235,11 @@ export class AdminUserService {
     }>>(`/admin/users/${userId}/activity`, {
       params: { days }
     });
-    
+
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || 'Failed to fetch user activity');
     }
-    
+
     return response.data.data;
   }
 
@@ -272,11 +272,11 @@ export class AdminUserService {
       operation,
       data
     });
-    
+
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || 'Failed to perform bulk operation');
     }
-    
+
     return response.data.data;
   }
 
@@ -311,11 +311,11 @@ export class AdminUserService {
         }
       }
     );
-    
+
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || 'Failed to search users');
     }
-    
+
     return response.data.data;
   }
 }

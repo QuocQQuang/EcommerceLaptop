@@ -1,7 +1,7 @@
 // Admin API Integration Test
 // Simple test to verify admin API integration is working correctly
 
-import { adminApiClient } from '@/lib/adminApi';
+import { adminApiClient } from '@/lib/admin-api';
 import { adminDashboardService } from '@/services/adminDashboardService';
 import { adminUserService } from '@/services/adminUserService';
 import { adminSecurityService } from '@/services/adminSecurityService';
@@ -27,30 +27,30 @@ import { adminSecurityService } from '@/services/adminSecurityService';
  */
 export function testAdminApiClient() {
   console.log(' Testing Admin API Client...');
-  
+
   try {
     // Test client initialization
     if (!adminApiClient) {
       throw new Error('AdminApiClient not initialized');
     }
-    
+
     // Test that client has required methods
     if (typeof adminApiClient.get !== 'function') {
       throw new Error('get method not available');
     }
-    
+
     if (typeof adminApiClient.post !== 'function') {
       throw new Error('post method not available');
     }
-    
+
     if (typeof adminApiClient.put !== 'function') {
       throw new Error('put method not available');
     }
-    
+
     if (typeof adminApiClient.delete !== 'function') {
       throw new Error('delete method not available');
     }
-    
+
     console.log(' All HTTP methods available');
     console.log(' Admin API Client test passed');
     return true;
@@ -70,41 +70,41 @@ export function testAdminApiClient() {
  */
 export function testAdminServices() {
   console.log(' Testing Admin Services...');
-  
+
   try {
     // Test Dashboard Service
     if (!adminDashboardService) {
       throw new Error('AdminDashboardService not available');
     }
-    
+
     if (typeof adminDashboardService.getDashboardKPIs !== 'function') {
       throw new Error('getDashboardKPIs method not available');
     }
-    
+
     console.log(' Dashboard Service initialized');
-    
+
     // Test User Service
     if (!adminUserService) {
       throw new Error('AdminUserService not available');
     }
-    
+
     if (typeof adminUserService.getUsers !== 'function') {
       throw new Error('getUsers method not available');
     }
-    
+
     console.log(' User Service initialized');
-    
+
     // Test Security Service
     if (!adminSecurityService) {
       throw new Error('AdminSecurityService not available');
     }
-    
+
     if (typeof adminSecurityService.getSecurityEvents !== 'function') {
       throw new Error('getSecurityEvents method not available');
     }
-    
+
     console.log(' Security Service initialized');
-    
+
     console.log(' All Admin Services test passed');
     return true;
   } catch (error) {
@@ -123,35 +123,35 @@ export function testAdminServices() {
  */
 export function testAdminTypes() {
   console.log(' Testing Admin Types...');
-  
+
   try {
     // Test type imports (compile-time check)
     // If this code compiles, types are working correctly
-    
+
     // Sample dashboard KPI params
     const kpiParams: import('@/types/admin').DashboardKpiParams = {
       dateFrom: '2024-01-01',
       dateTo: '2024-01-31'
     };
-    
+
     // Sample user list params
     const userParams: import('@/types/admin').AdminUserListParams = {
       page: 1,
       limit: 20,
       search: 'test'
     };
-    
+
     // Sample security event params
     const securityParams: import('@/types/admin').SecurityEventsParams = {
       page: 1,
       limit: 10,
       severity: 'high'
     };
-    
+
     console.log(' Dashboard types:', typeof kpiParams);
     console.log(' User types:', typeof userParams);
     console.log(' Security types:', typeof securityParams);
-    
+
     console.log(' Admin Types test passed');
     return true;
   } catch (error) {
@@ -170,7 +170,7 @@ export function testAdminTypes() {
  */
 export function testErrorHandling() {
   console.log(' Testing Error Handling...');
-  
+
   try {
     // Test error types are available
     const errorResponse: import('@/types/admin').AdminErrorResponse = {
@@ -178,14 +178,14 @@ export function testErrorHandling() {
       message: 'Test error message',
       statusCode: 400
     };
-    
+
     console.log(' Error types available:', typeof errorResponse);
-    
+
     // Test that API client exists and can handle errors
     if (!adminApiClient) {
       throw new Error('AdminApiClient not available for error handling');
     }
-    
+
     console.log(' Error handling infrastructure ready');
     console.log(' Error Handling test passed');
     return true;
@@ -205,20 +205,20 @@ export function testErrorHandling() {
 export async function runAdminIntegrationTests(): Promise<boolean> {
   console.log(' Starting Admin API Integration Tests...');
   console.log('================================================');
-  
+
   const results = [
     testAdminApiClient(),
     testAdminServices(),
     testAdminTypes(),
     testErrorHandling()
   ];
-  
+
   const passed = results.filter(Boolean).length;
   const total = results.length;
-  
+
   console.log('================================================');
   console.log(` Test Results: ${passed}/${total} tests passed`);
-  
+
   if (passed === total) {
     console.log(' All Admin API integration tests passed!');
     console.log(' Admin API is ready for production use');
