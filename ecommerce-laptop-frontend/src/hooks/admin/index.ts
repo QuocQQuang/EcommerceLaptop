@@ -24,7 +24,7 @@ export {
  */
 export {
   adminSecurityQueryKeys,
-  invalidateAdminSecurity, useAuditLog, useAuditLogs, useCreateIPBlockRule, useCreateRateLimitRule, useDeleteIPBlockRule, useInvestigateSecurityEvent, useIPBlockRules, useRateLimitRules, useResolveSecurityEvent, useSecurityEvent, useSecurityEvents, useSecurityMetrics
+  invalidateAdminSecurity, useCreateIPBlockRule, useCreateRateLimitRule, useDeleteIPBlockRule, useInvestigateSecurityEvent, useIPBlockRules, useRateLimitRules, useResolveSecurityEvent, useSecurityEvent, useSecurityEvents, useSecurityMetrics
 } from './useAdminSecurity';
 
 // Import query keys and invalidation functions

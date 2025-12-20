@@ -537,6 +537,7 @@ public class SecurityController : ControllerBase
     /// Get security event statistics
     /// </summary>
     [HttpGet("events/statistics")]
+    [HttpGet("statistics")] // Alias for frontend
     [RequireAdminPermission(AdminPermissions.SecurityRead)]
     public async Task<IActionResult> GetSecurityStatistics([FromQuery] int days = 7)
     {

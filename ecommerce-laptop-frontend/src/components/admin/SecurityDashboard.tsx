@@ -21,8 +21,9 @@ import {
 import { useEffect, useState } from 'react';
 
 interface SecurityIncident {
-    type: 'csp_violation' | 'xss_attempt' | 'csrf_failure' | 'rate_limit_exceeded' | 'session_violation' | 'suspicious_activity';
+    type: 'csp_violation' | 'xss_attempt' | 'csrf_failure' | 'rate_limit_exceeded' | 'session_violation' | 'suspicious_activity' | string;
     details: any;
+    description: string;
     userAgent: string;
     ip: string;
     url: string;
@@ -54,13 +55,21 @@ const severityIcons = {
     critical: <AlertTriangle className="h-4 w-4" />,
 };
 
-const typeLabels = {
+const typeLabels: Record<string, string> = {
+    // Security events from Loki
+    login_failed: 'Login Failed',
+    login_success: 'Login Success',
+    ip_blocked: 'IP Blocked',
+    rate_limit_exceeded: 'Rate Limit Exceeded',
+    suspicious_activity: 'Suspicious Activity',
+    admin_action: 'Admin Action',
+    security_event_updated: 'Event Updated',
+    security_event_resolved: 'Event Resolved',
+    // Legacy CSP/frontend events
     csp_violation: 'CSP Violation',
     xss_attempt: 'XSS Attempt',
     csrf_failure: 'CSRF Failure',
-    rate_limit_exceeded: 'Rate Limit Exceeded',
     session_violation: 'Session Violation',
-    suspicious_activity: 'Suspicious Activity',
 };
 
 export default function SecurityDashboard() {
@@ -97,9 +106,10 @@ export default function SecurityDashboard() {
                 const mappedIncidents: SecurityIncident[] = response.items.map(event => ({
                     type: (event.eventType as any) || 'suspicious_activity',
                     details: event.details || {},
-                    userAgent: 'N/A', // Not always available in list view
+                    description: event.description || '',
+                    userAgent: 'N/A',
                     ip: event.ipAddress || 'Unknown',
-                    url: 'N/A', // Not always available
+                    url: 'N/A',
                     timestamp: event.createdAt,
                     severity: event.severity
                 }));
@@ -303,21 +313,29 @@ export default function SecurityDashboard() {
                                                     {formatTimestamp(incident.timestamp)}
                                                 </span>
                                             </div>
-                                            <div className="text-sm space-y-1">
-                                                <div className="flex items-center space-x-2">
-                                                    <MapPin className="h-3 w-3 text-gray-400" />
-                                                    <span>IP: {incident.ip}</span>
-                                                    <Globe className="h-3 w-3 text-gray-400" />
-                                                    <span className="truncate max-w-md">URL: {incident.url}</span>
+                                            <div className="text-sm space-y-2">
+                                                {/* Description - now readable thanks to @m extraction */}
+                                                {incident.description && (
+                                                    <p className="text-gray-800 font-medium">
+                                                        {incident.description.length > 150
+                                                            ? `${incident.description.substring(0, 150)}...`
+                                                            : incident.description}
+                                                    </p>
+                                                )}
+                                                <div className="flex items-center space-x-4 text-gray-500">
+                                                    <span className="flex items-center">
+                                                        <MapPin className="h-3 w-3 mr-1" />
+                                                        IP: {incident.ip}
+                                                    </span>
                                                 </div>
-                                                <div className="text-gray-600">
-                                                    <details className="cursor-pointer">
+                                                {incident.details && Object.keys(incident.details).length > 0 && (
+                                                    <details className="cursor-pointer text-gray-600">
                                                         <summary className="hover:text-gray-800">View Details</summary>
-                                                        <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+                                                        <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto max-h-32">
                                                             {JSON.stringify(incident.details, null, 2)}
                                                         </pre>
                                                     </details>
-                                                </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

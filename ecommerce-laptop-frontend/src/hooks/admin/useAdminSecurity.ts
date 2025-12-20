@@ -2,9 +2,6 @@
 
 import { adminSecurityService } from '@/services/adminSecurityService';
 import {
-  AuditLog,
-  AuditLogsParams,
-  AuditLogsResponse,
   CreateIPBlockRuleRequest,
   CreateRateLimitRuleRequest,
   InvestigateEventRequest,
@@ -41,11 +38,6 @@ export const adminSecurityQueryKeys = {
   events: () => [...adminSecurityQueryKeys.all, 'events'] as const,
   eventList: (params: SecurityEventsParams) => [...adminSecurityQueryKeys.events(), 'list', params] as const,
   event: (id: number) => [...adminSecurityQueryKeys.events(), 'detail', id] as const,
-
-  // Audit Logs
-  auditLogs: () => [...adminSecurityQueryKeys.all, 'audit-logs'] as const,
-  auditLogList: (params: AuditLogsParams) => [...adminSecurityQueryKeys.auditLogs(), 'list', params] as const,
-  auditLog: (id: number) => [...adminSecurityQueryKeys.auditLogs(), 'detail', id] as const,
 
   // Security Metrics
   metrics: () => [...adminSecurityQueryKeys.all, 'metrics'] as const,

@@ -2,9 +2,6 @@
 
 import { adminApiClient } from '@/lib/adminApi';
 import {
-  AuditLog,
-  AuditLogsParams,
-  AuditLogsResponse,
   CreateIPBlockRuleRequest,
   CreateRateLimitRuleRequest,
   InvestigateEventRequest,
@@ -203,6 +200,17 @@ export class AdminSecurityService {
       { params: { days } }
     );
     return this.unwrap<SecurityMetrics>(response.data);
+  }
+
+  /**
+   * Get security event statistics by type
+   */
+  async getSecurityStatistics(days: number = 7): Promise<Record<string, number>> {
+    const response = await this.client.get(
+      '/admin/security/statistics',
+      { params: { days } }
+    );
+    return this.unwrap<Record<string, number>>(response.data);
   }
 }
 
