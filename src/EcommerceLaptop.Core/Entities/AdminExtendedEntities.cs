@@ -283,8 +283,8 @@ public class SecurityEvent
     public bool WasBlocked { get; set; } = false; // Whether the action was blocked
     public string? InvestigationNotes { get; set; } // Additional investigation notes
     
-    // Navigation properties
-    public User? User { get; set; }
+    // Navigation properties removed - DTO for Loki
+    // public User? User { get; set; }
 }
 
 

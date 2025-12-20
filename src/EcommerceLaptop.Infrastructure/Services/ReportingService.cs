@@ -284,38 +284,9 @@ public class ReportingService : IReportingService
 
     public async Task<ExportResultDto> ExportSecurityEventsToExcelAsync(int page = 1, int pageSize = 1000, string? search = null, string? eventType = null, string? severity = null, DateTime? startDate = null, DateTime? endDate = null)
     {
-        var query = _context.SecurityEvents.AsQueryable();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            query = query.Where(e => e.Description.Contains(search) || e.IPAddress.Contains(search));
-        }
-
-        if (!string.IsNullOrEmpty(eventType))
-        {
-            query = query.Where(e => e.EventType == eventType);
-        }
-
-        if (!string.IsNullOrEmpty(severity))
-        {
-            query = query.Where(e => e.Severity == severity);
-        }
-
-        if (startDate.HasValue)
-        {
-            query = query.Where(e => e.CreatedAt >= startDate.Value);
-        }
-
-        if (endDate.HasValue)
-        {
-            query = query.Where(e => e.CreatedAt <= endDate.Value.AddDays(1));
-        }
-
-        var events = await query
-            .OrderByDescending(e => e.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        // Legacy SQL query removed. Events are now in Loki.
+        // TODO: Implement Loki Export if needed.
+        var events = new List<SecurityEvent>(); // Empty list for now
 
         var excelBytes = await _excelExportService.ExportSecurityEventsToExcelAsync(events);
         var fileName = $"DanhSachSuKienBaoMat_{DateTime.Now:yyyyMMddHHmmss}.xlsx";

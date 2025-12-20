@@ -14,6 +14,7 @@ using EcommerceLaptop.Infrastructure.Jobs; // Correct namespace
 using EcommerceLaptop.Infrastructure.Repositories;
 using EcommerceLaptop.Infrastructure.Services;
 using EcommerceLaptop.Infrastructure.Services.AI;
+using EcommerceLaptop.Infrastructure.Services.Logging;
 using EcommerceLaptop.Infrastructure.Services.Payment;
 using EcommerceLaptop.Infrastructure.Services.Security;
 using FluentValidation;
@@ -21,6 +22,7 @@ using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -274,6 +276,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRateLimitingService, RateLimitingService>();
         services.AddScoped<ISecurityEventService, SecurityEventService>();
         services.AddScoped<IAuditLoggingService, AuditLoggingService>();
+
+        // Loki Client
+        services.AddHttpClient<LokiClient>((sp, client) =>
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            var baseUrl = configuration["Loki:BaseUrl"] ?? "http://localhost:3101";
+            client.BaseAddress = new Uri(baseUrl);
+        });
 
         // Fallback Rate Limiting Registration
         services.AddRateLimiter(options =>

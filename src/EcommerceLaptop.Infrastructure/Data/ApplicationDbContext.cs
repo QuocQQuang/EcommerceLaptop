@@ -132,7 +132,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<IPBlockRule> IPBlockRules { get; set; }
     public DbSet<RateLimitRule> RateLimitRules { get; set; }
     // public DbSet<RateLimitViolation> RateLimitViolations { get; set; } // Removed: Replaced by Redis Rate Limiting
-    public DbSet<SecurityEvent> SecurityEvents { get; set; }
+    // public DbSet<SecurityEvent> SecurityEvents { get; set; } // Removed: Moved to Loki logging
     // public DbSet<SystemAuditLog> SystemAuditLogs { get; set; } // Removed: Replaced by Loki Logging
     // public DbSet<LoginAttempt> LoginAttempts { get; set; } // Removed: Map to SecurityEvents or Redis
 
@@ -997,34 +997,7 @@ public class ApplicationDbContext : DbContext
         });
 
         // Security Event configurations
-        modelBuilder.Entity<SecurityEvent>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.EventType).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.Severity).HasMaxLength(20).HasDefaultValue("medium");
-            entity.Property(e => e.IPAddress).HasMaxLength(45).IsRequired();
-            entity.Property(e => e.Description).HasMaxLength(2000);
-            entity.Property(e => e.Details).HasDefaultValue("{}");
-            entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("new");
-            entity.Property(e => e.UserAgent).HasMaxLength(1000);
-            entity.Property(e => e.CorrelationId).HasMaxLength(50);
-            entity.Property(e => e.Endpoint).HasMaxLength(200);
-            entity.Property(e => e.RequestMethod).HasMaxLength(10);
-            entity.Property(e => e.RiskScore).HasMaxLength(10).HasDefaultValue("0");
-
-            entity.HasIndex(e => e.EventType);
-            entity.HasIndex(e => e.UserId);
-            entity.HasIndex(e => e.AdminUserId);
-            entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => e.IPAddress);
-            entity.HasIndex(e => e.CorrelationId);
-            entity.HasIndex(e => e.Severity);
-
-            entity.HasOne(e => e.User)
-                .WithMany()
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
+        // Security Event configuration removed (Moved to Loki)
 
 
 

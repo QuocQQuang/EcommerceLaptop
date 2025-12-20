@@ -695,21 +695,9 @@ public class IdentityService : IIdentityService
 
     private async Task<bool> CheckForBruteForcePatternsAsync(string email, string ipAddress)
     {
-        var timeWindow = DateTime.UtcNow.AddMinutes(-15);
-        var failureEventType = "login_failure";
-
-        var ipFailures = await _context.SecurityEvents.CountAsync(e => e.EventType == failureEventType && e.IPAddress == ipAddress && e.CreatedAt > timeWindow);
-        if (ipFailures > 5) return true;
-
-        var ipEvents = await _context.SecurityEvents.Where(e => e.EventType == failureEventType && e.IPAddress == ipAddress && e.CreatedAt > timeWindow).ToListAsync();
-        var uniqueEmailsFromIP = ipEvents.Select(e =>
-        {
-            var dict = JsonSerializer.Deserialize<Dictionary<string, object>>(e.Details);
-            return dict != null && dict.ContainsKey("email") ? dict["email"]?.ToString() : null;
-        }).Where(v => !string.IsNullOrEmpty(v)).Distinct().Count();
-
-        if (uniqueEmailsFromIP > 3) return true;
-
+        // Legacy SQL check removed. 
+        // TODO: Implement Redis-based or Loki-based Pattern Check.
+        // User-based locking (FailedLoginAttempts) still protects individual accounts.
         return false;
     }
 

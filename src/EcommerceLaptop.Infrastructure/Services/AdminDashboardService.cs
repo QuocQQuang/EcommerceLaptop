@@ -385,30 +385,10 @@ public class AdminDashboardService : IAdminDashboardService
     {
         try
         {
-            var query = _context.SecurityEvents.AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(severity))
-            {
-                query = query.Where(al => al.Severity == severity);
-            }
-
-            var totalItems = await query.CountAsync();
-
-            var events = await query
-                .OrderByDescending(al => al.CreatedAt)
-                .Skip((page - 1) * limit)
-                .Take(limit)
-                .Select(se => new SecurityEventDto
-                {
-                    Id = se.Id,
-                    Description = se.Description,
-                    Severity = se.Severity,
-                    IpAddress = se.IPAddress,
-                    CreatedAt = se.CreatedAt,
-                    UserAgent = se.UserAgent ?? "",
-                    EventType = se.EventType
-                })
-                .ToListAsync();
+            // Legacy SQL query removed. Events are now in Loki.
+            // TODO: Implement Loki query for Dashboard.
+            var totalItems = 0;
+            var events = new List<SecurityEventDto>();
 
             return new PagedResponseDto<SecurityEventDto>(events, totalItems, page, limit);
         }

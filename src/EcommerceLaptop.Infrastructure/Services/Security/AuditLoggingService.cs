@@ -75,23 +75,9 @@ public class AuditLoggingService : IAuditLoggingService
             _logger.LogWarning("SecurityEvent: {EventType} | Description: {Description} | IP: {IPAddress} | UserId: {UserId} | AdminId: {AdminId}",
                 eventType, description, ipAddress, userId, adminId);
 
-            // Also log to SecurityEvents table (which we kept)
-            var securityEvent = new SecurityEvent
-            {
-                EventType = eventType,
-                Description = description,
-                IPAddress = ipAddress,
-                UserId = userId ?? adminId,
-                Severity = GetSecurityEventSeverity(eventType),
-                Status = "logged",
-                CorrelationId = correlationId ?? Guid.NewGuid().ToString(),
-                RiskScore = GetRiskScore(eventType).ToString(),
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.SecurityEvents.Add(securityEvent);
-            await _context.SaveChangesAsync();
-
+            // Security events now handled by Serilog/Loki
+            // _logger.LogWarning already sends to Loki
+            
             return ServiceResult<bool>.Success(true);
         }
         catch (Exception ex)
@@ -99,29 +85,6 @@ public class AuditLoggingService : IAuditLoggingService
             _logger.LogError(ex, "Failed to log security event");
             return ServiceResult<bool>.Failure("Failed to log security event");
         }
-    }
-
-    private static string GetSecurityEventSeverity(string eventType)
-    {
-        return eventType.ToLower() switch
-        {
-            var e when e.Contains("breach") || e.Contains("attack") => "critical",
-            var e when e.Contains("unauthorized") || e.Contains("suspicious") => "high",
-            var e when e.Contains("blocked") || e.Contains("failed") => "medium",
-            _ => "low"
-        };
-    }
-
-    private static int GetRiskScore(string eventType)
-    {
-        return eventType.ToLower() switch
-        {
-            var e when e.Contains("breach") || e.Contains("attack") => 90,
-            var e when e.Contains("unauthorized") || e.Contains("intrusion") => 80,
-            var e when e.Contains("suspicious") || e.Contains("blocked") => 60,
-            var e when e.Contains("failed_login") => 40,
-            _ => 20
-        };
     }
 
     public async Task<ServiceResult<Dictionary<string, int>>> GetActivitySummaryAsync(DateTime from, DateTime to, string? userType = null)
@@ -134,13 +97,7 @@ public class AuditLoggingService : IAuditLoggingService
         try
         {
             // Only clean up SecurityEvents
-            var oldSecurityEvents = _context.SecurityEvents
-                .Where(se => se.CreatedAt < olderThan);
-
-            var securityEventsCount = await oldSecurityEvents.CountAsync();
-            _context.SecurityEvents.RemoveRange(oldSecurityEvents);
-
-            await _context.SaveChangesAsync();
+            // Loki handles retention. No-op for SQL.
             return ServiceResult<bool>.Success(true);
         }
         catch (Exception ex)

@@ -84,7 +84,7 @@ public class IPBlockingMiddleware
         _logger.LogWarning("Blocked access attempt from IP {ClientIP} to {Path}", clientIP, path);
 
         context.Response.StatusCode = 403; // Forbidden
-        context.Response.Headers.Add("X-Blocked-Reason", "IP address is blocked");
+        context.Response.Headers["X-Blocked-Reason"] = "IP address is blocked";
         
         var response = new
         {

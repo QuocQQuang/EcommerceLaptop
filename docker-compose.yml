@@ -25,25 +25,6 @@ services:
     networks:
       - ecommerce_network
 
-  #   api:
-  #     build: 
-  #       context: .
-  #       dockerfile: src/EcommerceLaptop.API/Dockerfile
-  #     container_name: ecommerce_api
-  #     ports:
-  #       - "5000:8080"
-  #     environment:
-  #       - ASPNETCORE_ENVIRONMENT=Development
-  #       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=EcommerceLaptop;User Id=sa;Password=Your_password123;TrustServerCertificate=true;
-  #       - ConnectionStrings__Redis=redis:6379
-  #       - VectorDb__Endpoint=http://qdrant:6333
-  #     depends_on:
-  #       - sqlserver
-  #       - redis
-  #       - qdrant
-  #     networks:
-  #       - ecommerce_network
-
   qdrant:
     image: qdrant/qdrant:latest
     container_name: ecommerce_qdrant
