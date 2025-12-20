@@ -19,12 +19,12 @@ public class SecurityEventService : ISecurityEventService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<SecurityEventService> _logger;
-    private readonly LokiClient _lokiClient;
+    private readonly ILokiClient _lokiClient;
 
     public SecurityEventService(
         ApplicationDbContext context, 
         ILogger<SecurityEventService> logger,
-        LokiClient lokiClient)
+        ILokiClient lokiClient)
     {
         _context = context;
         _logger = logger;
@@ -68,39 +68,66 @@ public class SecurityEventService : ISecurityEventService
         }
     }
 
-    public async Task<ServiceResult<List<SecurityEvent>>> GetEventsAsync(
-        int skip = 0,
-        int take = 50,
+    public async Task<ServiceResult<EcommerceLaptop.Core.DTOs.PagedResult<SecurityEvent>>> GetEventsAsync(
         string? eventType = null,
         string? severity = null,
         DateTime? fromDate = null,
-        DateTime? toDate = null)
+        DateTime? toDate = null,
+        int? userId = null,
+        int? adminUserId = null,
+        int page = 1,
+        int pageSize = 50)
+    {
+        int skip = (page - 1) * pageSize;
+        int take = pageSize;
     {
         try
         {
-            // Query Loki instead of SQL
+            // Query Loki using label selectors (not json parser)
             var from = fromDate ?? DateTime.UtcNow.AddDays(-7);
             var to = toDate ?? DateTime.UtcNow;
 
-            var query = "{app=\"ecommerce-api\"}"; // Base query
+            // Build label selector query
+            var labels = new List<string> { "app=\"ecommerce-api\"" };
+            
             if (!string.IsNullOrEmpty(eventType))
             {
-                query += $" | json | EventType=\"{eventType}\"";
+                labels.Add($"EventType=\"{eventType}\"");
             }
             if (!string.IsNullOrEmpty(severity))
             {
-                 // Note: Loki levels might differ from our textual Severity
-                 // We might need to filter by parsed field if we push it as property
-                 query += $" | json | Severity=\"{severity}\"";
+                labels.Add($"Severity=\"{severity}\"");
             }
 
+            var query = "{" + string.Join(", ", labels) + "}";
+
             // Fetch from Loki
-            var events = await _lokiClient.QueryAsync(query, from, to, take + skip);
+            // Fetch one more than needed to check "HasNext" if we don't use CountAsync
+            // But we want TotalCount.
+            
+            // Get Total Count (approximate or exact over range)
+            var totalCount = await _lokiClient.CountAsync(query, from, to);
+             
+            // Fetch Page
+            // Loki doesn't support OFFSET well, but we use in-memory paging for reasonably small data
+            // OR use 'limit' and skip client side if we accept fetching 1000 items.
+            // For now, we stick to fetching the buffer limit.
+            
+            var limit = Math.Min(skip + take + 100, 1000); 
+            var events = await _lokiClient.QueryAsync(query, from, to, limit);
 
-            // In-memory Pagination (Loki pagination is cursor based, but this is simple wrapper)
-            var pagedEvents = events.Skip(skip).Take(take).ToList();
+            // In-memory pagination
+            var pagedItems = events.Skip(skip).Take(take).ToList();
+            
+            var result = new EcommerceLaptop.Core.DTOs.PagedResult<SecurityEvent>
+            {
+                Items = pagedItems,
+                TotalCount = Math.Max(totalCount, events.Count), // Ensure TotalCount is at least the fetched count
+                Page = (skip / take) + 1,
+                PageSize = take
+            };
 
-            return ServiceResult<List<SecurityEvent>>.Success(pagedEvents);
+            return ServiceResult<EcommerceLaptop.Core.DTOs.PagedResult<SecurityEvent>>.Success(result);
         }
         catch (Exception ex)
         {
@@ -145,7 +172,22 @@ public class SecurityEventService : ISecurityEventService
 
     public async Task<ServiceResult<List<SecurityEvent>>> GetEventsByIPAsync(string ipAddress, int hours = 24)
     {
-        return await GetEventsAsync(0, 100, null, null, DateTime.UtcNow.AddHours(-hours), DateTime.UtcNow);
+        try
+        {
+            var from = DateTime.UtcNow.AddHours(-hours);
+            var to = DateTime.UtcNow;
+            
+            // Query with IP address label filter
+            var query = $"{{app=\"ecommerce-api\", IPAddress=\"{ipAddress}\"}}";
+            var events = await _lokiClient.QueryAsync(query, from, to, 100);
+            
+            return ServiceResult<List<SecurityEvent>>.Success(events);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting events by IP from Loki");
+            return ServiceResult<List<SecurityEvent>>.Failure("Failed to retrieve events by IP");
+        }
     }
 
     public async Task<ServiceResult<List<SecurityEvent>>> GetRelatedEventsAsync(int eventId)
@@ -198,10 +240,18 @@ public class SecurityEventService : ISecurityEventService
 
     public async Task<ServiceResult<List<SecurityEvent>>> GetEventsByCorrelationAsync(string correlationId)
     {
-         // Query Loki for correlation ID
-         var query = $"{{app=\"ecommerce-api\"}} | json | CorrelationId=\"{correlationId}\"";
-         var events = await _lokiClient.QueryAsync(query, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow);
-         return ServiceResult<List<SecurityEvent>>.Success(events);
+        try
+        {
+            // Query Loki with correlation ID label filter
+            var query = $"{{app=\"ecommerce-api\", CorrelationId=\"{correlationId}\"}}";
+            var events = await _lokiClient.QueryAsync(query, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow, 100);
+            return ServiceResult<List<SecurityEvent>>.Success(events);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting events by correlation from Loki");
+            return ServiceResult<List<SecurityEvent>>.Failure("Failed to retrieve correlated events");
+        }
     }
 
     public async Task<ServiceResult<Dictionary<string, int>>> GetEventStatisticsAsync(DateTime from, DateTime to)
@@ -234,33 +284,50 @@ public class SecurityEventService : ISecurityEventService
 
     public async Task<ServiceResult<EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto>> GetSecurityMetricsAsync(int days = 7)
     {
-         // For Metrics: 
-         // 1. IP Block Rules (SQL) - Active
-         // 2. Events (Loki) - Need aggregation or just SQL query if we kept using it?
-         // Plan said "Move Events to Loki". So SQL for events is empty/frozen.
-         // We will return SQL data for Rules, and maybe basic counts from Loki if implemented, or 0.
-         
         try
         {
+            // 1. Fetch Rules metrics from SQL
             var activeRules = await _context.RateLimitRules.CountAsync(r => r.IsActive);
-             var blockedIPs = await _context.IPBlockRules.CountAsync(r => r.IsActive);
+            // Count of actively blocked IPs (via rules)
+            var blockedIPRules = await _context.IPBlockRules.CountAsync(r => r.IsActive);
 
-             return ServiceResult<EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto>.Success(new EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto
-             {
-                 ActiveRules = activeRules,
-                 TotalBlocked = blockedIPs,
-                 // Other metrics simplified for now as Loki aggregation is complex in this scope
-                 RateLimitViolations = 0,
-                 SuspiciousIPs = 0, 
-                 TodayBlocked = 0,
-                 TopBlockedIPs = new List<EcommerceLaptop.Core.DTOs.Admin.TopBlockedIpDto>(),
-                 RateLimitStats = new List<EcommerceLaptop.Core.DTOs.Admin.EndpointRateLimitStatDto>()
-             });
+            // 2. Fetch Event metrics from Loki
+            var to = DateTime.UtcNow;
+            var from = to.AddDays(-days);
+
+            // Total Blocked events (fired by IPBlockMiddleware)
+            // Assuming "ip_blocked" is the EventType logged
+            var totalBlockedEvents = await _lokiClient.CountAsync($"{{app=\"ecommerce-api\", EventType=\"ip_blocked\"}}", from, to);
+            
+            // Rate Limit Violations
+            var rateLimitViolations = await _lokiClient.CountAsync($"{{app=\"ecommerce-api\", EventType=\"rate_limit_exceeded\"}}", from, to);
+            
+            // Suspicious Activity (high severity events)
+            var suspiciousCount = await _lokiClient.CountAsync($"{{app=\"ecommerce-api\", Severity=\"Critical\"}}", from, to);
+
+            // Today's blocked count
+            var todayFrom = DateTime.UtcNow.Date;
+            var todayBlocked = await _lokiClient.CountAsync($"{{app=\"ecommerce-api\", EventType=\"ip_blocked\"}}", todayFrom, to);
+
+            return ServiceResult<EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto>.Success(new EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto
+            {
+                ActiveRules = activeRules,
+                // TotalBlocked can range from rules count to actual events. 
+                // Let's use actual blocked EVENTS for "TotalBlocked" metric if that's what dashboard expects,
+                // or just the number of blocked IPs in DB. 
+                // Usually "Total Blocked" implies traffic blocked.
+                TotalBlocked = totalBlockedEvents,
+                RateLimitViolations = rateLimitViolations,
+                SuspiciousIPs = suspiciousCount,
+                TodayBlocked = todayBlocked,
+                TopBlockedIPs = new List<EcommerceLaptop.Core.DTOs.Admin.TopBlockedIpDto>(), // Requires aggregation query support
+                RateLimitStats = new List<EcommerceLaptop.Core.DTOs.Admin.EndpointRateLimitStatDto>() // Requires aggregation query support
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting metrics");
-             return ServiceResult<EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto>.Failure("Failed to get metrics");
+            _logger.LogError(ex, "Error getting security metrics");
+             return ServiceResult<EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto>.Failure("Failed to retrieve metrics");
         }
     }
 

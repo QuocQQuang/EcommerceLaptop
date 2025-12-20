@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EcommerceLaptop.Infrastructure.Services.Logging;
 
-public class LokiClient
+public class LokiClient : ILokiClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<LokiClient> _logger;
@@ -20,10 +20,6 @@ public class LokiClient
     {
         try
         {
-            // Loki API: /loki/api/v1/query_range
-            // Parameters: query, start, end, limit, direction
-            // start/end are in nanoseconds
-            
             var startNs = ((DateTimeOffset)start).ToUnixTimeMilliseconds() * 1000000;
             var endNs = ((DateTimeOffset)end).ToUnixTimeMilliseconds() * 1000000;
             
@@ -48,67 +44,161 @@ public class LokiClient
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error querying Loki");
-            // Return empty list on failure to avoid breaking UI
             return new List<SecurityEvent>();
         }
     }
 
+    public async Task<int> CountAsync(string query, DateTime start, DateTime end)
+    {
+        try
+        {
+            // wrap query in count_over_time for the full duration
+            var duration = (end - start).TotalSeconds;
+            // Avoid range syntax in the query parameter itself if using query_range? 
+            // Actually, for instant query over a range or explicit range query:
+            // We want a single number. 
+            // Query: sum(count_over_time({selector}[duration_s]))
+            
+            var metricQuery = $"sum(count_over_time({query}[{(int)duration}s]))";
+            var url = BuildQueryUrl(metricQuery, start, end, 1);
+
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var lokiResponse = JsonSerializer.Deserialize<LokiResponse>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (lokiResponse?.Data?.Result == null) return 0;
+
+            // Matrix response: Result -> Values -> [timestamp, value]
+            // We expect one series with one or more values. Sum them or take the last?
+            // With count_over_time[range] and enough step, we should get one value representing the count.
+            
+            double total = 0;
+            foreach (var stream in lokiResponse.Data.Result)
+            {
+                foreach (var value in stream.Values)
+                {
+                     if (value.Count >= 2 && double.TryParse(value[1].ToString(), out var val))
+                     {
+                         total = val; // Usually correct for single vector
+                     }
+                }
+            }
+
+            return (int)total;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error counting Loki events");
+            return 0;
+        }
+    }
+
+    public async Task<Dictionary<string, int>> GetMetricAsync(string query, DateTime start, DateTime end)
+    {
+        try
+        {
+            var url = BuildQueryUrl(query, start, end, 1000);
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var lokiResponse = JsonSerializer.Deserialize<LokiResponse>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            var result = new Dictionary<string, int>();
+            if (lokiResponse?.Data?.Result == null) return result;
+
+            foreach (var stream in lokiResponse.Data.Result)
+            {
+                // Key from labels
+                var labels = stream.Stream ?? stream.Metric; // Handle both 'stream' and 'metric'
+                if (labels == null) continue;
+
+                // Create a key from labels (e.g. EventType=login)
+                var key = string.Join(",", labels.Select(kv => $"{kv.Key}={kv.Value}"));
+                if (string.IsNullOrEmpty(key)) key = "Total";
+
+                // Sum values or take latest? For metrics over time, we might want sum or just the series.
+                // Assuming query returns values we want to sum or aggregating query.
+                // Let's take the LAST value of the series as the current state.
+                
+                if (stream.Values.Any())
+                {
+                    var lastValue = stream.Values.Last();
+                    if (lastValue.Count >= 2 && double.TryParse(lastValue[1].ToString(), out var val))
+                    {
+                        result[key] = (int)val;
+                    }
+                }
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error querying Loki metrics");
+            return new Dictionary<string, int>();
+        }
+    }
+
+    private string BuildQueryUrl(string query, DateTime start, DateTime end, int limit)
+    {
+        var startNs = ((DateTimeOffset)start).ToUnixTimeMilliseconds() * 1000000;
+        var endNs = ((DateTimeOffset)end).ToUnixTimeMilliseconds() * 1000000;
+        return $"/loki/api/v1/query_range?query={Uri.EscapeDataString(query)}&start={startNs}&end={endNs}&limit={limit}&direction=backward";
+    }
+
+    // Existing ParseLokiResponse method... (omitted only for brevity in this replace, need to ensure I don't delete it)
+    // Wait, I strictly used 'EndLine: 129' which overwrites everything from 56 onwards including helper class!
+    // I must be careful not to delete ParseLokiResponse unless I reprint it.
+    // I will rewrite ParseLokiResponse and DTOs below.
+
     private List<SecurityEvent> ParseLokiResponse(LokiResponse? response)
     {
         var events = new List<SecurityEvent>();
-
         if (response?.Data?.Result == null) return events;
 
         foreach (var stream in response.Data.Result)
         {
             foreach (var value in stream.Values)
             {
-                // value[0] is timestamp (ns string), value[1] is log line
                 if (value.Count < 2) continue;
-
                 var timestampNs = long.Parse(value[0].ToString()!);
                 var logLine = value[1].ToString();
                 
-                // Parse log line - Serilog usually outputs JSON if configured nicely, or plain text
-                // Assuming we can extract info or the log line itself is the description
-                
-                // Try to parse JSON log if structured
                 try 
                 {
-                    // This is a naive implementation assuming logs are somewhat structured or we just use the line as description
-                    // In a real scenario you would parse Serilog's JSON output
-                    // For now, let's create a generic event wrapping the log line
-                    
                     var timestamp = DateTimeOffset.FromUnixTimeMilliseconds(timestampNs / 1000000).UtcDateTime;
-
-                    // Extract labels
-                    var labels = stream.Stream;
+                    var labels = stream.Stream ?? stream.Metric ?? new Dictionary<string, string>(); // Support both
+                    
                     var eventType = labels.ContainsKey("EventType") ? labels["EventType"] : "log_event";
-                    var level = labels.ContainsKey("Level") ? labels["Level"] : "Info";
+                    var level = labels.ContainsKey("Severity") ? labels["Severity"] : (labels.ContainsKey("Level") ? labels["Level"] : "Info");
+                    var ip = labels.ContainsKey("IPAddress") ? labels["IPAddress"] : "Unknown";
 
                     events.Add(new SecurityEvent
                     {
-                        Id = 0, // No ID in Loki
+                        Id = 0,
                         EventType = eventType,
-                        Description = logLine ?? "No content",
+                        Description = logLine,
                         CreatedAt = timestamp,
                         Severity = level,
-                        IPAddress = labels.ContainsKey("IPAddress") ? labels["IPAddress"] : "Unknown"
-                        // Source property not available in entity, omitting
+                        IPAddress = ip
                     });
                 }
-                catch
-                {
-                    // Fallback to plain text
-                }
+                catch { /* Ignore parse error */ }
             }
         }
-
         return events;
     }
 }
 
-// DTOs for Loki Response
 public class LokiResponse
 {
     public string Status { get; set; } = string.Empty;
@@ -117,12 +207,13 @@ public class LokiResponse
 
 public class LokiData
 {
-    public string ResultType { get; set; } = string.Empty; // "streams" or "matrix"
+    public string ResultType { get; set; } = string.Empty;
     public List<LokiStream>? Result { get; set; }
 }
 
 public class LokiStream
 {
-    public Dictionary<string, string> Stream { get; set; } = new();
-    public List<List<object>> Values { get; set; } = new(); // [["timestamp", "line"], ...]
+    public Dictionary<string, string>? Stream { get; set; }
+    public Dictionary<string, string>? Metric { get; set; } // Added for matrix responses
+    public List<List<object>> Values { get; set; } = new();
 }

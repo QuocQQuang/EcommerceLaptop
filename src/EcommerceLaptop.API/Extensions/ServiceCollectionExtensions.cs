@@ -277,12 +277,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISecurityEventService, SecurityEventService>();
         services.AddScoped<IAuditLoggingService, AuditLoggingService>();
 
-        // Loki Client
-        services.AddHttpClient<LokiClient>((sp, client) =>
+        // Loki Client for security event querying from Grafana Loki
+        services.AddHttpClient<ILokiClient, LokiClient>((sp, client) =>
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
             var baseUrl = configuration["Loki:BaseUrl"] ?? "http://localhost:3101";
             client.BaseAddress = new Uri(baseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
         });
 
         // Fallback Rate Limiting Registration

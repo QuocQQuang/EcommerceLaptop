@@ -9,7 +9,7 @@ namespace EcommerceLaptop.Infrastructure.Services.Security;
 public interface ISecurityEventService
 {
     Task<ServiceResult<bool>> LogEventAsync(string eventType, string description, int? userId = null, int? adminUserId = null, string? ipAddress = null, string? userAgent = null, string? correlationId = null, Dictionary<string, object>? metadata = null);
-    Task<ServiceResult<List<SecurityEvent>>> GetEventsAsync(string? eventType = null, DateTime? from = null, DateTime? to = null, int? userId = null, int? adminUserId = null, int page = 1, int pageSize = 50);
+    Task<ServiceResult<EcommerceLaptop.Core.DTOs.PagedResult<SecurityEvent>>> GetEventsAsync(string? eventType = null, string? severity = null, DateTime? from = null, DateTime? to = null, int? userId = null, int? adminUserId = null, int page = 1, int pageSize = 50);
     Task<ServiceResult<List<SecurityEvent>>> GetEventsByCorrelationAsync(string correlationId);
     Task<ServiceResult<Dictionary<string, int>>> GetEventStatisticsAsync(DateTime from, DateTime to);
     Task<ServiceResult<bool>> MarkEventInvestigatedAsync(int eventId, int adminUserId, string notes);
