@@ -250,32 +250,7 @@ public class RateLimitRule
     public bool IsSystemRule { get; set; } = false; // Whether this is a system-defined rule
 }
 
-/// <summary>
-/// Rate Limiting Violation tracking
-/// </summary>
-public class RateLimitViolation
-{
-    public int Id { get; set; }
-    public int RuleId { get; set; }
-    public string IPAddress { get; set; } = string.Empty;
-    public string Endpoint { get; set; } = string.Empty;
-    public string HttpMethod { get; set; } = string.Empty;
-    public int RequestCount { get; set; }
-    public int LimitExceeded { get; set; }
-    public DateTime TimeWindow { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public string? UserId { get; set; }
-    public string? UserAgent { get; set; }
-    public string? SessionId { get; set; }
-    public int RateLimitRuleId { get; set; } // Foreign key to RateLimitRule
-    public DateTime WindowStart { get; set; } // Start of the rate limit window
-    public DateTime WindowEnd { get; set; } // End of the rate limit window
-    public bool WasBlocked { get; set; } = true; // Whether the request was blocked
-    public string Action { get; set; } = "blocked"; // Action taken (blocked, warned, etc.)
-    
-    // Navigation
-    public RateLimitRule Rule { get; set; } = null!;
-}
+
 
 /// <summary>
 /// Security Event entity for logging security-related incidents
@@ -312,73 +287,8 @@ public class SecurityEvent
     public User? User { get; set; }
 }
 
-/// <summary>
-/// System Audit Log for comprehensive activity tracking
-/// </summary>
-public class SystemAuditLog
-{
-    public int Id { get; set; }
-    public string EventCategory { get; set; } = string.Empty; // authentication, authorization, data_access, etc.
-    public string EventType { get; set; } = string.Empty; // login, logout, create, update, delete
-    public string EntityType { get; set; } = string.Empty; // User, Product, Order, etc.
-    public string? EntityId { get; set; }
-    public string Action { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string? OldValues { get; set; } // JSON of old values
-    public string? NewValues { get; set; } // JSON of new values
-    public string? ChangedFields { get; set; } // JSON array of changed field names
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
-    // User context
-    public int? UserId { get; set; }
-    public int? AdminUserId { get; set; }
-    public string? UserEmail { get; set; }
-    public string? UserRole { get; set; }
-    
-    // Request context
-    public string? IPAddress { get; set; }
-    public string? UserAgent { get; set; }
-    public string? SessionId { get; set; }
-    public string? RequestId { get; set; }
-    public string? Endpoint { get; set; }
-    public string? HttpMethod { get; set; }
-    public int? ExecutionTimeMs { get; set; }
-    
-    // Risk and compliance
-    public string RiskLevel { get; set; } = "low"; // low, medium, high, critical
-    public bool RequiresReview { get; set; } = false;
-    public string? ComplianceNotes { get; set; }
-    public string? AdditionalMetadata { get; set; } // JSON for extra context
-    
-    // Navigation properties
-    public User? User { get; set; }
-    public User? AdminUser { get; set; }
-}
 
-/// <summary>
-/// Login Attempt tracking for security analysis
-/// </summary>
-public class LoginAttempt
-{
-    public int Id { get; set; }
-    public string? Email { get; set; }
-    public string IPAddress { get; set; } = string.Empty;
-    public bool Success { get; set; }
-    public string? FailureReason { get; set; }
-    public DateTime AttemptedAt { get; set; } = DateTime.UtcNow;
-    public string? UserAgent { get; set; }
-    public string? SessionId { get; set; }
-    public string UserType { get; set; } = "user"; // user, admin
-    
-    // Additional tracking
-    public int? UserId { get; set; }
-    public int? AdminUserId { get; set; }
-    public string? TwoFactorMethod { get; set; }
-    public bool TwoFactorRequired { get; set; } = false;
-    public bool TwoFactorSuccess { get; set; } = false;
-    public string? GeoLocation { get; set; } // Country/City if available
-    public bool SuspiciousActivity { get; set; } = false;
-    public string? RiskFactors { get; set; } // JSON array of risk indicators
-}
+
+
 
 #endregion

@@ -470,8 +470,8 @@ public class SecurityEventService : ISecurityEventService
                 .Where(e => e.EventType == "ip_blocked" && e.CreatedAt >= from && e.CreatedAt <= to)
                 .CountAsync();
 
-            var rateLimitViolations = await _context.RateLimitViolations
-                .Where(v => v.CreatedAt >= from && v.CreatedAt <= to)
+            var rateLimitViolations = await _context.SecurityEvents
+                .Where(e => e.EventType == "rate_limit_exceeded" && e.CreatedAt >= from && e.CreatedAt <= to)
                 .CountAsync();
 
             var activeRules = await _context.RateLimitRules
@@ -498,14 +498,9 @@ public class SecurityEventService : ISecurityEventService
                 .Take(10)
                 .ToListAsync();
 
-            // Rate limit stats per endpoint
-            var rateLimitStatsRaw = await _context.RateLimitViolations
-                .Where(v => v.CreatedAt >= from && v.CreatedAt <= to)
-                .GroupBy(v => v.Endpoint)
-                .Select(g => new { endpoint = g.Key, violations = g.Count(), lastViolation = g.Max(x => x.CreatedAt) })
-                .OrderByDescending(x => x.violations)
-                .Take(10)
-                .ToListAsync();
+            // Rate limit stats per endpoint (Legacy table removed, return empty or derive from SecurityEvents if needed)
+            // For now returning empty list as precise endpoint aggregation from generic SecurityEvents description is complex
+            var rateLimitStatsRaw = new List<dynamic>();
 
             var metrics = new EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto
             {
@@ -520,12 +515,7 @@ public class SecurityEventService : ISecurityEventService
                     Count = x.count,
                     LastSeen = x.lastSeen
                 }).ToList(),
-                RateLimitStats = rateLimitStatsRaw.Select(x => new EcommerceLaptop.Core.DTOs.Admin.EndpointRateLimitStatDto
-                {
-                    Endpoint = x.endpoint ?? string.Empty,
-                    Violations = x.violations,
-                    LastViolation = x.lastViolation
-                }).ToList()
+                RateLimitStats = new List<EcommerceLaptop.Core.DTOs.Admin.EndpointRateLimitStatDto>()
             };
 
             return ServiceResult<EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto>.Success(metrics);

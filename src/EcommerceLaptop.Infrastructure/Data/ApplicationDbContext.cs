@@ -131,10 +131,10 @@ public class ApplicationDbContext : DbContext
     // Security System
     public DbSet<IPBlockRule> IPBlockRules { get; set; }
     public DbSet<RateLimitRule> RateLimitRules { get; set; }
-    public DbSet<RateLimitViolation> RateLimitViolations { get; set; }
+    // public DbSet<RateLimitViolation> RateLimitViolations { get; set; } // Removed: Replaced by Redis Rate Limiting
     public DbSet<SecurityEvent> SecurityEvents { get; set; }
-    public DbSet<SystemAuditLog> SystemAuditLogs { get; set; }
-    public DbSet<LoginAttempt> LoginAttempts { get; set; }
+    // public DbSet<SystemAuditLog> SystemAuditLogs { get; set; } // Removed: Replaced by Loki Logging
+    // public DbSet<LoginAttempt> LoginAttempts { get; set; } // Removed: Map to SecurityEvents or Redis
 
     // AI Chat Persistence
     public DbSet<ChatSession> ChatSessions { get; set; }
@@ -1026,44 +1026,7 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // System Audit Log configurations
-        modelBuilder.Entity<SystemAuditLog>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.EventCategory).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.EventType).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.EntityType).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.EntityId).HasMaxLength(50);
-            entity.Property(e => e.Action).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.Description).HasMaxLength(2000);
-            entity.Property(e => e.OldValues);
-            entity.Property(e => e.NewValues);
-            entity.Property(e => e.IPAddress).HasMaxLength(45);
-            entity.Property(e => e.UserAgent).HasMaxLength(1000);
-            entity.Property(e => e.UserEmail).HasMaxLength(255);
-            entity.Property(e => e.UserRole).HasMaxLength(50);
-            entity.Property(e => e.Endpoint).HasMaxLength(200);
-            entity.Property(e => e.HttpMethod).HasMaxLength(10);
-            entity.Property(e => e.RiskLevel).HasMaxLength(20).HasDefaultValue("low");
 
-            entity.HasIndex(e => e.Action);
-            entity.HasIndex(e => e.EntityType);
-            entity.HasIndex(e => e.UserId);
-            entity.HasIndex(e => e.AdminUserId);
-            entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => new { e.EntityType, e.EntityId });
-            entity.HasIndex(e => e.IPAddress);
-
-            entity.HasOne(e => e.User)
-                .WithMany()
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            entity.HasOne(e => e.AdminUser)
-                .WithMany()
-                .HasForeignKey(e => e.AdminUserId)
-                .OnDelete(DeleteBehavior.NoAction);
-        });
 
         // IP Block Rule configurations
         modelBuilder.Entity<IPBlockRule>(entity =>
@@ -1098,46 +1061,9 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.Priority);
         });
 
-        // Rate Limit Violation configurations
-        modelBuilder.Entity<RateLimitViolation>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.IPAddress).HasMaxLength(45).IsRequired();
-            entity.Property(e => e.Endpoint).HasMaxLength(200).IsRequired();
-            entity.Property(e => e.HttpMethod).HasMaxLength(10).IsRequired();
-            entity.Property(e => e.UserId).HasMaxLength(50);
-            entity.Property(e => e.UserAgent).HasMaxLength(1000);
-            entity.Property(e => e.Action).HasMaxLength(20).HasDefaultValue("blocked");
 
-            entity.HasIndex(e => e.IPAddress);
-            entity.HasIndex(e => e.Endpoint);
-            entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => new { e.IPAddress, e.Endpoint, e.HttpMethod });
 
-            entity.HasOne(e => e.Rule)
-                .WithMany()
-                .HasForeignKey(e => e.RateLimitRuleId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
 
-        // Login Attempt configurations
-        modelBuilder.Entity<LoginAttempt>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Email).HasMaxLength(255);
-            entity.Property(e => e.IPAddress).HasMaxLength(45).IsRequired();
-            entity.Property(e => e.UserAgent).HasMaxLength(1000);
-            entity.Property(e => e.FailureReason).HasMaxLength(200);
-            entity.Property(e => e.UserType).HasMaxLength(20).HasDefaultValue("user");
-            entity.Property(e => e.TwoFactorMethod).HasMaxLength(50);
-            entity.Property(e => e.GeoLocation).HasMaxLength(100);
-
-            entity.HasIndex(e => e.Email);
-            entity.HasIndex(e => e.IPAddress);
-            entity.HasIndex(e => e.AttemptedAt);
-            entity.HasIndex(e => e.Success);
-            entity.HasIndex(e => new { e.Email, e.Success, e.AttemptedAt });
-        });
 
         // Seed data
         modelBuilder.Seed();

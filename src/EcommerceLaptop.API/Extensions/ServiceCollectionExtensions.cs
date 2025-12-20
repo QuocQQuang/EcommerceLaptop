@@ -27,6 +27,8 @@ using Microsoft.OpenApi.Models;
 using Typesense;
 using Typesense.Setup;
 
+using StackExchange.Redis;
+
 namespace EcommerceLaptop.API.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -43,6 +45,10 @@ public static class ServiceCollectionExtensions
         {
             options.Configuration = configuration.GetConnectionString("Redis");
         });
+        
+        // Register IConnectionMultiplexer for direct Redis access (High Performance)
+        services.AddSingleton<IConnectionMultiplexer>(sp => 
+            ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis") ?? "localhost"));
 
         // Session state configuration for guest cart management
         services.AddDistributedMemoryCache(); // For development, use Redis in production
@@ -270,32 +276,80 @@ public static class ServiceCollectionExtensions
                 var endpoint = context.HttpContext.Request.Path;
                 var userAgent = context.HttpContext.Request.Headers["User-Agent"].ToString();
 
-                logger.LogWarning("Fallback rate limit exceeded - Client IP: {ClientIp}, Endpoint: {Endpoint}, User-Agent: {UserAgent}, Time: {Time}",
+                logger.LogWarning("Rate limit exceeded - Client IP: {ClientIp}, Endpoint: {Endpoint}, User-Agent: {UserAgent}, Time: {Time}",
                     clientIp, endpoint, userAgent, DateTime.UtcNow);
 
-                context.HttpContext.Response.Headers.Append("Retry-After", "60");
-                context.HttpContext.Response.Headers.Append("X-RateLimit-Reason", "Fallback rate limit exceeded");
-                context.HttpContext.Response.Headers.Append("X-RateLimit-Source", "Built-in-Fallback");
-                await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", cancellationToken);
+                // Automatic IP Blocking
+                try 
+                {
+                    var ipBlockingService = context.HttpContext.RequestServices.GetService<IIPBlockingService>();
+                    if (ipBlockingService != null && clientIp != "Unknown" && clientIp != "::1" && clientIp != "127.0.0.1")
+                    {
+                        // Block for 15 minutes
+                        // Pass null for adminUserId (defaults to "System") and DateTime for expiration
+                        await ipBlockingService.BlockIPAsync(clientIp, "Rate limit exceeded", null, DateTime.UtcNow.AddMinutes(15));
+                        logger.LogInformation("Automatically blocked IP {ClientIp} for 15 minutes due to rate limit violation", clientIp);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to automatically block IP {ClientIp}", clientIp);
+                }
+
+                context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                context.HttpContext.Response.Headers.Append("Retry-After", "900"); // 15 minutes
+                context.HttpContext.Response.Headers.Append("X-RateLimit-Reason", "Rate limit exceeded");
+                
+                await context.HttpContext.Response.WriteAsync("Too many requests. Your IP has been temporarily blocked.", cancellationToken);
             };
 
-            options.AddPolicy("PasswordChangePolicy", httpContext =>
+            // Global Limiter: Applies to all endpoints unless overridden
+            // 1000 requests per minute per IP for general API usage
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: httpContext.User?.Identity?.Name ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: partition => new FixedWindowRateLimiterOptions
+                    {
+                        AutoReplenishment = true,
+                        PermitLimit = 1000,
+                        QueueLimit = 0,
+                        Window = TimeSpan.FromMinutes(1)
+                    }));
+
+            // Strict policy for Authentication endpoints (Login, Register)
+            // 10 requests per minute per IP
+            options.AddPolicy("AuthPolicy", httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 5,
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    }));
+            
+            // Password Reset / Critical Actions
+            // 3 requests per 15 minutes per IP
+            options.AddPolicy("PasswordChangePolicy", httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 3,
                         Window = TimeSpan.FromMinutes(15),
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         QueueLimit = 0
                     }));
 
-            options.AddPolicy("AdminAuthPolicy", httpContext =>
+            // Admin API Policy
+            // 200 requests per minute per IP (Higher limit for admins)
+            options.AddPolicy("AdminPolicy", httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 100, 
+                        PermitLimit = 200, 
                         Window = TimeSpan.FromMinutes(1), 
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         QueueLimit = 10 

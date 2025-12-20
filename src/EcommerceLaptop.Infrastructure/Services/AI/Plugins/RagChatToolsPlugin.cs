@@ -96,13 +96,7 @@ public class RagChatToolsPlugin
              {
                  _logger.LogInformation("RagChatToolsPlugin: CheckOrderStatus called for OrderId {OrderId}, UserId {UserId}", orderId, userId);
                  
-                 // Rate Limit Check
-                 var rateLimitResult = await _rateLimitingService.CheckRateLimitAsync(userId, "tool:CheckOrderStatus", "TOOL");
-                 if (!rateLimitResult.IsSuccess || !rateLimitResult.Data.IsAllowed)
-                 {
-                     _logger.LogWarning("Rate limit exceeded for user {UserId} on tool CheckOrderStatus", userId);
-                     return "Rate limit exceeded. Please try again later.";
-                 }
+
 
                  var order = await orderService.GetOrderDetailsAsync(orderId);
                  

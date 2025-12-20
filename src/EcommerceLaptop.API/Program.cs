@@ -21,14 +21,8 @@ System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Inst
 
 // Add Serilog
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Error)
-    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
-    .Filter.ByExcluding(logEvent => logEvent.Properties.ContainsKey("SourceContext") &&
-                        logEvent.Properties["SourceContext"].ToString().Contains("Microsoft.EntityFrameworkCore.Database.Command"))
-    .WriteTo.Console()
-    .WriteTo.File("bin/logs/app-.log", rollingInterval: RollingInterval.Day, outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -198,8 +192,7 @@ app.Use(async (context, next) =>
 // 1. IP Blocking (first line of defense)
 app.UseIPBlocking();
 
-// 2. Advanced Rate Limiting (custom rules from database)
-app.UseAdvancedRateLimit();
+
 
 // 3. .NET Built-in Rate Limiting (fallback for basic protection)
 // Note: This provides basic rate limiting as fallback, but our custom middleware takes precedence
@@ -208,6 +201,7 @@ app.UseRateLimiter();
 app.UseSession(); // Enable session middleware for guest cart management
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<StructuredLoggingMiddleware>();
 
 app.MapHub<ChatHub>("/chatHub"); // Map ChatHub
 app.MapControllers();

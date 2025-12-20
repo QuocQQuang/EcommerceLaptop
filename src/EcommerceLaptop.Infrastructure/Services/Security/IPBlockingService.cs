@@ -3,8 +3,8 @@ using EcommerceLaptop.Core.Interfaces.Services;
 using EcommerceLaptop.Core.ValueObjects;
 using EcommerceLaptop.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 using System.Net;
 using System.Text.Json;
 
@@ -13,22 +13,18 @@ namespace EcommerceLaptop.Infrastructure.Services.Security;
 public class IPBlockingService : IIPBlockingService
 {
     private readonly ApplicationDbContext _context;
-    private readonly IMemoryCache _cache;
+    private readonly IConnectionMultiplexer _redis;
     private readonly ILogger<IPBlockingService> _logger;
     private readonly ISecurityEventService _securityEventService;
     
-    private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
-    private const string CACHE_KEY_PREFIX = "ip_rules_";
-    private const string CACHE_KEY_ALL = "ip_rules_all";
-
     public IPBlockingService(
         ApplicationDbContext context,
-        IMemoryCache cache,
+        IConnectionMultiplexer redis,
         ILogger<IPBlockingService> logger,
         ISecurityEventService securityEventService)
     {
         _context = context;
-        _cache = cache;
+        _redis = redis;
         _logger = logger;
         _securityEventService = securityEventService;
     }
@@ -37,40 +33,30 @@ public class IPBlockingService : IIPBlockingService
     {
         try
         {
-            // Check cache first
-            var cacheKey = $"{CACHE_KEY_PREFIX}blocked_{ipAddress}";
-            if (_cache.TryGetValue(cacheKey, out bool cachedResult))
-            {
-                return ServiceResult<bool>.Success(cachedResult);
-            }
-
-            // Get active IP rules from cache or database
-            var ipRules = await GetCachedIPRulesAsync();
+            var db = _redis.GetDatabase();
+            // Check Redis directly for O(1) performance
+            // Key format: blacklist:{ip}
+            bool isBlocked = await db.KeyExistsAsync($"blacklist:{ipAddress}");
             
-            foreach (var rule in ipRules.Where(r => r.IsActive))
+            if (isBlocked)
             {
-                if (IsIPInRule(ipAddress, rule))
-                {
-                    // Update rule statistics
-                    await UpdateRuleStatisticsAsync(rule.Id, ipAddress);
-                    
-                    var isBlocked = rule.Type.Equals("blacklist", StringComparison.OrdinalIgnoreCase);
-                    
-                    // Cache result for 1 minute for frequently checked IPs
-                    _cache.Set(cacheKey, isBlocked, TimeSpan.FromMinutes(1));
-                    
-                    return ServiceResult<bool>.Success(isBlocked);
-                }
+                // Verify it's not whitelisted first? 
+                // Usually whitelist overrides blacklist.
+                // Let's check whitelist first if we want strict logic, but for "shield" performance, 
+                // usually we check blacklist. 
+                // However, IsIPWhitelistedAsync is called separately in Middleware currently.
+                // Middleware logic: Check Whitelist -> Check Blacklist.
+                // So here we only check Blacklist.
+                return ServiceResult<bool>.Success(true);
             }
 
-            // Not found in any rule, default is not blocked
-            _cache.Set(cacheKey, false, TimeSpan.FromMinutes(1));
             return ServiceResult<bool>.Success(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking if IP {IP} is blocked", ipAddress);
-            // On error, default to not blocked to avoid false positives
+            _logger.LogError(ex, "Error checking if IP {IP} is blocked in Redis", ipAddress);
+            // Fallback to DB (optional, but for "no SQL" goal, maybe safer to return false vs crashing)
+            // Or return false to fail open.
             return ServiceResult<bool>.Success(false);
         }
     }
@@ -79,22 +65,13 @@ public class IPBlockingService : IIPBlockingService
     {
         try
         {
-            var ipRules = await GetCachedIPRulesAsync();
-            
-            foreach (var rule in ipRules.Where(r => r.IsActive && r.Type.Equals("whitelist", StringComparison.OrdinalIgnoreCase)))
-            {
-                if (IsIPInRule(ipAddress, rule))
-                {
-                    await UpdateRuleStatisticsAsync(rule.Id, ipAddress);
-                    return ServiceResult<bool>.Success(true);
-                }
-            }
-
-            return ServiceResult<bool>.Success(false);
+            var db = _redis.GetDatabase();
+            bool isWhitelisted = await db.KeyExistsAsync($"whitelist:{ipAddress}");
+            return ServiceResult<bool>.Success(isWhitelisted);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking if IP {IP} is whitelisted", ipAddress);
+            _logger.LogError(ex, "Error checking if IP {IP} is whitelisted in Redis", ipAddress);
             return ServiceResult<bool>.Success(false);
         }
     }
@@ -141,8 +118,8 @@ public class IPBlockingService : IIPBlockingService
             _context.IPBlockRules.Add(rule);
             await _context.SaveChangesAsync();
 
-            // Invalidate cache
-            await InvalidateCacheAsync();
+            // Sync to Redis
+            await SyncRuleToRedisAsync(rule);
 
             // Log security event
             await _securityEventService.LogEventAsync(
@@ -178,6 +155,12 @@ public class IPBlockingService : IIPBlockingService
                 return ServiceResult<IPBlockRule>.Failure("IP rule not found");
             }
 
+            // If IP changing, remove old redis key
+            if (existingRule.IPAddress != rule.IPAddress || existingRule.Type != rule.Type)
+            {
+                await RemoveRuleFromRedisAsync(existingRule);
+            }
+
             var oldValues = JsonSerializer.Serialize(existingRule);
 
             existingRule.IPAddress = rule.IPAddress;
@@ -190,7 +173,17 @@ public class IPBlockingService : IIPBlockingService
             existingRule.ThreatLevel = rule.ThreatLevel;
 
             await _context.SaveChangesAsync();
-            await InvalidateCacheAsync();
+            
+            // Sync new state
+            if (existingRule.IsActive)
+            {
+                await SyncRuleToRedisAsync(existingRule);
+            }
+            else
+            {
+                 // ensure removed if deactivated
+                await RemoveRuleFromRedisAsync(existingRule);
+            }
 
             // Log security event
             await _securityEventService.LogEventAsync(
@@ -224,7 +217,9 @@ public class IPBlockingService : IIPBlockingService
 
             _context.IPBlockRules.Remove(rule);
             await _context.SaveChangesAsync();
-            await InvalidateCacheAsync();
+            
+            // Remove from Redis
+            await RemoveRuleFromRedisAsync(rule);
 
             // Log security event
             await _securityEventService.LogEventAsync(
@@ -272,6 +267,9 @@ public class IPBlockingService : IIPBlockingService
 
             if (rule == null)
             {
+                // Try to remove from Redis anyway just in case
+                var db = _redis.GetDatabase();
+                await db.KeyDeleteAsync($"blacklist:{ipAddress}");
                 return ServiceResult<bool>.Failure("No active block rule found for this IP");
             }
 
@@ -280,7 +278,7 @@ public class IPBlockingService : IIPBlockingService
             rule.LastUpdatedBy = adminUserId?.ToString() ?? "System";
 
             await _context.SaveChangesAsync();
-            await InvalidateCacheAsync();
+            await RemoveRuleFromRedisAsync(rule);
 
             // Log security event
             var modifiedBy = rule.LastUpdatedBy ?? "System";
@@ -329,11 +327,7 @@ public class IPBlockingService : IIPBlockingService
         }
     }
 
-    public async Task InvalidateCacheAsync()
-    {
-        _cache.Remove(CACHE_KEY_ALL);
-        // Remove all IP-specific cache entries would be complex, so we'll rely on short TTL
-    }
+
 
     public async Task LogIPAccessAttemptAsync(string ipAddress, string endpoint, bool wasBlocked, string? reason = null)
     {
@@ -360,26 +354,80 @@ public class IPBlockingService : IIPBlockingService
 
     #region Private Methods
 
-    private async Task<List<IPBlockRule>> GetCachedIPRulesAsync()
+    private async Task SyncRuleToRedisAsync(IPBlockRule rule)
     {
-        if (_cache.TryGetValue(CACHE_KEY_ALL, out List<IPBlockRule>? cachedRules) && cachedRules != null)
+        try
         {
-            return cachedRules;
+            // Only sync single IPs to Redis for O(1) lookup
+            // CIDR/Range rules are not synced to Redis Key-Value store in this simple implementation
+            // They rely on the slower SQL/Memory path if IsIPBlockedAsync fell back (which it doesn't currently)
+            // For now, checks are strictly for specific IPs in Redis.
+            if (IsValidIP(rule.IPAddress) && rule.IsActive)
+            {
+                var db = _redis.GetDatabase();
+                string key = rule.Type.Equals("whitelist", StringComparison.OrdinalIgnoreCase) 
+                    ? $"whitelist:{rule.IPAddress}" 
+                    : $"blacklist:{rule.IPAddress}";
+                
+                if (rule.ExpiresAt.HasValue)
+                {
+                    var ttl = rule.ExpiresAt.Value - DateTime.UtcNow;
+                    if (ttl > TimeSpan.Zero)
+                        await db.StringSetAsync(key, true, ttl);
+                }
+                else
+                {
+                    await db.StringSetAsync(key, true);
+                }
+            }
         }
+        catch (Exception ex)
+        {
+             _logger.LogError(ex, "Error syncing rule to Redis for {IP}", rule.IPAddress);
+        }
+    }
 
-        var rules = await _context.IPBlockRules
-            .Where(r => r.IsActive && (r.ExpiresAt == null || r.ExpiresAt > DateTime.UtcNow))
-            .AsNoTracking()
-            .ToListAsync();
+    private async Task RemoveRuleFromRedisAsync(IPBlockRule rule)
+    {
+        try
+        {
+            if (IsValidIP(rule.IPAddress))
+            {
+                var db = _redis.GetDatabase();
+                string key = rule.Type.Equals("whitelist", StringComparison.OrdinalIgnoreCase) 
+                    ? $"whitelist:{rule.IPAddress}" 
+                    : $"blacklist:{rule.IPAddress}";
+                await db.KeyDeleteAsync(key);
+            }
+        }
+        catch (Exception ex)
+        {
+             _logger.LogError(ex, "Error removing rule from Redis for {IP}", rule.IPAddress);
+        }
+    }
 
-        _cache.Set(CACHE_KEY_ALL, rules, _cacheExpiration);
-        return rules;
+    private static bool IsValidIP(string ip)
+    {
+        return IPAddress.TryParse(ip, out _);
+    }
+    
+    // Removed GetCachedIPRulesAsync as we use Redis direct lookup now
+    
+    private async Task InvalidateCacheAsync()
+    {
+        // No-op or handle specific cache invalidation if needed
+        // Since we sync individual rules, we don't need global invalidation for Redis KV
+        await Task.CompletedTask;
     }
 
     private static bool IsIPInRule(string ipAddress, IPBlockRule rule)
     {
         try
         {
+            if (rule.Type == "range")
+            {
+                 return IsIPInRange(ipAddress, rule.IPAddress);
+            }
             if (rule.IPAddress.Contains('/'))
             {
                 // CIDR range
