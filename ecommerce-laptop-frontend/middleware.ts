@@ -158,85 +158,50 @@ export async function middleware(request: NextRequest) {
     )
 
     // Handle redirects for already authenticated users on login pages - with validation to prevent loops
-    // Use NextAuth's getToken in Edge middleware to reliably read and validate the session token.
-    const adminSessionToken = request.cookies.get('admin-session')?.value ||
-        request.cookies.get('session')?.value
+    // 
+    // DUAL-AUTH ARCHITECTURE:
+    // - Customer Auth: Uses NextAuth's getToken() for session validation
+    // - Admin Auth: Uses dedicated 'admin-session' JWT cookie (separate auth system)
+    // 
+    // This separation is intentional:
+    // - Admin panel has its own login flow (/admin-login)
+    // - Customer uses NextAuth OAuth/credentials (/auth/login)
+    // - They do not share sessions to prevent privilege escalation
 
+    // --- CUSTOMER SESSION VALIDATION (NextAuth) ---
     let isValidCustomerSession = false;
     try {
-        let token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-
-        // Debugging: log cookie names and token presence when in non-production or when explicit debug env set
-        try {
-            const cookieHeader = request.headers.get('cookie') || '';
-            const cookieNames = cookieHeader
-                ? cookieHeader.split(';').map(s => s.split('=')[0].trim()).filter(Boolean)
-                : [];
-            if (process.env.NEXT_PUBLIC_LOG_LEVEL === 'debug' || process.env.NODE_ENV !== 'production') {
-                console.log(' middleware debug - initial getToken returned:', !!token, 'cookie names:', cookieNames);
-            }
-        } catch (cErr) {
-            // ignore cookie debug errors
-        }
-
-        // Fallback: NextAuth may set __Secure- prefix in production. Try common cookie name variants.
-        if (!token) {
-            try {
-                token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET, cookieName: '__Secure-next-auth.session-token' });
-                if (!token) {
-                    token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET, cookieName: 'next-auth.session-token' });
-                }
-                if (process.env.NEXT_PUBLIC_LOG_LEVEL === 'debug' || process.env.NODE_ENV !== 'production') {
-                    console.log(' middleware debug - fallback getToken returned:', !!token);
-                }
-            } catch (fallbackErr) {
-                if (process.env.NEXT_PUBLIC_LOG_LEVEL === 'debug' || process.env.NODE_ENV !== 'production') {
-                    console.error(' middleware debug - fallback getToken error:', String(fallbackErr));
-                }
-            }
-        }
+        // Use NextAuth's getToken - handles cookie name variants automatically in v4+
+        const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
         if (token) {
             // token.exp (if present) is in seconds since epoch per JWT standard
-            const exp = (token as any).exp;
+            const exp = (token as { exp?: number }).exp;
             if (typeof exp === 'number') {
                 isValidCustomerSession = exp * 1000 > Date.now();
             } else {
                 // If there's no exp claim, assume token is valid (rare)
                 isValidCustomerSession = true;
             }
-
-            // Detailed debug: log token summary and expiry calculation when in debug
-            if (process.env.NEXT_PUBLIC_LOG_LEVEL === 'debug' || process.env.NODE_ENV !== 'production') {
-                try {
-                    const tokenSummary: Record<string, any> = {
-                        sub: (token as any).sub,
-                        iat: (token as any).iat,
-                        exp: (token as any).exp,
-                        hasAccessToken: !!(token as any).accessToken,
-                        hasRefreshToken: !!(token as any).refreshToken,
-                    };
-                    console.log(' middleware debug - token summary:', tokenSummary, 'isValidCustomerSession:', isValidCustomerSession, 'now:', Date.now());
-                } catch (logErr) {
-                    console.error(' middleware debug - failed to log token summary:', String(logErr));
-                }
-            }
         }
     } catch (err) {
         // Treat any error as unauthenticated; middleware should continue to enforce login
         if (process.env.NEXT_PUBLIC_LOG_LEVEL === 'debug' || process.env.NODE_ENV !== 'production') {
-            console.error(' middleware debug - getToken error:', String(err));
+            console.error(' middleware: getToken error:', String(err));
         }
         isValidCustomerSession = false;
     }
 
-    // Helper for admin token validation (assume JWT format)
+    // --- ADMIN SESSION VALIDATION (Dedicated JWT) ---
+    const adminSessionToken = request.cookies.get('admin-session')?.value;
+
+    // Helper for admin token validation (JWT format with expiry check)
     function isValidAdminToken(token: string | undefined): boolean {
         if (!token) return false;
         try {
             const parts = token.split('.');
             if (parts.length !== 3) return false; // JWT should have 3 parts
-            // Try simple base64 decode for admin token payload
+            // Decode payload (base64url)
             const payloadJson = Buffer.from(parts[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
             const payload = JSON.parse(payloadJson);
             return payload.exp ? payload.exp * 1000 > Date.now() : false;

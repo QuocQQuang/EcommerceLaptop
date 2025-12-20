@@ -48,11 +48,21 @@ function determineSeverity(incident: Partial<SecurityIncident>): SecurityInciden
     }
 }
 
+// Allowed endpoints whitelist - prevents hackers from scanning unknown endpoints
+const ALLOWED_POST_ENDPOINTS = ['csp-report', 'incident-report', 'alert'];
+const ALLOWED_GET_ENDPOINTS = ['incidents', 'health'];
+
 // CSP Violation Report Handler
 export async function POST(req: NextRequest) {
     try {
         const url = new URL(req.url);
         const endpoint = url.pathname.split('/').pop();
+
+        // Whitelist validation - block unknown endpoints early
+        if (!endpoint || !ALLOWED_POST_ENDPOINTS.includes(endpoint)) {
+            console.warn('Security: Blocked unknown POST endpoint attempt:', endpoint);
+            return NextResponse.json({ error: 'Unknown endpoint' }, { status: 404 });
+        }
 
         if (endpoint === 'csp-report') {
             const report = await req.json();
@@ -147,6 +157,12 @@ export async function GET(req: NextRequest) {
     try {
         const url = new URL(req.url);
         const endpoint = url.pathname.split('/').pop();
+
+        // Whitelist validation - block unknown endpoints early
+        if (!endpoint || !ALLOWED_GET_ENDPOINTS.includes(endpoint)) {
+            console.warn('Security: Blocked unknown GET endpoint attempt:', endpoint);
+            return NextResponse.json({ error: 'Unknown endpoint' }, { status: 404 });
+        }
 
         // Simple admin check (in production, use proper authentication)
         const adminToken = req.cookies.get('admin-session')?.value;
