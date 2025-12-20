@@ -77,23 +77,51 @@ export default function SecurityDashboard() {
     const fetchIncidents = async () => {
         try {
             setIsLoading(true);
-            const params = new URLSearchParams();
-            params.append('limit', '100');
+            const params: any = {
+                limit: 100,
+                page: 1
+            };
 
             if (selectedFilter.severity) {
-                params.append('severity', selectedFilter.severity);
+                params.severity = selectedFilter.severity;
             }
             if (selectedFilter.type) {
-                params.append('type', selectedFilter.type);
+                params.eventType = selectedFilter.type;
             }
 
-            const response = await fetch(`/api/security/incidents?${params}`, {
-                credentials: 'include',
-            });
+            const response = await adminSecurityService.getSecurityEvents(params);
 
-            if (response.ok) {
-                const data = await response.json();
-                setIncidents(data);
+            if (response && response.items) {
+                // Map SecurityEvent to SecurityIncident format expected by dashboard
+                const mappedIncidents: SecurityIncident[] = response.items.map(event => ({
+                    type: (event.eventType as any) || 'suspicious_activity',
+                    details: event.details || {},
+                    userAgent: 'N/A', // Not always available in list view
+                    ip: event.ipAddress || 'Unknown',
+                    url: 'N/A', // Not always available
+                    timestamp: event.createdAt,
+                    severity: event.severity
+                }));
+
+                const summary: SecuritySummary = {
+                    incidents: mappedIncidents,
+                    total: response.totalCount,
+                    summary: {
+                        total: response.totalCount,
+                        byType: {},
+                        bySeverity: {} // Would need aggregation from backend or manual count
+                    }
+                };
+
+                // Manual aggregation for summary since backend doesn't provide it in list response
+                mappedIncidents.forEach(inc => {
+                    const typeKey = inc.type;
+                    const sevKey = inc.severity;
+                    summary.summary.byType[typeKey] = (summary.summary.byType[typeKey] || 0) + 1;
+                    summary.summary.bySeverity[sevKey] = (summary.summary.bySeverity[sevKey] || 0) + 1;
+                });
+
+                setIncidents(summary);
             } else {
                 console.error('Failed to fetch security incidents');
             }

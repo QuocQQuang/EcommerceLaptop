@@ -187,30 +187,8 @@ export class AdminSecurityService {
     return this.unwrap<SecurityEvent>(response.data);
   }
 
-  // ===========================================================================
-  //  AUDIT LOG MANAGEMENT
-  // ===========================================================================
-
-  /**
-   * Get paginated audit logs
-   */
-  async getAuditLogs(params: AuditLogsParams = {}): Promise<AuditLogsResponse> {
-    const response = await this.client.get(
-      '/admin/security/audit-logs',
-      { params }
-    );
-    return this.unwrap<AuditLogsResponse>(response.data);
-  }
-
-  /**
-   * Get audit log details
-   */
-  async getAuditLogById(logId: number): Promise<AuditLog> {
-    const response = await this.client.get(
-      `/admin/security/audit-logs/${logId}`
-    );
-    return this.unwrap<AuditLog>(response.data);
-  }
+  // Audit Logs methods removed as SystemAuditLogs table is deprecated.
+  // Use Security Events for security-related logging.
 
   // ===========================================================================
   //  SECURITY ANALYTICS & REPORTS

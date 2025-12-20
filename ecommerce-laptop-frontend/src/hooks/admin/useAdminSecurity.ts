@@ -329,61 +329,6 @@ export function useResolveSecurityEvent(
 }
 
 // =============================================================================
-//  AUDIT LOG HOOKS
-// =============================================================================
-
-/**
- * Hook: useAuditLogs
- * 
- * Fetches paginated audit logs with comprehensive filtering.
- * 
- * Features:
- * - Entity change tracking
- * - User and admin action correlation
- * - Time-based filtering
- * - Event type classification
- * - Compliance reporting support
- * 
- * @param params Audit log filtering and pagination parameters
- * @param options React Query configuration options
- * @returns Query state with paginated audit logs
- */
-export function useAuditLogs(
-  params: AuditLogsParams = {},
-  options?: UseQueryOptions<AuditLogsResponse, Error>
-) {
-  return useQuery({
-    queryKey: adminSecurityQueryKeys.auditLogList(params),
-    queryFn: () => adminSecurityService.getAuditLogs(params),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
-    ...options,
-  });
-}
-
-/**
- * Hook: useAuditLog
- * 
- * Fetches individual audit log details.
- * 
- * @param logId Audit log identifier
- * @param options React Query configuration options
- * @returns Query state with detailed audit log entry
- */
-export function useAuditLog(
-  logId: number,
-  options?: UseQueryOptions<AuditLog, Error>
-) {
-  return useQuery({
-    queryKey: adminSecurityQueryKeys.auditLog(logId),
-    queryFn: () => adminSecurityService.getAuditLogById(logId),
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    enabled: !!logId,
-    ...options,
-  });
-}
-
-// =============================================================================
 //  SECURITY METRICS HOOKS
 // =============================================================================
 
@@ -432,9 +377,6 @@ export const invalidateAdminSecurity = {
   },
   events: (queryClient: any) => {
     return queryClient.invalidateQueries({ queryKey: adminSecurityQueryKeys.events() });
-  },
-  auditLogs: (queryClient: any) => {
-    return queryClient.invalidateQueries({ queryKey: adminSecurityQueryKeys.auditLogs() });
   },
   metrics: (queryClient: any) => {
     return queryClient.invalidateQueries({ queryKey: adminSecurityQueryKeys.metrics() });
