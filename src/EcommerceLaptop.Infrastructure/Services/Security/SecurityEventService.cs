@@ -260,7 +260,34 @@ public class SecurityEventService : ISecurityEventService
 
     public async Task<ServiceResult<Dictionary<string, int>>> GetEventStatisticsAsync(DateTime from, DateTime to)
     {
-        return ServiceResult<Dictionary<string, int>>.Success(new Dictionary<string, int>());
+        try
+        {
+            var stats = new Dictionary<string, int>();
+            
+            // Query counts for each common event type
+            var eventTypes = new[] { "login_failed", "login_success", "ip_blocked", "rate_limit_exceeded", "suspicious_activity", "admin_action" };
+            
+            foreach (var eventType in eventTypes)
+            {
+                var query = $"{{app=\"ecommerce-api\", EventType=\"{eventType}\"}}";
+                var count = await _lokiClient.CountAsync(query, from, to);
+                if (count > 0)
+                {
+                    stats[eventType] = count;
+                }
+            }
+            
+            // Get total count
+            var totalQuery = "{app=\"ecommerce-api\"}";
+            stats["total"] = await _lokiClient.CountAsync(totalQuery, from, to);
+            
+            return ServiceResult<Dictionary<string, int>>.Success(stats);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting event statistics from Loki");
+            return ServiceResult<Dictionary<string, int>>.Failure("Failed to retrieve event statistics");
+        }
     }
 
     public async Task<ServiceResult<bool>> MarkEventInvestigatedAsync(int eventId, int adminUserId, string notes)

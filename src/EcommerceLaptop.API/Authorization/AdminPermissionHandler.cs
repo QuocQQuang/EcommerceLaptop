@@ -34,10 +34,6 @@ public class AdminPermissionHandler : AuthorizationHandler<AdminPermissionRequir
 
         // Log all user claims for debugging
         _logger.LogInformation(" USER CLAIMS DEBUG - Total Claims: {ClaimCount}", context.User.Claims.Count());
-        foreach (var claim in context.User.Claims)
-        {
-            _logger.LogInformation(" CLAIM - Type: {ClaimType} | Value: {ClaimValue}", claim.Type, claim.Value);
-        }
 
         // Check for admin claim - check both standard and custom claims
         var isAdmin = context.User.IsInRole("Admin") ||
