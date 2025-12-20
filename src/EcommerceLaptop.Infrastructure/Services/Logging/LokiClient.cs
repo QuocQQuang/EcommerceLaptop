@@ -167,35 +167,86 @@ public class LokiClient : ILokiClient
 
         foreach (var stream in response.Data.Result)
         {
+            var labels = stream.Stream ?? stream.Metric ?? new Dictionary<string, string>();
+            
             foreach (var value in stream.Values)
             {
                 if (value.Count < 2) continue;
-                var timestampNs = long.Parse(value[0].ToString()!);
-                var logLine = value[1].ToString();
                 
                 try 
                 {
-                    var timestamp = DateTimeOffset.FromUnixTimeMilliseconds(timestampNs / 1000000).UtcDateTime;
-                    var labels = stream.Stream ?? stream.Metric ?? new Dictionary<string, string>(); // Support both
+                    // Safe parsing: handle both string and numeric timestamp formats
+                    long timestampNs = 0;
+                    var tsValue = value[0];
+                    if (tsValue is System.Text.Json.JsonElement jsonElement)
+                    {
+                        timestampNs = jsonElement.ValueKind == System.Text.Json.JsonValueKind.String 
+                            ? long.Parse(jsonElement.GetString()!) 
+                            : jsonElement.GetInt64();
+                    }
+                    else if (long.TryParse(tsValue?.ToString(), out var parsed))
+                    {
+                        timestampNs = parsed;
+                    }
+                    else continue; // Skip if can't parse timestamp
                     
-                    var eventType = labels.ContainsKey("EventType") ? labels["EventType"] : "log_event";
-                    var level = labels.ContainsKey("Severity") ? labels["Severity"] : (labels.ContainsKey("Level") ? labels["Level"] : "Info");
-                    var ip = labels.ContainsKey("IPAddress") ? labels["IPAddress"] : "Unknown";
-
+                    var logLine = value[1]?.ToString() ?? "";
+                    var timestamp = DateTimeOffset.FromUnixTimeMilliseconds(timestampNs / 1_000_000).UtcDateTime;
+                    
+                    // Extract from labels (low cardinality)
+                    var eventType = labels.GetValueOrDefault("EventType", "log_event");
+                    var severity = labels.GetValueOrDefault("Severity", labels.GetValueOrDefault("Level", "Info"));
+                    
+                    // Extract IP from log body (high cardinality - not a label anymore)
+                    var ip = ExtractIPFromLogLine(logLine);
+                    
+                    // Generate composite LokiId: timestamp_hash for React key compatibility
+                    var lokiId = (int)(timestampNs % int.MaxValue); // Pseudo-unique ID from nanosecond timestamp
+                    
                     events.Add(new SecurityEvent
                     {
-                        Id = 0,
+                        Id = lokiId, // Now unique per event (practically)
                         EventType = eventType,
                         Description = logLine,
                         CreatedAt = timestamp,
-                        Severity = level,
+                        Severity = severity,
                         IPAddress = ip
                     });
                 }
-                catch { /* Ignore parse error */ }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Failed to parse Loki log entry");
+                }
             }
         }
         return events;
+    }
+    
+    /// <summary>
+    /// Extracts IP address from structured log line.
+    /// Expected format: "... IP:{IPAddress} ..." or JSON with IPAddress field
+    /// </summary>
+    private static string ExtractIPFromLogLine(string logLine)
+    {
+        // Try pattern: IP:{value}
+        var ipMatch = System.Text.RegularExpressions.Regex.Match(logLine, @"IP:([^\s]+)");
+        if (ipMatch.Success) return ipMatch.Groups[1].Value;
+        
+        // Try JSON extraction
+        try
+        {
+            if (logLine.Contains("\"IPAddress\""))
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(logLine);
+                if (doc.RootElement.TryGetProperty("IPAddress", out var ipProp))
+                {
+                    return ipProp.GetString() ?? "Unknown";
+                }
+            }
+        }
+        catch { /* Not JSON or no IPAddress field */ }
+        
+        return "Unknown";
     }
 }
 

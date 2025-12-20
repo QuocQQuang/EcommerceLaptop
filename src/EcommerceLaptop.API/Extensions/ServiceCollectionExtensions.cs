@@ -28,6 +28,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Typesense;
 using Typesense.Setup;
+using Microsoft.Extensions.Http.Resilience;
 
 using StackExchange.Redis;
 
@@ -278,13 +279,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuditLoggingService, AuditLoggingService>();
 
         // Loki Client for security event querying from Grafana Loki
+        // With resilience policies: retry + circuit breaker (via Microsoft.Extensions.Http.Resilience)
         services.AddHttpClient<ILokiClient, LokiClient>((sp, client) =>
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
             var baseUrl = configuration["Loki:BaseUrl"] ?? "http://localhost:3101";
             client.BaseAddress = new Uri(baseUrl);
-            client.Timeout = TimeSpan.FromSeconds(30);
-        });
+            client.Timeout = TimeSpan.FromSeconds(10); // Reduced from 30s
+        })
+        .AddStandardResilienceHandler();
 
         // Fallback Rate Limiting Registration
         services.AddRateLimiter(options =>

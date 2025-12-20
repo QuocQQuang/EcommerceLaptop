@@ -43,18 +43,23 @@ public class SecurityEventService : ISecurityEventService
             }
 
             // Write to Serilog (which pushes to Loki)
-            // We include properties so they appear as labels or structured data in Loki
+            // LOW-cardinality data goes to labels (via propertiesAsLabels config)
+            // HIGH-cardinality data (IP, UserId, CorrelationId) goes into structured log body
             using (_logger.BeginScope(new Dictionary<string, object>
             {
                 ["EventType"] = securityEvent.EventType,
-                ["IPAddress"] = securityEvent.IPAddress ?? "Unknown",
-                ["Severity"] = securityEvent.Severity ?? "Info",
-                ["CorrelationId"] = securityEvent.CorrelationId,
-                ["UserId"] = securityEvent.UserId?.ToString() ?? "Anonymous"
+                ["Severity"] = securityEvent.Severity ?? "Info"
             }))
             {
-                _logger.LogInformation("Security Event: {EventType} - {Description} | Details: {Details}", 
-                    securityEvent.EventType, securityEvent.Description, securityEvent.Details);
+                // High-cardinality fields in message body (JSON), not labels
+                _logger.LogInformation(
+                    "Security Event: {EventType} | IP:{IPAddress} User:{UserId} Correlation:{CorrelationId} | {Description} | Details:{@Details}", 
+                    securityEvent.EventType, 
+                    securityEvent.IPAddress ?? "Unknown",
+                    securityEvent.UserId?.ToString() ?? "Anonymous",
+                    securityEvent.CorrelationId,
+                    securityEvent.Description, 
+                    securityEvent.Details);
             }
 
             // SecurityEvents are now logged exclusively to Loki via Serilog
@@ -80,14 +85,14 @@ public class SecurityEventService : ISecurityEventService
     {
         int skip = (page - 1) * pageSize;
         int take = pageSize;
-    {
+        
         try
         {
-            // Query Loki using label selectors (not json parser)
+            // Query Loki using Time Range (native to Loki)
             var from = fromDate ?? DateTime.UtcNow.AddDays(-7);
             var to = toDate ?? DateTime.UtcNow;
 
-            // Build label selector query
+            // Build label selector query (only low-cardinality labels)
             var labels = new List<string> { "app=\"ecommerce-api\"" };
             
             if (!string.IsNullOrEmpty(eventType))
@@ -101,29 +106,22 @@ public class SecurityEventService : ISecurityEventService
 
             var query = "{" + string.Join(", ", labels) + "}";
 
-            // Fetch from Loki
-            // Fetch one more than needed to check "HasNext" if we don't use CountAsync
-            // But we want TotalCount.
-            
-            // Get Total Count (approximate or exact over range)
+            // Get Total Count for pagination info
             var totalCount = await _lokiClient.CountAsync(query, from, to);
              
-            // Fetch Page
-            // Loki doesn't support OFFSET well, but we use in-memory paging for reasonably small data
-            // OR use 'limit' and skip client side if we accept fetching 1000 items.
-            // For now, we stick to fetching the buffer limit.
-            
+            // Time Range pagination: fetch with limit (native Loki approach)
+            // For page > 1, we still need in-memory skip due to Loki limitations
             var limit = Math.Min(skip + take + 100, 1000); 
             var events = await _lokiClient.QueryAsync(query, from, to, limit);
 
-            // In-memory pagination
+            // In-memory pagination (acceptable for admin dashboards with reasonable data)
             var pagedItems = events.Skip(skip).Take(take).ToList();
             
             var result = new EcommerceLaptop.Core.DTOs.PagedResult<SecurityEvent>
             {
                 Items = pagedItems,
-                TotalCount = Math.Max(totalCount, events.Count), // Ensure TotalCount is at least the fetched count
-                Page = (skip / take) + 1,
+                TotalCount = Math.Max(totalCount, events.Count),
+                Page = page,
                 PageSize = take
             };
 
@@ -132,7 +130,7 @@ public class SecurityEventService : ISecurityEventService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting security events from Loki");
-            return ServiceResult<List<SecurityEvent>>.Failure("Failed to retrieve security events");
+            return ServiceResult<EcommerceLaptop.Core.DTOs.PagedResult<SecurityEvent>>.Failure("Failed to retrieve security events");
         }
     }
 
@@ -235,7 +233,13 @@ public class SecurityEventService : ISecurityEventService
     
     public async Task<ServiceResult<List<SecurityEvent>>> GetEventsAsync(string? eventType = null, DateTime? from = null, DateTime? to = null, int? userId = null, int? adminUserId = null, int page = 1, int pageSize = 50)
     {
-        return await GetEventsAsync((page - 1) * pageSize, pageSize, eventType, null, from, to);
+        // Delegate to main implementation and extract items list
+        var result = await GetEventsAsync(eventType: eventType, severity: null, fromDate: from, toDate: to, userId: userId, adminUserId: adminUserId, page: page, pageSize: pageSize);
+        if (result.IsSuccess && result.Data != null)
+        {
+            return ServiceResult<List<SecurityEvent>>.Success(result.Data.Items);
+        }
+        return ServiceResult<List<SecurityEvent>>.Failure(result.ErrorMessage ?? "Failed to retrieve events");
     }
 
     public async Task<ServiceResult<List<SecurityEvent>>> GetEventsByCorrelationAsync(string correlationId)
