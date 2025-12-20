@@ -18,7 +18,7 @@ public class AuditLoggingService : IAuditLoggingService
         _logger = logger;
     }
 
-    public async Task<ServiceResult<bool>> LogUserActivityAsync(int userId, string activity, string details, string ipAddress, string userAgent)
+    public Task<ServiceResult<bool>> LogUserActivityAsync(int userId, string activity, string details, string ipAddress, string userAgent)
     {
         try
         {
@@ -26,16 +26,16 @@ public class AuditLoggingService : IAuditLoggingService
             _logger.LogInformation("Details: {Details} | UserActivity: {Activity} | UserId: {UserId} | IP: {IPAddress} | UserAgent: {UserAgent}", 
                 details, activity, userId, ipAddress, userAgent);
 
-            return ServiceResult<bool>.Success(true);
+            return Task.FromResult(ServiceResult<bool>.Success(true));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to log user activity");
-            return ServiceResult<bool>.Failure("Failed to log user activity");
+            return Task.FromResult(ServiceResult<bool>.Failure("Failed to log user activity"));
         }
     }
 
-    public async Task<ServiceResult<bool>> LogAdminActivityAsync(int adminId, string activity, string details, string ipAddress, string userAgent, string? targetResource = null)
+    public Task<ServiceResult<bool>> LogAdminActivityAsync(int adminId, string activity, string details, string ipAddress, string userAgent, string? targetResource = null)
     {
         try
         {
@@ -43,28 +43,28 @@ public class AuditLoggingService : IAuditLoggingService
             _logger.LogInformation("Details: {Details} | AdminActivity: {Activity} | AdminId: {AdminId} | Target: {TargetResource} | IP: {IPAddress}", 
                 details, activity, adminId, targetResource ?? "N/A", ipAddress);
 
-            return ServiceResult<bool>.Success(true);
+            return Task.FromResult(ServiceResult<bool>.Success(true));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to log admin activity");
-            return ServiceResult<bool>.Failure("Failed to log admin activity");
+            return Task.FromResult(ServiceResult<bool>.Failure("Failed to log admin activity"));
         }
     }
 
-    public async Task<ServiceResult<bool>> LogSystemEventAsync(string eventType, string description, string? correlationId = null, Dictionary<string, object>? metadata = null)
+    public Task<ServiceResult<bool>> LogSystemEventAsync(string eventType, string description, string? correlationId = null, Dictionary<string, object>? metadata = null)
     {
         try
         {
             _logger.LogInformation("SystemEvent: {EventType} | Description: {Description} | CorrelationId: {CorrelationId} | Metadata: {Metadata}",
                 eventType, description, correlationId ?? "N/A", metadata != null ? System.Text.Json.JsonSerializer.Serialize(metadata) : "N/A");
 
-            return ServiceResult<bool>.Success(true);
+            return Task.FromResult(ServiceResult<bool>.Success(true));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to log system event");
-            return ServiceResult<bool>.Failure("Failed to log system event");
+            return Task.FromResult(ServiceResult<bool>.Failure("Failed to log system event"));
         }
     }
 

@@ -210,40 +210,7 @@ export interface ResolveEventRequest {
   actionTaken?: string;
 }
 
-export interface AuditLog {
-  id: number;
-  entityType: string;
-  entityId: string;
-  eventType: 'Create' | 'Update' | 'Delete' | 'Login';
-  eventCategory: string;
-  oldValues?: string;
-  newValues?: string;
-  userId?: string;
-  adminUserId?: string;
-  ipAddress?: string;
-  userAgent?: string;
-  metadata?: string;
-  createdAt: string;
-}
-
-export interface AuditLogsParams {
-  page?: number;
-  limit?: number;
-  entityType?: string;
-  eventType?: string;
-  userId?: string;
-  adminUserId?: string;
-  from?: string;
-  to?: string;
-}
-
-export interface AuditLogsResponse {
-  logs: AuditLog[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+// Audit Log types removed as SystemAuditLogs table is deprecated.
 
 export interface SecurityEvent {
   id: number;

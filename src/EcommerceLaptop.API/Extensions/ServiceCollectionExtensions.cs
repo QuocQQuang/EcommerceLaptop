@@ -354,6 +354,19 @@ public static class ServiceCollectionExtensions
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         QueueLimit = 10 
                     }));
+
+            // Admin Auth Policy (Login)
+            // 20 requests per minute per IP
+            options.AddPolicy("AdminAuthPolicy", httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 20,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    }));
         });
 
         // CORS
