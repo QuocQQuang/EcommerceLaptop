@@ -21,6 +21,7 @@ public class ProductService : IProductService
     private readonly IAsyncRepository<ProductImage> _imageRepository;
     private readonly IAsyncRepository<OrderItem> _orderItemRepository;
     private readonly IDomainEventDispatcher _dispatcher;
+    private readonly IProductSearchService _productSearchService;
 
     public ProductService(
         IProductRepository productRepository,
@@ -29,7 +30,8 @@ public class ProductService : IProductService
         IAsyncRepository<Bundle> bundleRepository,
         IAsyncRepository<ProductImage> imageRepository,
         IAsyncRepository<OrderItem> orderItemRepository,
-        IDomainEventDispatcher dispatcher)
+        IDomainEventDispatcher dispatcher,
+        IProductSearchService productSearchService)
     {
         _productRepository = productRepository;
         _laptopRepository = laptopRepository;
@@ -38,6 +40,7 @@ public class ProductService : IProductService
         _imageRepository = imageRepository;
         _orderItemRepository = orderItemRepository;
         _dispatcher = dispatcher;
+        _productSearchService = productSearchService;
     }
 
     public async Task<Product?> GetByIdAsync(int id)
@@ -104,6 +107,57 @@ public class ProductService : IProductService
                         PageSize = bundleResult.PageSize
                     };
             }
+        }
+
+        // HYBRID SEARCH IMPLEMENTATION: Use Typesense if search term is present
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchRequest = new ProductSearchRequest
+            {
+                Query = searchTerm,
+                Page = page,
+                PageSize = pageSize,
+                Brands = !string.IsNullOrEmpty(brand) ? new[] { brand } : null,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                IsActive = isActive,
+                SortBy = sortBy
+            };
+
+            var searchResult = await _productSearchService.SearchProductsAsync(searchRequest);
+            var searchIds = searchResult.Items.Select(p => p.Id).ToList();
+
+            if (searchIds.Any())
+            {
+                // Fetch full entities from SQL to ensure we have all data (images, etc.)
+                var products = await _productRepository.GetAsync(new ProductsByIdsSpecification(searchIds));
+
+                // Re-order products to match Typesense relevance order
+                var orderedProducts = searchIds
+                    .Join(products,
+                          id => id,
+                          p => p.Id,
+                          (id, p) => p)
+                    .ToList();
+
+                return new PagedResult<Product>
+                {
+                    Items = orderedProducts,
+                    TotalCount = (int)searchResult.TotalCount,
+                    Page = page,
+                    PageSize = pageSize
+                };
+            }
+            
+            // If search returned no results, prevent SQL fallback if it was a genuine search
+            // But if we want consistent empty result, we return empty here
+             return new PagedResult<Product>
+            {
+                Items = new List<Product>(),
+                TotalCount = 0,
+                Page = page,
+                PageSize = pageSize
+            };
         }
 
         var spec = new ProductFilterSpecification(

@@ -321,6 +321,7 @@ public class SearchController(
     /// </summary>
     [HttpPost("vector/reindex")]
     [Authorize(Policy = "AdminOnly")] // Require AdminOnly policy (more robust than Role check)
+    // [AllowAnonymous]
     public async Task<IActionResult> ReindexVectorDb([FromServices] IProductIndexingManagementService indexingService)
     {
         try 
