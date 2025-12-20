@@ -31,7 +31,7 @@ public class SecurityReportingController : ControllerBase
         var clientIp = GetClientIp();
         _logger.LogWarning("CSP Violation Reported: {Content} | IP: {IP}", content, clientIp);
 
-        // Persist to SecurityEvents table
+        // Log security event to Loki via Serilog
         await _securityEventService.LogEventAsync(
             eventType: "csp_violation",
             description: $"CSP violation: {content.Substring(0, Math.Min(500, content.Length))}",
@@ -55,7 +55,7 @@ public class SecurityReportingController : ControllerBase
         _logger.LogWarning("Client Security Incident: {Type} | Details: {Details} | IP: {IP}", 
             request.Type, request.Details, clientIp);
 
-        // Persist to SecurityEvents table
+        // Log security event to Loki via Serilog
         await _securityEventService.LogEventAsync(
             eventType: $"client_incident_{request.Type}",
             description: $"Client reported incident: {request.Type}",
@@ -83,7 +83,7 @@ public class SecurityReportingController : ControllerBase
         _logger.LogWarning("Security Alert: {Type} | Pattern: {Pattern} | URL: {Url} | IP: {IP}", 
             request.Type, request.Pattern, request.Url, clientIp);
 
-        // Persist to SecurityEvents table
+        // Log security event to Loki via Serilog
         await _securityEventService.LogEventAsync(
             eventType: $"client_alert_{request.Type}",
             description: $"Security alert: {request.Type} matched pattern {request.Pattern}",
