@@ -75,13 +75,26 @@ public static class ProductDataSeeder
     private static void EnsureInventory(ApplicationDbContext context, List<Laptop> laptops, ILogger logger)
     {
         var inventories = new List<Inventory>();
+        
+        // Fetch existing Product Ids mapped by SKU
+        var skuToIdMap = context.Products
+            .Select(p => new { p.SKU, p.Id })
+            .ToDictionary(k => k.SKU, v => v.Id);
+            
         foreach (var laptop in laptops)
         {
-             if (context.Inventories.Any(i => i.ProductId == laptop.Id)) continue;
+             if (!skuToIdMap.TryGetValue(laptop.SKU, out var productId))
+             {
+                 // Should not happen if logic above is correct, unless Product insert failed silently or race condition
+                 logger.LogWarning($"Skipping inventory for SKU {laptop.SKU} as it was not found in database.");
+                 continue;
+             }
+
+             if (context.Inventories.Any(i => i.ProductId == productId)) continue;
              
              inventories.Add(new Inventory
              {
-                 ProductId = laptop.Id,
+                 ProductId = productId,
                  QuantityInStock = 50,
                  ReservedQuantity = 0,
                  ReorderLevel = 10,
