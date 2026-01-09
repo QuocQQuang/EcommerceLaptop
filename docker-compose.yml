@@ -1,19 +1,7 @@
 version: '3.8'
 
 services:
-  #   sqlserver:
-  #     image: mcr.microsoft.com/mssql/server:2022-latest
-  #     container_name: ecommerce_sqlserver
-  #     environment:
-  #       - ACCEPT_EULA=Y
-  #       - SA_PASSWORD=Your_password123
-  #       - MSSQL_PID=Express
-  #     ports:
-  #       - "1433:1433"
-  #     volumes:
-  #       - sqlserver_data:/var/opt/mssql
-  #     networks:
-  #       - ecommerce_network
+  # === CORE SERVICES (Required) ===
 
   redis:
     image: redis:7-alpine
@@ -24,6 +12,12 @@ services:
       - redis_data:/data
     networks:
       - ecommerce_network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+    restart: unless-stopped
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -35,6 +29,14 @@ services:
       - qdrant_data:/qdrant/storage
     networks:
       - ecommerce_network
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    restart: unless-stopped
 
   typesense:
     image: typesense/typesense:0.25.2
@@ -49,6 +51,14 @@ services:
       - typesense_data:/data
     networks:
       - ecommerce_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    restart: unless-stopped
+
+  # === MONITORING STACK (Optional - c th tt  tit kim RAM) ===
 
   prometheus:
     image: prom/prometheus:latest
@@ -59,6 +69,12 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - ecommerce_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:latest
@@ -67,10 +83,17 @@ services:
       - "3100:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SERVER_HTTP_PORT=3000
     depends_on:
       - prometheus
     networks:
       - ecommerce_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+    restart: unless-stopped
 
   loki:
     image: grafana/loki:latest
@@ -80,19 +103,29 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - ecommerce_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+    restart: unless-stopped
 
   promtail:
     image: grafana/promtail:latest
     container_name: ecommerce_promtail
     volumes:
       - /var/log:/var/log
-      # - ./promtail-config.yml:/etc/promtail/config.yml # Uncomment if we need custom config
     command: -config.file=/etc/promtail/config.yml
     networks:
       - ecommerce_network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.1'
+    restart: unless-stopped
 
 volumes:
-  sqlserver_data:
   redis_data:
   qdrant_data:
   typesense_data:

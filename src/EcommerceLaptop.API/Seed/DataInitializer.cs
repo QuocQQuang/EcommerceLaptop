@@ -12,34 +12,64 @@ public static class DataInitializer
         var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger("DataInitializer");
 
-        // Apply pending migrations (create DB if missing)
-        context.Database.Migrate();
+        try
+        {
+            // Step 1: Apply pending migrations (create DB and tables if missing)
+            logger.LogInformation("Applying database migrations...");
+            context.Database.Migrate();
+            logger.LogInformation("Database migrations applied successfully.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to apply database migrations. Application may not work correctly.");
+            // Don't continue if migrations fail
+            throw;
+        }
 
-        // Cleanup v seed SystemSettings (ch Email & Notifications)
-        SystemSettingsCleanupSeeder.MigrateKeysToSnakeCase(context, logger);
-        SystemSettingsConsolidatedSeeder.Seed(context, logger);
+        // Step 2: Run seeders with try-catch for each to prevent one failure from stopping others
+        SafeExecuteSeeder(() => SystemSettingsCleanupSeeder.MigrateKeysToSnakeCase(context, logger),
+            "SystemSettingsCleanupSeeder", logger);
 
-        // Seed security-related data
-        SecurityDataSeeder.SeedIfEmpty(context, logger);
+        SafeExecuteSeeder(() => SystemSettingsConsolidatedSeeder.Seed(context, logger),
+            "SystemSettingsConsolidatedSeeder", logger);
 
-        // Seed demo customers, inventory, and 100 orders
-        OrderDemoDataSeeder.SeedIfEmpty(context, logger);
+        SafeExecuteSeeder(() => SecurityDataSeeder.SeedIfEmpty(context, logger),
+            "SecurityDataSeeder", logger);
 
-        // Seed extended product data from JSON (Laptops from IDs 10+)
-        ProductDataSeeder.SeedFromJson(context, logger);
+        SafeExecuteSeeder(() => OrderDemoDataSeeder.SeedIfEmpty(context, logger),
+            "OrderDemoDataSeeder", logger);
 
-        // Normalize laptop specifications to canonical sets for easier filtering
-        LaptopSpecificsSeeder.NormalizeSpecs(context, logger);
+        SafeExecuteSeeder(() => ProductDataSeeder.SeedFromJson(context, logger),
+            "ProductDataSeeder", logger);
 
-        // Seed variants for laptops before creating bundle products
-        VariantDataSeeder.SeedIfMissing(context, logger);
+        SafeExecuteSeeder(() => LaptopSpecificsSeeder.NormalizeSpecs(context, logger),
+            "LaptopSpecificsSeeder", logger);
 
-        // Seed bundle data with laptops and accessories
-        BundleDataSeeder.SeedIfEmpty(context, logger);
+        SafeExecuteSeeder(() => VariantDataSeeder.SeedIfMissing(context, logger),
+            "VariantDataSeeder", logger);
 
-        // Seed product images for laptops missing images
-        ProductImagesSeeder.SeedLaptopsWithoutImages(context, logger);
+        SafeExecuteSeeder(() => BundleDataSeeder.SeedIfEmpty(context, logger),
+            "BundleDataSeeder", logger);
+
+        SafeExecuteSeeder(() => ProductImagesSeeder.SeedLaptopsWithoutImages(context, logger),
+            "ProductImagesSeeder", logger);
+
+        logger.LogInformation("Data initialization completed.");
+    }
+
+    private static void SafeExecuteSeeder(Action seederAction, string seederName, ILogger logger)
+    {
+        try
+        {
+            logger.LogInformation("Running {SeederName}...", seederName);
+            seederAction();
+            logger.LogInformation("{SeederName} completed successfully.", seederName);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "{SeederName} failed but continuing with other seeders. Error: {Message}",
+                seederName, ex.Message);
+            // Continue with other seeders instead of crashing the app
+        }
     }
 }
-
-
