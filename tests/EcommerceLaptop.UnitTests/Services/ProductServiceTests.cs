@@ -12,6 +12,8 @@ using EcommerceLaptop.Infrastructure.Services;
 using EcommerceLaptop.Core.DomainEvents;
 using EcommerceLaptop.Core.Specifications;
 
+using EcommerceLaptop.Core.Services;
+
 namespace EcommerceLaptop.UnitTests.Services
 {
     public class ProductServiceTests
@@ -23,6 +25,7 @@ namespace EcommerceLaptop.UnitTests.Services
         private readonly Mock<IAsyncRepository<ProductImage>> _mockImageRepo;
         private readonly Mock<IAsyncRepository<OrderItem>> _mockOrderItemRepo;
         private readonly Mock<IDomainEventDispatcher> _mockDispatcher;
+        private readonly Mock<IProductSearchService> _mockProductSearchService;
         private readonly ProductService _service;
 
         public ProductServiceTests()
@@ -34,6 +37,7 @@ namespace EcommerceLaptop.UnitTests.Services
             _mockImageRepo = new Mock<IAsyncRepository<ProductImage>>();
             _mockOrderItemRepo = new Mock<IAsyncRepository<OrderItem>>();
             _mockDispatcher = new Mock<IDomainEventDispatcher>();
+            _mockProductSearchService = new Mock<IProductSearchService>();
 
             _service = new ProductService(
                 _mockProductRepo.Object,
@@ -42,7 +46,8 @@ namespace EcommerceLaptop.UnitTests.Services
                 _mockBundleRepo.Object,
                 _mockImageRepo.Object,
                 _mockOrderItemRepo.Object,
-                _mockDispatcher.Object
+                _mockDispatcher.Object,
+                _mockProductSearchService.Object
             );
         }
 
