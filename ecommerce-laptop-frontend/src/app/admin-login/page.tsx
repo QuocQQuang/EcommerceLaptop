@@ -101,9 +101,7 @@ export default function AdminLoginPage() {
         {/* Login Form */}
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-xl text-center">Xc thc admin</CardTitle>
             <CardDescription className="text-center">
-              Ch dnh cho qun tr vin h thng
             </CardDescription>
           </CardHeader>
           <CardContent>

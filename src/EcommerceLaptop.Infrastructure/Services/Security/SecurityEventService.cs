@@ -93,12 +93,22 @@ public class SecurityEventService : ISecurityEventService
             var to = toDate ?? DateTime.UtcNow;
 
             // Build label selector query (only low-cardinality labels)
+            // IMPORTANT: Always require EventType to exist, so we only get security logs
+            // not general application logs (EF warnings, HTTP requests, etc.)
             var labels = new List<string> { "app=\"ecommerce-api\"" };
             
             if (!string.IsNullOrEmpty(eventType))
             {
+                // Specific event type filter
                 labels.Add($"EventType=\"{eventType}\"");
             }
+            else
+            {
+                // If no specific eventType, still require EventType to exist (regex match any value)
+                // This filters out logs without EventType label (general app logs)
+                labels.Add("EventType=~\".+\"");
+            }
+            
             if (!string.IsNullOrEmpty(severity))
             {
                 labels.Add($"Severity=\"{severity}\"");
