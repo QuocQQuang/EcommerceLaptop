@@ -326,18 +326,27 @@ public class IPBlockingService : IIPBlockingService
     {
         try
         {
-            await _securityEventService.LogEventAsync(
-                wasBlocked ? "ip_access_blocked" : "ip_access_allowed",
-                wasBlocked 
-                    ? $"Access blocked for IP {ipAddress} to {endpoint}"
-                    : $"Access allowed for IP {ipAddress} to {endpoint}",
-                ipAddress: ipAddress,
-                metadata: new Dictionary<string, object> { 
-                    { "Endpoint", endpoint }, 
-                    { "Reason", reason }, 
-                    { "WasBlocked", wasBlocked } 
-                }
-            );
+            // CRITICAL: Only log BLOCKED attempts to the security event log (Loki/Dashboard)
+            // Logging every allowed attempt creates massive noise ("flood") and is unnecessary for security monitoring.
+            if (wasBlocked)
+            {
+                await _securityEventService.LogEventAsync(
+                    "ip_access_blocked",
+                    $"Access blocked for IP {ipAddress} to {endpoint}",
+                    ipAddress: ipAddress,
+                    metadata: new Dictionary<string, object> { 
+                        { "Endpoint", endpoint }, 
+                        { "Reason", reason }, 
+                        { "WasBlocked", true } 
+                    }
+                );
+            }
+            else
+            {
+                // For allowed attempts, just log to standard application log at Debug level
+                // This keeps the security dashboard clean while maintaining traceability if needed via log level change.
+                _logger.LogDebug("Access allowed for IP {IP} to {Endpoint}", ipAddress, endpoint);
+            }
         }
         catch (Exception ex)
         {
