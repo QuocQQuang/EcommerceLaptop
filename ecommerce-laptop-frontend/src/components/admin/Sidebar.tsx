@@ -182,10 +182,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         {!collapsed ? (
           <div className="text-center">
             <p className="text-xs text-muted-foreground">
-              EcommerceLaptop Admin v1.0
             </p>
             <p className="text-xs text-muted-foreground">
-               2024 All rights reserved
             </p>
           </div>
         ) : (

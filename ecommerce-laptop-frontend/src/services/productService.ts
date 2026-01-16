@@ -58,13 +58,10 @@ const transformProduct = (backendProduct: any): Product => {
         }];
 
     const name = backendProduct.name || backendProduct.Name || '';
-    const generatedSlug = name.toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
 
-    const slug = backendProduct.slug || backendProduct.Slug || generatedSlug || `product-${backendProduct.id}`;
+    // Don't auto-generate slug from name as it might not match backend logic/data
+    // If backend doesn't provide a slug, fallback to a reliable ID-based slug
+    const slug = backendProduct.slug || backendProduct.Slug || `product-${backendProduct.id}`;
 
     return {
         ...backendProduct,
@@ -176,6 +173,15 @@ export const productService = {
     },
 
     async getProductBySlug(slug: string): Promise<Product> {
+        // Fallback for ID-based slugs (e.g., "product-123")
+        // This handles cases where the backend slug is missing or invalid
+        if (slug.startsWith('product-') && /^\d+$/.test(slug.replace('product-', ''))) {
+            const id = parseInt(slug.replace('product-', ''), 10);
+            if (!isNaN(id)) {
+                return this.getProductById(id);
+            }
+        }
+
         try {
             // Use the new dedicated slug endpoint
             const { data } = await apiClient.get(`/products/slug/${slug}`);
