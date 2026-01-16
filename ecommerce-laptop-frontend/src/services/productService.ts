@@ -59,9 +59,27 @@ const transformProduct = (backendProduct: any): Product => {
 
     const name = backendProduct.name || backendProduct.Name || '';
 
-    // Don't auto-generate slug from name as it might not match backend logic/data
-    // If backend doesn't provide a slug, fallback to a reliable ID-based slug
-    const slug = backendProduct.slug || backendProduct.Slug || `product-${backendProduct.id}`;
+    // Auto-generate slug for SEO-friendly URLs when backend misses data
+    const generatedSlug = name.toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+
+    // Strategy:
+    // 1. Prefer Backend Slug (Canonical)
+    // 2. Fallback: GeneratedSlug + "-" + ID (e.g., "macbook-pro-123")
+    //    - Appending ID ensures uniqueness and allows us to resolve the product 
+    //      even if the slug text changes or isn't in the DB.
+    // 3. Last Resort: "product-" + ID
+    let slug = backendProduct.slug || backendProduct.Slug;
+    if (!slug) {
+        if (generatedSlug) {
+            slug = `${generatedSlug}-${backendProduct.id}`;
+        } else {
+            slug = `product-${backendProduct.id}`;
+        }
+    }
 
     return {
         ...backendProduct,
@@ -173,12 +191,27 @@ export const productService = {
     },
 
     async getProductBySlug(slug: string): Promise<Product> {
-        // Fallback for ID-based slugs (e.g., "product-123")
-        // This handles cases where the backend slug is missing or invalid
+        // Fallback 1: Check for "product-{id}" format
         if (slug.startsWith('product-') && /^\d+$/.test(slug.replace('product-', ''))) {
             const id = parseInt(slug.replace('product-', ''), 10);
             if (!isNaN(id)) {
                 return this.getProductById(id);
+            }
+        }
+
+        // Fallback 2: Check for "{slug}-{id}" format (Suffix ID strategy)
+        // Regex looks for a hyphen followed by numbers at the end of the string
+        const suffixIdMatch = slug.match(/-(\d+)$/);
+        if (suffixIdMatch) {
+            const id = parseInt(suffixIdMatch[1], 10);
+            if (!isNaN(id)) {
+                // Try fetching by ID directly since we extracted a valid ID
+                try {
+                    return await this.getProductById(id);
+                } catch (error) {
+                    console.warn(`Failed to resolve slug "${slug}" via suffix ID ${id}, falling back to API slug lookup.`);
+                    // Fallthrough to normal slug lookup if ID lookup fails (rare but safe)
+                }
             }
         }
 
