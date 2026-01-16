@@ -2,12 +2,11 @@
 
 import { useCart } from '@/hooks/useCart';
 import { useCartStore } from '@/store/cartStore';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 export function CartSyncProvider({ children }: { children: React.ReactNode }) {
     const { refreshCart } = useCart();
     const { sessionId } = useCartStore();
-    const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Initial sync when sessionId is available
     useEffect(() => {
@@ -16,26 +15,21 @@ export function CartSyncProvider({ children }: { children: React.ReactNode }) {
         }
     }, [sessionId, refreshCart]);
 
-    // Periodic polling for cart updates (every 10 seconds)
+    // Re-sync when window gains focus (user returns to tab) for multi-tab support
     useEffect(() => {
         if (!sessionId) return;
 
-        const pollCart = () => {
-            // Only poll if page is visible to save resources
+        const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
+                // User returned to tab - sync to get latest changes from other tabs/devices
                 refreshCart();
             }
         };
 
-        // Start polling
-        pollingIntervalRef.current = setInterval(pollCart, 10000); // 10 seconds
+        document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        // Cleanup on unmount
         return () => {
-            if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
-                pollingIntervalRef.current = null;
-            }
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, [sessionId, refreshCart]);
 
