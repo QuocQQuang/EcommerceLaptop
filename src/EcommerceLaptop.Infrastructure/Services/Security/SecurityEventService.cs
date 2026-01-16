@@ -22,7 +22,7 @@ public class SecurityEventService : ISecurityEventService
     private readonly ILokiClient _lokiClient;
 
     public SecurityEventService(
-        ApplicationDbContext context, 
+        ApplicationDbContext context,
         ILogger<SecurityEventService> logger,
         ILokiClient lokiClient)
     {
@@ -44,22 +44,21 @@ public class SecurityEventService : ISecurityEventService
 
             // Write to Serilog (which pushes to Loki)
             // LOW-cardinality data goes to labels (via propertiesAsLabels config)
-            // HIGH-cardinality data (IP, UserId, CorrelationId) goes into structured log body
+            // HIGH-cardinality data (IP, UserId, CorrelationId) goes into scope (structured properties)
             using (_logger.BeginScope(new Dictionary<string, object>
             {
                 ["EventType"] = securityEvent.EventType,
-                ["Severity"] = securityEvent.Severity ?? "Info"
+                ["Severity"] = securityEvent.Severity ?? "Info",
+                // These are logged as structured properties, parseable by LokiClient
+                ["IPAddress"] = securityEvent.IPAddress ?? "Unknown",
+                ["UserId"] = securityEvent.UserId?.ToString() ?? "Anonymous",
+                ["CorrelationId"] = securityEvent.CorrelationId ?? "",
+                ["Details"] = securityEvent.Details ?? ""
             }))
             {
-                // High-cardinality fields in message body (JSON), not labels
-                _logger.LogInformation(
-                    "Security Event: {EventType} | IP:{IPAddress} User:{UserId} Correlation:{CorrelationId} | {Description} | Details:{@Details}", 
-                    securityEvent.EventType, 
-                    securityEvent.IPAddress ?? "Unknown",
-                    securityEvent.UserId?.ToString() ?? "Anonymous",
-                    securityEvent.CorrelationId,
-                    securityEvent.Description, 
-                    securityEvent.Details);
+                // Log with Description as the main message (@m in Loki)
+                // The scope properties above will be included in the JSON log but not in @m
+                _logger.LogInformation("{Description}", securityEvent.Description);
             }
 
             // SecurityEvents are now logged exclusively to Loki via Serilog
@@ -85,7 +84,7 @@ public class SecurityEventService : ISecurityEventService
     {
         int skip = (page - 1) * pageSize;
         int take = pageSize;
-        
+
         try
         {
             // Query Loki using Time Range (native to Loki)
@@ -96,7 +95,7 @@ public class SecurityEventService : ISecurityEventService
             // IMPORTANT: Always require EventType to exist, so we only get security logs
             // not general application logs (EF warnings, HTTP requests, etc.)
             var labels = new List<string> { "app=\"ecommerce-api\"" };
-            
+
             if (!string.IsNullOrEmpty(eventType))
             {
                 // Specific event type filter
@@ -108,7 +107,7 @@ public class SecurityEventService : ISecurityEventService
                 // This filters out logs without EventType label (general app logs)
                 labels.Add("EventType=~\".+\"");
             }
-            
+
             if (!string.IsNullOrEmpty(severity))
             {
                 labels.Add($"Severity=\"{severity}\"");
@@ -118,15 +117,15 @@ public class SecurityEventService : ISecurityEventService
 
             // Get Total Count for pagination info
             var totalCount = await _lokiClient.CountAsync(query, from, to);
-             
+
             // Time Range pagination: fetch with limit (native Loki approach)
             // For page > 1, we still need in-memory skip due to Loki limitations
-            var limit = Math.Min(skip + take + 100, 1000); 
+            var limit = Math.Min(skip + take + 100, 1000);
             var events = await _lokiClient.QueryAsync(query, from, to, limit);
 
             // In-memory pagination (acceptable for admin dashboards with reasonable data)
             var pagedItems = events.Skip(skip).Take(take).ToList();
-            
+
             var result = new EcommerceLaptop.Core.DTOs.PagedResult<SecurityEvent>
             {
                 Items = pagedItems,
@@ -148,7 +147,7 @@ public class SecurityEventService : ISecurityEventService
     {
         // Loki is immutable. We cannot update an event.
         // Instead, we log a NEW event indicating the update/resolution.
-        
+
         var updateEvent = new SecurityEvent
         {
             EventType = "security_event_updated",
@@ -166,16 +165,16 @@ public class SecurityEventService : ISecurityEventService
 
     // ... [Rest of file needs similar updates or can be left if unused/legacy]
     // Consolidating repetitive logic...
-    
+
     public async Task<ServiceResult<Dictionary<string, int>>> GetEventStatisticsAsync(int days = 7)
     {
-         // For statistics, we should ideally use LogQL aggregation queries (e.g. sum by count)
-         // For now, let's return a basic placeholder or implement basic aggregation via LokiClient later.
-         // Or fallback to SQL if we still keep some data there.
-         // Given the requirements, let's try to query Loki for stats if possible, or return empty if complex.
-         
-         // Simplified: Return empty stats to avoid error, or implement specific Loki aggregation query
-         return ServiceResult<Dictionary<string, int>>.Success(new Dictionary<string, int>());
+        // For statistics, we should ideally use LogQL aggregation queries (e.g. sum by count)
+        // For now, let's return a basic placeholder or implement basic aggregation via LokiClient later.
+        // Or fallback to SQL if we still keep some data there.
+        // Given the requirements, let's try to query Loki for stats if possible, or return empty if complex.
+
+        // Simplified: Return empty stats to avoid error, or implement specific Loki aggregation query
+        return ServiceResult<Dictionary<string, int>>.Success(new Dictionary<string, int>());
     }
 
     public async Task<ServiceResult<List<SecurityEvent>>> GetEventsByIPAsync(string ipAddress, int hours = 24)
@@ -184,11 +183,11 @@ public class SecurityEventService : ISecurityEventService
         {
             var from = DateTime.UtcNow.AddHours(-hours);
             var to = DateTime.UtcNow;
-            
+
             // Query with IP address label filter
             var query = $"{{app=\"ecommerce-api\", IPAddress=\"{ipAddress}\"}}";
             var events = await _lokiClient.QueryAsync(query, from, to, 100);
-            
+
             return ServiceResult<List<SecurityEvent>>.Success(events);
         }
         catch (Exception ex)
@@ -204,10 +203,10 @@ public class SecurityEventService : ISecurityEventService
         // Returning empty list for now.
         return ServiceResult<List<SecurityEvent>>.Success(new List<SecurityEvent>());
     }
-    
+
     public async Task<ServiceResult<bool>> MarkEventAsResolvedAsync(int eventId, string resolvedBy, string resolution)
     {
-         var updateEvent = new SecurityEvent
+        var updateEvent = new SecurityEvent
         {
             EventType = "security_event_resolved",
             Description = $"Security Event {eventId} resolved by {resolvedBy}. Resolution: {resolution}",
@@ -219,9 +218,9 @@ public class SecurityEventService : ISecurityEventService
         await LogEventAsync(updateEvent);
         return ServiceResult<bool>.Success(true);
     }
-    
+
     // Interface implementation stubs for others...
-    
+
     public async Task<ServiceResult<bool>> LogEventAsync(string eventType, string description, int? userId = null, int? adminUserId = null, string? ipAddress = null, string? userAgent = null, string? correlationId = null, Dictionary<string, object>? metadata = null)
     {
         var evt = new SecurityEvent
@@ -236,11 +235,11 @@ public class SecurityEventService : ISecurityEventService
             Details = metadata != null ? JsonSerializer.Serialize(metadata) : null,
             Severity = DetermineSeverity(eventType)
         };
-        
+
         await LogEventAsync(evt);
         return ServiceResult<bool>.Success(true);
     }
-    
+
     public async Task<ServiceResult<List<SecurityEvent>>> GetEventsAsync(string? eventType = null, DateTime? from = null, DateTime? to = null, int? userId = null, int? adminUserId = null, int page = 1, int pageSize = 50)
     {
         // Delegate to main implementation and extract items list
@@ -273,10 +272,10 @@ public class SecurityEventService : ISecurityEventService
         try
         {
             var stats = new Dictionary<string, int>();
-            
+
             // Query counts for each common event type
             var eventTypes = new[] { "login_failed", "login_success", "ip_blocked", "rate_limit_exceeded", "suspicious_activity", "admin_action" };
-            
+
             foreach (var eventType in eventTypes)
             {
                 var query = $"{{app=\"ecommerce-api\", EventType=\"{eventType}\"}}";
@@ -286,11 +285,11 @@ public class SecurityEventService : ISecurityEventService
                     stats[eventType] = count;
                 }
             }
-            
+
             // Get total count
             var totalQuery = "{app=\"ecommerce-api\"}";
             stats["total"] = await _lokiClient.CountAsync(totalQuery, from, to);
-            
+
             return ServiceResult<Dictionary<string, int>>.Success(stats);
         }
         catch (Exception ex)
@@ -339,10 +338,10 @@ public class SecurityEventService : ISecurityEventService
             // Total Blocked events (fired by IPBlockMiddleware)
             // Assuming "ip_blocked" is the EventType logged
             var totalBlockedEvents = await _lokiClient.CountAsync($"{{app=\"ecommerce-api\", EventType=\"ip_blocked\"}}", from, to);
-            
+
             // Rate Limit Violations
             var rateLimitViolations = await _lokiClient.CountAsync($"{{app=\"ecommerce-api\", EventType=\"rate_limit_exceeded\"}}", from, to);
-            
+
             // Suspicious Activity (high severity events)
             var suspiciousCount = await _lokiClient.CountAsync($"{{app=\"ecommerce-api\", Severity=\"Critical\"}}", from, to);
 
@@ -368,7 +367,7 @@ public class SecurityEventService : ISecurityEventService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting security metrics");
-             return ServiceResult<EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto>.Failure("Failed to retrieve metrics");
+            return ServiceResult<EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto>.Failure("Failed to retrieve metrics");
         }
     }
 

@@ -11,17 +11,9 @@ if (!process.env.NEXT_PUBLIC_API_URL) {
 }
 
 export const authOptions: AuthOptions = {
-    cookies: {
-        sessionToken: {
-            name: `next-auth.session-token`,
-            options: {
-                httpOnly: true,
-                sameSite: 'lax',
-                path: '/',
-                secure: process.env.NODE_ENV === 'production' // false for localhost dev
-            }
-        }
-    },
+    // Let NextAuth handle cookie naming automatically
+    // In production (HTTPS), it will use __Secure-next-auth.session-token
+    // In development (HTTP), it will use next-auth.session-token
     providers: [
         CredentialsProvider({
             name: 'Credentials',
