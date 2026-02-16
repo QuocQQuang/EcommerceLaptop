@@ -22,7 +22,8 @@ namespace EcommerceLaptop.Core.Interfaces.Services
         Task SetActiveProfileAsync(int profileId);
         Task<int?> GetActiveRewritingProfileIdAsync();
         Task SetActiveRewritingProfileAsync(int? profileId);
-        
+        Task<LlmProfile?> GetActiveProfileAsync();
+
         // Testing & Utilities
         Task<bool> TestConnectionAsync(int profileId);
         Task<IEnumerable<string>> FetchRemoteModelsAsync(EcommerceLaptop.Core.DTOs.AI.FetchModelsRequest request);

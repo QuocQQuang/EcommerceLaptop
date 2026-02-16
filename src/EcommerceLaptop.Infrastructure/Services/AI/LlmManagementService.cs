@@ -21,7 +21,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
         private readonly ISystemSettingsService _systemSettings;
 
         public LlmManagementService(
-            ApplicationDbContext context, 
+            ApplicationDbContext context,
             IHttpClientFactory httpClientFactory,
             Core.Interfaces.ILlmConfigProvider llmConfigProvider,
             ISystemSettingsService systemSettings)
@@ -96,7 +96,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                 // Requirement implies "Profile ring, config ring". System setting will point to *one* active profile globally for now.
                 // We'll handle "Set Active" explicitly.
             }
-            
+
             _context.LlmProfiles.Add(profile);
             await _context.SaveChangesAsync();
             return profile;
@@ -139,11 +139,24 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             setting.SettingValue = profileId.ToString();
             setting.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
-            
+
             // Invalidate cache so new config takes effect immediately
             _llmConfigProvider.InvalidateCache();
         }
-        
+
+        public async Task<LlmProfile?> GetActiveProfileAsync()
+        {
+            var setting = await _context.SystemSettings
+                .FirstOrDefaultAsync(s => s.Category == "LLM_Config" && s.SettingKey == "ActiveProfileId");
+
+            if (setting == null || !int.TryParse(setting.SettingValue, out int profileId))
+            {
+                return null;
+            }
+
+            return await GetProfileByIdAsync(profileId);
+        }
+
         // Testing
         public async Task<bool> TestConnectionAsync(int profileId)
         {
@@ -160,26 +173,26 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             // Wait, I used HasConversion in OnModelCreating. So yes, reading it gives plain text.
 
             var httpClient = _httpClientFactory.CreateClient("llm-test");
-            
+
             // Simple test based on provider type
-            try 
+            try
             {
                 if (profile.Provider.Type.ToLower() == "openai" || profile.Provider.Type.ToLower() == "openrouter")
                 {
                     var request = new HttpRequestMessage(HttpMethod.Get, $"{profile.Provider.BaseUrl ?? "https://api.openai.com/v1"}/models");
                     request.Headers.Add("Authorization", $"Bearer {apiKey}");
-                    
+
                     if (profile.Provider.Type.ToLower() == "openrouter")
                     {
-                         request.Headers.Add("HTTP-Referer", "https://ecommercelaps.com");
-                         request.Headers.Add("X-Title", "EcommerceLaptop");
+                        request.Headers.Add("HTTP-Referer", "https://ecommercelaps.com");
+                        request.Headers.Add("X-Title", "EcommerceLaptop");
                     }
 
                     var response = await httpClient.SendAsync(request);
                     return response.IsSuccessStatusCode;
                 }
                 // Add other provider tests...
-                return true; 
+                return true;
             }
             catch
             {
@@ -205,7 +218,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                     reqMsg.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 }
             }
-            
+
             // Special handling for OpenRouter generic logic if needed, but CustomHeaders should cover it.
 
             var response = await httpClient.SendAsync(reqMsg);
@@ -213,7 +226,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
             var content = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(content);
-            
+
             var models = new List<string>();
             if (doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
             {
@@ -269,7 +282,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                     var content = await response.Content.ReadAsStringAsync();
                     using var doc = JsonDocument.Parse(content);
                     string? reply = null;
-                    
+
                     // Standard OpenAI format: choices[0].message.content
                     if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
                     {
@@ -320,11 +333,11 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
         public async Task SetActiveRewritingProfileAsync(int? profileId)
         {
             await _systemSettings.UpsertSettingAsync(
-                "ActiveRewritingProfileId", 
+                "ActiveRewritingProfileId",
                 profileId?.ToString() ?? string.Empty, // Use empty string instead of null
                 "RAG",
                 "LLM Profile ID used for query rewriting (null = disabled)");
-            
+
             // Invalidate config cache to trigger rewriting kernel rebuild
             _llmConfigProvider.InvalidateCache();
         }

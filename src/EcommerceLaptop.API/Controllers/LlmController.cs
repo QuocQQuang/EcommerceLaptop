@@ -63,6 +63,20 @@ namespace EcommerceLaptop.API.Controllers
 
         // --- Profiles ---
 
+        [HttpGet("profiles/active")]
+        public async Task<IActionResult> GetActiveProfile()
+        {
+            var profile = await _llmService.GetActiveProfileAsync();
+            if (profile == null) return NotFound();
+            // Frontend expects: { id: number; name: string; providerId: number }
+            return Ok(new
+            {
+                id = profile.Id,
+                name = profile.Name,
+                providerId = profile.ProviderId
+            });
+        }
+
         [HttpGet("providers/{providerId}/profiles")]
         public async Task<IActionResult> GetProfiles(int providerId)
         {
@@ -81,9 +95,9 @@ namespace EcommerceLaptop.API.Controllers
         [HttpPost("profiles")]
         public async Task<IActionResult> CreateProfile([FromBody] LlmProfile profile)
         {
-             if (!ModelState.IsValid) return BadRequest(ModelState);
-             var created = await _llmService.CreateProfileAsync(profile);
-             return CreatedAtAction(nameof(GetProfile), new { id = created.Id }, created);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var created = await _llmService.CreateProfileAsync(profile);
+            return CreatedAtAction(nameof(GetProfile), new { id = created.Id }, created);
         }
 
         [HttpPut("profiles/{id}")]
@@ -151,21 +165,22 @@ namespace EcommerceLaptop.API.Controllers
         [HttpPost("test-chat")]
         public async Task<IActionResult> TestChat([FromBody] TestChatRequest request)
         {
-             var result = await _llmService.TestChatAsync(request);
-             return Ok(result);
+            var result = await _llmService.TestChatAsync(request);
+            return Ok(result);
         }
 
         [HttpPost("test-embedding")]
         public async Task<IActionResult> TestEmbedding([FromServices] EcommerceLaptop.Core.Interfaces.IEmbeddingService embeddingService)
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            try 
+            try
             {
                 var vector = await embeddingService.GenerateEmbeddingAsync("Test latency string");
                 sw.Stop();
-                return Ok(new { 
-                    success = true, 
-                    latencyMs = sw.ElapsedMilliseconds, 
+                return Ok(new
+                {
+                    success = true,
+                    latencyMs = sw.ElapsedMilliseconds,
                     dimensions = vector.Length,
                     message = $"Embedding generated in {sw.ElapsedMilliseconds}ms ({vector.Length} dims)"
                 });
@@ -173,10 +188,11 @@ namespace EcommerceLaptop.API.Controllers
             catch (Exception ex)
             {
                 sw.Stop();
-                return BadRequest(new { 
-                    success = false, 
-                    latencyMs = sw.ElapsedMilliseconds, 
-                    message = ex.Message 
+                return BadRequest(new
+                {
+                    success = false,
+                    latencyMs = sw.ElapsedMilliseconds,
+                    message = ex.Message
                 });
             }
         }
