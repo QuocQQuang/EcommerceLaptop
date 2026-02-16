@@ -6,48 +6,9 @@ namespace EcommerceLaptop.Core.Configuration;
 /// </summary>
 public class PaymentGatewaySettings
 {
-    public VnPaySettings VnPay { get; set; } = new();
-    public MoMoSettings MoMo { get; set; } = new();
     public PayPalSettings PayPal { get; set; } = new();
-    public ZaloPaySettings ZaloPay { get; set; } = new();
     public SePaySettings SePay { get; set; } = new();
     public StripeSettings Stripe { get; set; } = new();
-}
-
-/// <summary>
-/// VnPay payment gateway configuration
-/// Follows Anders Hejlsberg's C# design patterns with immutable properties
-/// </summary>
-public class VnPaySettings
-{
-    public string TmnCode { get; set; } = string.Empty;
-    public string HashSecret { get; set; } = string.Empty;
-    public string PaymentUrl { get; set; } = string.Empty;
-    public string ReturnUrl { get; set; } = string.Empty;
-    public string NotifyUrl { get; set; } = string.Empty;
-    public string Version { get; set; } = "2.1.0";
-    public string Command { get; set; } = "pay";
-    public string CurrCode { get; set; } = "VND";
-    public string Locale { get; set; } = "vn";
-    public int TimeoutInMinutes { get; set; } = 15;
-    public bool IsEnabled { get; set; } = true;
-}
-
-/// <summary>
-/// MoMo payment gateway configuration
-/// Security-first approach with RSA key management
-/// </summary>
-public class MoMoSettings
-{
-    public string PartnerCode { get; set; } = string.Empty;
-    public string AccessKey { get; set; } = string.Empty;
-    public string SecretKey { get; set; } = string.Empty;
-    public string PaymentUrl { get; set; } = string.Empty;
-    public string ReturnUrl { get; set; } = string.Empty;
-    public string NotifyUrl { get; set; } = string.Empty;
-    public string PublicKey { get; set; } = string.Empty; // For signature validation
-    public int TimeoutInMinutes { get; set; } = 15;
-    public bool IsEnabled { get; set; } = true;
 }
 
 /// <summary>
@@ -64,26 +25,6 @@ public class PayPalSettings
     public string WebhookUrl { get; set; } = string.Empty;
     public string WebhookId { get; set; } = string.Empty;
     public List<string> SupportedCurrencies { get; set; } = new() { "USD", "EUR", "JPY", "VND" };
-    public int TimeoutInMinutes { get; set; } = 15;
-    public bool IsEnabled { get; set; } = true;
-}
-
-/// <summary>
-/// ZaloPay payment gateway configuration
-/// Vietnamese mobile payment integration
-/// </summary>
-public class ZaloPaySettings
-{
-    public string AppId { get; set; } = string.Empty;
-    public string Key1 { get; set; } = string.Empty; // For MAC generation
-    public string Key2 { get; set; } = string.Empty; // For callback validation
-    public string PaymentUrl { get; set; } = string.Empty;
-    public string CreateOrderUrl { get; set; } = string.Empty;
-    public string QueryUrl { get; set; } = string.Empty;
-    public string RefundUrl { get; set; } = string.Empty;
-    public string GetQrUrl { get; set; } = string.Empty;
-    public string ReturnUrl { get; set; } = string.Empty;
-    public string CallbackUrl { get; set; } = string.Empty;
     public int TimeoutInMinutes { get; set; } = 15;
     public bool IsEnabled { get; set; } = true;
 }

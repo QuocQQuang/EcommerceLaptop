@@ -174,7 +174,7 @@ public record ProcessPaymentRequest
     public string PaymentMethod { get; init; } = string.Empty; // CreditCard, DebitCard, PayPal, BankTransfer
 
     [Required]
-    public string Gateway { get; init; } = string.Empty; // Stripe, PayPal, VNPay
+    public string Gateway { get; init; } = string.Empty; // Stripe, PayPal, SePay
 
     public Dictionary<string, object> PaymentDetails { get; init; } = new();
 }

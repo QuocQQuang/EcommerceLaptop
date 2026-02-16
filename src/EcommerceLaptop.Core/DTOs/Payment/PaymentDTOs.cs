@@ -123,59 +123,9 @@ public class ProcessRefundRequest
     public Dictionary<string, object> GatewaySpecificData { get; set; } = new();
 }
 
-/// <summary>
-/// Request for installment payment processing (VnPay specific)
-/// </summary>
-public class InstallmentPaymentRequest
-{
-    [Required]
-    public int OrderId { get; set; }
 
-    [Required]
-    [Range(3, 24, ErrorMessage = "Installment months must be between 3 and 24")]
-    public int InstallmentMonths { get; set; }
 
-    [Required]
-    public decimal Amount { get; set; }
 
-    [StringLength(20)]
-    public string BankCode { get; set; } = string.Empty;
-
-    [StringLength(20)]
-    public string CardType { get; set; } = string.Empty; // VISA, MASTERCARD, JCB
-}
-
-/// <summary>
-/// Request for split payment processing (MoMo specific)
-/// </summary>
-public class SplitPaymentRequest
-{
-    [Required]
-    public int OrderId { get; set; }
-
-    [Required]
-    public decimal TotalAmount { get; set; }
-
-    [Required]
-    public List<SplitPaymentRecipient> Recipients { get; set; } = new();
-}
-
-/// <summary>
-/// Split payment recipient information
-/// </summary>
-public class SplitPaymentRecipient
-{
-    [Required]
-    [StringLength(100)]
-    public string RecipientId { get; set; } = string.Empty;
-
-    [Required]
-    [Range(0.01, double.MaxValue)]
-    public decimal Amount { get; set; }
-
-    [StringLength(200)]
-    public string Description { get; set; } = string.Empty;
-}
 
 /// <summary>
 /// Request for PayPal express checkout
@@ -305,42 +255,7 @@ public class QrCodeResult
     public string ErrorMessage { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// Installment payment result
-/// </summary>
-public class InstallmentResult
-{
-    public bool IsSuccess { get; set; }
-    public string TransactionId { get; set; } = string.Empty;
-    public int InstallmentMonths { get; set; }
-    public decimal MonthlyAmount { get; set; }
-    public decimal InterestRate { get; set; }
-    public string PaymentUrl { get; set; } = string.Empty;
-    public string ErrorMessage { get; set; } = string.Empty;
-}
 
-/// <summary>
-/// Split payment processing result
-/// </summary>
-public class SplitPaymentResult
-{
-    public bool IsSuccess { get; set; }
-    public string TransactionId { get; set; } = string.Empty;
-    public List<SplitPaymentStatus> RecipientStatuses { get; set; } = new();
-    public string ErrorMessage { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Status of individual split payment recipient
-/// </summary>
-public class SplitPaymentStatus
-{
-    public string RecipientId { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public PaymentStatus Status { get; set; }
-    public string TransactionId { get; set; } = string.Empty;
-    public string ErrorMessage { get; set; } = string.Empty;
-}
 
 /// <summary>
 /// PayPal express checkout result
@@ -369,20 +284,7 @@ public class CurrencyConversionResult
     public string ErrorMessage { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// ZaloPay order status result
-/// </summary>
-public class ZaloPayOrderStatus
-{
-    public bool IsSuccess { get; set; }
-    public string AppTransId { get; set; } = string.Empty;
-    public PaymentStatus Status { get; set; }
-    public decimal Amount { get; set; }
-    public DateTime ProcessedAt { get; set; }
-    public string ZpTransId { get; set; } = string.Empty;
-    public string ErrorMessage { get; set; } = string.Empty;
-    public Dictionary<string, object> RawData { get; set; } = new();
-}
+
 
 #endregion
 

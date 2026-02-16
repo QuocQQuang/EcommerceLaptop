@@ -905,11 +905,9 @@ public class PaymentOrchestrator : IPaymentOrchestrator
         // Simple pattern matching - in real implementation this would be more sophisticated
         return transactionId.ToUpper() switch
         {
-            var id when id.Contains("VNPAY") => PaymentGateway.VnPay,
-            var id when id.Contains("MOMO") => PaymentGateway.MoMo,
-            var id when id.Contains("ZALOPAY") => PaymentGateway.ZaloPay,
             var id when id.Contains("PAYPAL") => PaymentGateway.PayPal,
-            _ => PaymentGateway.VnPay // Default fallback
+            var id when id.Contains("SEPAY") => PaymentGateway.SePay,
+            _ => PaymentGateway.Stripe // Default fallback
         };
     }
 

@@ -158,7 +158,7 @@ public class Refund
     public decimal Amount { get; set; }
     public string Reason { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty; // pending, approved, rejected, processed
-    public string? PaymentGateway { get; set; } // vnpay, zalopay, momo
+    public string? PaymentGateway { get; set; } // e.g. stripe, paypal, sepay
     public string? TransactionId { get; set; }
     public string? GatewayResponse { get; set; }
     public int? ProcessedByAdminId { get; set; }
@@ -206,7 +206,7 @@ public class IPBlockRule
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public string CreatedBy { get; set; } = string.Empty;
     public string? LastUpdatedBy { get; set; }
-    
+
     // Enhanced fields
     public string ThreatLevel { get; set; } = "medium"; // low, medium, high, critical
     public string? CountryCode { get; set; }
@@ -237,7 +237,7 @@ public class RateLimitRule
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public string CreatedBy { get; set; } = string.Empty;
     public string? LastUpdatedBy { get; set; }
-    
+
     // Enhanced configuration
     public string? Description { get; set; }
     public string IPWhitelist { get; set; } = "[]"; // JSON array of whitelisted IPs
@@ -270,7 +270,7 @@ public class SecurityEvent
     public string? InvestigatedBy { get; set; }
     public DateTime? InvestigatedAt { get; set; }
     public string? Resolution { get; set; }
-    
+
     // Enhanced tracking
     public string? UserAgent { get; set; }
     public string? SessionId { get; set; }
@@ -282,7 +282,7 @@ public class SecurityEvent
     public string RiskScore { get; set; } = "0"; // 0-100 risk assessment
     public bool WasBlocked { get; set; } = false; // Whether the action was blocked
     public string? InvestigationNotes { get; set; } // Additional investigation notes
-    
+
     // Navigation properties removed - DTO for Loki
     // public User? User { get; set; }
 }

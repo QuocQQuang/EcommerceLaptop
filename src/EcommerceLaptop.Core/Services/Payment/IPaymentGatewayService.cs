@@ -74,48 +74,6 @@ public interface IPaymentGatewayService
 }
 
 /// <summary>
-/// VnPay-specific payment service interface
-/// Extends base interface with Vietnamese payment features
-/// </summary>
-public interface IVnPayService : IPaymentGatewayService
-{
-    /// <summary>
-    /// Generates QR code for mobile payments
-    /// </summary>
-    /// <param name="transactionId">Transaction identifier</param>
-    /// <returns>QR code data and display URL</returns>
-    Task<QrCodeResult> GenerateQrCodeAsync(string transactionId);
-
-    /// <summary>
-    /// Processes installment payment with Vietnamese banks
-    /// </summary>
-    /// <param name="request">Installment payment request</param>
-    /// <returns>Installment payment result</returns>
-    Task<InstallmentResult> ProcessInstallmentAsync(InstallmentPaymentRequest request);
-}
-
-/// <summary>
-/// MoMo-specific payment service interface
-/// E-wallet and mobile payment capabilities
-/// </summary>
-public interface IMoMoService : IPaymentGatewayService
-{
-    /// <summary>
-    /// Generates deep link for mobile app integration
-    /// </summary>
-    /// <param name="transactionId">Transaction identifier</param>
-    /// <returns>Deep link URL for mobile app</returns>
-    Task<string> GenerateDeepLinkAsync(string transactionId);
-
-    /// <summary>
-    /// Processes split payment to multiple recipients
-    /// </summary>
-    /// <param name="request">Split payment request</param>
-    /// <returns>Split payment result</returns>
-    Task<SplitPaymentResult> ProcessSplitPaymentAsync(SplitPaymentRequest request);
-}
-
-/// <summary>
 /// PayPal-specific payment service interface
 /// International payment and multi-currency support
 /// </summary>
@@ -136,33 +94,6 @@ public interface IPayPalService : IPaymentGatewayService
     /// <param name="toCurrency">Target currency</param>
     /// <returns>Converted amount and exchange rate</returns>
     Task<CurrencyConversionResult> ConvertCurrencyAsync(decimal amount, string fromCurrency, string toCurrency);
-}
-
-/// <summary>
-/// ZaloPay-specific payment service interface
-/// Vietnamese mobile and QR payment features
-/// </summary>
-public interface IZaloPayService : IPaymentGatewayService
-{
-    /// <summary>
-    /// Generates QR code for ZaloPay mobile payments
-    /// </summary>
-    /// <param name="transactionId">Transaction identifier</param>
-    /// <returns>QR code data and payment URL</returns>
-    Task<QrCodeResult> GenerateQrCodeAsync(string transactionId);
-
-    /// <summary>
-    /// Generates deep link for ZaloPay mobile app
-    /// </summary>
-    /// <param name="transactionId">Transaction identifier</param>
-    /// <returns>Deep link result with app URLs</returns>
-    Task<MobileDeepLinkResult> GenerateDeepLinkAsync(string transactionId);
-
-    /// <summary>
-    /// Gets ZaloPay transaction limits
-    /// </summary>
-    /// <returns>Transaction limits information</returns>
-    TransactionLimitsResult GetTransactionLimits();
 }
 
 /// <summary>

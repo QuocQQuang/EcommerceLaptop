@@ -25,9 +25,9 @@ public class Order : BaseEntity
             InventoryReserved = false,
             ShippingAddress = shippingAddress
         };
-        
+
         order.AddDomainEvent(new EcommerceLaptop.Core.DomainEvents.OrderCreatedEvent(order));
-        
+
         return order;
     }
 
@@ -51,7 +51,7 @@ public class Order : BaseEntity
     // Navigation properties
     // Navigation properties
     public User User { get; set; } = null!;
-    
+
     public IReadOnlyCollection<OrderItem> OrderItems => _orderItems.AsReadOnly();
     public IReadOnlyCollection<Payment> Payments => _payments.AsReadOnly();
     public IReadOnlyCollection<OrderAudit> Audits => _audits.AsReadOnly();
@@ -110,7 +110,7 @@ public class Order : BaseEntity
 
     public void Pay(string transactionId, PaymentGateway gateway, decimal amount)
     {
-         if (Status == OrderStatus.Cancelled || Status == OrderStatus.Refunded)
+        if (Status == OrderStatus.Cancelled || Status == OrderStatus.Refunded)
         {
             throw new InvalidOperationException($"Cannot pay for an order in {Status} state.");
         }
@@ -125,7 +125,7 @@ public class Order : BaseEntity
     {
         if (Status != OrderStatus.Confirmed && Status != OrderStatus.Pending)
         {
-             // Flexible transition?
+            // Flexible transition?
         }
         Status = OrderStatus.Processing;
         UpdatedAt = DateTime.UtcNow;
@@ -154,7 +154,7 @@ public class Order : BaseEntity
     public void Confirm()
     {
         if (Status != OrderStatus.Pending) return; // Idempotent or throw?
-        
+
         Status = OrderStatus.Confirmed;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -162,13 +162,13 @@ public class Order : BaseEntity
     private void RecalculateTotals()
     {
         SubTotal = _orderItems.Sum(x => x.TotalPrice);
-        
+
         // Total = SubTotal + Tax + Shipping - Discount
         // Note: Logic might need to be adjusted if Tax/Discount are calculated differently (e.g. per item vs global)
         // Here we assume TaxAmount/DiscountAmount are provided externally or calculated elsewhere, 
         // OR we should calculate them here. 
         // For this refactor, we stick to summing SubTotal and using provided financial details.
-        
+
         TotalAmount = SubTotal + TaxAmount + ShippingAmount - DiscountAmount;
         if (TotalAmount < 0) TotalAmount = 0;
     }
@@ -177,7 +177,7 @@ public class Order : BaseEntity
     {
         if (Status != OrderStatus.Shipped)
         {
-             // Flexible?
+            // Flexible?
         }
         Status = OrderStatus.Delivered;
         UpdatedAt = DateTime.UtcNow;
@@ -185,7 +185,7 @@ public class Order : BaseEntity
 
     public void Return()
     {
-         if (Status != OrderStatus.Delivered)
+        if (Status != OrderStatus.Delivered)
         {
             throw new InvalidOperationException("Only delivered orders can be returned.");
         }
@@ -198,7 +198,7 @@ public class Order : BaseEntity
         // Can be refunded from various states
         Status = OrderStatus.Refunded;
         UpdatedAt = DateTime.UtcNow;
-    }  
+    }
 
 
 }
@@ -280,10 +280,7 @@ public class Payment
 
 public enum PaymentGateway
 {
-    VnPay = 1,
-    MoMo = 2,
     PayPal = 3,
-    ZaloPay = 4,
     SePay = 5,
     Stripe = 6
 }

@@ -50,9 +50,9 @@ public static class ServiceCollectionExtensions
         {
             options.Configuration = configuration.GetConnectionString("Redis");
         });
-        
+
         // Register IConnectionMultiplexer for direct Redis access (High Performance)
-        services.AddSingleton<IConnectionMultiplexer>(sp => 
+        services.AddSingleton<IConnectionMultiplexer>(sp =>
             ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis") ?? "localhost"));
 
         // Session state configuration for guest cart management
@@ -97,10 +97,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProductChunkingService, ProductChunkingService>();
         services.AddScoped<IEmbeddingService, SemanticKernelEmbeddingService>();
         services.AddScoped<IVectorDbService, QdrantVectorDbService>();
-        
+
         // Llm Client with Resilience
         services.AddHttpClient("llm-client")
-            .AddStandardResilienceHandler(options => 
+            .AddStandardResilienceHandler(options =>
             {
                 // Total timeout for the entire request execution including retries
                 options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(90);
@@ -110,7 +110,7 @@ public static class ServiceCollectionExtensions
 
                 // Retry policy configuration
                 options.Retry.MaxRetryAttempts = 3;
-                options.Retry.BackoffType =Polly.DelayBackoffType.Exponential;
+                options.Retry.BackoffType = Polly.DelayBackoffType.Exponential;
                 options.Retry.Delay = TimeSpan.FromSeconds(1);
 
                 // Circuit breaker configuration
@@ -142,10 +142,10 @@ public static class ServiceCollectionExtensions
             .UseSqlServerStorage(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddHangfireServer();
-        
+
         services.AddScoped<IProductIndexingService, ProductIndexingJob>();
         services.AddScoped<ProductIndexingJob>(); // Optional: if concrete type is needed elsewhere
-        
+
         services.AddScoped<IProductIndexingManagementService, ProductIndexingManagementService>();
 
         return services;
@@ -191,14 +191,14 @@ public static class ServiceCollectionExtensions
                             // 1. Check for SignalR access_token in Query String
                             var accessToken = context.Request.Query["access_token"];
                             var path = context.HttpContext.Request.Path;
-                            
-                            if (!string.IsNullOrEmpty(accessToken) && 
+
+                            if (!string.IsNullOrEmpty(accessToken) &&
                                 path.StartsWithSegments("/chatHub"))
                             {
                                 context.Token = accessToken;
                             }
                             // 2. Fallback to admin-session cookie
-                            else 
+                            else
                             {
                                 var cookieToken = context.Request.Cookies["admin-session"];
                                 if (!string.IsNullOrEmpty(cookieToken))
@@ -253,7 +253,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IAdminSetupService, AdminSetupService>();
-        
+
         // Public Admin Management Services (Users, Roles, Dev)
         services.AddScoped<IAdminRoleService, AdminRoleService>();
         services.AddScoped<IAdminUserService, AdminUserService>();
@@ -306,7 +306,7 @@ public static class ServiceCollectionExtensions
                     clientIp, endpoint, userAgent, DateTime.UtcNow);
 
                 // Automatic IP Blocking
-                try 
+                try
                 {
                     var ipBlockingService = context.HttpContext.RequestServices.GetService<IIPBlockingService>();
                     if (ipBlockingService != null && clientIp != "Unknown" && clientIp != "::1" && clientIp != "127.0.0.1")
@@ -328,7 +328,7 @@ public static class ServiceCollectionExtensions
                 context.HttpContext.Response.Headers.Append("X-RateLimit-Remaining", "0");
                 context.HttpContext.Response.Headers.Append("X-RateLimit-Reset", DateTimeOffset.UtcNow.AddMinutes(15).ToUnixTimeSeconds().ToString());
                 context.HttpContext.Response.Headers.Append("X-RateLimit-Reason", "Rate limit exceeded");
-                
+
                 await context.HttpContext.Response.WriteAsync("Too many requests. Your IP has been temporarily blocked.", cancellationToken);
             };
 
@@ -357,7 +357,7 @@ public static class ServiceCollectionExtensions
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         QueueLimit = 0
                     }));
-            
+
             // Password Reset / Critical Actions
             // 3 requests per 15 minutes per IP
             options.AddPolicy("PasswordChangePolicy", httpContext =>
@@ -378,10 +378,10 @@ public static class ServiceCollectionExtensions
                     partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 200, 
-                        Window = TimeSpan.FromMinutes(1), 
+                        PermitLimit = 200,
+                        Window = TimeSpan.FromMinutes(1),
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                        QueueLimit = 10 
+                        QueueLimit = 10
                     }));
 
             // Admin Auth Policy (Login)
@@ -414,12 +414,12 @@ public static class ServiceCollectionExtensions
                 policy.WithOrigins(
                         "https://ecommerce-laptop-enterprise.vercel.app",
                         "https://ecommerce-laptop-enterprise-git-*.vercel.app",
-                        "https://a33lprojecct.id.vn" 
+                        "https://a33lprojecct.id.vn"
                     )
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials()
-                    .SetIsOriginAllowed(_ => true); 
+                    .SetIsOriginAllowed(_ => true);
             });
 
             options.AddPolicy("AllowAll", policy =>
@@ -472,17 +472,14 @@ public static class ServiceCollectionExtensions
         // Payment Services
         services.AddScoped<IPaymentOrchestrator, PaymentOrchestrator>();
         services.AddScoped<IPaymentServiceFactory, PaymentServiceFactory>();
-        services.AddScoped<IVnPayService, VnPayService>();
-        services.AddScoped<IMoMoService, MoMoService>();
         services.AddScoped<IPayPalService, PayPalService>();
-        services.AddScoped<IZaloPayService, ZaloPayService>();
         services.AddScoped<IStripeService, StripeService>();
         services.AddScoped<ISePayService, SePayService>();
         services.AddScoped<SePayGatewayAdapter>();
         services.AddScoped<PayPalWebhookVerificationService>();
         services.AddScoped<StripeWebhookVerificationService>();
         services.AddScoped<IPaymentWebhookBusinessLogicService, PaymentWebhookBusinessLogicService>();
-        
+
         // Payment Validators
         services.AddScoped<IValidator<PaymentGatewaySettings>, PaymentGatewaySettingsValidator>();
 
@@ -498,21 +495,21 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBrandService, BrandService>();
         services.AddScoped<ICustomerManagementService, CustomerManagementService>();
         services.AddScoped<IWishlistService, WishlistService>();
-        
+
         // Inventory Management
         services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IInventoryRepository, InventoryRepository>();
-        
+
         services.AddScoped<IStockManagementService, StockManagementService>();
         services.AddScoped<IAssetTrackingService, AssetTrackingService>();
         services.AddScoped<IInventoryReportingService, InventoryReportingService>();
         services.AddScoped<IInventoryService, InventoryService>();
         services.AddScoped<IInventoryReservationService, InventoryReservationService>();
-        
+
         // Domain Events
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
-        
+
         // Event Handlers
         services.AddScoped<IEventHandler<ProductCreatedEvent>, ProductSearchSyncHandler>();
         services.AddScoped<IEventHandler<ProductUpdatedEvent>, ProductSearchSyncHandler>();
@@ -550,7 +547,7 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-    
+
     public static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
@@ -582,7 +579,7 @@ public static class ServiceCollectionExtensions
                 }
             });
         });
-        
+
         // Security
         services.AddScoped<IGuardrailService, GuardrailService>();
 

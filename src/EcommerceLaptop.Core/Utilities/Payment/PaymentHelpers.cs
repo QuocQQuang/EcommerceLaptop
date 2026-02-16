@@ -80,24 +80,6 @@ public static class PaymentHelpers
     {
         return gateway switch
         {
-            PaymentGateway.VnPay when currency == "VND" => new PaymentLimits
-            {
-                MinAmount = 10000m,           // 10,000 VND
-                MaxAmount = 500_000_000m,     // 500M VND per transaction
-                DailyLimit = 2_000_000_000m   // 2B VND per day
-            },
-            PaymentGateway.MoMo when currency == "VND" => new PaymentLimits
-            {
-                MinAmount = 10000m,           // 10,000 VND
-                MaxAmount = 500_000_000m,      // 50M VND per transaction
-                DailyLimit = 100_000_000m     // 100M VND per day
-            },
-            PaymentGateway.ZaloPay when currency == "VND" => new PaymentLimits
-            {
-                MinAmount = 1000m,            // 1,000 VND
-                MaxAmount = 20_000_000m,      // 20M VND per transaction
-                DailyLimit = 100_000_000m     // 100M VND per day
-            },
             PaymentGateway.SePay when currency == "VND" => new PaymentLimits
             {
                 MinAmount = 1m,               // 1 VND minimum for testing
@@ -197,31 +179,16 @@ public static class PaymentHelpers
     {
         var supportedMethods = gateway switch
         {
-            PaymentGateway.VnPay => new[]
-            {
-                PaymentMethod.CreditCard,
-                PaymentMethod.DebitCard,
-                PaymentMethod.BankTransfer,
-                PaymentMethod.QRCode,
-                PaymentMethod.Installment
-            },
-            PaymentGateway.MoMo => new[]
-            {
-                PaymentMethod.EWallet,
-                PaymentMethod.QRCode,
-                PaymentMethod.BankTransfer
-            },
             PaymentGateway.PayPal => new[]
             {
                 PaymentMethod.CreditCard,
                 PaymentMethod.DebitCard,
                 PaymentMethod.EWallet
             },
-            PaymentGateway.ZaloPay => new[]
+            PaymentGateway.SePay => new[]
             {
-                PaymentMethod.EWallet,
-                PaymentMethod.QRCode,
-                PaymentMethod.BankTransfer
+                PaymentMethod.BankTransfer,
+                PaymentMethod.QRCode
             },
             PaymentGateway.Stripe => new[]
             {
@@ -284,11 +251,9 @@ public static class PaymentHelpers
     {
         return (method, gateway) switch
         {
-            (PaymentMethod.CreditCard, PaymentGateway.VnPay) => "Pay with Visa, MasterCard, or JCB credit card",
-            (PaymentMethod.QRCode, PaymentGateway.VnPay) => "Scan QR code with your banking app",
-            (PaymentMethod.EWallet, PaymentGateway.MoMo) => "Pay with MoMo e-wallet",
-            (PaymentMethod.EWallet, PaymentGateway.ZaloPay) => "Pay with ZaloPay e-wallet",
-            (PaymentMethod.Installment, PaymentGateway.VnPay) => "Pay in installments (3-24 months)",
+            (PaymentMethod.CreditCard, PaymentGateway.PayPal) => "Pay with credit card via PayPal",
+            (PaymentMethod.CreditCard, PaymentGateway.Stripe) => "Pay with Visa, MasterCard, or other credit cards",
+            (PaymentMethod.QRCode, PaymentGateway.SePay) => "Scan QR code to pay via bank transfer",
             _ => $"Pay using {GetMethodDisplayName(method)}"
         };
     }
@@ -300,10 +265,9 @@ public static class PaymentHelpers
     {
         return gateway switch
         {
-            PaymentGateway.VnPay => new List<string> { "VND" },
-            PaymentGateway.MoMo => new List<string> { "VND" },
-            PaymentGateway.ZaloPay => new List<string> { "VND" },
             PaymentGateway.PayPal => new List<string> { "USD", "EUR", "JPY", "VND" },
+            PaymentGateway.Stripe => new List<string> { "USD", "EUR", "GBP", "VND", "JPY", "CAD", "AUD" },
+            PaymentGateway.SePay => new List<string> { "VND" },
             _ => new List<string> { "VND" }
         };
     }
@@ -315,18 +279,7 @@ public static class PaymentHelpers
     {
         var info = new Dictionary<string, object>();
 
-        if (method == PaymentMethod.Installment && gateway == PaymentGateway.VnPay)
-        {
-            info["availableTerms"] = new[] { 3, 6, 12, 18, 24 };
-            info["interestRates"] = new Dictionary<int, decimal>
-            {
-                [3] = 0m,     // 0% for 3 months
-                [6] = 2.5m,   // 2.5% for 6 months
-                [12] = 5.99m, // 5.99% for 12 months
-                [18] = 8.99m, // 8.99% for 18 months
-                [24] = 11.99m // 11.99% for 24 months
-            };
-        }
+
 
         if (method == PaymentMethod.QRCode)
         {

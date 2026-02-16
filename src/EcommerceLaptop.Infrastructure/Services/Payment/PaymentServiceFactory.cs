@@ -31,10 +31,7 @@ public class PaymentServiceFactory : IPaymentServiceFactory
 
             return gateway switch
             {
-                PaymentGateway.VnPay => _serviceProvider.GetRequiredService<IVnPayService>(),
-                PaymentGateway.MoMo => _serviceProvider.GetRequiredService<IMoMoService>(),
                 PaymentGateway.PayPal => _serviceProvider.GetRequiredService<IPayPalService>(),
-                PaymentGateway.ZaloPay => _serviceProvider.GetRequiredService<IZaloPayService>(),
                 PaymentGateway.Stripe => _serviceProvider.GetRequiredService<IStripeService>(),
                 PaymentGateway.SePay => _serviceProvider.GetRequiredService<SePayGatewayAdapter>(),
                 _ => throw new NotSupportedException($"Payment gateway {gateway} is not supported")
@@ -56,17 +53,8 @@ public class PaymentServiceFactory : IPaymentServiceFactory
 
         try
         {
-            if (_serviceProvider.GetService<IVnPayService>() != null)
-                availableGateways.Add(PaymentGateway.VnPay);
-
-            if (_serviceProvider.GetService<IMoMoService>() != null)
-                availableGateways.Add(PaymentGateway.MoMo);
-
             if (_serviceProvider.GetService<IPayPalService>() != null)
                 availableGateways.Add(PaymentGateway.PayPal);
-
-            if (_serviceProvider.GetService<IZaloPayService>() != null)
-                availableGateways.Add(PaymentGateway.ZaloPay);
 
             if (_serviceProvider.GetService<IStripeService>() != null)
                 availableGateways.Add(PaymentGateway.Stripe);
@@ -125,20 +113,14 @@ public class PaymentServiceFactory : IPaymentServiceFactory
 
         try
         {
-            var vnPayService = _serviceProvider.GetService<IVnPayService>();
-            if (vnPayService != null) services.Add(vnPayService);
-
-            var momoService = _serviceProvider.GetService<IMoMoService>();
-            if (momoService != null) services.Add(momoService);
-
             var paypalService = _serviceProvider.GetService<IPayPalService>();
             if (paypalService != null) services.Add(paypalService);
 
-            var zaloPayService = _serviceProvider.GetService<IZaloPayService>();
-            if (zaloPayService != null) services.Add(zaloPayService);
-
             var stripeService = _serviceProvider.GetService<IStripeService>();
             if (stripeService != null) services.Add(stripeService);
+
+            var sePayAdapter = _serviceProvider.GetService<SePayGatewayAdapter>();
+            if (sePayAdapter != null) services.Add(sePayAdapter);
         }
         catch (Exception ex)
         {

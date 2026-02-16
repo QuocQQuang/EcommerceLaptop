@@ -10,7 +10,7 @@ namespace EcommerceLaptop.Core.Utilities.Payment;
 public static class SignatureUtils
 {
     /// <summary>
-    /// Generates HMAC-SHA512 signature for VnPay
+    /// Generates HMAC-SHA512 signature
     /// </summary>
     /// <param name="data">Data to sign</param>
     /// <param name="secretKey">Secret key for signing</param>
@@ -29,7 +29,7 @@ public static class SignatureUtils
     }
 
     /// <summary>
-    /// Generates HMAC-SHA256 signature for ZaloPay
+    /// Generates HMAC-SHA256 signature
     /// </summary>
     /// <param name="data">Data to sign</param>
     /// <param name="secretKey">Secret key for signing</param>
@@ -81,60 +81,7 @@ public static class SignatureUtils
         }
     }
 
-    /// <summary>
-    /// Generates RSA signature for MoMo (placeholder - requires MoMo private key)
-    /// </summary>
-    /// <param name="data">Data to sign</param>
-    /// <param name="privateKey">RSA private key in PEM format</param>
-    /// <returns>Base64-encoded RSA signature</returns>
-    public static string GenerateRsaSignature(string data, string privateKey)
-    {
-        if (string.IsNullOrEmpty(data) || string.IsNullOrEmpty(privateKey))
-            throw new ArgumentException("Data and private key cannot be null or empty");
 
-        try
-        {
-            using var rsa = RSA.Create();
-            rsa.ImportFromPem(privateKey);
-            
-            var dataBytes = Encoding.UTF8.GetBytes(data);
-            var signatureBytes = rsa.SignData(dataBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-            
-            return Convert.ToBase64String(signatureBytes);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Failed to generate RSA signature", ex);
-        }
-    }
-
-    /// <summary>
-    /// Validates RSA signature using public key
-    /// </summary>
-    /// <param name="data">Original data</param>
-    /// <param name="signature">Base64-encoded signature</param>
-    /// <param name="publicKey">RSA public key in PEM format</param>
-    /// <returns>True if signature is valid</returns>
-    public static bool ValidateRsaSignature(string data, string signature, string publicKey)
-    {
-        if (string.IsNullOrEmpty(data) || string.IsNullOrEmpty(signature) || string.IsNullOrEmpty(publicKey))
-            return false;
-
-        try
-        {
-            using var rsa = RSA.Create();
-            rsa.ImportFromPem(publicKey);
-            
-            var dataBytes = Encoding.UTF8.GetBytes(data);
-            var signatureBytes = Convert.FromBase64String(signature);
-            
-            return rsa.VerifyData(dataBytes, signatureBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
     /// <summary>
     /// Generates MD5 hash (for legacy systems only - not recommended for security)
