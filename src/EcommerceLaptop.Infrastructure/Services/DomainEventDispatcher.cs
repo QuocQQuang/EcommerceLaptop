@@ -21,16 +21,16 @@ public class DomainEventDispatcher : IDomainEventDispatcher
 
     public async Task DispatchAsync(IDomainEvent domainEvent)
     {
-        _logger.LogInformation("Dispatching domain event: {EventName} occurred on {OccurredOn}", 
+        _logger.LogInformation("Dispatching domain event: {EventName} occurred on {OccurredOn}",
             domainEvent.GetType().Name, domainEvent.OccurredOn);
 
         var eventType = domainEvent.GetType();
         var handlerType = typeof(IEventHandler<>).MakeGenericType(eventType);
-        
+
         using (var scope = _serviceProvider.CreateScope())
         {
             var handlers = scope.ServiceProvider.GetServices(handlerType);
-            
+
             foreach (var handler in handlers)
             {
                 if (handler == null) continue;

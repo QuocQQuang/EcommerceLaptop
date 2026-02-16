@@ -83,7 +83,6 @@ public class OrderService : IOrderService
             order.SetFinancialDetails(cart.TaxAmount, cart.ShippingCost, cart.DiscountAmount);
 
             _context.Orders.Add(order);
-            // await _context.SaveChangesAsync(); 
 
             // Add order items
             foreach (var cartItem in cart.CartItems)
@@ -95,16 +94,35 @@ public class OrderService : IOrderService
                     cartItem.ItemDiscount
                 );
             }
-            // EF Core will automatically track added items due to AddItem adding to the collection
-            
-            await _context.SaveChangesAsync();
 
-            // Reserve inventory (using internal method to avoid nested transaction)
-            var reservationResult = await _inventoryService.ReserveInventoryInternalAsync(order.Id);
-            if (!reservationResult)
+            // Reserve inventory INLINE to avoid self-deadlock
+            // Previously: SaveChangesAsync #1 locked Order row, then ReserveInventoryInternalAsync
+            // called SaveChangesAsync #2 which tried to UPDATE the same Order row  30s timeout
+            var productIds = cart.CartItems.Select(ci => ci.ProductId).ToList();
+            var inventories = await _context.Inventories
+                .Where(i => productIds.Contains(i.ProductId))
+                .ToDictionaryAsync(i => i.ProductId);
+
+            foreach (var cartItem in cart.CartItems)
             {
-                throw new InvalidOperationException("Failed to reserve inventory for the order");
+                if (!inventories.TryGetValue(cartItem.ProductId, out var inventory)
+                    || inventory.AvailableQuantity < cartItem.Quantity)
+                {
+                    throw new InvalidOperationException("Failed to reserve inventory for the order");
+                }
+
+                inventory.ReserveStock(
+                    cartItem.Quantity,
+                    order.OrderNumber,
+                    "Reserved for order",
+                    customerId
+                );
             }
+
+            order.MarkAsInventoryReserved();
+
+            // Single SaveChangesAsync: Order + OrderItems + Inventory updates + InventoryTransactions
+            await _context.SaveChangesAsync();
 
             // Order remains Pending until payment webhook confirms success
             // Inventory is reserved to hold stock temporarily
@@ -187,7 +205,7 @@ public class OrderService : IOrderService
             _logger.LogDebug("Creating order entity from cart {CartId}", cart.Id);
 
             var orderNumber = GenerateOrderNumber();
-            
+
             var shippingAddress = new AddressVO(
                 request.ShippingAddress,
                 request.ShippingCity,
@@ -201,11 +219,11 @@ public class OrderService : IOrderService
                 orderNumber,
                 shippingAddress
             );
-            
+
             order.SetFinancialDetails(cart.TaxAmount, cart.ShippingCost, cart.DiscountAmount);
 
             _context.Orders.Add(order);
-            
+
             // Step 4: Create order items
             _logger.LogDebug("Creating {ItemCount} order items for order", cart.CartItems.Count);
 
@@ -221,23 +239,40 @@ public class OrderService : IOrderService
                 _logger.LogDebug("Added order item: Product {ProductId}, Quantity {Quantity}, Unit Price ${UnitPrice:F2}",
                     cartItem.ProductId, cartItem.Quantity, cartItem.UnitPrice);
             }
-            
+
             await _context.SaveChangesAsync();
             _logger.LogInformation("Successfully created order {OrderId} and items", order.Id);
 
-            // Step 5: Reserve inventory (using internal method to avoid nested transaction)
+            // Step 5: Reserve inventory INLINE to avoid self-deadlock
+            // Previously: SaveChangesAsync #1 locked Order row, then ReserveInventoryInternalAsync
+            // called SaveChangesAsync #2 which tried to UPDATE the same Order row  30s timeout
             _logger.LogDebug("Reserving inventory for order {OrderId}", order.Id);
 
-            var reservationResult = await _inventoryService.ReserveInventoryInternalAsync(order.Id);
-            if (!reservationResult)
-            {
-                _logger.LogError("Inventory reservation failed for order {OrderId}", order.Id);
+            var productIds = cart.CartItems.Select(ci => ci.ProductId).ToList();
+            var inventories = await _context.Inventories
+                .Where(i => productIds.Contains(i.ProductId))
+                .ToDictionaryAsync(i => i.ProductId);
 
-                return new AtomicCheckoutResult
+            foreach (var cartItem in cart.CartItems)
+            {
+                if (!inventories.TryGetValue(cartItem.ProductId, out var inv)
+                    || inv.AvailableQuantity < cartItem.Quantity)
                 {
-                    IsSuccess = false,
-                    ErrorMessage = "Failed to reserve inventory for the order"
-                };
+                    _logger.LogError("Inventory reservation failed for order {OrderId}, product {ProductId}", order.Id, cartItem.ProductId);
+
+                    return new AtomicCheckoutResult
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Failed to reserve inventory for the order"
+                    };
+                }
+
+                inv.ReserveStock(
+                    cartItem.Quantity,
+                    order.OrderNumber,
+                    "Reserved for order",
+                    request.CustomerId
+                );
             }
 
             _logger.LogInformation("Inventory successfully reserved for order {OrderId}", order.Id);
@@ -246,11 +281,12 @@ public class OrderService : IOrderService
             _logger.LogDebug("Marking order {OrderId} as inventory reserved and clearing cart {CartId}", order.Id, cart.Id);
 
             order.MarkAsInventoryReserved();
-            _context.Update(order);
 
             // Clear the cart
             cart.IsActive = false;
             _context.Update(cart);
+
+            // Single SaveChangesAsync: Inventory updates + Order reserved flag + Cart deactivation
             await _context.SaveChangesAsync();
 
             await transaction.CommitAsync();
