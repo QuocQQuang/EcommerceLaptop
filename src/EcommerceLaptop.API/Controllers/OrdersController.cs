@@ -15,8 +15,8 @@ namespace EcommerceLaptop.API.Controllers;
 [Route("api/[controller]")]
 [Authorize] // Require authentication for order operations
 public class OrdersController(
-    IOrderService orderService, 
-    IPaymentOrchestrator paymentOrchestrator, 
+    IOrderService orderService,
+    IPaymentOrchestrator paymentOrchestrator,
     ILogger<OrdersController> logger) : BaseApiController(logger)
 {
     private readonly IOrderService _orderService = orderService;
@@ -38,7 +38,9 @@ public class OrdersController(
 
         request.CustomerId = int.Parse(customerId);
 
+        // TODO: Email confirmation check temporarily disabled
         // Enforce email confirmation before allowing checkout
+        /*
         var isEmailConfirmed = User.Claims.FirstOrDefault(c => c.Type == "email_confirmed")?.Value;
         if (string.IsNullOrEmpty(isEmailConfirmed))
         {
@@ -55,6 +57,7 @@ public class OrdersController(
         {
             return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
         }
+        */
         var result = await _orderService.CreateOrderAndInitializePaymentAsync(request);
 
         if (result.IsSuccess)
@@ -86,7 +89,9 @@ public class OrdersController(
             return Unauthorized();
         }
 
+        // TODO: Email confirmation check temporarily disabled
         // Enforce email confirmation for order creation from cart as well
+        /*
         var isEmailConfirmed2 = User.Claims.FirstOrDefault(c => c.Type == "email_confirmed")?.Value;
         if (string.IsNullOrEmpty(isEmailConfirmed2))
         {
@@ -102,6 +107,7 @@ public class OrdersController(
         {
             return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
         }
+        */
 
         // Validate shipping address
         if (string.IsNullOrWhiteSpace(request.ShippingAddress))
