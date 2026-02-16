@@ -20,7 +20,7 @@ namespace EcommerceLaptop.Infrastructure.Services
 
         private const string CacheKey = "llm_config_v2";
         private const string RedisCacheKey = "global:llm_config_v2";
-        
+
         // Event for notifying cache invalidation
         public event Action? OnConfigInvalidated;
 
@@ -70,18 +70,18 @@ namespace EcommerceLaptop.Infrastructure.Services
 
         public async Task UpdateConfigAsync(LlmConfiguration config)
         {
-           // NOTE: This legacy method is less relevant now as we update Profiles via LlmManagementService.
-           // However, if called, we could try to update the "Active" profile if it matches, 
-           // or just invalidate cache. For now, we'll just invalidate cache to force reload.
-           InvalidateCache();
-           await Task.CompletedTask;
+            // NOTE: This legacy method is less relevant now as we update Profiles via LlmManagementService.
+            // However, if called, we could try to update the "Active" profile if it matches, 
+            // or just invalidate cache. For now, we'll just invalidate cache to force reload.
+            InvalidateCache();
+            await Task.CompletedTask;
         }
 
         public async Task<bool> ValidateConfigAsync(LlmConfiguration config)
         {
             if (string.IsNullOrWhiteSpace(config.ApiKey) && config.Provider != "Ollama")
                 return false;
-            
+
             if (string.IsNullOrWhiteSpace(config.ModelId))
                 return false;
 
@@ -91,7 +91,14 @@ namespace EcommerceLaptop.Infrastructure.Services
         public void InvalidateCache()
         {
             _memoryCache.Remove(CacheKey);
-            _distributedCache.Remove(RedisCacheKey);
+            try
+            {
+                _distributedCache.Remove(RedisCacheKey);
+            }
+            catch
+            {
+                // Ignore distributed cache errors (e.g. Redis down) to allow operation to complete
+            }
             OnConfigInvalidated?.Invoke(); // Notify subscribers
         }
 
@@ -109,7 +116,7 @@ namespace EcommerceLaptop.Infrastructure.Services
                     .Include(p => p.Provider)
                     .FirstOrDefaultAsync(p => p.Id == profileId);
             }
-            
+
             // Fallback: If no active profile, try to find any "OpenAI" one or create default
             if (profile == null)
             {
@@ -123,14 +130,14 @@ namespace EcommerceLaptop.Infrastructure.Services
 
         public async Task<LlmConfiguration?> GetConfigForProfileAsync(int profileId)
         {
-             var profile = await _context.LlmProfiles
-                .Include(p => p.Provider)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == profileId);
-                
-             if (profile == null) return null;
-             
-             return MapToConfiguration(profile);
+            var profile = await _context.LlmProfiles
+               .Include(p => p.Provider)
+               .AsNoTracking()
+               .FirstOrDefaultAsync(p => p.Id == profileId);
+
+            if (profile == null) return null;
+
+            return MapToConfiguration(profile);
         }
 
         private LlmConfiguration MapToConfiguration(LlmProfile profile)
@@ -142,43 +149,44 @@ namespace EcommerceLaptop.Infrastructure.Services
                 ApiKey = profile.ApiKey ?? string.Empty,
                 BaseUrl = profile.Provider.BaseUrl
             };
-            
+
             if (!string.IsNullOrEmpty(profile.ConfigJson))
             {
-                try 
+                try
                 {
                     var doc = JsonDocument.Parse(profile.ConfigJson);
-                    
+
                     if (doc.RootElement.TryGetProperty("temperature", out var temp)) config.Temperature = temp.GetDouble();
                     if (doc.RootElement.TryGetProperty("max_tokens", out var max)) config.MaxTokens = max.GetInt32();
                     if (doc.RootElement.TryGetProperty("streaming", out var stream)) config.StreamingEnabled = stream.GetBoolean();
-                    
-                     if (doc.RootElement.TryGetProperty("headers", out var headers))
-                     {
-                         foreach(var prop in headers.EnumerateObject())
-                         {
-                             config.Headers[prop.Name] = prop.Value.ToString();
-                         }
-                     }
-                     
-                     foreach(var prop in doc.RootElement.EnumerateObject())
-                     {
-                         string key = prop.Name.ToLower();
-                         if (key != "temperature" && key != "max_tokens" && key != "streaming" && key != "headers")
-                         {
-                             object? val = prop.Value.ValueKind switch {
-                                 JsonValueKind.String => prop.Value.GetString(),
-                                 JsonValueKind.Number => prop.Value.GetDouble(),
-                                 JsonValueKind.True => true,
-                                 JsonValueKind.False => false,
-                                 _ => prop.Value.ToString()
-                             };
-                             if (val != null) config.AdvancedOptions[key] = val;
-                         }
-                     }
+
+                    if (doc.RootElement.TryGetProperty("headers", out var headers))
+                    {
+                        foreach (var prop in headers.EnumerateObject())
+                        {
+                            config.Headers[prop.Name] = prop.Value.ToString();
+                        }
+                    }
+
+                    foreach (var prop in doc.RootElement.EnumerateObject())
+                    {
+                        string key = prop.Name.ToLower();
+                        if (key != "temperature" && key != "max_tokens" && key != "streaming" && key != "headers")
+                        {
+                            object? val = prop.Value.ValueKind switch
+                            {
+                                JsonValueKind.String => prop.Value.GetString(),
+                                JsonValueKind.Number => prop.Value.GetDouble(),
+                                JsonValueKind.True => true,
+                                JsonValueKind.False => false,
+                                _ => prop.Value.ToString()
+                            };
+                            if (val != null) config.AdvancedOptions[key] = val;
+                        }
+                    }
                 }
-                catch 
-                { 
+                catch
+                {
                     // Ignore JSON parse errors
                 }
             }
@@ -187,29 +195,29 @@ namespace EcommerceLaptop.Infrastructure.Services
 
         private async Task<LlmConfiguration> LoadLegacyOrDefaultConfigAsync()
         {
-             var settings = await _context.SystemSettings
-                .Where(s => s.Category == "LLM_Config")
-                .ToDictionaryAsync(s => s.SettingKey, s => s);
+            var settings = await _context.SystemSettings
+               .Where(s => s.Category == "LLM_Config")
+               .ToDictionaryAsync(s => s.SettingKey, s => s);
 
             var config = new LlmConfiguration();
 
             if (settings.TryGetValue("llm_provider", out var provider)) config.Provider = provider.SettingValue ?? "OpenAI";
             if (settings.TryGetValue("llm_model_id", out var model)) config.ModelId = model.SettingValue ?? "gpt-4o-mini";
             if (settings.TryGetValue("llm_base_url", out var baseUrl)) config.BaseUrl = baseUrl.SettingValue;
-            
+
             if (settings.TryGetValue("llm_temperature", out var temp) && double.TryParse(temp.SettingValue, out var t))
                 config.Temperature = t;
-            
+
             if (settings.TryGetValue("llm_max_tokens", out var tokens) && int.TryParse(tokens.SettingValue, out var m))
                 config.MaxTokens = m;
-            
+
             if (settings.TryGetValue("llm_streaming", out var streaming) && bool.TryParse(streaming.SettingValue, out var s))
                 config.StreamingEnabled = s;
 
             if (settings.TryGetValue("llm_api_key", out var apiKey))
             {
-                config.ApiKey = apiKey.IsEncrypted 
-                    ? FieldEncryption.Decrypt(apiKey.SettingValue) 
+                config.ApiKey = apiKey.IsEncrypted
+                    ? FieldEncryption.Decrypt(apiKey.SettingValue)
                     : (apiKey.SettingValue ?? string.Empty);
             }
             return config;
