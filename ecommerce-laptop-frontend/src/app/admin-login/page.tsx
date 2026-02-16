@@ -191,19 +191,6 @@ export default function AdminLoginPage() {
               </Button>
             </form>
 
-            {/* Security Notice */}
-            <div className="mt-6 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-              <div className="flex items-start gap-2">
-                <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5" />
-                <div className="text-xs text-amber-800 dark:text-amber-200">
-                  <p className="font-medium mb-1">Lu :</p>
-                  <ul className="space-y-1 text-amber-700 dark:text-amber-300">
-                    <li> y l h thng admin ring bit</li>
-                    <li> Tt c hot ng c ghi log</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
 
             {/* Back to Home */}
             <div className="mt-4 text-center">
