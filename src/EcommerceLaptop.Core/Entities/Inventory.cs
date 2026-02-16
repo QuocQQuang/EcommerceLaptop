@@ -1,5 +1,6 @@
 using EcommerceLaptop.Core.Common;
 using EcommerceLaptop.Core.DomainEvents;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("EcommerceLaptop.Infrastructure")]
@@ -19,10 +20,15 @@ public class Inventory : BaseEntity
     public int MaxStockLevel { get; set; }
     public string WarehouseLocation { get; set; } = string.Empty;
     public DateTime LastStockUpdate { get; internal set; }
-    
+
+    // Optimistic concurrency token  prevents overselling when concurrent orders
+    // EF Core will include this in UPDATE WHERE clause automatically
+    [Timestamp]
+    public byte[] RowVersion { get; set; } = null!;
+
     // Calculated property
     public int AvailableQuantity => QuantityInStock - ReservedQuantity;
-    
+
     // Navigation properties
     public Product Product { get; set; } = null!;
     public ICollection<InventoryTransaction> Transactions { get; set; } = new List<InventoryTransaction>();
@@ -37,19 +43,19 @@ public class Inventory : BaseEntity
         LastStockUpdate = DateTime.UtcNow;
 
         AddDomainEvent(new InventoryUpdatedEvent(this, quantity, reason));
-        
+
         var transaction = new InventoryTransaction
         {
             Type = InventoryTransactionType.Purchase, // Or Adjustment
             Quantity = quantity,
             Reference = reference,
-            Reason = reason, 
+            Reason = reason,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = userId,
             Notes = reason
         };
         Transactions.Add(transaction);
-        
+
         CheckLowStock();
     }
 
@@ -62,7 +68,7 @@ public class Inventory : BaseEntity
         LastStockUpdate = DateTime.UtcNow;
 
         AddDomainEvent(new InventoryUpdatedEvent(this, -quantity, reason));
-        
+
         var transaction = new InventoryTransaction
         {
             Type = InventoryTransactionType.Sale, // Or Adjustment
@@ -77,28 +83,28 @@ public class Inventory : BaseEntity
 
         CheckLowStock();
     }
-    
+
     public void ReserveStock(int quantity, string reference, string reason, int userId)
     {
-         if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be positive.");
-         if (AvailableQuantity < quantity) throw new InvalidOperationException("Insufficient available stock to reserve.");
-         
-         ReservedQuantity += quantity;
-         LastStockUpdate = DateTime.UtcNow;
-         
-         var transaction = new InventoryTransaction
-         {
-             Type = InventoryTransactionType.Reservation,
-             Quantity = quantity,
-             Reference = reference,
-             Reason = reason,
-             CreatedAt = DateTime.UtcNow,
-             CreatedBy = userId,
-             Notes = reason
-         };
-         Transactions.Add(transaction);
+        if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be positive.");
+        if (AvailableQuantity < quantity) throw new InvalidOperationException("Insufficient available stock to reserve.");
 
-         CheckLowStock();
+        ReservedQuantity += quantity;
+        LastStockUpdate = DateTime.UtcNow;
+
+        var transaction = new InventoryTransaction
+        {
+            Type = InventoryTransactionType.Reservation,
+            Quantity = quantity,
+            Reference = reference,
+            Reason = reason,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = userId,
+            Notes = reason
+        };
+        Transactions.Add(transaction);
+
+        CheckLowStock();
     }
 
     public void CancelReservation(int quantity, string reference, string reason, int userId)
@@ -121,7 +127,7 @@ public class Inventory : BaseEntity
         };
         Transactions.Add(transaction);
     }
-    
+
     public void ConfirmReservation(int quantity, string reference, string reason, int userId)
     {
         if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be positive.");
@@ -129,7 +135,7 @@ public class Inventory : BaseEntity
 
         // Decrement reserved quantity silently (as it's being converted to sale)
         ReservedQuantity -= quantity;
-        
+
         // Remove from stock (logs Sale transaction)
         RemoveStock(quantity, reference, reason, userId);
     }
@@ -141,7 +147,7 @@ public class Inventory : BaseEntity
             AddDomainEvent(new InventoryLowStockEvent(this));
         }
     }
-    
+
     // Helper to initialize for EF or Factory
     public static Inventory Create(int productId, int initialStock, int reorderLevel, int maxStock, string location)
     {
@@ -168,7 +174,7 @@ public class InventoryTransaction
     public string Notes { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public int CreatedBy { get; set; } // User ID
-    
+
     // Navigation properties
     public Inventory Inventory { get; set; } = null!;
 }
@@ -222,7 +228,7 @@ public class Campaign
     public string BannerImageUrl { get; set; } = string.Empty;
     public string TargetAudience { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
-    
+
     // Navigation properties
     public ICollection<CampaignProduct> CampaignProducts { get; set; } = new List<CampaignProduct>();
 }
@@ -235,7 +241,7 @@ public class CampaignProduct
     public decimal DiscountPercentage { get; set; }
     public decimal? FixedDiscountAmount { get; set; }
     public decimal? SpecialPrice { get; set; }
-    
+
     // Navigation properties
     public Campaign Campaign { get; set; } = null!;
     public Product Product { get; set; } = null!;

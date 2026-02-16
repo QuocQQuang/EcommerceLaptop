@@ -45,6 +45,7 @@ public class OrderService : IOrderService
     public async Task<OrderDto> CreateOrderFromCartAsync(int cartId, int customerId, string shippingAddress)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
+        Order order;
 
         try
         {
@@ -59,13 +60,6 @@ public class OrderService : IOrderService
                 throw new ArgumentException("Invalid or inactive cart");
             }
 
-            // Validate cart items availability
-            var validation = await _inventoryService.ValidateCartItemsAvailabilityAsync(cart.CartItems);
-            if (!validation.IsValid)
-            {
-                throw new InvalidOperationException("Insufficient inventory for some items");
-            }
-
             // Create Address Value Object
             var addressParts = shippingAddress.Split(',');
             var street = addressParts.Length > 0 ? addressParts[0].Trim() : shippingAddress;
@@ -73,7 +67,7 @@ public class OrderService : IOrderService
             var address = new AddressVO(street, city, "", "", "");
 
             // Create order
-            var order = Order.Create(
+            order = Order.Create(
                 customerId,
                 GenerateOrderNumber(),
                 address
@@ -95,9 +89,7 @@ public class OrderService : IOrderService
                 );
             }
 
-            // Reserve inventory INLINE to avoid self-deadlock
-            // Previously: SaveChangesAsync #1 locked Order row, then ReserveInventoryInternalAsync
-            // called SaveChangesAsync #2 which tried to UPDATE the same Order row  30s timeout
+            // Reserve inventory inline  RowVersion on Inventory prevents overselling
             var productIds = cart.CartItems.Select(ci => ci.ProductId).ToList();
             var inventories = await _context.Inventories
                 .Where(i => productIds.Contains(i.ProductId))
@@ -121,33 +113,44 @@ public class OrderService : IOrderService
 
             order.MarkAsInventoryReserved();
 
-            // Single SaveChangesAsync: Order + OrderItems + Inventory updates + InventoryTransactions
-            await _context.SaveChangesAsync();
-
-            // Order remains Pending until payment webhook confirms success
-            // Inventory is reserved to hold stock temporarily
-
-            // Send confirmation email
-            var user = await _context.Users.FindAsync(customerId);
-            if (user != null)
-            {
-                await _emailService.SendOrderConfirmationEmailAsync(user, order.OrderNumber);
-            }
-
-            await transaction.CommitAsync();
-
-            // Clear cart
+            // Deactivate cart INSIDE transaction to prevent double orders on crash
             cart.IsActive = false;
-            _context.Update(cart);
-            await _context.SaveChangesAsync();
 
-            return _mapper.Map<OrderDto>(order);
+            // Single atomic SaveChangesAsync: Order + Items + Inventory + Cart
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // RowVersion conflict  another transaction reserved the same inventory
+            await transaction.RollbackAsync();
+            throw new InvalidOperationException(
+                "Another order was placed for the same product at the same time. Please try again.");
         }
         catch
         {
             await transaction.RollbackAsync();
             throw;
         }
+
+        // Fire-and-forget email  don't block HTTP response for SMTP timeout (~2 min)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(customerId);
+                if (user != null)
+                {
+                    await _emailService.SendOrderConfirmationEmailAsync(user, order.OrderNumber);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send order confirmation email for order {OrderNumber}, but order was created successfully", order.OrderNumber);
+            }
+        });
+
+        return _mapper.Map<OrderDto>(order);
     }
 
     public async Task<AtomicCheckoutResult> CreateOrderAndInitializePaymentAsync(CreateOrderRequest request)
@@ -183,25 +186,7 @@ public class OrderService : IOrderService
             _logger.LogInformation("Cart {CartId} validated successfully - {ItemCount} items, total ${Total:F2}",
                 cart.Id, cart.CartItems.Count, cart.TotalAmount);
 
-            // Step 2: Validate cart items availability
-            _logger.LogDebug("Validating inventory availability for {ItemCount} cart items", cart.CartItems.Count);
-
-            var validation = await _inventoryService.ValidateCartItemsAvailabilityAsync(cart.CartItems);
-            if (!validation.IsValid)
-            {
-                _logger.LogWarning("Inventory validation failed for cart {CartId}: {ValidationErrors}",
-                    cart.Id, string.Join(", ", validation.Errors));
-
-                return new AtomicCheckoutResult
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"Insufficient inventory for some items: {string.Join(", ", validation.Errors)}"
-                };
-            }
-
-            _logger.LogInformation("Inventory validation passed for all cart items");
-
-            // Step 3: Create order
+            // Step 2: Create order
             _logger.LogDebug("Creating order entity from cart {CartId}", cart.Id);
 
             var orderNumber = GenerateOrderNumber();
@@ -224,7 +209,7 @@ public class OrderService : IOrderService
 
             _context.Orders.Add(order);
 
-            // Step 4: Create order items
+            // Step 3: Create order items
             _logger.LogDebug("Creating {ItemCount} order items for order", cart.CartItems.Count);
 
             foreach (var cartItem in cart.CartItems)
@@ -240,13 +225,8 @@ public class OrderService : IOrderService
                     cartItem.ProductId, cartItem.Quantity, cartItem.UnitPrice);
             }
 
-            await _context.SaveChangesAsync();
-            _logger.LogInformation("Successfully created order {OrderId} and items", order.Id);
-
-            // Step 5: Reserve inventory INLINE to avoid self-deadlock
-            // Previously: SaveChangesAsync #1 locked Order row, then ReserveInventoryInternalAsync
-            // called SaveChangesAsync #2 which tried to UPDATE the same Order row  30s timeout
-            _logger.LogDebug("Reserving inventory for order {OrderId}", order.Id);
+            // Step 4: Reserve inventory inline  RowVersion on Inventory prevents overselling
+            _logger.LogDebug("Reserving inventory for order");
 
             var productIds = cart.CartItems.Select(ci => ci.ProductId).ToList();
             var inventories = await _context.Inventories
@@ -258,7 +238,7 @@ public class OrderService : IOrderService
                 if (!inventories.TryGetValue(cartItem.ProductId, out var inv)
                     || inv.AvailableQuantity < cartItem.Quantity)
                 {
-                    _logger.LogError("Inventory reservation failed for order {OrderId}, product {ProductId}", order.Id, cartItem.ProductId);
+                    _logger.LogError("Inventory reservation failed for product {ProductId}", cartItem.ProductId);
 
                     return new AtomicCheckoutResult
                     {
@@ -275,19 +255,15 @@ public class OrderService : IOrderService
                 );
             }
 
-            _logger.LogInformation("Inventory successfully reserved for order {OrderId}", order.Id);
+            _logger.LogInformation("Inventory successfully reserved for order");
 
-            // Step 6: Mark order as inventory reserved and clear cart
-            _logger.LogDebug("Marking order {OrderId} as inventory reserved and clearing cart {CartId}", order.Id, cart.Id);
-
+            // Step 5: Mark order as inventory reserved and deactivate cart
             order.MarkAsInventoryReserved();
-
-            // Clear the cart
             cart.IsActive = false;
-            _context.Update(cart);
 
-            // Single SaveChangesAsync: Inventory updates + Order reserved flag + Cart deactivation
+            // Single atomic SaveChangesAsync: Order + Items + Inventory + Cart
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Successfully created order {OrderId} with inventory reserved", order.Id);
 
             await transaction.CommitAsync();
 
@@ -305,6 +281,20 @@ public class OrderService : IOrderService
                     ErrorMessage = "Payment initialization will be handled separately",
                     ErrorCode = "PAYMENT_PENDING"
                 }
+            };
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            await transaction.RollbackAsync();
+
+            var duration = DateTime.UtcNow - startTime;
+            _logger.LogWarning("Concurrency conflict after {Duration:F2}ms for customer {CustomerId}, cart {CartId}  another order reserved the same inventory",
+                duration.TotalMilliseconds, request.CustomerId, request.CartId);
+
+            return new AtomicCheckoutResult
+            {
+                IsSuccess = false,
+                ErrorMessage = "Another order was placed for the same product at the same time. Please try again."
             };
         }
         catch (Exception ex)
