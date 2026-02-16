@@ -117,6 +117,9 @@ if (app.Environment.IsDevelopment())
 var corsPolicy = "AllowAll";
 Log.Information("CORS CONFIGURATION: Using {Policy}", corsPolicy);
 
+// Enable WebSocket support for SignalR
+app.UseWebSockets();
+
 // Ensure routing is set up before applying CORS
 app.UseRouting();
 

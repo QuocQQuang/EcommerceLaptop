@@ -47,6 +47,8 @@ export const useChatBot = (userToken?: string | null) => {
             const builder = new signalR.HubConnectionBuilder()
                 .withUrl(url, {
                     accessTokenFactory: () => userToken || '', // Handles Auth
+                    skipNegotiation: false, // Enable negotiation to detect best transport
+                    transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.ServerSentEvents | signalR.HttpTransportType.LongPolling, // Fallback transports
                 })
                 .withAutomaticReconnect()
                 .configureLogging(signalR.LogLevel.Information);
