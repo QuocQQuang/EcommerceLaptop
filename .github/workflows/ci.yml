@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, before-crqs, develop]
+  pull_request:
+    branches: [main, master, before-crqs, develop]
+
+jobs:
+  #  Frontend (Next.js) 
+  frontend:
+    name: Frontend Build & Test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ecommerce-laptop-frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: ecommerce-laptop-frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+        continue-on-error: true
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+        continue-on-error: true
+
+      - name: Unit tests
+        run: pnpm test:ci
+        env:
+          CI: true
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:5129/api' }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'http://localhost:3000' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-secret-key-not-for-production' }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '' }}
+          NEXT_PUBLIC_PAYPAL_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '' }}
+          NEXT_PUBLIC_UNSPLASH_ACCESS_KEY: ${{ secrets.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY || '' }}
+          NODE_OPTIONS: --max-old-space-size=4096
+
+  #  Backend (.NET 9) 
+  backend:
+    name: Backend Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.x"
+
+      - name: Restore
+        run: dotnet restore src/EcommerceLaptop.API/EcommerceLaptop.csproj
+
+      - name: Build
+        run: dotnet build src/EcommerceLaptop.API/EcommerceLaptop.csproj --no-restore -c Release
+
+      - name: Unit Tests
+        run: dotnet test tests/EcommerceLaptop.UnitTests --no-build -c Release --verbosity normal
+        continue-on-error: true
