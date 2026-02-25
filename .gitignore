@@ -31,6 +31,8 @@ docker-data/
 docker-compose.override.yml
 .txt
 # ---- Node / Next.js (frontend) ----
+package-lock.json
+ecommerce-laptop-frontend/package-lock.json
 node_modules/
 ecommerce-laptop-frontend/node_modules/
 ecommerce-laptop-frontend/.next/
