@@ -36,15 +36,11 @@ public class AdminPermissionHandler : AuthorizationHandler<AdminPermissionRequir
         _logger.LogInformation(" USER CLAIMS DEBUG - Total Claims: {ClaimCount}", context.User.Claims.Count());
 
         // Check for admin claim - check both standard and custom claims
-        var isAdmin = context.User.IsInRole("Admin") ||
-                     context.User.IsInRole("SystemAdmin") ||
-                     context.User.IsInRole("ProductAdmin") ||
-                     context.User.IsInRole("SalesAdmin") ||
-                     context.User.IsInRole("PromotionManager") ||
-                     context.User.IsInRole("SuperAdmin") ||
-                     context.User.HasClaim(c => c.Type == ClaimTypes.Role && (c.Value == "Admin" || c.Value == "SystemAdmin" || c.Value == "ProductAdmin" || c.Value == "SalesAdmin" || c.Value == "PromotionManager" || c.Value == "SuperAdmin")) ||
-                     context.User.HasClaim(c => c.Type == "admin_role") ||
-                     context.User.HasClaim(c => c.Type == "is_admin" && c.Value == "true");
+        // Check for admin claim - check both standard and custom claims
+        var isAdmin = context.User.HasClaim(c => c.Type == "is_admin" && c.Value == "true") ||
+                      context.User.IsInRole("Admin") ||
+                      context.User.IsInRole("SystemAdmin") ||
+                      context.User.IsInRole("SuperAdmin");
 
         _logger.LogInformation(" ADMIN CHECK - IsAdmin: {IsAdmin}", isAdmin);
 

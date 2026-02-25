@@ -71,86 +71,86 @@ public class IdentityService : IIdentityService
                     "a ch IP ca bn ang b kha tm thi do ng nhp sai qu nhiu. Vui lng th li sau.",
                     null, null, default, 0, null, context
                 );
+                }
             }
+
+            var user = await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                    .ThenInclude(rp => rp.Permission)
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower() && u.IsActive);
+
+            if (user == null || !IsValidUserTypeForContext(user, context))
+            {
+                _logger.LogWarning(" AUTH FAILED - Invalid user or context: {Email} | Context: {Context}",
+                    email, context);
+                return new UnifiedAuthResult(
+                    false,
+                    "Invalid email or password",
+                    null, null, default, 0, null, context
+                );
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            {
+                await HandleFailedLogin(user, ipAddress, userAgent);
+                _logger.LogWarning(" AUTH FAILED - Invalid password: {Email} | Context: {Context}",
+                    email, context);
+
+                return new UnifiedAuthResult(
+                    false,
+                    "Invalid email or password",
+                    null, null, default, 0, null, context
+                );
+            }
+
+            (string accessToken, RefreshToken refreshToken) = await _tokenService.GenerateTokensAsync(user, context);
+
+            await UpdateSuccessfulLogin(user, ipAddress, userAgent);
+
+            var permissions = new List<AdminPermissionDto>();
+            var isAdmin = user.UserRoles.Any(ur => ur.Role.IsAdminRole);
+            if (isAdmin)
+            {
+                permissions = user.UserRoles
+                    .SelectMany(ur => ur.Role.RolePermissions)
+                    .Select(rp => new AdminPermissionDto
+                    {
+                        Id = rp.Permission.Id,
+                        Name = rp.Permission.Name,
+                        Description = rp.Permission.Description,
+                        Module = rp.Permission.Module,
+                        Action = rp.Permission.Action
+                    }).ToList();
+            }
+
+            var unifiedUser = MapToUnifiedUserDto(user, permissions);
+
+            _logger.LogInformation(" AUTH SUCCESS - {Email} | Context: {Context} | UserType: {UserType}",
+                email, context, isAdmin ? "Admin" : "Customer");
+
+            return new UnifiedAuthResult(
+                true,
+                null,
+                accessToken,
+                refreshToken.Token,
+                DateTime.UtcNow.AddMinutes(30),
+                30 * 60,
+                unifiedUser,
+                context
+            );
         }
-
-        var user = await _context.Users
-            .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-                .ThenInclude(r => r.RolePermissions)
-                .ThenInclude(rp => rp.Permission)
-            .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower() && u.IsActive);
-
-        if (user == null || !IsValidUserTypeForContext(user, context))
+        catch (Exception ex)
         {
-            _logger.LogWarning(" AUTH FAILED - Invalid user or context: {Email} | Context: {Context}",
-                email, context);
+            _logger.LogError(ex, " AUTH ERROR - {Email} | Context: {Context}", email, context);
             return new UnifiedAuthResult(
                 false,
-                "Invalid email or password",
+                "An error occurred during authentication",
                 null, null, default, 0, null, context
             );
         }
-
-        if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-        {
-            await HandleFailedLogin(user, ipAddress, userAgent);
-            _logger.LogWarning(" AUTH FAILED - Invalid password: {Email} | Context: {Context}",
-                email, context);
-
-            return new UnifiedAuthResult(
-                false,
-                "Invalid email or password",
-                null, null, default, 0, null, context
-            );
-        }
-
-        (string accessToken, RefreshToken refreshToken) = await _tokenService.GenerateTokensAsync(user, context);
-
-        await UpdateSuccessfulLogin(user, ipAddress, userAgent);
-
-        var permissions = new List<AdminPermissionDto>();
-        var isAdmin = user.UserRoles.Any(ur => ur.Role.IsAdminRole);
-        if (isAdmin)
-        {
-            permissions = user.UserRoles
-                .SelectMany(ur => ur.Role.RolePermissions)
-                .Select(rp => new AdminPermissionDto
-                {
-                    Id = rp.Permission.Id,
-                    Name = rp.Permission.Name,
-                    Description = rp.Permission.Description,
-                    Module = rp.Permission.Module,
-                    Action = rp.Permission.Action
-                }).ToList();
-        }
-
-        var unifiedUser = MapToUnifiedUserDto(user, permissions);
-
-        _logger.LogInformation(" AUTH SUCCESS - {Email} | Context: {Context} | UserType: {UserType}",
-            email, context, isAdmin ? "Admin" : "Customer");
-
-        return new UnifiedAuthResult(
-            true,
-            null,
-            accessToken,
-            refreshToken.Token,
-            DateTime.UtcNow.AddMinutes(30),
-            30 * 60,
-            unifiedUser,
-            context
-        );
     }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, " AUTH ERROR - {Email} | Context: {Context}", email, context);
-        return new UnifiedAuthResult(
-            false,
-            "An error occurred during authentication",
-            null, null, default, 0, null, context
-        );
-    }
-}
 
     public async Task<UnifiedRefreshResult?> RefreshTokenAsync(string refreshToken, AuthContext context, string? ipAddress = null, string? userAgent = null)
     {
@@ -532,9 +532,7 @@ public class IdentityService : IIdentityService
 
     private bool IsValidUserTypeForContext(User user, AuthContext context)
     {
-        var isAdmin = user.UserRoles.Any(ur => ur.Role.IsAdminRole ||
-                                                (!string.IsNullOrEmpty(ur.Role.Name) &&
-                                                 ur.Role.Name.ToLower().Contains("admin")));
+        var isAdmin = user.UserRoles.Any(ur => ur.Role.IsAdminRole);
         return context switch
         {
             AuthContext.Customer => true, // Allow admins to login as customers

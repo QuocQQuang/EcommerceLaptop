@@ -211,6 +211,25 @@ export function ProtectedAdminRoute({
     return fallback || null;
   }
 
+  // Global check: If user is a Customer, block access to ALL protected admin routes
+  // This is a failsafe in case specific role/permission requirements are missing
+  if (user && (user.roleName === 'Customer' || user.roleName === 'User')) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-destructive mb-2">Truy cp b t chi</h1>
+          <p className="text-muted-foreground">Ti khon khch hng khng c quyn truy cp vo trang qun tr.</p>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
+            V trang ch
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Check role requirements
   if (requiredRole && user) {
     const userRole = user.roleName;
