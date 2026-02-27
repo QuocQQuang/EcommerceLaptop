@@ -39,8 +39,8 @@ namespace EcommerceLaptop.UnitTests.Repositories
             _context.Products.AddRange(prod1, prod2);
             await _context.SaveChangesAsync();
 
-            var inv1 = new Inventory { ProductId = prod1.Id, QuantityInStock = 10, WarehouseLocation = "A1" };
-            var inv2 = new Inventory { ProductId = prod2.Id, QuantityInStock = 5, WarehouseLocation = "B1" };
+            var inv1 = new Inventory { ProductId = prod1.Id, QuantityInStock = 10, WarehouseLocation = "A1", RowVersion = new byte[8] };
+            var inv2 = new Inventory { ProductId = prod2.Id, QuantityInStock = 5, WarehouseLocation = "B1", RowVersion = new byte[8] };
 
             _context.Inventories.AddRange(inv1, inv2);
             await _context.SaveChangesAsync();
@@ -67,8 +67,8 @@ namespace EcommerceLaptop.UnitTests.Repositories
             // ReorderLevel = 10. 
             // Inv1: Qty 5 (Low)
             // Inv2: Qty 15 (OK)
-            var inv1 = new Inventory { ProductId = prod1.Id, QuantityInStock = 5, ReorderLevel = 10 };
-            var inv2 = new Inventory { ProductId = prod2.Id, QuantityInStock = 15, ReorderLevel = 10 };
+            var inv1 = new Inventory { ProductId = prod1.Id, QuantityInStock = 5, ReorderLevel = 10, RowVersion = new byte[8] };
+            var inv2 = new Inventory { ProductId = prod2.Id, QuantityInStock = 15, ReorderLevel = 10, RowVersion = new byte[8] };
 
             _context.Inventories.AddRange(inv1, inv2);
             await _context.SaveChangesAsync();

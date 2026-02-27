@@ -40,7 +40,7 @@ namespace EcommerceLaptop.UnitTests.Services
             // Arrange
             var userId = "1";
             var product = new Laptop { Id = 1, Name = "Laptop", Price = 1000, IsActive = true };
-            product.Inventory = new Inventory { ProductId = 1, QuantityInStock = 10 };
+            product.Inventory = new Inventory { ProductId = 1, QuantityInStock = 10, RowVersion = new byte[8] };
             
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
@@ -64,7 +64,7 @@ namespace EcommerceLaptop.UnitTests.Services
             // Arrange
             var userId = "1";
             var product = new Laptop { Id = 1, Name = "Laptop", Price = 1000, IsActive = true };
-            product.Inventory = new Inventory { ProductId = 1, QuantityInStock = 0 }; // No stock
+            product.Inventory = new Inventory { ProductId = 1, QuantityInStock = 0, RowVersion = new byte[8] }; // No stock
             
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
@@ -82,7 +82,7 @@ namespace EcommerceLaptop.UnitTests.Services
             // Arrange
             var userId = "1";
             var product = new Laptop { Id = 1, Name = "Laptop", Price = 1000, IsActive = true };
-            product.Inventory = new Inventory { ProductId = 1, QuantityInStock = 10 };
+            product.Inventory = new Inventory { ProductId = 1, QuantityInStock = 10, RowVersion = new byte[8] };
             var cart = new ShoppingCart { UserId = 1, IsActive = true };
             var cartItem = new CartItem { Id = 1, ProductId = 1, Product = product, Quantity = 1, UnitPrice = 1000 };
             cart.CartItems.Add(cartItem);

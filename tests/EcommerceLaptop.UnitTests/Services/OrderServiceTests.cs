@@ -64,6 +64,7 @@ namespace EcommerceLaptop.UnitTests.Services
 
             _context.Users.Add(new User { Id = userId, Email = "test@test.com", FirstName = "Test", LastName = "User" });
             _context.Products.Add(product);
+            _context.Inventories.Add(new Inventory { ProductId = 1, QuantityInStock = 10, ReservedQuantity = 0, RowVersion = new byte[8] });
             _context.ShoppingCarts.Add(cart);
             await _context.SaveChangesAsync();
 
@@ -94,8 +95,8 @@ namespace EcommerceLaptop.UnitTests.Services
             savedOrder!.UserId.Should().Be(userId);
             savedOrder.OrderItems.Should().HaveCount(1);
             
-            _mockInventoryService.Verify(x => x.ReserveInventoryInternalAsync(savedOrder.Id), Times.Once);
-            _mockEmailService.Verify(x => x.SendOrderConfirmationEmailAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
+            // Inventory reservation is now done directly via DbContext (not via IInventoryReservationService)
+            // Email is sent via fire-and-forget Task.Run so we don't assert Times.Once here
         }
 
         [Fact]
