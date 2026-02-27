@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 
 // Mock next/image
 jest.mock('next/image', () => {
-    return function MockImage({ src, alt, ...props }: any) {
+    return function MockImage({ src, alt }: { src: string; alt: string; [key: string]: unknown }) {
         return <img src={src} alt={alt} />
     }
 })
@@ -106,7 +106,9 @@ describe('ProductCard', () => {
         const outOfStockProduct = { ...mockProduct, stockQuantity: 0 }
         render(<ProductCard product={outOfStockProduct} />)
 
-        expect(screen.getByText('Ht hng')).toBeInTheDocument()
+        // ProductCard renders "Ht hng" in both the badge and the stock status span
+        const elements = screen.getAllByText('Ht hng')
+        expect(elements.length).toBeGreaterThan(0)
     })
 
     it('calls addToCart when "Thm vo gi" button is clicked', async () => {
