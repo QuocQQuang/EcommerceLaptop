@@ -1,18 +1,19 @@
+import React from 'react'
 import { CartSidebar } from '@/components/organisms/CartSidebar'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 // Mock next/image
 jest.mock('next/image', () => {
-    return function MockImage({ src, alt, ...props }: any) {
-        return <img src={src} alt={alt} {...props} />
+    return function MockImage({ src, alt }: { src: string; alt: string; [key: string]: unknown }) {
+        return <img src={src} alt={alt} />
     }
 })
 
 // Mock next/link
 jest.mock('next/link', () => {
-    return function MockLink({ href, children, ...props }: any) {
-        return <a href={href} {...props}>{children}</a>
+    return function MockLink({ href, children, className }: { href: string; children: unknown; className?: string }) {
+        return <a href={href} className={className}>{children as React.ReactNode}</a>
     }
 })
 
