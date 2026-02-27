@@ -301,7 +301,7 @@ export function mapToEmailNotifications(settings: UiSystemSetting[]): EmailNotif
         toCustomEmails: []
       },
       template: {
-        subject: 'Cho mng bn n vi Laptop Enterprise',
+        subject: 'Cho mng bn n vi Laptop',
         bodyTemplate: 'welcome_user_template'
       }
     },

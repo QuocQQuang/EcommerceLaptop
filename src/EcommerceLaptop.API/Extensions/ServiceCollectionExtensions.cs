@@ -412,8 +412,8 @@ public static class ServiceCollectionExtensions
             options.AddPolicy("Production", policy =>
             {
                 policy.WithOrigins(
-                        "https://ecommerce-laptop-enterprise.vercel.app",
-                        "https://ecommerce-laptop-enterprise-git-*.vercel.app",
+                        "https://ecommerce-laptop-quocquang.vercel.app",
+                        "https://ecommerce-laptop-quocquang-git-*.vercel.app",
                         "https://a33lprojecct.id.vn"
                     )
                     .AllowAnyMethod()
@@ -429,14 +429,14 @@ public static class ServiceCollectionExtensions
                         "http://localhost:3001", "https://localhost:3001",
                         "http://localhost:3002", "https://localhost:3002",
                         "http://127.0.0.1:3000", "https://127.0.0.1:3000",
-                        "https://ecommerce-laptop-enterprise.vercel.app",
-                        "https://ecommerce-laptop-enterprise-git-*.vercel.app",
+                        "https://ecommerce-laptop-quocquang.vercel.app",
+                        "https://ecommerce-laptop-quocquang-git-*.vercel.app",
                         "https://a33lprojecct.id.vn"
                       )
                       .AllowAnyMethod()
                       .AllowAnyHeader()
                       .AllowCredentials()
-                      .SetIsOriginAllowed(origin => origin.StartsWith("https://ecommerce-laptop-enterprise") ||
+                      .SetIsOriginAllowed(origin => origin.StartsWith("https://ecommerce-laptop-quocquang") ||
                                                    origin.StartsWith("http://localhost:") ||
                                                    origin.StartsWith("https://localhost:") ||
                                                    origin.StartsWith("http://127.0.0.1:") ||

@@ -1,6 +1,6 @@
 # Ecommerce Laptop
 
-Fullstack e-commerce platform for laptops. Built as an intern project to learn Clean Architecture, payment integration, and AI-assisted features.
+Fullstack e-commerce platform for laptops. Built as a school project to learn Clean Architecture, payment integration, and AI-assisted features.
 
 **Backend:** .NET 9  EF Core 9  SQL Server  Redis  Typesense  Qdrant  
 **Frontend:** Next.js 16  React 19  TypeScript  Tailwind CSS 4  
@@ -391,4 +391,4 @@ npm run test:e2e
 
 ---
 
-*Intern project  .NET 9 & Next.js 16*
+*School project  .NET 9 & Next.js 16*

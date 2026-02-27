@@ -26,6 +26,10 @@ pnpm-debug.log*
 *.txt
 .direnv/
 FULL_CODE_CONTEXT.md
+
+*.md
+!README.md
+!**/README.md
 # ---- Docker local state ----
 docker-data/
 docker-compose.override.yml
@@ -116,6 +120,9 @@ tools/**/obj/
 tools/
 !tools/**/*.md
 !tools/**/README*
+# Allow AI tool handlers (matched by tools/ above on case-insensitive filesystems)
+!src/**/Services/AI/Tools/
+!src/**/Services/AI/Tools/**
 
 # ---- Misc project outputs ----
 *.bak
@@ -156,6 +163,10 @@ tmp/**
 # Whitelist for testing
 !build_lmstudio.txt
 !tests/*.ps1
+
+# ---- Nginx / infra configs (qun l thng trn VPS) ----
+docs/nginx.conf
+docs/nginx.config
 
 # ---- Application Secrets ----
 appsettings.json

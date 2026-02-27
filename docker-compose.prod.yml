@@ -1,0 +1,52 @@
+# Production override - dng km vi docker-compose.yml
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Secrets cn thit trn VPS (dng .env file hoc environment):
+#   DB_CONNECTION_STRING, REDIS_CONNECTION_STRING,
+#   JWT_SECRET, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, v.v.
+
+version: '3.8'
+
+services:
+  api:
+    image: ghcr.io/quocqquang/ecommerce-laptop-api:latest
+    container_name: ecommerce_api
+    ports:
+      - "5129:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      # Inject t .env hoc GitHub Secrets  VPS env
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+      - ConnectionStrings__Redis=${REDIS_CONNECTION_STRING}
+      - JwtSettings__Secret=${JWT_SECRET}
+      - JwtSettings__Issuer=${JWT_ISSUER:-https://ecommercelaptop.com}
+      - JwtSettings__Audience=${JWT_AUDIENCE:-ecommercelaptop-users}
+      - PaymentGateways__PayPal__ClientId=${PAYPAL_CLIENT_ID}
+      - PaymentGateways__PayPal__ClientSecret=${PAYPAL_CLIENT_SECRET}
+      - PaymentGateways__PayPal__Environment=${PAYPAL_ENV:-sandbox}
+      - Typesense__ApiKey=${TYPESENSE_API_KEY:-xyz}
+      - Typesense__Host=typesense
+      - Typesense__Port=8108
+      - Qdrant__Host=qdrant
+      - Qdrant__Port=6333
+      - Redis__Host=redis
+      - AllowedOrigins=${ALLOWED_ORIGINS:-https://ecommerce-laptop-quocquang.vercel.app}
+    depends_on:
+      - redis
+      - typesense
+      - qdrant
+    networks:
+      - ecommerce_network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

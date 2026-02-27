@@ -70,11 +70,11 @@ jobs:
           dotnet-version: "9.x"
 
       - name: Restore
-        run: dotnet restore src/EcommerceLaptop.API/EcommerceLaptop.csproj
+        run: dotnet restore EcommerceLaptop.sln
 
       - name: Build
-        run: dotnet build src/EcommerceLaptop.API/EcommerceLaptop.csproj --no-restore -c Release
+        run: dotnet build EcommerceLaptop.sln --no-restore -c Release
 
       - name: Unit Tests
-        run: dotnet test tests/EcommerceLaptop.UnitTests --no-build -c Release --verbosity normal
+        run: dotnet test tests/EcommerceLaptop.UnitTests -c Release --verbosity normal --no-build
         continue-on-error: true

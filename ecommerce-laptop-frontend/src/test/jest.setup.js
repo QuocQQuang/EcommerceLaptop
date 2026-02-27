@@ -122,6 +122,18 @@ jest.mock('next-auth/react', () => ({
     SessionProvider: ({ children }) => children,
 }))
 
+// Mock CurrencyContext so components don't require a provider in tests
+jest.mock('@/contexts/CurrencyContext', () => ({
+    CurrencyProvider: ({ children }) => children,
+    useCurrencyContext: () => ({
+        selectedCurrency: 'USD',
+        setSelectedCurrency: jest.fn(),
+        exchangeRates: { USD: 1, VND: 24000 },
+        refreshRates: jest.fn(),
+        isLoading: false,
+    }),
+}))
+
 // Suppress console warnings during tests
 const originalError = console.error
 beforeAll(() => {

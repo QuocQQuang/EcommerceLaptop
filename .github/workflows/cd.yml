@@ -1,0 +1,86 @@
+name: CD  Deploy to VPS
+
+on:
+  push:
+    branches: [before-crqs]
+  workflow_dispatch:   # cho php bm nt deploy th cng
+
+# Ch cho php 1 deploy chy cng lc, cancel ci c nu c ci mi
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: true
+
+jobs:
+  #  Build kim tra trc khi deploy 
+  build-check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.x"
+
+      - name: Restore & Build
+        run: dotnet build EcommerceLaptop.sln --no-incremental -c Release
+
+  #  Deploy ln VPS (systemd) 
+  deploy:
+    name: Deploy to VPS
+    needs: build-check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH vo VPS  git pull, dotnet publish, restart service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+            export PATH="$PATH:/home/deploy/.dotnet:/home/deploy/.dotnet/tools"
+
+            echo " Pulling latest code..."
+            cd ~/apps/EcommerceLaptop
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+
+            echo " Publishing..."
+            dotnet publish $(find . -name "EcommerceLaptop.csproj" | head -1) \
+              -c Release \
+              -o ~/apps/publish \
+              --no-self-contained
+
+            echo " Restarting API service..."
+            sudo systemctl restart ecommerce-api
+
+            echo " Waiting for service to start..."
+            sleep 5
+            sudo systemctl is-active --quiet ecommerce-api && echo " Service is running" || (echo " Service failed to start"; sudo journalctl -u ecommerce-api -n 30 --no-pager; exit 1)
+
+      - name: Kt qu deploy
+        if: always()
+        run: |
+          echo "Deploy ${{ job.status }}  ${{ github.repository }}@${{ github.sha }}"
+
+            echo " Publishing..."
+            dotnet publish $(find . -name "EcommerceLaptop.csproj" | head -1) \
+              -c Release \
+              -o ~/apps/publish \
+              --no-self-contained
+
+            echo " Restarting service..."
+            sudo systemctl restart ecommerce-api
+
+            echo " Waiting for service to start..."
+            sleep 5
+            sudo systemctl is-active --quiet ecommerce-api && echo " Service is running" || (echo " Service failed to start"; sudo journalctl -u ecommerce-api -n 30 --no-pager; exit 1)
+
+      - name: Kt qu deploy
+        if: always()
+        run: |
+          echo "Deploy ${{ job.status }}  ${{ github.repository }}@${{ github.sha }}"
