@@ -66,21 +66,3 @@ jobs:
         if: always()
         run: |
           echo "Deploy ${{ job.status }}  ${{ github.repository }}@${{ github.sha }}"
-
-            echo " Publishing..."
-            dotnet publish $(find . -name "EcommerceLaptop.csproj" | head -1) \
-              -c Release \
-              -o ~/apps/publish \
-              --no-self-contained
-
-            echo " Restarting service..."
-            sudo systemctl restart ecommerce-api
-
-            echo " Waiting for service to start..."
-            sleep 5
-            sudo systemctl is-active --quiet ecommerce-api && echo " Service is running" || (echo " Service failed to start"; sudo journalctl -u ecommerce-api -n 30 --no-pager; exit 1)
-
-      - name: Kt qu deploy
-        if: always()
-        run: |
-          echo "Deploy ${{ job.status }}  ${{ github.repository }}@${{ github.sha }}"
