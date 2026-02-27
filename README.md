@@ -19,7 +19,13 @@ Fullstack e-commerce platform for laptops. Built as a school project to learn Cl
 | ![AI Chatbot](docs/screenshots/ChatBot.png) | ![LLM Config](docs/screenshots/LLMConfig.png) |
 
 ---
+### Demo admin account
 
+- URL: `http://localhost:3000/admin-login`
+- Email: `superadmin@ecommerce.com`
+- Password: `Admin123!`
+
+---
 ## Table of Contents
 
 - [What This Project Does](#what-this-project-does)
@@ -285,13 +291,7 @@ Frontend available at `http://localhost:3000`.
 .\start-quick.bat
 ```
 
-### Demo admin account
 
-- URL: `http://localhost:3000/admin-login`
-- Email: `superadmin@ecommerce.com`
-- Password: `Admin123!`
-
----
 
 ## Project Structure
 
