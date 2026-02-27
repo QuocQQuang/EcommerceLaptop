@@ -47,7 +47,7 @@ jobs:
             cd ~/apps/EcommerceLaptop
             git fetch origin
             git checkout ${{ github.ref_name }}
-            git pull origin ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
 
             echo " Publishing..."
             dotnet publish $(find . -name "EcommerceLaptop.csproj" | head -1) \
