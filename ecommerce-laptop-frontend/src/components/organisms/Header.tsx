@@ -8,14 +8,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCartStore } from '@/store/cartStore';
 import { useUIStore } from '@/store/uiStore';
 import { useWishlistStore } from '@/store/wishlistStore';
-import { Heart, LogIn, LogOut, Menu, ShoppingCart, User } from 'lucide-react';
+import { Heart, LayoutDashboard, LogIn, LogOut, Menu, ShoppingCart, User } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import * as React from 'react';
 
 export function Header() {
     const { setMobileMenuOpen } = useUIStore();
-    const { user, session, isAuthenticated } = useAuth();
+    const { user, session, isAuthenticated, isAdmin } = useAuth();
     const { itemCount } = useCartStore();
     const { items: wishlistItems } = useWishlistStore();
 
@@ -158,6 +158,17 @@ export function Header() {
                             <DropdownMenuSeparator />
                             {isAuthenticated ? (
                                 <>
+                                    {isAdmin && (
+                                        <>
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/admin/dashboard" className="text-primary font-medium">
+                                                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                                                    <span>Admin Dashboard</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                        </>
+                                    )}
                                     <DropdownMenuItem asChild>
                                         <Link href="/account">Ti khon</Link>
                                     </DropdownMenuItem>
