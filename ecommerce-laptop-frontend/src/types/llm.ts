@@ -16,12 +16,24 @@ export interface LlmProfile {
     providerId: number;
     name: string;
     modelId: string;
-    apiKey?: string; // Only for setting, backend won't return full key
+    /** Server never returns this. True if a key is stored server-side. */
+    hasApiKey: boolean;
     configJson: string; // JSON string for flexible config
     isActive: boolean;
     provider?: LlmProvider;
     createdAt?: string;
     updatedAt?: string;
+}
+
+/** Form shape used only when creating/editing a profile (client-side only) */
+export interface LlmProfileFormData {
+    providerId: number;
+    name: string;
+    modelId: string;
+    /** Only sent to server when the user explicitly types a new key. */
+    apiKey?: string;
+    configJson: string;
+    isActive: boolean;
 }
 
 export interface LlmConfigForm {

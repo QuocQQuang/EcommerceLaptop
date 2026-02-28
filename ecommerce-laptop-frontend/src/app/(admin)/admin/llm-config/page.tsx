@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { llmService } from '@/services/llmService';
-import { LlmProvider, LlmProfile } from '@/types/llm';
+import { LlmProvider, LlmProfile, LlmProfileFormData } from '@/types/llm';
 import {
     Plus, Server, Settings, Save, Trash2, Play, CheckCircle, XCircle, FileJson, Sliders, CloudDownload, MessageSquare, Loader2,
     Cpu,
@@ -33,7 +33,7 @@ export default function LlmConfigPage() {
     const [isEditingProvider, setIsEditingProvider] = useState(false);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [isVisualMode, setIsVisualMode] = useState(true);
-    const [formData, setFormData] = useState<any>({});
+    const [formData, setFormData] = useState<LlmProfileFormData | any>({});
 
     // Click & Play State
     const [fetchedModels, setFetchedModels] = useState<string[]>([]);
@@ -112,8 +112,12 @@ export default function LlmConfigPage() {
         setIsEditingProfile(false);
         setTestStatus('idle');
         setFormData({
-            ...profile,
-            configJson: profile.configJson || '{}'
+            providerId: profile.providerId,
+            name: profile.name,
+            modelId: profile.modelId,
+            apiKey: '',           // Never pre-populate from server response
+            configJson: profile.configJson || '{}',
+            isActive: profile.isActive,
         });
     };
 
@@ -180,8 +184,8 @@ export default function LlmConfigPage() {
             const profileData = { ...formData };
             if (!profileData.providerId && selectedProvider) profileData.providerId = selectedProvider.id;
 
-            // Validate API Key
-            if (profileData.apiKey === '') delete profileData.apiKey;
+            // Only include apiKey if user actually typed a new one
+            if (!profileData.apiKey) delete profileData.apiKey;
 
             if (selectedProfile) {
                 await llmService.updateProfile(selectedProfile.id, profileData);
@@ -243,22 +247,22 @@ export default function LlmConfigPage() {
     };
 
     const handleFetchModels = async () => {
-        if (!formData.apiKey && !selectedProfile?.apiKey) {
-            toast.error("Vui lng nhp API Key trc");
+        if (!formData.apiKey) {
+            toast.error("Vui lòng nhập API Key để tải danh sách models");
             return;
         }
         setIsFetchingModels(true);
         try {
             const models = await llmService.fetchRemoteModels({
                 baseUrl: formData.baseUrl || selectedProvider?.baseUrl || '',
-                apiKey: formData.apiKey || selectedProfile?.apiKey || '',
+                apiKey: formData.apiKey,
                 providerType: formData.type || selectedProvider?.type || 'openai'
             });
             setFetchedModels(models);
-            toast.success(` tm thy ${models.length} models`);
+            toast.success(`✓ Tìm thấy ${models.length} models`);
         } catch (e: any) {
             console.error(e);
-            toast.error("Li khi ti danh sch models: " + (e.response?.data?.message || e.message));
+            toast.error("Lỗi khi tải danh sách models: " + (e.response?.data?.message || e.message));
         } finally {
             setIsFetchingModels(false);
         }
@@ -270,7 +274,7 @@ export default function LlmConfigPage() {
         try {
             const res = await llmService.testChat({
                 baseUrl: formData.baseUrl || selectedProvider?.baseUrl || selectedProfile?.provider?.baseUrl || '',
-                apiKey: formData.apiKey || selectedProfile?.apiKey || '',
+                apiKey: formData.apiKey || '',   // empty = backend uses stored key by profile ID
                 modelId: formData.modelId || selectedProfile?.modelId || '',
                 message: testChatMsg
             });
@@ -498,8 +502,19 @@ export default function LlmConfigPage() {
 
                                             <div className="grid gap-2">
                                                 <Label>API Key</Label>
-                                                <Input type="password" value={formData.apiKey} onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })} placeholder="sk-..." />
-                                                <p className="text-[10px] text-muted-foreground"> trng nu mun gi nguyn Key c (khi cp nht).</p>
+                                                <Input
+                                                    type="password"
+                                                    value={formData.apiKey}
+                                                    onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                                                    placeholder={selectedProfile?.hasApiKey
+                                                        ? '••••••••• (bỏ trống để giữ key hiện tại)'
+                                                        : 'sk-... (nhập API Key)'}
+                                                />
+                                                <p className="text-[10px] text-muted-foreground">
+                                                    {selectedProfile?.hasApiKey
+                                                        ? '✓ Đã có API Key. Chỉ nhập nếu muốn thay đổi.'
+                                                        : 'Nhập API Key để xác thực với nhà cung cấp.'}
+                                                </p>
                                             </div>
 
                                             <Separator />

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.Interfaces.Services;
 using EcommerceLaptop.Core.DTOs.AI;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace EcommerceLaptop.API.Controllers
@@ -81,7 +82,8 @@ namespace EcommerceLaptop.API.Controllers
         public async Task<IActionResult> GetProfiles(int providerId)
         {
             var profiles = await _llmService.GetProfilesByProviderIdAsync(providerId);
-            return Ok(profiles);
+            var dtos = profiles.Select(p => LlmProfileMapper.MapToDto(p));
+            return Ok(dtos);
         }
 
         [HttpGet("profiles/{id}")]
@@ -89,7 +91,7 @@ namespace EcommerceLaptop.API.Controllers
         {
             var profile = await _llmService.GetProfileByIdAsync(id);
             if (profile == null) return NotFound();
-            return Ok(profile);
+            return Ok(LlmProfileMapper.MapToDto(profile));
         }
 
         [HttpPost("profiles")]
@@ -97,7 +99,7 @@ namespace EcommerceLaptop.API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var created = await _llmService.CreateProfileAsync(profile);
-            return CreatedAtAction(nameof(GetProfile), new { id = created.Id }, created);
+            return CreatedAtAction(nameof(GetProfile), new { id = created.Id }, LlmProfileMapper.MapToDto(created));
         }
 
         [HttpPut("profiles/{id}")]
@@ -198,9 +200,25 @@ namespace EcommerceLaptop.API.Controllers
         }
     }
 
-
     public class UpdateRewritingProfileRequest
     {
         public int? ProfileId { get; set; }
+    }
+
+    // --- Helpers ---
+    public static class LlmProfileMapper
+    {
+        public static LlmProfileResponseDto MapToDto(LlmProfile p) => new LlmProfileResponseDto
+        {
+            Id = p.Id,
+            ProviderId = p.ProviderId,
+            Name = p.Name,
+            ModelId = p.ModelId,
+            HasApiKey = !string.IsNullOrEmpty(p.ApiKey),
+            ConfigJson = p.ConfigJson,
+            IsActive = p.IsActive,
+            CreatedAt = p.CreatedAt,
+            UpdatedAt = p.UpdatedAt,
+        };
     }
 }

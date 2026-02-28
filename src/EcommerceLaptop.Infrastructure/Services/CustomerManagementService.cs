@@ -582,44 +582,40 @@ public class CustomerManagementService : ICustomerManagementService
             var today = now.Date;
             var thisMonth = new DateTime(now.Year, now.Month, 1);
             var thirtyDaysAgo = now.AddDays(-30);
+            var oneWeekAgo = now.AddDays(-7);
 
-            // Calculate statistics
-            var totalCustomers = await _context.Users
-                .CountAsync(u => !u.IsAdminRole);
-
-            var activeCustomers = await _context.Users
-                .CountAsync(u => !u.IsAdminRole && u.IsActive);
-
-            var newCustomersThisMonth = await _context.Users
-                .CountAsync(u => !u.IsAdminRole && u.CreatedAt >= thisMonth);
-
-            var newCustomersToday = await _context.Users
-                .CountAsync(u => !u.IsAdminRole && u.CreatedAt >= today);
-
-            var emailVerifiedCustomers = await _context.Users
-                .CountAsync(u => !u.IsAdminRole && u.EmailConfirmed);
-
-            var unverifiedCustomers = await _context.Users
-                .CountAsync(u => !u.IsAdminRole && !u.EmailConfirmed);
-
-            var customersLoggedInToday = await _context.Users
-                .CountAsync(u => !u.IsAdminRole &&
-                    u.LastLoginAt.HasValue && u.LastLoginAt.Value >= today);
-
-            var customersLoggedInThisWeek = await _context.Users
-                .CountAsync(u => !u.IsAdminRole &&
-                    u.LastLoginAt.HasValue && u.LastLoginAt.Value >= now.AddDays(-7));
-
-            var inactiveCustomers30Days = await _context.Users
-                .CountAsync(u => !u.IsAdminRole &&
-                    (!u.LastLoginAt.HasValue || u.LastLoginAt.Value < thirtyDaysAgo));
-
-            // Calculate average customer value
-            var totalSpent = await _context.Users
+            // N+1 Fix: compute all user-count aggregates in a SINGLE DB query
+            // instead of 8 separate CountAsync + 1 SumAsync calls
+            var userStats = await _context.Users
                 .Where(u => !u.IsAdminRole)
-                .SumAsync(u => u.TotalSpent);
-            
-            var averageCustomerValue = totalCustomers > 0 ? totalSpent / totalCustomers : 0;
+                .GroupBy(_ => 1) // group all into one bucket
+                .Select(g => new
+                {
+                    Total = g.Count(),
+                    Active = g.Count(u => u.IsActive),
+                    NewThisMonth = g.Count(u => u.CreatedAt >= thisMonth),
+                    NewToday = g.Count(u => u.CreatedAt >= today),
+                    EmailVerified = g.Count(u => u.EmailConfirmed),
+                    Unverified = g.Count(u => !u.EmailConfirmed),
+                    LoggedInToday = g.Count(u => u.LastLoginAt.HasValue && u.LastLoginAt.Value >= today),
+                    LoggedInThisWeek = g.Count(u => u.LastLoginAt.HasValue && u.LastLoginAt.Value >= oneWeekAgo),
+                    Inactive30Days = g.Count(u => !u.LastLoginAt.HasValue || u.LastLoginAt.Value < thirtyDaysAgo),
+                    TotalSpent = g.Sum(u => u.TotalSpent)
+                })
+                .FirstOrDefaultAsync();
+
+            var totalCustomers = userStats?.Total ?? 0;
+            var activeCustomers = userStats?.Active ?? 0;
+            var newCustomersThisMonth = userStats?.NewThisMonth ?? 0;
+            var newCustomersToday = userStats?.NewToday ?? 0;
+            var emailVerifiedCustomers = userStats?.EmailVerified ?? 0;
+            var unverifiedCustomers = userStats?.Unverified ?? 0;
+            var customersLoggedInToday = userStats?.LoggedInToday ?? 0;
+            var customersLoggedInThisWeek = userStats?.LoggedInThisWeek ?? 0;
+            var inactiveCustomers30Days = userStats?.Inactive30Days ?? 0;
+            var averageCustomerValue = totalCustomers > 0
+                ? (userStats?.TotalSpent ?? 0) / totalCustomers
+                : 0;
 
             // Get VIP tier statistics
             var vipTierStats = await _context.UserVipTiers
@@ -668,6 +664,7 @@ public class CustomerManagementService : ICustomerManagementService
         {
             _logger.LogError(ex, "Error retrieving customer statistics");
             throw;
+
         }
     }
 

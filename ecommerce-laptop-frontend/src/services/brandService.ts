@@ -15,15 +15,9 @@ export const brandService = {
      */
     async getBrands(): Promise<Brand[]> {
         try {
-            // Prefer public endpoint if available
-            try {
-                const { data } = await apiClient.get('/products/brands');
-                return data.data || data || [];
-            } catch {
-                // Fallback to admin endpoint (requires proper auth); not ideal for storefront
-                const { data } = await apiClient.get('/admin/brands');
-                return data.value || data.data || data || [];
-            }
+            // Fix: call public endpoint directly (no admin fallback needed for storefront)
+            const { data } = await apiClient.get('/products/brands');
+            return data.data || data || [];
         } catch (error) {
             console.error('Failed to fetch brands:', error);
             return [];
@@ -35,7 +29,9 @@ export const brandService = {
      */
     async getBrandsWithCounts(): Promise<Brand[]> {
         try {
-            const { data } = await apiClient.get('/admin/brands/with-counts');
+            // Fix: use public brands endpoint to avoid admin 403 on storefront
+            // (admin/brands/with-counts requires auth and caused failed requests for non-admin users)
+            const { data } = await apiClient.get('/products/brands');
             return data.data || data || [];
         } catch (error) {
             console.error('Failed to fetch brands with counts:', error);

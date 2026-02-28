@@ -17,7 +17,7 @@ public class ShoppingCartService : IShoppingCartService
     private readonly ILogger<ShoppingCartService> _logger;
 
     public ShoppingCartService(
-        ApplicationDbContext context, 
+        ApplicationDbContext context,
         ILogger<ShoppingCartService> logger)
     {
         _context = context;
@@ -118,7 +118,7 @@ public class ShoppingCartService : IShoppingCartService
                     .Include(ci => ci.Product)
                         .ThenInclude(p => p.Inventory)
                     .Include(ci => ci.ShoppingCart)
-                    .FirstOrDefaultAsync(ci => ci.Id == updateCartDto.CartItemId && 
+                    .FirstOrDefaultAsync(ci => ci.Id == updateCartDto.CartItemId &&
                                              ci.ShoppingCart!.UserId == userIdInt);
             }
             else if (!string.IsNullOrEmpty(updateCartDto.SessionId))
@@ -127,7 +127,7 @@ public class ShoppingCartService : IShoppingCartService
                     .Include(ci => ci.Product)
                         .ThenInclude(p => p.Inventory)
                     .Include(ci => ci.CartSession)
-                    .FirstOrDefaultAsync(ci => ci.Id == updateCartDto.CartItemId && 
+                    .FirstOrDefaultAsync(ci => ci.Id == updateCartDto.CartItemId &&
                                              ci.CartSession!.SessionId == updateCartDto.SessionId);
             }
 
@@ -190,14 +190,14 @@ public class ShoppingCartService : IShoppingCartService
             {
                 cartItem = await _context.CartItems
                     .Include(ci => ci.ShoppingCart)
-                    .FirstOrDefaultAsync(ci => ci.Id == removeFromCartDto.CartItemId && 
+                    .FirstOrDefaultAsync(ci => ci.Id == removeFromCartDto.CartItemId &&
                                              ci.ShoppingCart!.UserId == userIdInt);
             }
             else if (!string.IsNullOrEmpty(removeFromCartDto.SessionId))
             {
                 cartItem = await _context.CartItems
                     .Include(ci => ci.CartSession)
-                    .FirstOrDefaultAsync(ci => ci.Id == removeFromCartDto.CartItemId && 
+                    .FirstOrDefaultAsync(ci => ci.Id == removeFromCartDto.CartItemId &&
                                              ci.CartSession!.SessionId == removeFromCartDto.SessionId);
             }
 
@@ -469,15 +469,20 @@ public class ShoppingCartService : IShoppingCartService
 
             if (migrateDto.MergeWithExisting)
             {
+                // N+1 Fix: load all existing user cart items ONCE, then do lookup in memory
+                // instead of N FirstOrDefaultAsync calls (one per session item)
+                var existingUserItems = await _context.CartItems
+                    .Where(ci => ci.ShoppingCartId == userCart.Id)
+                    .ToListAsync();
+
+                var existingLookup = existingUserItems
+                    .ToDictionary(ci => (ci.ProductId, ci.ConfigurationOptions));
+
                 // Merge session cart items with existing user cart
                 foreach (var sessionItem in cartSession.CartItems)
                 {
-                    var existingItem = await _context.CartItems
-                        .FirstOrDefaultAsync(ci => ci.ShoppingCartId == userCart.Id && 
-                                                   ci.ProductId == sessionItem.ProductId &&
-                                                   ci.ConfigurationOptions == sessionItem.ConfigurationOptions);
-
-                    if (existingItem != null)
+                    var key = (sessionItem.ProductId, sessionItem.ConfigurationOptions);
+                    if (existingLookup.TryGetValue(key, out var existingItem))
                     {
                         // Update quantity
                         existingItem.Quantity += sessionItem.Quantity;
@@ -583,10 +588,10 @@ public class ShoppingCartService : IShoppingCartService
                 {
                     foreach (var itemId in bulkOperation.ItemIdsToRemove)
                     {
-                        await RemoveFromCartAsync(new RemoveFromCartDto 
-                        { 
-                            CartItemId = itemId, 
-                            SessionId = bulkOperation.SessionId 
+                        await RemoveFromCartAsync(new RemoveFromCartDto
+                        {
+                            CartItemId = itemId,
+                            SessionId = bulkOperation.SessionId
                         }, userId);
                     }
                 }
@@ -615,20 +620,20 @@ public class ShoppingCartService : IShoppingCartService
         try
         {
             // Validate inputs - return 0 for invalid inputs
-            if ((string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId)) || 
+            if ((string.IsNullOrEmpty(userId) && string.IsNullOrEmpty(sessionId)) ||
                 string.IsNullOrEmpty(shippingAddress))
             {
                 return 0;
             }
 
             var cart = await GetCartAsync(userId, sessionId);
-            
+
             // Return 0 if cart is empty
             if (!cart.Items.Any())
             {
                 return 0;
             }
-            
+
             // Simple shipping calculation - kept for backward compatibility
             if (cart.Summary.SubTotal >= 100)
             {
@@ -730,16 +735,16 @@ public class ShoppingCartService : IShoppingCartService
     private async Task<CartResponseDto> AddToUserCartAsync(AddToCartDto addToCartDto, string userId, Product product)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
-        
+
         try
         {
             var cart = await GetOrCreateUserCartAsync(userId);
 
             var existingItem = await _context.CartItems
-                .FirstOrDefaultAsync(ci => ci.ShoppingCartId == cart.Id && 
+                .FirstOrDefaultAsync(ci => ci.ShoppingCartId == cart.Id &&
                                            ci.ProductId == addToCartDto.ProductId);
 
-            var configJson = addToCartDto.ConfigurationOptions != null ? 
+            var configJson = addToCartDto.ConfigurationOptions != null ?
                 JsonSerializer.Serialize(addToCartDto.ConfigurationOptions) : null;
 
             if (existingItem != null && existingItem.ConfigurationOptions == configJson)
@@ -752,7 +757,7 @@ public class ShoppingCartService : IShoppingCartService
                 {
                     existingItem.Quantity += addToCartDto.Quantity;
                 }
-                
+
                 existingItem.TotalPrice = existingItem.UnitPrice * existingItem.Quantity;
                 existingItem.UpdatedAt = DateTime.UtcNow;
                 _context.CartItems.Update(existingItem);
@@ -772,7 +777,7 @@ public class ShoppingCartService : IShoppingCartService
                     Quantity = addToCartDto.Quantity,
                     UnitPrice = product.Price,
                     TotalPrice = product.Price * addToCartDto.Quantity,
-                    ConfigurationOptions = addToCartDto.ConfigurationOptions != null ? 
+                    ConfigurationOptions = addToCartDto.ConfigurationOptions != null ?
                         JsonSerializer.Serialize(addToCartDto.ConfigurationOptions) : null,
                     IsBundle = addToCartDto.BundleItems?.Any() == true,
                     AddedAt = DateTime.UtcNow,
@@ -805,16 +810,16 @@ public class ShoppingCartService : IShoppingCartService
     private async Task<CartResponseDto> AddToSessionCartAsync(AddToCartDto addToCartDto, Product product)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
-        
+
         try
         {
             var cartSession = await GetOrCreateSessionCartAsync(addToCartDto.SessionId!);
 
             var existingItem = await _context.CartItems
-                .FirstOrDefaultAsync(ci => ci.CartSessionId == cartSession.Id && 
+                .FirstOrDefaultAsync(ci => ci.CartSessionId == cartSession.Id &&
                                            ci.ProductId == addToCartDto.ProductId);
 
-            var configJson = addToCartDto.ConfigurationOptions != null ? 
+            var configJson = addToCartDto.ConfigurationOptions != null ?
                 JsonSerializer.Serialize(addToCartDto.ConfigurationOptions) : null;
 
             if (existingItem != null && existingItem.ConfigurationOptions == configJson)
@@ -827,7 +832,7 @@ public class ShoppingCartService : IShoppingCartService
                 {
                     existingItem.Quantity += addToCartDto.Quantity;
                 }
-                
+
                 existingItem.TotalPrice = existingItem.UnitPrice * existingItem.Quantity;
                 existingItem.UpdatedAt = DateTime.UtcNow;
                 _context.CartItems.Update(existingItem);
@@ -847,7 +852,7 @@ public class ShoppingCartService : IShoppingCartService
                     Quantity = addToCartDto.Quantity,
                     UnitPrice = product.Price,
                     TotalPrice = product.Price * addToCartDto.Quantity,
-                    ConfigurationOptions = addToCartDto.ConfigurationOptions != null ? 
+                    ConfigurationOptions = addToCartDto.ConfigurationOptions != null ?
                         JsonSerializer.Serialize(addToCartDto.ConfigurationOptions) : null,
                     IsBundle = addToCartDto.BundleItems?.Any() == true,
                     AddedAt = DateTime.UtcNow,
@@ -944,7 +949,7 @@ public class ShoppingCartService : IShoppingCartService
             if (cart != null)
             {
                 cart.SubTotal = cart.CartItems.Sum(ci => ci.TotalPrice);
-                
+
                 // Apply discount
                 if (!string.IsNullOrEmpty(cart.DiscountCode))
                 {
@@ -971,7 +976,7 @@ public class ShoppingCartService : IShoppingCartService
             if (cartSession != null)
             {
                 cartSession.SubTotal = cartSession.CartItems.Sum(ci => ci.TotalPrice);
-                
+
                 // Apply discount
                 if (!string.IsNullOrEmpty(cartSession.DiscountCode))
                 {
@@ -1036,7 +1041,7 @@ public class ShoppingCartService : IShoppingCartService
             TotalPrice = ci.TotalPrice,
             ItemDiscount = ci.ItemDiscount,
             FinalPrice = ci.FinalPrice,
-            ConfigurationOptions = string.IsNullOrEmpty(ci.ConfigurationOptions) ? 
+            ConfigurationOptions = string.IsNullOrEmpty(ci.ConfigurationOptions) ?
                 null : JsonSerializer.Deserialize<Dictionary<string, string>>(ci.ConfigurationOptions),
             IsBundle = ci.IsBundle,
             BundleItems = ci.IsBundle ? items
@@ -1138,7 +1143,7 @@ public class ShoppingCartService : IShoppingCartService
             if (existingChild != null)
             {
                 var newQuantity = bundleItem.Quantity * newParentQuantity;
-                
+
                 // Validate stock
                 var product = await _context.Products
                     .Include(p => p.Inventory)

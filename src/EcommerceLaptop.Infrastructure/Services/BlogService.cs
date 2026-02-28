@@ -214,12 +214,11 @@ public class BlogService : IBlogService
                 await UpdatePostTagsAsync(existingPost.Id, request.TagIds);
             }
 
-            // Reload to get the updated tags
-            await _context.Entry(existingPost).Collection(p => p.BlogPostTags).LoadAsync();
-            foreach (var bpt in existingPost.BlogPostTags)
-            {
-                await _context.Entry(bpt).Reference(t => t.BlogTag).LoadAsync();
-            }
+            // N+1 Fix: reload tags with Include in one query instead of N explicit-load calls
+            existingPost = await _context.BlogPosts
+                .Include(p => p.BlogPostTags)
+                    .ThenInclude(bpt => bpt.BlogTag)
+                .FirstOrDefaultAsync(p => p.Id == id) ?? existingPost;
 
             return ServiceResult<BlogPost>.Success(existingPost);
         }
@@ -744,13 +743,15 @@ public class BlogService : IBlogService
         var existingTags = await _context.BlogPostTags.Where(bpt => bpt.BlogPostId == postId).ToListAsync();
         _context.BlogPostTags.RemoveRange(existingTags);
 
-        // Add new tags if they exist
-        foreach (var tagId in tagIds.Distinct())
+        // N+1 Fix: fetch all valid tag IDs in a single query instead of N AnyAsync calls
+        var validTagIds = await _context.BlogTags
+            .Where(t => tagIds.Contains(t.Id))
+            .Select(t => t.Id)
+            .ToHashSetAsync();
+
+        foreach (var tagId in tagIds.Distinct().Where(id => validTagIds.Contains(id)))
         {
-            if (await _context.BlogTags.AnyAsync(t => t.Id == tagId))
-            {
-                _context.BlogPostTags.Add(new BlogPostTag { BlogPostId = postId, BlogTagId = tagId });
-            }
+            _context.BlogPostTags.Add(new BlogPostTag { BlogPostId = postId, BlogTagId = tagId });
         }
 
         await _context.SaveChangesAsync();
@@ -762,15 +763,17 @@ public class BlogService : IBlogService
         var existingTags = await _context.BlogPostTags.Where(bpt => bpt.BlogPostId == postId).ToListAsync();
         _context.BlogPostTags.RemoveRange(existingTags);
 
-        // Add new tags if they exist
+        // N+1 Fix: validate all tag IDs in one query instead of N AnyAsync calls
         if (tagIds != null && tagIds.Any())
         {
-            foreach (var tagId in tagIds.Distinct())
+            var validTagIds = await _context.BlogTags
+                .Where(t => tagIds.Contains(t.Id))
+                .Select(t => t.Id)
+                .ToHashSetAsync();
+
+            foreach (var tagId in tagIds.Distinct().Where(id => validTagIds.Contains(id)))
             {
-                if (await _context.BlogTags.AnyAsync(t => t.Id == tagId))
-                {
-                    _context.BlogPostTags.Add(new BlogPostTag { BlogPostId = postId, BlogTagId = tagId });
-                }
+                _context.BlogPostTags.Add(new BlogPostTag { BlogPostId = postId, BlogTagId = tagId });
             }
         }
 

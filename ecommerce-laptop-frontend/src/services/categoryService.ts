@@ -75,15 +75,10 @@ export const categoryService = {
      */
     async getCategoriesWithProductCount(): Promise<Category[]> {
         try {
-            // Use existing admin endpoint first to prevent 404 logs
-            try {
-                const { data } = await apiClient.get('/admin/categories/with-counts');
-                return data.data || data || [];
-            } catch {
-                // Fallback to public route if available
-                const { data } = await apiClient.get('/products/categories/with-counts');
-                return data.data || data || [];
-            }
+            // Fix: call public endpoint directly instead of admin→fallback pattern
+            // (admin endpoint caused 2 requests: 1 failed 403 + 1 fallback)
+            const { data } = await apiClient.get('/products/categories/with-counts');
+            return data.data || data || [];
         } catch (error) {
             console.error('Failed to fetch categories with product count:', error);
             return [];

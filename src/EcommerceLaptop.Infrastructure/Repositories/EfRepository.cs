@@ -47,7 +47,12 @@ public class EfRepository<T> : IAsyncRepository<T> where T : class
         _context.Set<T>().Remove(entity);
         await _context.SaveChangesAsync();
     }
-    
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<int> CountAsync(Expression<Func<T, bool>> predicate)
     {
         return await _context.Set<T>().CountAsync(predicate);

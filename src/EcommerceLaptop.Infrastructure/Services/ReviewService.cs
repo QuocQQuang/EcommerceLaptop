@@ -105,19 +105,28 @@ public class ReviewService : IReviewService
 
     public async Task<ReviewSummaryDto> GetProductReviewSummaryAsync(int productId)
     {
-        var reviews = await _context.Reviews
+        // N+1 Fix: compute all aggregates DB-side with a single GroupBy query
+        // instead of loading all reviews into memory
+        var ratingGroups = await _context.Reviews
             .Where(r => r.ProductId == productId)
+            .GroupBy(r => r.Rating)
+            .Select(g => new { Rating = g.Key, Count = g.Count() })
             .ToListAsync();
 
-        var totalReviews = reviews.Count;
-        var averageRating = totalReviews > 0 ? reviews.Average(r => r.Rating) : 0;
-        var verifiedPurchaseCount = reviews.Count(r => r.IsVerifiedPurchase);
+        var totalReviews = ratingGroups.Sum(g => g.Count);
+        var averageRating = totalReviews > 0
+            ? (double)ratingGroups.Sum(g => g.Rating * g.Count) / totalReviews
+            : 0;
 
         var ratingDistribution = new Dictionary<int, int>();
         for (int i = 1; i <= 5; i++)
         {
-            ratingDistribution[i] = reviews.Count(r => r.Rating == i);
+            ratingDistribution[i] = ratingGroups.FirstOrDefault(g => g.Rating == i)?.Count ?? 0;
         }
+
+        // Separate aggregate for verified purchase count
+        var verifiedPurchaseCount = await _context.Reviews
+            .CountAsync(r => r.ProductId == productId && r.IsVerifiedPurchase);
 
         return new ReviewSummaryDto(
             productId,

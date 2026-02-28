@@ -19,4 +19,6 @@ public interface IAsyncRepository<T> where T : class
     Task DeleteAsync(T entity);
     Task<int> CountAsync(Expression<Func<T, bool>> predicate);
     Task<int> CountAsync(ISpecification<T> spec);
+    /// <summary>Persist all tracked changes in one round-trip (use after bulk in-memory updates)</summary>
+    Task SaveChangesAsync();
 }

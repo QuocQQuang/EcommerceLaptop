@@ -50,17 +50,20 @@ public class ProductService : IProductService
 
     public async Task<Product?> GetByIdWithDetailsAsync(int id)
     {
-        var product = await _productRepository.GetByIdAsync(id);
-        if (product == null) return null;
+        // N+1 Fix: try loading as each subtype directly (1 query per attempt) instead of
+        // first fetching base type to check runtime type (2 queries total per call).
+        // Use the detailed spec which already includes all necessary relations.
+        var laptop = await _laptopRepository.GetEntityWithSpec(new ProductByIdWithSubclassIncludesSpecification<Laptop>(id));
+        if (laptop != null) return laptop;
 
-        // Load type-specific details
-        return product switch
-        {
-            Laptop => await _laptopRepository.GetEntityWithSpec(new ProductByIdWithSubclassIncludesSpecification<Laptop>(id)),
-            Accessory => await _accessoryRepository.GetEntityWithSpec(new ProductByIdWithSubclassIncludesSpecification<Accessory>(id)),
-            Bundle => await _bundleRepository.GetEntityWithSpec(new ProductByIdWithSubclassIncludesSpecification<Bundle>(id)),
-            _ => await GetByIdAsync(id)
-        };
+        var accessory = await _accessoryRepository.GetEntityWithSpec(new ProductByIdWithSubclassIncludesSpecification<Accessory>(id));
+        if (accessory != null) return accessory;
+
+        var bundle = await _bundleRepository.GetEntityWithSpec(new ProductByIdWithSubclassIncludesSpecification<Bundle>(id));
+        if (bundle != null) return bundle;
+
+        // Fallback to base product spec
+        return await GetByIdAsync(id);
     }
 
     public async Task<PagedResult<Product>> GetProductsAsync(
@@ -148,10 +151,10 @@ public class ProductService : IProductService
                     PageSize = pageSize
                 };
             }
-            
+
             // If search returned no results, prevent SQL fallback if it was a genuine search
             // But if we want consistent empty result, we return empty here
-             return new PagedResult<Product>
+            return new PagedResult<Product>
             {
                 Items = new List<Product>(),
                 TotalCount = 0,
@@ -161,12 +164,12 @@ public class ProductService : IProductService
         }
 
         var spec = new ProductFilterSpecification(
-            searchTerm, brand, minPrice, maxPrice, category, isActive, sortBy, 
+            searchTerm, brand, minPrice, maxPrice, category, isActive, sortBy,
             skip: (page - 1) * pageSize, take: pageSize);
 
         var countSpec = new ProductFilterSpecification(
             searchTerm, brand, minPrice, maxPrice, category, isActive, sortBy);
-        
+
         var totalCount = await _productRepository.CountAsync(countSpec);
         var items = await _productRepository.GetAsync(spec);
 
@@ -192,13 +195,13 @@ public class ProductService : IProductService
     {
         // Enforce IsActive=true for specific type query as per original behavior
         var spec = new AdvancedLaptopSpecification(
-            searchTerm, brand, minPrice, maxPrice, cpuBrand, null, null, 
+            searchTerm, brand, minPrice, maxPrice, cpuBrand, null, null,
             ramCapacityGB, // Corrected parameter usage
             null, null, storageType, null, null, null, null, null, null, null, null, null,
             skip: (page - 1) * pageSize, take: pageSize);
 
         var countSpec = new AdvancedLaptopSpecification(
-            searchTerm, brand, minPrice, maxPrice, cpuBrand, null, null, 
+            searchTerm, brand, minPrice, maxPrice, cpuBrand, null, null,
             ramCapacityGB, // Corrected parameter usage
             null, null, storageType, null, null, null, null, null, null, null, null, null);
 
@@ -273,7 +276,7 @@ public class ProductService : IProductService
         var spec = new AccessorySpecification(
             searchTerm, accessoryType, compatibility, null, null,
             skip: (page - 1) * pageSize, take: pageSize);
-            
+
         var countSpec = new AccessorySpecification(
             searchTerm, accessoryType, compatibility, null, null);
 
@@ -422,10 +425,10 @@ public class ProductService : IProductService
         product.CreatedAt = DateTime.UtcNow;
         product.UpdatedAt = DateTime.UtcNow;
         var createdProduct = await _productRepository.AddAsync(product);
-        
+
         // Dispatch Event
         await _dispatcher.DispatchAsync(new ProductCreatedEvent(createdProduct));
-        
+
         return createdProduct;
     }
 
@@ -433,10 +436,10 @@ public class ProductService : IProductService
     {
         product.UpdatedAt = DateTime.UtcNow;
         await _productRepository.UpdateAsync(product);
-        
+
         // Dispatch Event
         await _dispatcher.DispatchAsync(new ProductUpdatedEvent(product));
-        
+
         return product;
     }
 
@@ -449,10 +452,10 @@ public class ProductService : IProductService
         product.UpdatedAt = DateTime.UtcNow;
 
         await _productRepository.UpdateAsync(product);
-        
+
         // Dispatch Event
-        await _dispatcher.DispatchAsync(new ProductDeletedEvent(product.Id)); 
-        
+        await _dispatcher.DispatchAsync(new ProductDeletedEvent(product.Id));
+
         return true;
     }
 
@@ -471,7 +474,7 @@ public class ProductService : IProductService
     public async Task<IEnumerable<Product>> GetFeaturedProductsAsync(int count = 10)
     {
         var spec = new ProductFilterSpecification(
-            null, null, null, null, null, true, "newest", 
+            null, null, null, null, null, true, "newest",
             skip: 0, take: count);
         return await _productRepository.GetAsync(spec);
     }
@@ -545,14 +548,14 @@ public class ProductService : IProductService
 
         switch (product)
         {
-             case Laptop laptop:
+            case Laptop laptop:
                 specs["Series"] = laptop.Series;
                 specs["CPU"] = new { Brand = laptop.CpuBrand, Model = laptop.CpuModel };
                 break;
-             case Accessory accessory:
+            case Accessory accessory:
                 specs["AccessoryType"] = accessory.AccessoryType;
                 break;
-             case Bundle bundle:
+            case Bundle bundle:
                 specs["BundleType"] = bundle.BundleType;
                 break;
         }
@@ -588,12 +591,12 @@ public class ProductService : IProductService
     {
         bool? isActive = status?.ToLower() == "active" ? true : status?.ToLower() == "inactive" ? false : null;
         bool baseOnly = productType?.ToLower() == "base";
-        
+
         var spec = new ProductFilterSpecification(
             search, brand, null, null, null, isActive, "newest",
             skip: (page - 1) * pageSize, take: pageSize,
             baseProductsOnly: baseOnly);
-            
+
         var countSpec = new ProductFilterSpecification(
             search, brand, null, null, null, isActive, "newest",
             skip: null, take: null,
@@ -614,12 +617,17 @@ public class ProductService : IProductService
     public async Task<bool> BulkUpdatePricingAsync(IEnumerable<int> productIds, decimal priceAdjustmentPercentage)
     {
         var products = await _productRepository.GetAsync(new ProductsByIdsSpecification(productIds));
+        // N+1 Fix: mark all entities modified first, then save once instead of N SaveChanges calls
         foreach (var product in products)
         {
             var adjustment = product.Price * (priceAdjustmentPercentage / 100);
             product.Price = Math.Max(product.Price + adjustment, 0.01m);
             product.UpdatedAt = DateTime.UtcNow;
-            await _productRepository.UpdateAsync(product);
+        }
+        // Single SaveChanges for all products
+        if (products.Any())
+        {
+            await _productRepository.SaveChangesAsync();
         }
         return true;
     }
@@ -653,7 +661,7 @@ public class ProductService : IProductService
             var count = await _productRepository.CountAsync(new ProductByVariantSkuSpecification(variant.VariantSku));
             if (count > 0)
             {
-                 throw new ArgumentException("Variant SKU already exists");
+                throw new ArgumentException("Variant SKU already exists");
             }
         }
 
@@ -723,7 +731,7 @@ public class ProductService : IProductService
         if (ids == null || !ids.Any()) return new List<Product>();
         // Using Specification directly with AsNoTracking for performance
         var spec = new ProductsByIdsSpecification(ids.Distinct().ToList());
-        return await _productRepository.GetAsync(spec); 
+        return await _productRepository.GetAsync(spec);
         // Note: Repository implementation should handle AsNoTracking if configured, 
         // otherwise we might need to cast to DbContext or use a specific ReadOnly method if available in IAsyncRepository.
         // Assuming GetAsync is standard. If performance is critical, we might verify repository impl later.
