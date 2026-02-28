@@ -44,7 +44,7 @@ jobs:
             export PATH="$PATH:/home/deploy/.dotnet:/home/deploy/.dotnet/tools"
 
             echo " Pulling latest code..."
-            cd ~/apps/EcommerceLaptop
+            cd ~/apps/EcommerceLaptopEnterprise
             git fetch origin
             git checkout ${{ github.ref_name }}
             git reset --hard origin/${{ github.ref_name }}
