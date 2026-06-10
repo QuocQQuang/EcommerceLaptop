@@ -49,55 +49,55 @@ export function ExportButtons({
             switch (exportType) {
                 case 'orders':
                     await ExportService.downloadOrdersExcel(options);
-                    toast.success(' xut danh sch n hng thnh cng');
+                    toast.success('Đã xuất danh sách đơn hàng thành công');
                     break;
                 case 'products':
                     await ExportService.downloadProductsExcel(options);
-                    toast.success(' xut danh sch sn phm thnh cng');
+                    toast.success('Đã xuất danh sách sản phẩm thành công');
                     break;
                 case 'users':
                     await ExportService.downloadUsersExcel(options);
-                    toast.success(' xut danh sch khch hng thnh cng');
+                    toast.success('Đã xuất danh sách khách hàng thành công');
                     break;
                 case 'revenue':
                     if (startDate && endDate) {
                         await ExportService.downloadRevenueReportExcel(startDate, endDate);
-                        toast.success(' xut bo co doanh thu thnh cng');
+                        toast.success('Đã xuất báo cáo doanh thu thành công');
                     } else {
-                        toast.error('Vui lng chn ngy bt u v kt thc');
+                        toast.error('Vui lòng chọn ngày bắt đầu và kết thúc');
                     }
                     break;
                 case 'inventory':
                     await ExportService.downloadInventoryReportExcel();
-                    toast.success(' xut bo co tn kho thnh cng');
+                    toast.success('Đã xuất báo cáo tồn kho thành công');
                     break;
                 case 'security-events':
                     await ExportService.downloadSecurityEventsExcel(options);
-                    toast.success(' xut danh sch s kin bo mt thnh cng');
+                    toast.success('Đã xuất danh sách sự kiện bảo mật thành công');
                     break;
                 case 'ip-block-rules':
                     await ExportService.downloadIPBlockRulesExcel(options);
-                    toast.success(' xut danh sch IP Block Rules thnh cng');
+                    toast.success('Đã xuất danh sách IP Block Rules thành công');
                     break;
                 case 'rate-limit-rules':
                     await ExportService.downloadRateLimitRulesExcel(options);
-                    toast.success(' xut danh sch Rate Limit Rules thnh cng');
+                    toast.success('Đã xuất danh sách Rate Limit Rules thành công');
                     break;
                 case 'security-report':
                     if (startDate && endDate) {
                         await ExportService.downloadSecurityReportExcel(startDate, endDate);
-                        toast.success(' xut bo co bo mt tng hp thnh cng');
+                        toast.success('Đã xuất báo cáo bảo mật tổng hợp thành công');
                     } else {
                         await ExportService.downloadSecurityReportExcel();
-                        toast.success(' xut bo co bo mt tng hp thnh cng');
+                        toast.success('Đã xuất báo cáo bảo mật tổng hợp thành công');
                     }
                     break;
                 default:
-                    toast.error('Loi xut file khng hp l');
+                    toast.error('Loại xuất file không hợp lệ');
             }
         } catch (error) {
             console.error('Export error:', error);
-            toast.error('C li xy ra khi xut file');
+            toast.error('Có lỗi xảy ra khi xuất file');
         } finally {
             setIsLoading(false);
         }
@@ -117,15 +117,15 @@ export function ExportButtons({
         };
 
         const textMap = {
-            orders: 'Xut n hng',
-            products: 'Xut sn phm',
-            users: 'Xut danh sch admin',
-            revenue: 'Xut bo co doanh thu',
-            inventory: 'Xut bo co tn kho',
-            'security-events': 'Xut s kin bo mt',
-            'ip-block-rules': 'Xut IP Block Rules',
-            'rate-limit-rules': 'Xut Rate Limit Rules',
-            'security-report': 'Xut bo co bo mt'
+            orders: 'Xuất đơn hàng',
+            products: 'Xuất sản phẩm',
+            users: 'Xuất danh sách admin',
+            revenue: 'Xuất báo cáo doanh thu',
+            inventory: 'Xuất báo cáo tồn kho',
+            'security-events': 'Xuất sự kiện bảo mật',
+            'ip-block-rules': 'Xuất IP Block Rules',
+            'rate-limit-rules': 'Xuất Rate Limit Rules',
+            'security-report': 'Xuất báo cáo bảo mật'
         };
 
         return (
@@ -146,7 +146,7 @@ export function ExportButtons({
                 disabled
                 variant="outline"
                 className={className}
-                title="Vui lng chn ngy bt u v kt thc"
+                title="Vui lòng chọn ngày bắt đầu và kết thúc"
             >
                 {getButtonContent()}
             </Button>
@@ -181,10 +181,10 @@ export function InvoiceExportButtons({ orderId, orderNumber, className }: Invoic
         try {
             if (type === 'pdf') {
                 await ExportService.downloadInvoicePdf(orderId, orderNumber, includeDigitalSignature);
-                toast.success(' xut ha n PDF thnh cng');
+                toast.success('Đã xuất hóa đơn PDF thành công');
             } else {
                 await ExportService.downloadInvoiceXml(orderId, orderNumber);
-                toast.success(' xut ha n XML thnh cng');
+                toast.success('Đã xuất hóa đơn XML thành công');
             }
         } catch (error: any) {
             console.error('Export error:', error);
@@ -193,15 +193,15 @@ export function InvoiceExportButtons({ orderId, orderNumber, className }: Invoic
             if (error.response?.status === 400) {
                 const errorData = error.response.data;
                 if (errorData?.message) {
-                    toast.error('Khng th xut ha n', {
+                    toast.error('Không thể xuất hóa đơn', {
                         description: errorData.message,
                         duration: 5000
                     });
                 } else {
-                    toast.error('Khng th xut ha n cho n hng ny');
+                    toast.error('Không thể xuất hóa đơn cho đơn hàng này');
                 }
             } else {
-                toast.error('C li xy ra khi xut ha n');
+                toast.error('Có lỗi xảy ra khi xuất hóa đơn');
             }
         } finally {
             setIsLoading(false);
@@ -222,7 +222,7 @@ export function InvoiceExportButtons({ orderId, orderNumber, className }: Invoic
                     ) : (
                         <Download className="h-4 w-4" />
                     )}
-                    <span className="ml-2">Xut ha n</span>
+                    <span className="ml-2">Xuất hóa đơn</span>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -231,7 +231,7 @@ export function InvoiceExportButtons({ orderId, orderNumber, className }: Invoic
                     disabled={isLoading && loadingType === 'pdf'}
                 >
                     <FileText className="h-4 w-4 mr-2" />
-                    Xut PDF
+                    Xuất PDF
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -258,11 +258,11 @@ export function DateRangeExport({ onExport, isLoading = false, className }: Date
 
     const handleExport = () => {
         if (!startDate || !endDate) {
-            toast.error('Vui lng chn ngy bt u v kt thc');
+            toast.error('Vui lòng chọn ngày bắt đầu và kết thúc');
             return;
         }
         if (new Date(startDate) > new Date(endDate)) {
-            toast.error('Ngy bt u khng c ln hn ngy kt thc');
+            toast.error('Ngày bắt đầu không được lớn hơn ngày kết thúc');
             return;
         }
         onExport(startDate, endDate);
@@ -275,15 +275,15 @@ export function DateRangeExport({ onExport, isLoading = false, className }: Date
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-                placeholder="Ngy bt u"
+                placeholder="Ngày bắt đầu"
             />
-            <span className="text-gray-500">n</span>
+            <span className="text-gray-500">đến</span>
             <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-                placeholder="Ngy kt thc"
+                placeholder="Ngày kết thúc"
             />
             <Button
                 onClick={handleExport}
@@ -296,7 +296,7 @@ export function DateRangeExport({ onExport, isLoading = false, className }: Date
                 ) : (
                     <Calendar className="h-4 w-4" />
                 )}
-                <span className="ml-2">Xut bo co</span>
+                <span className="ml-2">Xuất báo cáo</span>
             </Button>
         </div>
     );

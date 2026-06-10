@@ -262,9 +262,9 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
                         );
 
                         if (!paypalWindow) {
-                            toast.error('Khng th m ca s PayPal. Vui lng cho php popup v th li.');
+                            toast.error('Không thể mở cửa sổ PayPal. Vui lòng cho phép popup và thử lại.');
                         } else {
-                            toast.success(' m ca s PayPal. Vui lng hon thnh thanh ton trong ca s mi.');
+                            toast.success('Đã mở cửa sổ PayPal. Vui lòng hoàn thành thanh toán trong cửa sổ mới.');
                         }
                     } else {
                         // Redirect to other external payment gateways (VNPay)
@@ -273,7 +273,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
                     }
                 } else if (response.qrCodeUrl && response.qrCodeUrl.trim() !== '') {
                     // Show QR code for SePay (direct qrCodeUrl)
-                    toast.success('M QR  c to. Vui lng qut m  thanh ton.');
+                    toast.success('Mã QR đã được tạo. Vui lòng quét mã để thanh toán.');
                 } else if (response.additionalData?.qrCodeUrl && response.additionalData.qrCodeUrl.trim() !== '') {
                     // Handle SePay payment with QR code in additionalData - redirect to SePay page
                     console.log('SePay QR code detected in additionalData:', response.additionalData.qrCodeUrl);
@@ -288,7 +288,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
                 } else {
                     // No payment URL or QR code - this might be an issue
                     console.error('No payment URL or QR code received:', response);
-                    toast.error('Khng nhn c lin kt thanh ton. Vui lng th li.');
+                    toast.error('Không nhận được liên kết thanh toán. Vui lòng thử lại.');
                 }
 
                 // Return response for caller to handle
@@ -296,30 +296,30 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
             } else {
                 dispatch({
                     type: 'PAYMENT_FAILED',
-                    payload: { error: response.errorMessage || 'Khng th khi to thanh ton' }
+                    payload: { error: response.errorMessage || 'Không thể khởi tạo thanh toán' }
                 });
-                toast.error(response.errorMessage || 'Khng th khi to thanh ton');
+                toast.error(response.errorMessage || 'Không thể khởi tạo thanh toán');
                 return response;
             }
         } catch (error: any) {
             dispatch({
                 type: 'PAYMENT_FAILED',
-                payload: { error: error.message || 'C li xy ra khi khi to thanh ton' }
+                payload: { error: error.message || 'Có lỗi xảy ra khi khởi tạo thanh toán' }
             });
-            toast.error('C li xy ra khi khi to thanh ton');
-            return { isSuccess: false, errorMessage: error.message || 'C li xy ra khi khi to thanh ton' };
+            toast.error('Có lỗi xảy ra khi khởi tạo thanh toán');
+            return { isSuccess: false, errorMessage: error.message || 'Có lỗi xảy ra khi khởi tạo thanh toán' };
         }
     }, []);
 
     // Retry payment
     const retryPayment = useCallback(async () => {
         if (!state.currentPayment.orderId || !state.currentPayment.gateway || !state.currentPayment.method) {
-            toast.error('Khng c thng tin thanh ton  th li');
+            toast.error('Không có thông tin thanh toán để thử lại');
             return;
         }
 
         if (state.retryCount >= state.config.maxRetries) {
-            toast.error(' vt qu s ln th li cho php');
+            toast.error('Đã vượt quá số lần thử lại cho phép');
             return;
         }
 
@@ -329,7 +329,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
 
         if (timeSinceLastRetry < state.config.retryDelay) {
             const remainingTime = Math.ceil((state.config.retryDelay - timeSinceLastRetry) / 1000);
-            toast.error(`Vui lng i ${remainingTime} giy trc khi th li`);
+            toast.error(`Vui lòng đợi ${remainingTime} giây trước khi thử lại`);
             return;
         }
 
@@ -347,7 +347,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
     // Cancel payment
     const cancelPayment = useCallback(() => {
         dispatch({ type: 'PAYMENT_CANCELLED' });
-        toast.info(' hy thanh ton');
+        toast.info('Đã hủy thanh toán');
     }, []);
 
     // Reset payment
@@ -382,7 +382,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
                 payload: { gateways, methods }
             });
         } catch (error) {
-            toast.error('Khng th ti danh sch phng thc thanh ton');
+            toast.error('Không thể tải danh sách phương thức thanh toán');
         } finally {
             dispatch({ type: 'SET_LOADING', payload: false });
         }

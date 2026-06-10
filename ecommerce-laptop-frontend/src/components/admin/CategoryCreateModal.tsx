@@ -44,13 +44,13 @@ export default function CategoryCreateModal({
         },
         onSuccess: (newCategory) => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
-            toast.success('To danh mc thnh cng!');
+            toast.success('Tạo danh mục thành công!');
             onCategoryCreated?.(newCategory);
             onOpenChange(false);
             resetForm();
         },
         onError: (error: any) => {
-            toast.error(`Li khi to danh mc: ${error.message || 'C li xy ra'}`);
+            toast.error(`Lỗi khi tạo danh mục: ${error.message || 'Có lỗi xảy ra'}`);
         }
     });
 
@@ -67,7 +67,7 @@ export default function CategoryCreateModal({
         e.preventDefault();
 
         if (!formData.name.trim()) {
-            toast.error('Vui lng nhp tn danh mc');
+            toast.error('Vui lòng nhập tên danh mục');
             return;
         }
 
@@ -85,45 +85,45 @@ export default function CategoryCreateModal({
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Thm danh mc mi</DialogTitle>
+                    <DialogTitle>Thêm danh mục mới</DialogTitle>
                     <DialogDescription>
-                        To danh mc mi cho sn phm
+                        Tạo danh mục mới cho sản phẩm
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Tn danh mc *</Label>
+                            <Label htmlFor="name">Tên danh mục *</Label>
                             <Input
                                 id="name"
                                 value={formData.name}
                                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                                placeholder="Nhp tn danh mc"
+                                placeholder="Nhập tên danh mục"
                                 required
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="description">M t</Label>
+                            <Label htmlFor="description">Mô tả</Label>
                             <Textarea
                                 id="description"
                                 value={formData.description}
                                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                placeholder="M t danh mc"
+                                placeholder="Mô tả danh mục"
                                 rows={3}
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="parentId">Danh mc cha</Label>
+                            <Label htmlFor="parentId">Danh mục cha</Label>
                             <select
                                 id="parentId"
                                 value={formData.parentId}
                                 onChange={(e) => setFormData(prev => ({ ...prev, parentId: e.target.value }))}
                                 className="w-full px-3 py-2 border rounded-md"
                             >
-                                <option value="">Khng c (danh mc gc)</option>
+                                <option value="">Không có (danh mục gốc)</option>
                                 {parentCategories.map((category) => (
                                     <option key={category.id} value={category.id.toString()}>
                                         {category.name}
@@ -139,7 +139,7 @@ export default function CategoryCreateModal({
                                 checked={formData.isActive}
                                 onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
                             />
-                            <Label htmlFor="isActive">Kch hot danh mc</Label>
+                            <Label htmlFor="isActive">Kích hoạt danh mục</Label>
                         </div>
                     </div>
 
@@ -149,13 +149,13 @@ export default function CategoryCreateModal({
                             variant="outline"
                             onClick={() => handleOpenChange(false)}
                         >
-                            Hy b
+                            Hủy bỏ
                         </Button>
                         <Button
                             type="submit"
                             disabled={!formData.name || createCategoryMutation.isPending}
                         >
-                            {createCategoryMutation.isPending ? 'ang to...' : 'To danh mc'}
+                            {createCategoryMutation.isPending ? 'Đang tạo...' : 'Tạo danh mục'}
                         </Button>
                     </DialogFooter>
                 </form>

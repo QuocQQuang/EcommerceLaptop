@@ -146,11 +146,11 @@ export default function CategoriesPage() {
         const errors: Record<string, string> = {};
 
         if (!state.modalState.category.name?.trim()) {
-            errors.name = 'Tn danh mc l bt buc';
+            errors.name = 'Tên danh mục là bắt buộc';
         }
 
         if (!state.modalState.category.slug?.trim()) {
-            errors.slug = 'Slug l bt buc';
+            errors.slug = 'Slug là bắt buộc';
         }
 
         // Check if slug is unique (except for current category in edit mode)
@@ -159,7 +159,7 @@ export default function CategoriesPage() {
             cat.id !== state.modalState.category.id
         );
         if (existingCategory) {
-            errors.slug = 'Slug  tn ti';
+            errors.slug = 'Slug đã tồn tại';
         }
 
         setState(prev => ({
@@ -231,12 +231,12 @@ export default function CategoriesPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Qun l danh mc</h1>
-                    <p className="text-gray-500">To v qun l danh mc bi vit blog</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Quản lý danh mục</h1>
+                    <p className="text-gray-500">Tạo và quản lý danh mục bài viết blog</p>
                 </div>
                 <Button onClick={() => openModal('create')}>
                     <Plus className="w-4 h-4 mr-2" />
-                    Thm danh mc
+                    Thêm danh mục
                 </Button>
             </div>
 
@@ -248,7 +248,7 @@ export default function CategoriesPage() {
                         <Input
                             value={state.searchTerm}
                             onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.target.value }))}
-                            placeholder="Tm kim danh mc..."
+                            placeholder="Tìm kiếm danh mục..."
                             className="pl-10"
                         />
                     </div>
@@ -260,7 +260,7 @@ export default function CategoriesPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <FolderOpen className="w-5 h-5" />
-                        Danh sch danh mc ({filteredCategories.length})
+                        Danh sách danh mục ({filteredCategories.length})
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -272,18 +272,18 @@ export default function CategoriesPage() {
                         <div className="text-center py-12">
                             <FolderOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                {state.searchTerm ? 'Khng tm thy danh mc' : 'Cha c danh mc no'}
+                                {state.searchTerm ? 'Không tìm thấy danh mục' : 'Chưa có danh mục nào'}
                             </h3>
                             <p className="text-gray-500 mb-4">
                                 {state.searchTerm
-                                    ? 'Th tm kim vi t kha khc'
-                                    : 'To danh mc u tin  bt u phn loi bi vit'
+                                    ? 'Thử tìm kiếm với từ khóa khác'
+                                    : 'Tạo danh mục đầu tiên để bắt đầu phân loại bài viết'
                                 }
                             </p>
                             {!state.searchTerm && (
                                 <Button onClick={() => openModal('create')}>
                                     <Plus className="w-4 h-4 mr-2" />
-                                    To danh mc u tin
+                                    Tạo danh mục đầu tiên
                                 </Button>
                             )}
                         </div>
@@ -291,10 +291,10 @@ export default function CategoriesPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Tn danh mc</TableHead>
+                                    <TableHead>Tên danh mục</TableHead>
                                     <TableHead>Slug</TableHead>
-                                    <TableHead>M t</TableHead>
-                                    <TableHead className="w-24">Thao tc</TableHead>
+                                    <TableHead>Mô tả</TableHead>
+                                    <TableHead className="w-24">Thao tác</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -310,7 +310,7 @@ export default function CategoriesPage() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="max-w-xs truncate text-gray-600">
-                                                {category.description || 'Khng c m t'}
+                                                {category.description || 'Không có mô tả'}
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -344,24 +344,24 @@ export default function CategoriesPage() {
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            {state.modalState.mode === 'create' ? 'To danh mc mi' : 'Chnh sa danh mc'}
+                            {state.modalState.mode === 'create' ? 'Tạo danh mục mới' : 'Chỉnh sửa danh mục'}
                         </DialogTitle>
                         <DialogDescription>
                             {state.modalState.mode === 'create'
-                                ? 'To danh mc mi  phn loi bi vit blog'
-                                : 'Cp nht thng tin danh mc'
+                                ? 'Tạo danh mục mới để phân loại bài viết blog'
+                                : 'Cập nhật thông tin danh mục'
                             }
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4">
                         <div>
-                            <Label htmlFor="categoryName">Tn danh mc *</Label>
+                            <Label htmlFor="categoryName">Tên danh mục *</Label>
                             <Input
                                 id="categoryName"
                                 value={state.modalState.category.name || ''}
                                 onChange={(e) => updateModalCategory('name', e.target.value)}
-                                placeholder="Nhp tn danh mc..."
+                                placeholder="Nhập tên danh mục..."
                                 className={cn(state.modalState.errors.name && "border-red-500")}
                             />
                             {state.modalState.errors.name && (
@@ -387,12 +387,12 @@ export default function CategoriesPage() {
                         </div>
 
                         <div>
-                            <Label htmlFor="categoryDescription">M t</Label>
+                            <Label htmlFor="categoryDescription">Mô tả</Label>
                             <Textarea
                                 id="categoryDescription"
                                 value={state.modalState.category.description || ''}
                                 onChange={(e) => updateModalCategory('description', e.target.value)}
-                                placeholder="M t ngn v danh mc..."
+                                placeholder="Mô tả ngắn về danh mục..."
                                 rows={3}
                             />
                         </div>
@@ -403,7 +403,7 @@ export default function CategoriesPage() {
                                 id="metaTitle"
                                 value={state.modalState.category.metaTitle || ''}
                                 onChange={(e) => updateModalCategory('metaTitle', e.target.value)}
-                                placeholder="Tiu  meta..."
+                                placeholder="Tiêu đề meta..."
                             />
                         </div>
 
@@ -413,13 +413,13 @@ export default function CategoriesPage() {
                                 id="metaDescription"
                                 value={state.modalState.category.metaDescription || ''}
                                 onChange={(e) => updateModalCategory('metaDescription', e.target.value)}
-                                placeholder="M t meta..."
+                                placeholder="Mô tả meta..."
                                 rows={3}
                             />
                         </div>
 
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="isActive">Hot ng</Label>
+                            <Label htmlFor="isActive">Hoạt động</Label>
                             <Switch
                                 id="isActive"
                                 checked={state.modalState.category.isActive !== false}
@@ -428,7 +428,7 @@ export default function CategoriesPage() {
                         </div>
 
                         <div>
-                            <Label htmlFor="sortOrder">Th t sp xp</Label>
+                            <Label htmlFor="sortOrder">Thứ tự sắp xếp</Label>
                             <Input
                                 id="sortOrder"
                                 type="number"
@@ -441,11 +441,11 @@ export default function CategoriesPage() {
 
                     <DialogFooter>
                         <Button variant="outline" onClick={closeModal}>
-                            Hy
+                            Hủy
                         </Button>
                         <Button onClick={saveCategory} disabled={state.saving}>
                             {state.saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                            {state.modalState.mode === 'create' ? 'To danh mc' : 'Cp nht'}
+                            {state.modalState.mode === 'create' ? 'Tạo danh mục' : 'Cập nhật'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -458,18 +458,18 @@ export default function CategoriesPage() {
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Xa danh mc</AlertDialogTitle>
+                        <AlertDialogTitle>Xóa danh mục</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Bn c chc chn mun xa danh mc "{state.deletingCategory?.name}"?
+                            Bạn có chắc chắn muốn xóa danh mục "{state.deletingCategory?.name}"?
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Hy</AlertDialogCancel>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => state.deletingCategory && deleteCategory(state.deletingCategory)}
                             className="bg-red-600 hover:bg-red-700"
                         >
-                            Xa danh mc
+                            Xóa danh mục
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

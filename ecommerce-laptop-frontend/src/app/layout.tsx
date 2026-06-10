@@ -12,8 +12,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "LaptopStore - Ca hng laptop v ph kin cng ngh",
-  description: "Ca hng laptop v ph kin cng ngh hng u Vit Nam. Chng ti cam kt mang n nhng sn phm cht lng cao vi gi c hp l.",
+  title: "LaptopStore - Cửa hàng laptop và phụ kiện công nghệ",
+  description: "Cửa hàng laptop và phụ kiện công nghệ hàng đầu Việt Nam. Chúng tôi cam kết mang đến những sản phẩm chất lượng cao với giá cả hợp lý.",
   keywords: ["laptop", "computer", "technology", "accessories", "gaming laptop", "business laptop"],
   authors: [{ name: "LaptopStore" }],
   creator: "LaptopStore",
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
     locale: "vi_VN",
     url: "/",
     siteName: "LaptopStore",
-    title: "LaptopStore - Ca hng laptop v ph kin cng ngh",
-    description: "Ca hng laptop v ph kin cng ngh hng u Vit Nam",
+    title: "LaptopStore - Cửa hàng laptop và phụ kiện công nghệ",
+    description: "Cửa hàng laptop và phụ kiện công nghệ hàng đầu Việt Nam",
     images: [
       {
         url: "/images/og-image.jpg",
@@ -49,8 +49,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "LaptopStore - Ca hng laptop v ph kin cng ngh",
-    description: "Ca hng laptop v ph kin cng ngh hng u Vit Nam",
+    title: "LaptopStore - Cửa hàng laptop và phụ kiện công nghệ",
+    description: "Cửa hàng laptop và phụ kiện công nghệ hàng đầu Việt Nam",
     images: ["/images/og-image.jpg"],
   },
   robots: {

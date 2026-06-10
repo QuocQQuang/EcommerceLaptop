@@ -59,7 +59,7 @@ export function CartSidebar() {
                 <SheetHeader className="space-y-2.5 pr-6">
                     <SheetTitle className="flex items-center text-left">
                         <ShoppingBag className="h-5 w-5 mr-2" />
-                        Gi hng ({totalItems} sn phm)
+                        Giỏ hàng ({totalItems} sản phẩm)
                     </SheetTitle>
                 </SheetHeader>
 
@@ -74,14 +74,14 @@ export function CartSidebar() {
                                 <ShoppingBag className="h-12 w-12 text-gray-400" />
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                Gi hng trng
+                                Giỏ hàng trống
                             </h3>
                             <p className="text-gray-500 mb-6 max-w-sm">
-                                Thm sn phm vo gi hng  bt u mua sm
+                                Thêm sản phẩm vào giỏ hàng để bắt đầu mua sắm
                             </p>
                             <Button onClick={() => setCartSidebarOpen(false)} asChild>
                                 <Link href="/products" className="px-6">
-                                    Khm ph sn phm
+                                    Khám phá sản phẩm
                                 </Link>
                             </Button>
                         </div>
@@ -161,14 +161,14 @@ export function CartSidebar() {
                                 {/* Free shipping notice */}
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                                     <p className="text-sm text-green-800 text-center">
-                                         Min ph vn chuyn cho n hng trn 500.000
+                                         Miễn phí vận chuyển cho đơn hàng trên 500.000₫
                                     </p>
                                 </div>
 
                                 {/* Total */}
                                 <div className="flex justify-between items-center py-2">
                                     <span className="text-lg font-semibold text-gray-900">
-                                        Tng cng:
+                                        Tổng cộng:
                                     </span>
                                     <span className="text-xl font-bold text-blue-600">
                                         {formatCurrencyPrice(totalPrice, selectedCurrency)}
@@ -184,7 +184,7 @@ export function CartSidebar() {
                                         asChild
                                     >
                                         <Link href="/checkout">
-                                            Thanh ton ngay
+                                            Thanh toán ngay
                                         </Link>
                                     </Button>
                                     <Button
@@ -194,7 +194,7 @@ export function CartSidebar() {
                                         asChild
                                     >
                                         <Link href="/cart">
-                                            Xem gi hng chi tit
+                                            Xem giỏ hàng chi tiết
                                         </Link>
                                     </Button>
                                 </div>
@@ -207,13 +207,13 @@ export function CartSidebar() {
                                             size="sm"
                                             className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
                                             onClick={() => {
-                                                if (confirm('Bn c chc mun xa tt c sn phm trong gi hng?')) {
+                                                if (confirm('Bạn có chắc muốn xóa tất cả sản phẩm trong giỏ hàng?')) {
                                                     clearCart();
                                                 }
                                             }}
                                         >
                                             <Trash2 className="h-4 w-4 mr-2" />
-                                            Xa tt c
+                                            Xóa tất cả
                                         </Button>
                                     </div>
                                 )}

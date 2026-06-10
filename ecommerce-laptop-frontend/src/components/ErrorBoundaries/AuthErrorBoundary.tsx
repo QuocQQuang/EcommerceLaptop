@@ -100,19 +100,19 @@ export class AuthErrorBoundary extends React.Component<
                                 <AlertCircle className="w-6 h-6 text-red-600" />
                             </div>
                             <CardTitle className="text-red-600">
-                                {isAuthError ? 'Li Xc Thc' : 'C Li Xy Ra'}
+                                {isAuthError ? 'Lỗi Xác Thực' : 'Có Lỗi Xảy Ra'}
                             </CardTitle>
                             <CardDescription>
                                 {isAuthError
-                                    ? 'Phin ng nhp ca bn  ht hn hoc khng hp l.'
-                                    : ' xy ra li khng mong mun. Vui lng th li.'
+                                    ? 'Phiên đăng nhập của bạn đã hết hạn hoặc không hợp lệ.'
+                                    : 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.'
                                 }
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {process.env.NODE_ENV === 'development' && this.state.error && (
                                 <details className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
-                                    <summary>Chi tit li (Ch hin th trong development)</summary>
+                                    <summary>Chi tiết lỗi (Chỉ hiển thị trong development)</summary>
                                     <pre className="mt-2 whitespace-pre-wrap">
                                         {this.state.error.message}
                                     </pre>
@@ -131,7 +131,7 @@ export class AuthErrorBoundary extends React.Component<
                                     variant="outline"
                                 >
                                     <RefreshCw className="w-4 h-4 mr-2" />
-                                    Th Li
+                                    Thử Lại
                                 </Button>
 
                                 {isAuthError && (
@@ -141,7 +141,7 @@ export class AuthErrorBoundary extends React.Component<
                                     >
                                         <Link href="/auth/login">
                                             <LogIn className="w-4 h-4 mr-2" />
-                                            ng Nhp Li
+                                            Đăng Nhập Lại
                                         </Link>
                                     </Button>
                                 )}
@@ -152,7 +152,7 @@ export class AuthErrorBoundary extends React.Component<
                                     className="w-full"
                                 >
                                     <Link href="/">
-                                        V Trang Ch
+                                        Về Trang Chủ
                                     </Link>
                                 </Button>
                             </div>

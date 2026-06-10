@@ -112,18 +112,18 @@ export function validateInputSecurity(
 
     // Basic validation
     if (context.required && (!value || value.trim().length === 0)) {
-        errors.push('Trng ny l bt buc');
+        errors.push('Trường này là bắt buộc');
         return { isValid: false, securityScore: 0, errors, warnings };
     }
 
     if (value && value.length > context.maxLength) {
-        errors.push(`Khng c vt qu ${context.maxLength} k t`);
+        errors.push(`Không được vượt quá ${context.maxLength} ký tự`);
         securityScore -= 20;
     }
 
     // Pattern validation
     if (value && context.pattern && !context.pattern.test(value)) {
-        errors.push('nh dng khng hp l');
+        errors.push('Định dạng không hợp lệ');
         securityScore -= 30;
     }
 
@@ -131,7 +131,7 @@ export function validateInputSecurity(
     if (value && context.blockedPatterns) {
         for (const blockedPattern of context.blockedPatterns) {
             if (blockedPattern.test(value)) {
-                errors.push('Ni dung cha k t khng c php');
+                errors.push('Nội dung chứa ký tự không được phép');
                 securityScore -= 40;
                 break;
             }
@@ -143,7 +143,7 @@ export function validateInputSecurity(
         if (!context.allowHtml) {
             const textSanitized = sanitizeText(value);
             if (textSanitized !== value) {
-                warnings.push('Ni dung  c lm sch  m bo an ton');
+                warnings.push('Nội dung đã được làm sạch để đảm bảo an toàn');
                 sanitizedValue = textSanitized;
                 securityScore -= 10;
             }
@@ -157,7 +157,7 @@ export function validateInputSecurity(
                 for (const url of urls) {
                     const sanitizedUrl = sanitizeUrl(url);
                     if (!sanitizedUrl) {
-                        errors.push('URL khng an ton  c pht hin');
+                        errors.push('URL không an toàn đã được phát hiện');
                         securityScore -= 25;
                     }
                 }
@@ -252,7 +252,7 @@ export const SecureInput = forwardRef<HTMLInputElement, SecureInputProps>(
                             variant={validationResult.securityScore > 80 ? "default" : validationResult.securityScore > 60 ? "secondary" : "destructive"}
                             className="text-xs"
                         >
-                            Bo mt: {validationResult.securityScore}/100
+                            Bảo mật: {validationResult.securityScore}/100
                         </Badge>
                     </div>
                 )}
@@ -338,7 +338,7 @@ export const SecureTextarea = forwardRef<HTMLTextAreaElement, SecureTextareaProp
                                 variant={validationResult.securityScore > 80 ? "default" : validationResult.securityScore > 60 ? "secondary" : "destructive"}
                                 className="text-xs"
                             >
-                                Bo mt: {validationResult.securityScore}/100
+                                Bảo mật: {validationResult.securityScore}/100
                             </Badge>
                         </div>
                     )}
@@ -405,7 +405,7 @@ export function SecureFormWrapper({
                 <div className="flex items-center gap-2">
                     <Shield className={cn("h-5 w-5", securityColor)} />
                     <Badge variant={securityBadgeVariant}>
-                        Bo mt {securityLevel === 'basic' ? 'C bn' : securityLevel === 'enhanced' ? 'Nng cao' : 'Nghim ngt'}
+                        Bảo mật {securityLevel === 'basic' ? 'Cơ bản' : securityLevel === 'enhanced' ? 'Nâng cao' : 'Nghiêm ngặt'}
                     </Badge>
                 </div>
             </div>
@@ -413,8 +413,8 @@ export function SecureFormWrapper({
             <Alert>
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
-                    Form ny c bo v bi form {securityLevel === 'basic' ? 'c bn' : securityLevel === 'enhanced' ? 'nng cao' : 'nghim ngt'}.
-                    Tt c d liu nhp vo s c kim tra v lm sch t ng.
+                    Form này được bảo vệ bởi form {securityLevel === 'basic' ? 'cơ bản' : securityLevel === 'enhanced' ? 'nâng cao' : 'nghiêm ngặt'}.
+                    Tất cả dữ liệu nhập vào sẽ được kiểm tra và làm sạch tự động.
                 </AlertDescription>
             </Alert>
 

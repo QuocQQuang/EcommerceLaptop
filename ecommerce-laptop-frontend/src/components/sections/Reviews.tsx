@@ -9,19 +9,19 @@ const reviews = [
         name: 'Sarah Johnson',
         avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
         rating: 5,
-        text: 'Chic laptop ny  thay i hon ton cng vic ca ti. Hiu nng tuyt vi v thi lng pin n tng. Rt ng mua cho ngi dng chuyn nghip!',
+        text: 'Chiếc laptop này đã thay đổi hoàn toàn công việc của tôi. Hiệu năng tuyệt vời và thời lượng pin ấn tượng. Rất đáng mua cho người dùng chuyên nghiệp!',
     },
     {
         name: 'Mike Chen',
         avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
         rating: 5,
-        text: 'L mt game th, ti n tng vi  ha RTX v mn hnh 120Hz mt m. Khng git, hnh nh sng ng  ng l c my mnh m!',
+        text: 'Là một game thủ, tôi ấn tượng với đồ họa RTX và màn hình 120Hz mượt mà. Không giật, hình ảnh sống động đúng là cỗ máy mạnh mẽ!',
     },
     {
         name: 'Emily Rodriguez',
         avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
         rating: 5,
-        text: 'Thit k thanh lch, hin i. Rt ph hp cho cng vic sng to vi mn hnh OLED. Pin tru c ngy  ti rt hi lng!',
+        text: 'Thiết kế thanh lịch, hiện đại. Rất phù hợp cho công việc sáng tạo với màn hình OLED. Pin trâu cả ngày tôi rất hài lòng!',
     },
 ];
 
@@ -55,7 +55,7 @@ export function Reviews() {
                     whileInView="visible"
                     viewport={{ once: true }}
                 >
-                    Khch hng ni g
+                    Khách hàng nói gì
                 </motion.h2>
                 <motion.p
                     className="text-xl text-center text-muted-foreground mb-16 max-w-2xl mx-auto"
@@ -64,7 +64,7 @@ export function Reviews() {
                     whileInView="visible"
                     viewport={{ once: true }}
                 >
-                    ng ch nghe chng ti ni  lng nghe nh gi t nhng ngi dng thc t  nng cp tri nghim ca h.
+                    Đừng chỉ nghe chúng tôi nói hãy lắng nghe đánh giá từ những người dùng thực tế để nâng cấp trải nghiệm của họ.
                 </motion.p>
 
                 <div className="max-w-4xl mx-auto relative">

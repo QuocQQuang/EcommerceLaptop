@@ -81,13 +81,13 @@ export default function CartPage() {
                         <Link href="/products">
                             <Button variant="ghost" size="sm">
                                 <ArrowLeft className="h-4 w-4 mr-2" />
-                                Tip tc mua sm
+                                Tiếp tục mua sắm
                             </Button>
                         </Link>
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900 flex items-center">
                         <ShoppingCart className="h-8 w-8 mr-3" />
-                        Gi hng ({itemCount} sn phm)
+                        Giỏ hàng ({itemCount} sản phẩm)
                     </h1>
                 </div>
 
@@ -96,14 +96,14 @@ export default function CartPage() {
                     <div className="text-center py-16">
                         <ShoppingBag className="h-24 w-24 text-gray-300 mx-auto mb-6" />
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                            Gi hng ca bn ang trng
+                            Giỏ hàng của bạn đang trống
                         </h2>
                         <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                            Hy khm ph cc sn phm tuyt vi ca chng ti v thm chng vo gi hng  bt u mua sm.
+                            Hãy khám phá các sản phẩm tuyệt vời của chúng tôi và thêm chúng vào giỏ hàng để bắt đầu mua sắm.
                         </p>
                         <Link href="/products">
                             <Button size="lg">
-                                Khm ph sn phm
+                                Khám phá sản phẩm
                             </Button>
                         </Link>
                     </div>
@@ -113,19 +113,19 @@ export default function CartPage() {
                         <div className="lg:col-span-2">
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between">
-                                    <CardTitle>Sn phm trong gi hng</CardTitle>
+                                    <CardTitle>Sản phẩm trong giỏ hàng</CardTitle>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                         onClick={() => {
-                                            if (confirm('Bn c chc mun xa tt c sn phm trong gi hng?')) {
+                                            if (confirm('Bạn có chắc muốn xóa tất cả sản phẩm trong giỏ hàng?')) {
                                                 clearCartItems();
                                             }
                                         }}
                                     >
                                         <Trash2 className="h-4 w-4 mr-2" />
-                                        Xa tt c
+                                        Xóa tất cả
                                     </Button>
                                 </CardHeader>
                                 <CardContent>
@@ -224,7 +224,7 @@ export default function CartPage() {
                                                 {/* Bundle items breakdown */}
                                                 {item.isBundle && item.bundleItems && item.bundleItems.length > 0 && (
                                                     <div className="ml-8 pl-4 border-l-2 border-blue-200 space-y-2">
-                                                        <p className="text-sm font-medium text-gray-700 mb-3">Bao gm:</p>
+                                                        <p className="text-sm font-medium text-gray-700 mb-3">Bao gồm:</p>
                                                         {item.bundleItems.map((bundleItem) => (
                                                             <div key={bundleItem.id} className="flex items-center justify-between p-2 bg-white rounded border border-gray-100">
                                                                 <div className="flex items-center space-x-3">
@@ -241,7 +241,7 @@ export default function CartPage() {
                                                                             {bundleItem.product.name}
                                                                         </p>
                                                                         <p className="text-xs text-gray-500">
-                                                                            S lng: {bundleItem.quantity}
+                                                                            Số lượng: {bundleItem.quantity}
                                                                         </p>
                                                                     </div>
                                                                 </div>
@@ -251,7 +251,7 @@ export default function CartPage() {
                                                                     </p>
                                                                     {bundleItem.itemDiscount && bundleItem.itemDiscount > 0 && (
                                                                         <p className="text-xs text-green-600">
-                                                                            Tit kim: {formatCurrencyPrice(bundleItem.itemDiscount, selectedCurrency)}
+                                                                            Tiết kiệm: {formatCurrencyPrice(bundleItem.itemDiscount, selectedCurrency)}
                                                                         </p>
                                                                     )}
                                                                 </div>
@@ -271,21 +271,21 @@ export default function CartPage() {
                             <div className="sticky top-4 z-10">
                                 <Card className="z-10">
                                     <CardHeader>
-                                        <CardTitle>Tm tt n hng</CardTitle>
+                                        <CardTitle>Tóm tắt đơn hàng</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         {/* Subtotal */}
                                         <div className="flex justify-between">
-                                            <span>Tm tnh ({itemCount} sn phm):</span>
+                                            <span>Tạm tính ({itemCount} sản phẩm):</span>
                                             <span className="font-medium">{formatCurrencyPrice(total, selectedCurrency)}</span>
                                         </div>
 
                                         {/* Shipping */}
                                         <div className="flex justify-between">
-                                            <span>Ph vn chuyn:</span>
+                                            <span>Phí vận chuyển:</span>
                                             <span className="font-medium">
                                                 {finalShippingFee === 0 ? (
-                                                    <span className="text-green-600">Min ph</span>
+                                                    <span className="text-green-600">Miễn phí</span>
                                                 ) : (
                                                     formatCurrencyPrice(finalShippingFee, selectedCurrency)
                                                 )}
@@ -296,7 +296,7 @@ export default function CartPage() {
 
                                         <div className="border-t pt-4">
                                             <div className="flex justify-between text-lg font-bold">
-                                                <span>Tng cng:</span>
+                                                <span>Tổng cộng:</span>
                                                 <span className="text-blue-600">{formatCurrencyPrice(finalTotal, selectedCurrency)}</span>
                                             </div>
                                         </div>
@@ -308,13 +308,13 @@ export default function CartPage() {
                                             asChild
                                         >
                                             <Link href="/checkout">
-                                                Tin hnh thanh ton
+                                                Tiến hành thanh toán
                                             </Link>
                                         </Button>
 
                                         {/* Security Notice */}
                                         <div className="text-center text-sm text-gray-500 pt-4">
-                                            <p>H tr cc phng thc thanh ton ph bin</p>
+                                            <p>Hỗ trợ các phương thức thanh toán phổ biến</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -322,7 +322,7 @@ export default function CartPage() {
                                 {/* Recommended Products (real, in-stock) */}
                                 <Card className="mt-6">
                                     <CardHeader>
-                                        <CardTitle className="text-lg">C th bn quan tm</CardTitle>
+                                        <CardTitle className="text-lg">Có thể bạn quan tâm</CardTitle>
                                     </CardHeader>
                                     <CardContent>
                                         <div className="space-y-3">
@@ -341,12 +341,12 @@ export default function CartPage() {
                                                         </p>
                                                     </div>
                                                     <Button size="sm" variant="outline" onClick={() => addToCartFromReco(p)}>
-                                                        Thm
+                                                        Thêm
                                                     </Button>
                                                 </div>
                                             ))}
                                             {recommended.length === 0 && (
-                                                <p className="text-sm text-gray-500">Khng c gi  ph hp</p>
+                                                <p className="text-sm text-gray-500">Không có gợi ý phù hợp</p>
                                             )}
                                         </div>
                                     </CardContent>

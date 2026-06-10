@@ -106,7 +106,7 @@ const MetricCard = ({
                 const rounded = abs >= 1 ? abs.toFixed(1) : abs.toFixed(2);
                 return rounded.replace(/\.0$/, '').replace(/0+$/, '').replace(/\.$/, '');
               })()
-            }% so vi thng trc
+            }% so với tháng trước
           </p>
         )}
         {description && (
@@ -122,48 +122,48 @@ const QuickActions = () => {
 
   const actions = [
     {
-      title: 'Qun l Admin',
-      description: 'Thm, sa, xa ti khon ngi dng',
+      title: 'Quản lý Admin',
+      description: 'Thêm, sửa, xóa tài khoản người dùng',
       href: '/admin/users',
       icon: Users,
       permission: PERMISSIONS.USERS_READ,
       color: 'bg-blue-500',
     },
     {
-      title: 'Qun l sn phm',
-      description: 'Thm sn phm mi v cp nht kho',
+      title: 'Quản lý sản phẩm',
+      description: 'Thêm sản phẩm mới và cập nhật kho',
       href: '/admin/products',
       icon: Package,
       permission: PERMISSIONS.PRODUCTS_READ,
       color: 'bg-green-500',
     },
     {
-      title: 'X l n hng',
-      description: 'Xem v x l n hng mi',
+      title: 'Xử lý đơn hàng',
+      description: 'Xem và xử lý đơn hàng mới',
       href: '/admin/orders',
       icon: ShoppingCart,
       permission: PERMISSIONS.ORDERS_READ,
       color: 'bg-orange-500',
     },
     {
-      title: 'Qun l khuyn mi',
-      description: 'To v qun l cc chng trnh khuyn mi',
+      title: 'Quản lý khuyến mãi',
+      description: 'Tạo và quản lý các chương trình khuyến mãi',
       href: '/admin/promotions',
       icon: Gift,
       permission: PERMISSIONS.PROMOTIONS_READ,
       color: 'bg-purple-500',
     },
     {
-      title: 'Ci t h thng',
-      description: 'Cu hnh cc thit lp h thng',
+      title: 'Cài đặt hệ thống',
+      description: 'Cấu hình các thiết lập hệ thống',
       href: '/admin/settings',
       icon: Settings,
       permission: PERMISSIONS.SETTINGS_READ,
       color: 'bg-gray-500',
     },
     {
-      title: 'Nht k h thng',
-      description: 'Xem logs v hot ng ca h thng',
+      title: 'Nhật ký hệ thống',
+      description: 'Xem logs và hoạt động của hệ thống',
       href: '/admin/logs',
       icon: FileText,
       permission: PERMISSIONS.LOGS_READ,
@@ -178,10 +178,10 @@ const QuickActions = () => {
       <CardHeader>
         <CardTitle className="flex items-center">
           <Activity className="h-5 w-5 mr-2" />
-          Thao tc nhanh
+          Thao tác nhanh
         </CardTitle>
         <CardDescription>
-          Cc chc nng thng dng
+          Các chức năng thường dùng
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -239,7 +239,7 @@ const RecentActivity = ({
       activities.push({
         id: `order-${order.id}`,
         type: 'order',
-        message: `n hng mi t ${order.customerName}: ${formatCompactCurrency(order.total)}`,
+        message: `Đơn hàng mới từ ${order.customerName}: ${formatCompactCurrency(order.total)}`,
         time: formatDateTime(order.createdAt),
         icon: ShoppingCart,
         color: getStatusColor(order.status),
@@ -253,7 +253,7 @@ const RecentActivity = ({
       activities.push({
         id: `security-${event.id}`,
         type: 'security',
-        message: `S kin bo mt: ${event.description}`,
+        message: `Sự kiện bảo mật: ${event.description}`,
         time: formatDateTime(event.createdAt),
         icon: Shield,
         color: getSeverityColor(event.severity),
@@ -291,7 +291,7 @@ const RecentActivity = ({
       <CardHeader>
         <CardTitle className="flex items-center">
           <Clock className="h-5 w-5 mr-2" />
-          Hot ng gn y
+          Hoạt động gần đây
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -325,11 +325,11 @@ const RecentActivity = ({
             })}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">Khng c hot ng gn y</p>
+          <p className="text-sm text-muted-foreground">Không có hoạt động gần đây</p>
         )}
         <div className="mt-4 pt-4 border-t">
           <Link href="/admin/logs" className="text-sm text-primary hover:underline">
-            Xem tt c hot ng 
+            Xem tất cả hoạt động 
           </Link>
         </div>
       </CardContent>
@@ -536,9 +536,9 @@ export default function DashboardPage() {
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Cho mng tr li, {user?.firstName}!</h1>
+            <h1 className="text-3xl font-bold">Chào mừng trở lại, {user?.firstName}!</h1>
             <p className="text-muted-foreground mt-2">
-              y l tng quan v hot ng ca h thng ecommerce laptop.
+              Đây là tổng quan về hoạt động của hệ thống ecommerce laptop.
             </p>
           </div>
 
@@ -547,7 +547,7 @@ export default function DashboardPage() {
             {(kpisLoading || salesTrendLoading || recentOrdersLoading || securityEventsLoading) && (
               <div className="flex items-center text-sm text-muted-foreground">
                 <Activity className="h-4 w-4 mr-1 animate-pulse" />
-                ang cp nht...
+                đang cập nhật...
               </div>
             )}
             <button
@@ -559,7 +559,7 @@ export default function DashboardPage() {
               disabled={kpisLoading}
             >
               <Activity className={`h-4 w-4 mr-1 ${kpisLoading ? 'animate-spin' : ''}`} />
-              Lm mi
+              Làm mới
             </button>
           </div>
         </div>
@@ -569,7 +569,7 @@ export default function DashboardPage() {
             <div className="flex items-center">
               <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
               <p className="text-sm text-red-700 dark:text-red-300">
-                Khng th ti d liu dashboard. Vui lng th li sau.
+                Không thể tải dữ liệu dashboard. Vui lòng thử lại sau.
               </p>
             </div>
           </div>
@@ -579,28 +579,28 @@ export default function DashboardPage() {
       {/* Metrics Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
-          title="Doanh s thng ny"
+          title="Doanh số tháng này"
           value={kpis?.todaySales?.value ? formatCompactCurrency(kpis.todaySales.value) : '0 USD'}
           change={kpis?.todaySales?.change}
           icon={DollarSign}
           loading={kpisLoading}
         />
         <MetricCard
-          title="n hng mi (thng)"
+          title="Đơn hàng mới (tháng)"
           value={kpis?.newOrders?.value ? formatNumber(kpis.newOrders.value) : 0}
           change={kpis?.newOrders?.change}
           icon={ShoppingCart}
           loading={kpisLoading}
         />
         <MetricCard
-          title="Sn phm sp ht"
+          title="Sản phẩm sắp hết"
           value={kpis?.lowStock?.value ? formatNumber(kpis.lowStock.value) : 0}
           description={kpis?.lowStock?.label}
           icon={Package}
           loading={kpisLoading}
         />
         <MetricCard
-          title="Lt truy cp"
+          title="Lượt truy cập"
           value={kpis?.visitors?.value ? formatNumber(kpis.visitors.value) : 0}
           change={kpis?.visitors?.change}
           icon={Activity}
@@ -613,8 +613,8 @@ export default function DashboardPage() {
         {/* Sales Trend Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Xu hng doanh s 30 ngy qua</CardTitle>
-            <CardDescription>Doanh thu theo ngy (USD)</CardDescription>
+            <CardTitle>Xu hướng doanh số 30 ngày qua</CardTitle>
+            <CardDescription>Doanh thu theo ngày (USD)</CardDescription>
           </CardHeader>
           <CardContent>
             {salesTrendLoading ? (
@@ -626,7 +626,7 @@ export default function DashboardPage() {
                 <div className="text-center">
                   <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    Khng th ti d liu biu 
+                    Không thể tải dữ liệu biểu đồ
                   </p>
                 </div>
               </div>
@@ -656,8 +656,8 @@ export default function DashboardPage() {
         {/* Orders Trend Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>n hng theo ngy</CardTitle>
-            <CardDescription>S lng n hng trong 30 ngy qua</CardDescription>
+            <CardTitle>Đơn hàng theo ngày</CardTitle>
+            <CardDescription>Số lượng đơn hàng trong 30 ngày qua</CardDescription>
           </CardHeader>
           <CardContent>
             {salesTrendLoading ? (
@@ -669,7 +669,7 @@ export default function DashboardPage() {
                 <div className="text-center">
                   <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    Khng th ti d liu n hng
+                    Không thể tải dữ liệu đơn hàng
                   </p>
                 </div>
               </div>
@@ -686,7 +686,7 @@ export default function DashboardPage() {
                   />
                   <YAxis />
                   <Tooltip
-                    formatter={(value) => [`${formatNumber(value as number)} n`, 'n hng']}
+                    formatter={(value) => [`${formatNumber(value as number)} đơn`, 'Đơn hàng']}
                     labelFormatter={(label) => formatDate(label)}
                   />
                   <Line type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} />
@@ -718,8 +718,8 @@ export default function DashboardPage() {
       {/* Top Products Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Sn phm bn chy</CardTitle>
-          <CardDescription>Phn phi theo doanh thu (%) - 30 ngy</CardDescription>
+          <CardTitle>Sản phẩm bán chạy</CardTitle>
+          <CardDescription>Phân phối theo doanh thu (%) - 30 ngày</CardDescription>
         </CardHeader>
         <CardContent>
           {productPerfLoading ? (
@@ -730,7 +730,7 @@ export default function DashboardPage() {
             <div className="h-[300px] flex items-center justify-center">
               <div className="text-center">
                 <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Khng th ti d liu sn phm bn chy</p>
+                <p className="text-sm text-muted-foreground">Không thể tải dữ liệu sản phẩm bán chạy</p>
               </div>
             </div>
           ) : (
@@ -762,37 +762,37 @@ export default function DashboardPage() {
         <CardHeader>
           <CardTitle className="flex items-center text-blue-600">
             <Download className="h-5 w-5 mr-2" />
-            Cng c xut file
+            Công cụ xuất file
           </CardTitle>
           <CardDescription>
-            Xut d liu ra cc nh dng PDF, Excel v XML
+            Xuất dữ liệu ra các định dạng PDF, Excel và XML
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">Bo co doanh thu</h4>
+              <h4 className="font-medium text-sm">Báo cáo doanh thu</h4>
               <DateRangeExport
                 onExport={exportRevenueReport}
                 className="flex-col items-start space-y-2"
               />
             </div>
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">Bo co tn kho</h4>
+              <h4 className="font-medium text-sm">Báo cáo tồn kho</h4>
               <ExportButtons
                 type="inventory"
                 className="w-full"
               />
             </div>
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">Bo co bo mt</h4>
+              <h4 className="font-medium text-sm">Báo cáo bảo mật</h4>
               <DateRangeExport
                 onExport={exportSecurityReport}
                 className="flex-col items-start space-y-2"
               />
             </div>
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">D liu khc</h4>
+              <h4 className="font-medium text-sm">Dữ liệu khác</h4>
               <div className="flex flex-wrap gap-2">
                 <ExportButtons type="orders" className="text-xs" />
                 <ExportButtons type="products" className="text-xs" />
@@ -811,24 +811,24 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center text-orange-600">
               <AlertCircle className="h-5 w-5 mr-2" />
-              Cnh bo h thng
+              Cảnh báo hệ thống
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
                 <div>
-                  <p className="text-sm font-medium">Dung lng  cng</p>
-                  <p className="text-xs text-muted-foreground">Cn 15% dung lng trng</p>
+                  <p className="text-sm font-medium">Dung lượng đĩa cứng</p>
+                  <p className="text-xs text-muted-foreground">Còn 15% dung lượng trống</p>
                 </div>
-                <Badge variant="outline" className="text-yellow-600">Cnh bo</Badge>
+                <Badge variant="outline" className="text-yellow-600">Cảnh báo</Badge>
               </div>
               <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 <div>
-                  <p className="text-sm font-medium">Backup t ng</p>
-                  <p className="text-xs text-muted-foreground">Hon thnh lc 2:00 AM</p>
+                  <p className="text-sm font-medium">Backup tự động</p>
+                  <p className="text-xs text-muted-foreground">Hoàn thành lúc 2:00 AM</p>
                 </div>
-                <Badge variant="outline" className="text-green-600">Hon thnh</Badge>
+                <Badge variant="outline" className="text-green-600">Hoàn thành</Badge>
               </div>
             </div>
           </CardContent>

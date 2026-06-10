@@ -34,10 +34,10 @@ export function OrderExportButtons({ orderId, orderNumber, className }: OrderExp
         try {
             if (type === 'pdf') {
                 await ExportService.downloadCustomerInvoicePdf(orderId, orderNumber, includeDigitalSignature);
-                toast.success(' xut ha n PDF thnh cng');
+                toast.success('Đã xuất hóa đơn PDF thành công');
             } else {
                 await ExportService.downloadCustomerInvoiceXml(orderId, orderNumber);
-                toast.success(' xut ha n XML thnh cng');
+                toast.success('Đã xuất hóa đơn XML thành công');
             }
         } catch (error: any) {
             console.error('Export error:', error);
@@ -46,15 +46,15 @@ export function OrderExportButtons({ orderId, orderNumber, className }: OrderExp
             if (error.response?.status === 400) {
                 const errorData = error.response.data;
                 if (errorData?.message) {
-                    toast.error('Khng th xut ha n', {
+                    toast.error('Không thể xuất hóa đơn', {
                         description: errorData.message,
                         duration: 5000
                     });
                 } else {
-                    toast.error('Khng th xut ha n cho n hng ny');
+                    toast.error('Không thể xuất hóa đơn cho đơn hàng này');
                 }
             } else {
-                toast.error('C li xy ra khi xut ha n');
+                toast.error('Có lỗi xảy ra khi xuất hóa đơn');
             }
         } finally {
             setIsLoading(false);
@@ -75,7 +75,7 @@ export function OrderExportButtons({ orderId, orderNumber, className }: OrderExp
                     ) : (
                         <Download className="h-4 w-4" />
                     )}
-                    <span className="ml-2">Xut ha n</span>
+                    <span className="ml-2">Xuất hóa đơn</span>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -84,7 +84,7 @@ export function OrderExportButtons({ orderId, orderNumber, className }: OrderExp
                     disabled={isLoading && loadingType === 'pdf'}
                 >
                     <FileText className="h-4 w-4 mr-2" />
-                    Xut PDF
+                    Xuất PDF
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

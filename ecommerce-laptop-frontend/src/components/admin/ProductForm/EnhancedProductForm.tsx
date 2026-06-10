@@ -140,14 +140,14 @@ export default function EnhancedProductForm({
                 <CardContent className="pt-6">
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Tin  hon thnh form</span>
+                            <span className="text-sm font-medium">Tiến độ hoàn thành form</span>
                             <span className="text-sm text-muted-foreground">{completionProgress}%</span>
                         </div>
                         <Progress value={completionProgress} className="h-2" />
                         {hasUnsavedChanges && (
                             <div className="flex items-center gap-2 text-amber-600 text-sm">
                                 <AlertCircle className="h-4 w-4" />
-                                <span>C thay i cha c lu</span>
+                                <span>Có thay đổi chưa được lưu</span>
                             </div>
                         )}
                     </div>
@@ -156,10 +156,10 @@ export default function EnhancedProductForm({
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="basic">Thng tin c bn</TabsTrigger>
-                    <TabsTrigger value="specs">Thng s k thut</TabsTrigger>
-                    <TabsTrigger value="inventory">Kho hng</TabsTrigger>
-                    <TabsTrigger value="media">Hnh nh & Media</TabsTrigger>
+                    <TabsTrigger value="basic">Thông tin cơ bản</TabsTrigger>
+                    <TabsTrigger value="specs">Thông số kỹ thuật</TabsTrigger>
+                    <TabsTrigger value="inventory">Kho hàng</TabsTrigger>
+                    <TabsTrigger value="media">Hình ảnh & Media</TabsTrigger>
                 </TabsList>
 
                 {/* Basic Information Tab */}
@@ -246,12 +246,12 @@ export default function EnhancedProductForm({
                             {hasErrors ? (
                                 <Badge variant="destructive" className="flex items-center gap-1">
                                     <AlertCircle className="h-3 w-3" />
-                                    C li validation
+                                    Có lỗi validation
                                 </Badge>
                             ) : (
                                 <Badge variant="default" className="flex items-center gap-1">
                                     <CheckCircle className="h-3 w-3" />
-                                    Form hp l
+                                    Form hợp lệ
                                 </Badge>
                             )}
                         </div>
@@ -266,7 +266,7 @@ export default function EnhancedProductForm({
                                 disabled={isLoading}
                             >
                                 <Save className="h-4 w-4 mr-2" />
-                                Lu nhp
+                                Lưu nháp
                             </Button>
                             <Button
                                 onClick={handleSubmit}
@@ -276,12 +276,12 @@ export default function EnhancedProductForm({
                                 {isLoading ? (
                                     <>
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                                        ang lu...
+                                        Đang lưu...
                                     </>
                                 ) : (
                                     <>
                                         <Save className="h-4 w-4 mr-2" />
-                                        Lu sn phm
+                                        Lưu sản phẩm
                                     </>
                                 )}
                             </Button>

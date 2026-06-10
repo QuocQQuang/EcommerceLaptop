@@ -32,9 +32,9 @@ export default function AccessorySpecificationsSection({
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle>Thng s ph kin</CardTitle>
+                                <CardTitle>Thông số phụ kiện</CardTitle>
                                 <CardDescription>
-                                    Nhp thng tin chi tit cho ph kin
+                                    Nhập thông tin chi tiết cho phụ kiện
                                 </CardDescription>
                             </div>
                             {isExpanded ? (
@@ -49,16 +49,16 @@ export default function AccessorySpecificationsSection({
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="accessoryType">Loi ph kin</Label>
+                                <Label htmlFor="accessoryType">Loại phụ kiện</Label>
                                 <Input
                                     id="accessoryType"
                                     value={formData.accessoryType || ''}
                                     onChange={(e) => onInputChange('accessoryType', e.target.value)}
-                                    placeholder="VD: Chut, Bn phm, Tai nghe"
+                                    placeholder="VD: Chuột, Bàn phím, Tai nghe"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="compatibility">Tng thch</Label>
+                                <Label htmlFor="compatibility">Tương thích</Label>
                                 <Input
                                     id="compatibility"
                                     value={formData.compatibility || ''}
@@ -70,30 +70,30 @@ export default function AccessorySpecificationsSection({
 
                         <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="color">Mu sc</Label>
+                                <Label htmlFor="color">Màu sắc</Label>
                                 <Combobox
                                     options={createOptions(PRODUCT_SPECS_OPTIONS.colors)}
                                     value={formData.color || ''}
                                     onValueChange={(value) => onInputChange('color', value)}
-                                    placeholder="Chn mu sc..."
-                                    searchPlaceholder="Tm kim mu sc..."
+                                    placeholder="Chọn màu sắc..."
+                                    searchPlaceholder="Tìm kiếm màu sắc..."
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="specificationDetails">Chi tit thng s</Label>
+                            <Label htmlFor="specificationDetails">Chi tiết thông số</Label>
                             <Textarea
                                 id="specificationDetails"
                                 value={formData.specificationDetails || ''}
                                 onChange={(e) => onInputChange('specificationDetails', e.target.value)}
-                                placeholder="M t chi tit v thng s k thut ca ph kin"
+                                placeholder="Mô tả chi tiết về thông số kỹ thuật của phụ kiện"
                                 rows={3}
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="connectivity">Kt ni</Label>
+                            <Label htmlFor="connectivity">Kết nối</Label>
                             <Input
                                 id="connectivity"
                                 value={formData.connectivity || ''}
@@ -103,13 +103,13 @@ export default function AccessorySpecificationsSection({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="warrantyPeriod">Bo hnh</Label>
+                            <Label htmlFor="warrantyPeriod">Bảo hành</Label>
                             <Combobox
                                 options={createOptions(PRODUCT_SPECS_OPTIONS.warrantyPeriods)}
                                 value={formData.warrantyPeriod || ''}
                                 onValueChange={(value) => onInputChange('warrantyPeriod', value)}
-                                placeholder="Chn thi gian bo hnh..."
-                                searchPlaceholder="Tm kim thi gian bo hnh..."
+                                placeholder="Chọn thời gian bảo hành..."
+                                searchPlaceholder="Tìm kiếm thời gian bảo hành..."
                             />
                         </div>
                     </CardContent>
@@ -118,4 +118,3 @@ export default function AccessorySpecificationsSection({
         </Card>
     );
 }
-

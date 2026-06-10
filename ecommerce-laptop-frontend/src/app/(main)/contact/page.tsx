@@ -34,9 +34,9 @@ export default function ContactPage() {
         <div className="min-h-screen bg-background py-12">
             <div className="container mx-auto px-4 max-w-4xl">
                 <div className="text-center mb-12">
-                    <h1 className="text-4xl font-bold tracking-tight mb-4">Lin h vi chng ti</h1>
+                    <h1 className="text-4xl font-bold tracking-tight mb-4">Liên hệ với chúng tôi</h1>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                        Chng ti lun sn sng h tr bn. Hy lin h qua form bn di hoc thng tin lin lc.
+                        Chúng tôi luôn sẵn sàng hỗ trợ bạn. Hãy liên hệ qua form bên dưới hoặc thông tin liên lạc.
                     </p>
                 </div>
 
@@ -46,17 +46,17 @@ export default function ContactPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Send className="h-5 w-5" />
-                                Thng tin lin lc
+                                Thông tin liên lạc
                             </CardTitle>
                             <CardDescription>
-                                Gi tin nhn cho chng ti hoc gi in trc tip.
+                                Gửi tin nhắn cho chúng tôi hoặc gọi điện trực tiếp.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center gap-3">
                                 <Phone className="h-5 w-5 text-muted-foreground" />
                                 <div>
-                                    <p className="font-medium">in thoi</p>
+                                    <p className="font-medium">Điện thoại</p>
                                     <p className="text-sm text-muted-foreground">+84 123 456 789</p>
                                 </div>
                             </div>
@@ -70,8 +70,8 @@ export default function ContactPage() {
                             <div className="flex items-center gap-3">
                                 <MapPin className="h-5 w-5 text-muted-foreground" />
                                 <div>
-                                    <p className="font-medium">a ch</p>
-                                    <p className="text-sm text-muted-foreground">123 ng Laptop, Qun 1, TP.HCM</p>
+                                    <p className="font-medium">Địa chỉ</p>
+                                    <p className="text-sm text-muted-foreground">123 Đường Laptop, Quận 1, TP.HCM</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -80,9 +80,9 @@ export default function ContactPage() {
                     {/* Contact Form */}
                     <Card className="bg-card">
                         <CardHeader>
-                            <CardTitle>Gi tin nhn</CardTitle>
+                            <CardTitle>Gửi tin nhắn</CardTitle>
                             <CardDescription>
-                                in thng tin vo form  chng ti lin h li vi bn.
+                                Điền thông tin vào form để chúng tôi liên hệ lại với bạn.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -90,7 +90,7 @@ export default function ContactPage() {
                                 <div>
                                     <Input
                                         name="name"
-                                        placeholder="H v tn"
+                                        placeholder="Họ và tên"
                                         value={formData.name}
                                         onChange={handleChange}
                                         required
@@ -109,7 +109,7 @@ export default function ContactPage() {
                                 <div>
                                     <Input
                                         name="subject"
-                                        placeholder="Tiu "
+                                        placeholder="Tiêu đề"
                                         value={formData.subject}
                                         onChange={handleChange}
                                         required
@@ -118,7 +118,7 @@ export default function ContactPage() {
                                 <div>
                                     <Textarea
                                         name="message"
-                                        placeholder="Ni dung tin nhn..."
+                                        placeholder="Nội dung tin nhắn..."
                                         value={formData.message}
                                         onChange={handleChange}
                                         rows={5}
@@ -126,7 +126,7 @@ export default function ContactPage() {
                                     />
                                 </div>
                                 <Button type="submit" className="w-full">
-                                    Gi tin nhn
+                                    Gửi tin nhắn
                                 </Button>
                             </form>
                         </CardContent>

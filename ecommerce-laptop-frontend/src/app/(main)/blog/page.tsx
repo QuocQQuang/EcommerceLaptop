@@ -68,7 +68,7 @@ export default function BlogListingPage() {
         } catch (error) {
             console.error('Failed to load blogs:', error);
             setState(prev => ({ ...prev, loading: false }));
-            toast.error('Khng th ti danh sch blog');
+            toast.error('Không thể tải danh sách blog');
         }
     };
 
@@ -102,7 +102,7 @@ export default function BlogListingPage() {
     };
 
     const formatReadingTime = (minutes: number) => {
-        return minutes < 1 ? 'Di 1 pht c' : `${minutes} pht c`;
+        return minutes < 1 ? 'Dưới 1 phút đọc' : `${minutes} phút đọc`;
     };
 
     const truncateText = (text: string, maxLength: number) => {
@@ -121,7 +121,7 @@ export default function BlogListingPage() {
                 <div className="text-center mb-12">
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog</h1>
                     <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Khm ph nhng bi vit mi nht v cng ngh, laptop v cc sn phm in t
+                        Khám phá những bài viết mới nhất về công nghệ, laptop và các sản phẩm điện tử
                     </p>
                 </div>
 
@@ -134,7 +134,7 @@ export default function BlogListingPage() {
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                     <Input
-                                        placeholder="Tm kim bi vit..."
+                                        placeholder="Tìm kiếm bài viết..."
                                         value={state.searchTerm}
                                         onChange={(e) => handleSearch(e.target.value)}
                                         className="pl-10"
@@ -149,7 +149,7 @@ export default function BlogListingPage() {
                                     onChange={(e) => handleCategoryFilter(e.target.value ? parseInt(e.target.value) : null)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
-                                    <option value="">Tt c danh mc</option>
+                                    <option value="">Tất cả danh mục</option>
                                     {state.categories.map(category => (
                                         <option key={category.id} value={category.id}>
                                             {category.name}
@@ -162,10 +162,10 @@ export default function BlogListingPage() {
                         {/* Active Filters */}
                         {(state.searchTerm || state.selectedCategory) && (
                             <div className="flex flex-wrap items-center gap-2 mt-4">
-                                <span className="text-sm text-gray-600">B lc:</span>
+                                <span className="text-sm text-gray-600">Bộ lọc:</span>
                                 {state.searchTerm && (
                                     <Badge variant="secondary" className="flex items-center gap-1">
-                                        Tm kim: {state.searchTerm}
+                                        Tìm kiếm: {state.searchTerm}
                                         <button
                                             onClick={() => handleSearch('')}
                                             className="ml-1 text-gray-500 hover:text-gray-700"
@@ -176,7 +176,7 @@ export default function BlogListingPage() {
                                 )}
                                 {state.selectedCategory && (
                                     <Badge variant="secondary" className="flex items-center gap-1">
-                                        Danh mc: {state.categories.find(c => c.id === state.selectedCategory)?.name}
+                                        Danh mục: {state.categories.find(c => c.id === state.selectedCategory)?.name}
                                         <button
                                             onClick={() => handleCategoryFilter(null)}
                                             className="ml-1 text-gray-500 hover:text-gray-700"
@@ -193,7 +193,7 @@ export default function BlogListingPage() {
                 {/* Results Count */}
                 <div className="mb-6">
                     <p className="text-gray-600">
-                        Hin th {state.blogs.length} trong tng s {state.totalCount} bi vit
+                        Hiển thị {state.blogs.length} trong tổng số {state.totalCount} bài viết
                     </p>
                 </div>
 
@@ -224,11 +224,11 @@ export default function BlogListingPage() {
                         <div className="text-gray-400 mb-4">
                             <Search className="w-16 h-16 mx-auto" />
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Khng tm thy bi vit</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Không tìm thấy bài viết</h3>
                         <p className="text-gray-600 mb-4">
                             {state.searchTerm || state.selectedCategory
-                                ? 'Th thay i t kha tm kim hoc b lc'
-                                : 'Cha c bi vit no c xut bn'
+                                ? 'Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc'
+                                : 'Chưa có bài viết nào được xuất bản'
                             }
                         </p>
                         {(state.searchTerm || state.selectedCategory) && (
@@ -243,7 +243,7 @@ export default function BlogListingPage() {
                                 }}
                                 variant="outline"
                             >
-                                Xa b lc
+                                Xóa bộ lọc
                             </Button>
                         )}
                     </div>
@@ -259,7 +259,7 @@ export default function BlogListingPage() {
                                 onClick={() => setState(prev => ({ ...prev, currentPage: Math.max(1, prev.currentPage - 1) }))}
                                 disabled={state.currentPage === 1}
                             >
-                                Trc
+                                Trước
                             </Button>
 
                             {Array.from({ length: Math.min(5, state.totalPages) }, (_, i) => {
@@ -294,7 +294,7 @@ export default function BlogListingPage() {
 
 function BlogCard({ blog }: { blog: Blog }) {
     const formatReadingTime = (minutes: number) => {
-        return minutes < 1 ? 'Di 1 pht c' : `${minutes} pht c`;
+        return minutes < 1 ? 'Dưới 1 phút đọc' : `${minutes} phút đọc`;
     };
 
     const truncateText = (text: string, maxLength: number) => {
@@ -316,7 +316,7 @@ function BlogCard({ blog }: { blog: Blog }) {
                             />
                             {blog.isFeatured && (
                                 <Badge className="absolute top-2 left-2 bg-blue-600">
-                                    Ni bt
+                                    Nổi bật
                                 </Badge>
                             )}
                         </div>
@@ -324,7 +324,7 @@ function BlogCard({ blog }: { blog: Blog }) {
                         <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-t-lg">
                             <div className="text-gray-400 text-center">
                                 <div className="text-4xl mb-2"></div>
-                                <div className="text-sm">Khng c nh</div>
+                                <div className="text-sm">Không có ảnh</div>
                             </div>
                         </div>
                     )}
@@ -353,7 +353,7 @@ function BlogCard({ blog }: { blog: Blog }) {
                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
                             <div className="flex items-center gap-1">
                                 <User className="w-4 h-4" />
-                                {blog.author?.displayName || 'Tc gi'}
+                                {blog.author?.displayName || 'Tác giả'}
                             </div>
                             <div className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4" />

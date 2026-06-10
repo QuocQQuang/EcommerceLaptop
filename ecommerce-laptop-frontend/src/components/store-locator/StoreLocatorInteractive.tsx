@@ -41,62 +41,62 @@ interface Store {
 const stores: Store[] = [
   {
     id: 1,
-    name: 'EcommerceLaptop Flagship Nguyn Hu',
+    name: 'EcommerceLaptop Flagship Nguyễn Huệ',
     type: 'flagship',
-    address: '123 Nguyn Hu, Bn Ngh',
-    district: 'Qun 1',
-    city: 'TP. H Ch Minh',
+    address: '123 Nguyễn Huệ, Bến Nghé',
+    district: 'Quận 1',
+    city: 'TP. Hồ Chí Minh',
     phone: '028-3822-1234',
     hours: '8:00 - 22:00',
     rating: 4.9,
     reviewCount: 1247,
-    services: ['T vn chuyn su', 'Test my trc tip', 'Bo hnh ti ch', 'Trade-in'],
-    features: ['Wifi min ph', 'Khu vc tr coffee', 'Bi  xe', 'Thanh ton th'],
+    services: ['Tư vấn chuyên sâu', 'Test máy trực tiếp', 'Bảo hành tại chỗ', 'Trade-in'],
+    features: ['Wifi miễn phí', 'Khu vực trà coffee', 'Bãi xe', 'Thanh toán thẻ'],
     image: '/images/stores/flagship-nguyen-hue.jpg'
   },
   {
     id: 2,
-    name: 'EcommerceLaptop Flagship H Ni',
+    name: 'EcommerceLaptop Flagship Hà Nội',
     type: 'flagship',
-    address: '456 B Triu, Hai B Trng',
-    district: 'Qun Hai B Trng',
-    city: 'H Ni',
+    address: '456 Bà Triệu, Hai Bà Trưng',
+    district: 'Quận Hai Bà Trưng',
+    city: 'Hà Nội',
     phone: '024-3943-5678',
     hours: '8:00 - 22:00',
     rating: 4.8,
     reviewCount: 982,
-    services: ['T vn chuyn su', 'Test my trc tip', 'Bo hnh ti ch', 'Trade-in'],
-    features: ['Wifi min ph', 'Khu vc tr coffee', 'Bi  xe', 'Thanh ton th'],
+    services: ['Tư vấn chuyên sâu', 'Test máy trực tiếp', 'Bảo hành tại chỗ', 'Trade-in'],
+    features: ['Wifi miễn phí', 'Khu vực trà coffee', 'Bãi xe', 'Thanh toán thẻ'],
     image: '/images/stores/flagship-hanoi.jpg'
   },
   {
     id: 3,
-    name: 'EcommerceLaptop  Nng',
+    name: 'EcommerceLaptop Đà Nẵng',
     type: 'regional',
-    address: '789 Trn Ph, Hi Chu',
-    district: 'Qun Hi Chu',
-    city: ' Nng',
+    address: '789 Trần Phú, Hải Châu',
+    district: 'Quận Hải Châu',
+    city: 'Đà Nẵng',
     phone: '0236-3591-9012',
     hours: '8:00 - 21:00',
     rating: 4.7,
     reviewCount: 634,
-    services: ['T vn sn phm', 'Test my trc tip', 'Bo hnh'],
-    features: ['Wifi min ph', 'Bi  xe', 'Thanh ton th'],
+    services: ['Tư vấn sản phẩm', 'Test máy trực tiếp', 'Bảo hành'],
+    features: ['Wifi miễn phí', 'Bãi xe', 'Thanh toán thẻ'],
     image: '/images/stores/danang.jpg'
   },
   {
     id: 4,
-    name: 'EcommerceLaptop Cn Th',
+    name: 'EcommerceLaptop Cần Thơ',
     type: 'regional',
-    address: '321 Mu Thn, Ninh Kiu',
-    district: 'Qun Ninh Kiu',
-    city: 'Cn Th',
+    address: '321 Mậu Thân, Ninh Kiều',
+    district: 'Quận Ninh Kiều',
+    city: 'Cần Thơ',
     phone: '0292-3831-3456',
     hours: '8:00 - 21:00',
     rating: 4.6,
     reviewCount: 421,
-    services: ['T vn sn phm', 'Test my trc tip', 'Bo hnh'],
-    features: ['Wifi min ph', 'Bi  xe'],
+    services: ['Tư vấn sản phẩm', 'Test máy trực tiếp', 'Bảo hành'],
+    features: ['Wifi miễn phí', 'Bãi xe'],
     image: '/images/stores/cantho.jpg'
   }
 ];
@@ -133,9 +133,9 @@ export function StoreLocatorInteractive() {
       case 'flagship':
         return { label: 'Flagship Store', color: 'bg-blue-500 text-white' };
       case 'regional':
-        return { label: 'Ca hng khu vc', color: 'bg-green-500 text-white' };
+        return { label: 'Cửa hàng khu vực', color: 'bg-green-500 text-white' };
       case 'authorized':
-        return { label: 'i l y quyn', color: 'bg-orange-500 text-white' };
+        return { label: 'Đại lý ủy quyền', color: 'bg-orange-500 text-white' };
     }
   };
 
@@ -153,18 +153,18 @@ export function StoreLocatorInteractive() {
       <section id="search-stores" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
           <Search className="w-8 h-8 mr-3 text-blue-600" />
-           Tm Ca Hng Gn Bn
+           Tìm Cửa Hàng Gần Bạn
         </h2>
 
         <div className="bg-blue-50 rounded-xl p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-blue-900 mb-2">
-                Tm kim theo tn hoc a ch
+                Tìm kiếm theo tên hoặc địa chỉ
               </label>
               <Input
                 type="text"
-                placeholder="VD: Nguyn Hu, Qun 1..."
+                placeholder="VD: Nguyễn Huệ, Quận 1..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
@@ -173,18 +173,18 @@ export function StoreLocatorInteractive() {
 
             <div>
               <label className="block text-sm font-medium text-blue-900 mb-2">
-                Chn thnh ph
+                Chọn thành phố
               </label>
               <Select value={selectedCity} onValueChange={setSelectedCity}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Tt c thnh ph" />
+                  <SelectValue placeholder="Tất cả thành phố" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tt c thnh ph</SelectItem>
-                  <SelectItem value="TP. H Ch Minh">TP. H Ch Minh</SelectItem>
-                  <SelectItem value="H Ni">H Ni</SelectItem>
-                  <SelectItem value=" Nng"> Nng</SelectItem>
-                  <SelectItem value="Cn Th">Cn Th</SelectItem>
+                  <SelectItem value="all">Tất cả thành phố</SelectItem>
+                  <SelectItem value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</SelectItem>
+                  <SelectItem value="Hà Nội">Hà Nội</SelectItem>
+                  <SelectItem value="Đà Nẵng">Đà Nẵng</SelectItem>
+                  <SelectItem value="Cần Thơ">Cần Thơ</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -196,14 +196,14 @@ export function StoreLocatorInteractive() {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Search className="w-4 h-4 mr-2" />
-                Tm kim
+                Tìm kiếm
               </LoadingButton>
             </div>
           </div>
 
           <div className="text-center text-blue-700">
             <p className="text-sm">
-               <strong>Tip:</strong> Gi trc  t lch t vn v nhn u i c bit
+               <strong>Mẹo:</strong> Gọi trước để đặt lịch tư vấn và nhận ưu đãi đặc biệt
             </p>
           </div>
         </div>
@@ -212,7 +212,7 @@ export function StoreLocatorInteractive() {
       {/* Store Results */}
       <section className="content-section">
         <h3 className="text-2xl font-bold text-gray-900 mb-6">
-           Kt qu tm kim ({filteredStores.length} ca hng)
+           Kết quả tìm kiếm ({filteredStores.length} cửa hàng)
         </h3>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -235,7 +235,7 @@ export function StoreLocatorInteractive() {
                           <Star className="w-4 h-4 text-yellow-500 fill-current" />
                           <span className="ml-1 text-sm font-medium">{store.rating}</span>
                           <span className="ml-1 text-sm text-gray-500">
-                            ({store.reviewCount} nh gi)
+                            ({store.reviewCount} đánh giá)
                           </span>
                         </div>
                       </div>
@@ -270,7 +270,7 @@ export function StoreLocatorInteractive() {
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2"> Dch v</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2">Dịch vụ</h4>
                     <div className="flex flex-wrap gap-2">
                       {store.services.map((service, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
@@ -281,7 +281,7 @@ export function StoreLocatorInteractive() {
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2"> Tin ch</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2">Tiện ích</h4>
                     <div className="flex flex-wrap gap-2">
                       {store.features.map((feature, index) => (
                         <div key={index} className="flex items-center text-xs text-gray-600">
@@ -299,7 +299,7 @@ export function StoreLocatorInteractive() {
                       className="w-full"
                     >
                       <Navigation className="w-4 h-4 mr-2" />
-                      Ch ng
+                      Chỉ đường
                     </Button>
 
                     <LoadingButton
@@ -308,7 +308,7 @@ export function StoreLocatorInteractive() {
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       <Users className="w-4 h-4 mr-2" />
-                      t lch thm
+                      Đặt lịch thăm
                     </LoadingButton>
                   </div>
                 </CardContent>
@@ -321,10 +321,10 @@ export function StoreLocatorInteractive() {
           <div className="text-center py-12">
             <div className="text-6xl mb-4"></div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Khng tm thy ca hng ph hp
+              Không tìm thấy cửa hàng phù hợp
             </h3>
             <p className="text-gray-600 mb-4">
-              Th thay i t kha tm kim hoc m rng khu vc tm kim
+              Thử thay đổi từ khóa tìm kiếm hoặc mở rộng khu vực tìm kiếm
             </p>
             <Button
               onClick={() => {
@@ -334,7 +334,7 @@ export function StoreLocatorInteractive() {
               }}
               variant="outline"
             >
-              Xem tt c ca hng
+              Xem tất cả cửa hàng
             </Button>
           </div>
         )}

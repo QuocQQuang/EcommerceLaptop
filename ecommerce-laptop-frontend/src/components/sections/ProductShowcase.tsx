@@ -63,7 +63,7 @@ export function ProductShowcase() {
                     whileInView="visible"
                     viewport={{ once: true }}
                 >
-                    Trng by sn phm
+                    Trưng bày sản phẩm
                 </motion.h2>
                 <motion.p
                     className="text-xl text-center text-muted-foreground mb-16 max-w-2xl mx-auto"
@@ -72,7 +72,7 @@ export function ProductShowcase() {
                     whileInView="visible"
                     viewport={{ once: true }}
                 >
-                    Khm ph laptop flagship ca chng ti t mi gc . K thut chnh xc gp g cng ngh tin tin.
+                    Khám phá laptop flagship của chúng tôi từ mọi góc độ. Kỹ thuật chính xác gặp gỡ công nghệ tiên tiến.
                 </motion.p>
 
                 {/* Carousel */}

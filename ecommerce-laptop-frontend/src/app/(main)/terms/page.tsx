@@ -2,99 +2,99 @@ import { Separator } from '@/components/ui/separator';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'iu khon dch v - Laptop Store',
-    description: 'iu khon v iu kin s dng dch v ca Laptop Store',
+    title: 'Điều khoản dịch vụ - Laptop Store',
+    description: 'Điều khoản và điều kiện sử dụng dịch vụ của Laptop Store',
 };
 
 export default function TermsPage() {
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
-            <h1 className="text-3xl font-bold mb-6">iu Khon Dch V</h1>
+            <h1 className="text-3xl font-bold mb-6">Điều Khoản Dịch Vụ</h1>
             <p className="text-lg text-gray-700 mb-8">
-                Cho mng bn n vi Laptop Store. Vic s dng website v dch v ca chng ti c ngha l bn ng  vi cc iu khon sau. Vui lng c k trc khi s dng. Cc iu khon ny c hiu lc t ngy 25/09/2025.
+                Chào mừng bạn đến với Laptop Store. Việc sử dụng website và dịch vụ của chúng tôi có nghĩa là bạn đồng ý với các điều khoản sau. Vui lòng đọc kỹ trước khi sử dụng. Các điều khoản này có hiệu lực từ ngày 25/09/2025.
             </p>
 
             <Separator className="my-8" />
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">1. iu Khon Chung</h2>
+                <h2 className="text-2xl font-semibold mb-4">1. Điều Khoản Chung</h2>
                 <p className="text-gray-700 mb-4">
-                    Laptop Store l nn tng thng mi in t chuyn cung cp sn phm laptop v ph kin chnh hng. Chng ti cam kt tun th php lut Vit Nam v bo v quyn li ngi tiu dng theo Lut Bo v quyn li ngi tiu dng 2010 (sa i 2023).
+                    Laptop Store là nền tảng thương mại điện tử chuyên cung cấp sản phẩm laptop và phụ kiện chính hãng. Chúng tôi cam kết tuân thủ pháp luật Việt Nam và bảo vệ quyền lợi người tiêu dùng theo Luật Bảo vệ quyền lợi người tiêu dùng 2010 (sửa đổi 2023).
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1">
-                    <li>Tui ti thiu  s dng dch v: 18 tui hoc c s gim h ca ph huynh.</li>
-                    <li>Chng ti c quyn t chi hoc hy n hng nu pht hin vi phm.</li>
-                    <li>Thng tin trn website ch mang tnh cht tham kho, khng thay th t vn chuyn nghip.</li>
+                    <li>Tuổi tối thiểu để sử dụng dịch vụ: 18 tuổi hoặc có sự giám hộ của phụ huynh.</li>
+                    <li>Chúng tôi có quyền từ chối hoặc hủy đơn hàng nếu phát hiện vi phạm.</li>
+                    <li>Thông tin trên website chỉ mang tính chất tham khảo, không thay thế tư vấn chuyên nghiệp.</li>
                 </ul>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">2. t Hng V Thanh Ton</h2>
+                <h2 className="text-2xl font-semibold mb-4">2. Đặt Hàng Và Thanh Toán</h2>
                 <p className="text-gray-700 mb-4">
-                    Khi t hng, bn cam kt cung cp thng tin chnh xc. Laptop Store c quyn hy n nu thng tin sai lch hoc khng th xc minh.
+                    Khi đặt hàng, bạn cam kết cung cấp thông tin chính xác. Laptop Store có quyền hủy đơn nếu thông tin sai lệch hoặc không thể xác minh.
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1">
-                    <li>Gi sn phm hin th l gi cui cng, c th thay i ty chng trnh khuyn mi.</li>
-                    <li>Chng ti khng chu trch nhim v sai st in n hoc hin th gi.</li>
-                    <li>Thanh ton qua cc cng uy tn (VNPAY, Momo, PayPal, v.v.). Thng tin thanh ton c bo mt theo tiu chun PCI DSS.</li>
-                    <li>n hng ch c xc nhn sau khi nhn thanh ton thnh cng.</li>
+                    <li>Giá sản phẩm hiển thị là giá cuối cùng, có thể thay đổi tùy chương trình khuyến mãi.</li>
+                    <li>Chúng tôi không chịu trách nhiệm về sai sót in ấn hoặc hiển thị giá.</li>
+                    <li>Thanh toán qua các cổng uy tín (VNPAY, Momo, PayPal, v.v.). Thông tin thanh toán được bảo mật theo tiêu chuẩn PCI DSS.</li>
+                    <li>Đơn hàng chỉ được xác nhận sau khi nhận thanh toán thành công.</li>
                 </ul>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">3. Giao Hng V Nhn Hng</h2>
+                <h2 className="text-2xl font-semibold mb-4">3. Giao Hàng Và Nhận Hàng</h2>
                 <p className="text-gray-700 mb-4">
-                    Laptop Store giao hng ton quc qua cc n v vn chuyn uy tn (GHN, GHTK, Viettel Post).
+                    Laptop Store giao hàng toàn quốc qua các đơn vị vận chuyển uy tín (GHN, GHTK, Viettel Post).
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1">
-                    <li>Thi gian giao hng: 2-5 ngy lm vic ty khu vc.</li>
-                    <li>Khch hng chu trch nhim kim tra hng khi nhn. Khi k nhn, n hng c coi l hon tt.</li>
-                    <li>Chng ti khng chu trch nhim mt mt hoc h hng trong qu trnh vn chuyn (bo him ty chn).</li>
-                    <li>Ph giao hng c thng bo trc khi xc nhn n.</li>
+                    <li>Thời gian giao hàng: 2-5 ngày làm việc tùy khu vực.</li>
+                    <li>Khách hàng chịu trách nhiệm kiểm tra hàng khi nhận. Khi ký nhận, đơn hàng được coi là hoàn tất.</li>
+                    <li>Chúng tôi không chịu trách nhiệm mất mát hoặc hư hỏng trong quá trình vận chuyển (bảo hiểm tùy chọn).</li>
+                    <li>Phí giao hàng được thông báo trước khi xác nhận đơn.</li>
                 </ul>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">4. i Tr V Hon Tin</h2>
+                <h2 className="text-2xl font-semibold mb-4">4. Đổi Trả Và Hoàn Tiền</h2>
                 <p className="text-gray-700 mb-4">
-                    Chng ti p dng chnh sch i tr theo quy nh php lut (Lut Bo v quyn li ngi tiu dng).
+                    Chúng tôi áp dụng chính sách đổi trả theo quy định pháp luật (Luật Bảo vệ quyền lợi người tiêu dùng).
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1">
-                    <li>i tr trong 30 ngy nu sn phm li hoc khng ng m t (gi nguyn tem nim phong).</li>
-                    <li>Hon tin 100% nu li nh sn xut, khng hon nu s dng sai.</li>
-                    <li>Trng hp ht hng, chng ti hon tin hoc  xut sn phm thay th.</li>
-                    <li>Lin h h tr  bt u quy trnh i tr.</li>
+                    <li>Đổi trả trong 30 ngày nếu sản phẩm lỗi hoặc không đúng mô tả (giữ nguyên tem niêm phong).</li>
+                    <li>Hoàn tiền 100% nếu lỗi nhà sản xuất, không hoàn nếu sử dụng sai.</li>
+                    <li>Trường hợp hết hàng, chúng tôi hoàn tiền hoặc đề xuất sản phẩm thay thế.</li>
+                    <li>Liên hệ hỗ trợ để bắt đầu quy trình đổi trả.</li>
                 </ul>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">5. Bo Hnh V H tr</h2>
+                <h2 className="text-2xl font-semibold mb-4">5. Bảo Hành Và Hỗ trợ</h2>
                 <p className="text-gray-700 mb-4">
-                    Tt c sn phm c bo hnh chnh hng t nh sn xut (1-3 nm ty model).
+                    Tất cả sản phẩm được bảo hành chính hãng từ nhà sản xuất (1-3 năm tùy model).
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1">
-                    <li>Bo hnh phn mm v phn cng theo chnh sch nh sn xut.</li>
-                    <li>H tr k thut min ph trong thi gian bo hnh.</li>
-                    <li>Khng bo hnh nu sa cha bn ngoi hoc s dng sai quy nh.</li>
+                    <li>Bảo hành phần mềm và phần cứng theo chính sách nhà sản xuất.</li>
+                    <li>Hỗ trợ kỹ thuật miễn phí trong thời gian bảo hành.</li>
+                    <li>Không bảo hành nếu sửa chữa bên ngoài hoặc sử dụng sai quy định.</li>
                 </ul>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">6. Bo Mt Thng Tin</h2>
+                <h2 className="text-2xl font-semibold mb-4">6. Bảo Mật Thông Tin</h2>
                 <p className="text-gray-700">
-                    Xem chi tit ti <a href="/privacy" className="text-blue-600 hover:underline">Chnh sch bo mt</a>. Chng ti cam kt bo v d liu c nhn theo GDPR v lut Vit Nam.
+                    Xem chi tiết tại <a href="/privacy" className="text-blue-600 hover:underline">Chính sách bảo mật</a>. Chúng tôi cam kết bảo vệ dữ liệu cá nhân theo GDPR và luật Việt Nam.
                 </p>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">7. Trch Nhim Php L</h2>
+                <h2 className="text-2xl font-semibold mb-4">7. Trách Nhiệm Pháp Lý</h2>
                 <p className="text-gray-700">
-                    Laptop Store khng chu trch nhim cho ni dung ngi dng to (reviews, comments). Chng ti c quyn xa ni dung vi phm. Tranh chp c gii quyt theo php lut Vit Nam.
+                    Laptop Store không chịu trách nhiệm cho nội dung người dùng tạo (reviews, comments). Chúng tôi có quyền xóa nội dung vi phạm. Tranh chấp được giải quyết theo pháp luật Việt Nam.
                 </p>
             </section>
 
             <p className="text-sm text-gray-500 mt-8">
-                iu khon ny c th c cp nht m khng thng bo trc. Ngy cp nht cui: 25/09/2025.
+                Điều khoản này có thể được cập nhật mà không thông báo trước. Ngày cập nhật cuối: 25/09/2025.
             </p>
         </div>
     );

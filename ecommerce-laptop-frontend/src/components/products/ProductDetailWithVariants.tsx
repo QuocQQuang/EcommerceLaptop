@@ -81,15 +81,15 @@ export default function ProductDetailWithVariants({
 
     const handleAddToCart = (variant: Product, qty: number) => {
         addToCart(variant, qty, variant.id);
-        toast.success(' thm vo gi', {
-            description: `${variant.name}  c thm vo gi hng`
+        toast.success('Đã thêm vào giỏ', {
+            description: `${variant.name} đã được thêm vào giỏ hàng`
         });
     };
 
     const handleAddBaseProductToCart = () => {
         addToCart(product, quantity);
-        toast.success(' thm vo gi', {
-            description: `${product.name}  c thm vo gi hng`
+        toast.success('Đã thêm vào giỏ', {
+            description: `${product.name} đã được thêm vào giỏ hàng`
         });
     };
 
@@ -128,7 +128,7 @@ export default function ProductDetailWithVariants({
 
     const handleToggleWishlist = () => {
         toggleItem(displayProduct);
-        toast.success(isWishlisted ? ' b khi yu thch' : ' thm vo yu thch', {
+        toast.success(isWishlisted ? 'Đã bỏ khỏi yêu thích' : 'Đã thêm vào yêu thích', {
             description: displayProduct.name
         });
     };
@@ -145,10 +145,10 @@ export default function ProductDetailWithVariants({
                 await (navigator as any).share(shareData);
             } else {
                 await navigator.clipboard.writeText(shareData.url);
-                toast.success(' sao chp lin kt  chia s');
+                toast.success('Đã sao chép liên kết để chia sẻ');
             }
         } catch (err) {
-            toast.error('Khng th chia s lc ny');
+            toast.error('Không thể chia sẻ lúc này');
             console.error('Share failed:', err);
         }
     };
@@ -189,7 +189,7 @@ export default function ProductDetailWithVariants({
                             </Badge>
                         )}
                         {displayProduct.stockQuantity === 0 && (
-                            <Badge variant="outline">Ht hng</Badge>
+                            <Badge variant="outline">Hết hàng</Badge>
                         )}
                     </div>
                     {showLens && containerSize.width > 0 && (
@@ -279,11 +279,11 @@ export default function ProductDetailWithVariants({
                         <div className="text-sm text-gray-600">
                             {selectedVariant.price > product.price ? (
                                 <span className="text-red-600">
-                                    +${(selectedVariant.price - product.price).toLocaleString()} nhiu hn gi gc
+                                    +${(selectedVariant.price - product.price).toLocaleString()} nhiều hơn giá gốc
                                 </span>
                             ) : (
                                 <span className="text-green-600">
-                                    ${(product.price - selectedVariant.price).toLocaleString()} t hn gi gcgc
+                                    ${(product.price - selectedVariant.price).toLocaleString()} tiết kiệm hơn giá gốc
                                 </span>
                             )}
                         </div>
@@ -317,13 +317,13 @@ export default function ProductDetailWithVariants({
                         <>
                             <CheckCircle className="h-5 w-5 text-green-500" />
                             <span className="text-green-600 font-medium">
-                                Cn hng ({displayProduct.stockQuantity} sn phm)
+                                Còn hàng ({displayProduct.stockQuantity} sản phẩm)
                             </span>
                         </>
                     ) : (
                         <>
                             <CheckCircle className="h-5 w-5 text-red-500" />
-                            <span className="text-red-600 font-medium">Ht hng</span>
+                            <span className="text-red-600 font-medium">Hết hàng</span>
                         </>
                     )}
                 </div>
@@ -342,7 +342,7 @@ export default function ProductDetailWithVariants({
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <label className="text-sm font-medium">
-                            S lng:
+                            Số lượng:
                         </label>
                         <div className="flex items-center gap-3">
                             <Button
@@ -382,7 +382,7 @@ export default function ProductDetailWithVariants({
                         size="lg"
                     >
                         <ShoppingCart className="h-5 w-5 mr-2" />
-                        Thm vo gi
+                        Thêm vào giỏ
                     </Button>
                 </div>
 
@@ -390,20 +390,20 @@ export default function ProductDetailWithVariants({
                 <div className="flex gap-3">
                     <Button variant="outline" className="flex-1" onClick={handleToggleWishlist}>
                         <Heart className={cn('h-4 w-4 mr-2', isWishlisted ? 'fill-red-500 text-red-500' : '')} />
-                        Yu thch
+                        Yêu thích
                     </Button>
                     <Button variant="outline" className="flex-1" onClick={handleShare}>
                         <Share2 className="h-4 w-4 mr-2" />
-                        Chia s
+                        Chia sẻ
                     </Button>
                 </div>
 
                 {/* Product Details Tabs */}
                 <Tabs defaultValue="description" className="w-full">
                     <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="description">M t</TabsTrigger>
-                        <TabsTrigger value="specifications">Thng s k thut</TabsTrigger>
-                        <TabsTrigger value="reviews">nh gi</TabsTrigger>
+                        <TabsTrigger value="description">Mô tả</TabsTrigger>
+                        <TabsTrigger value="specifications">Thông số kỹ thuật</TabsTrigger>
+                        <TabsTrigger value="reviews">Đánh giá</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="description" className="mt-4">
@@ -436,12 +436,12 @@ export default function ProductDetailWithVariants({
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <HardDrive className="h-4 w-4 text-gray-500" />
-                                                    <span className="text-sm font-medium"> cng:</span>
+                                                    <span className="text-sm font-medium">Ổ cứng:</span>
                                                     <span className="text-sm">{displayProduct.storageCapacityGB}GB {displayProduct.storageType}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Palette className="h-4 w-4 text-gray-500" />
-                                                    <span className="text-sm font-medium">Mu sc:</span>
+                                                    <span className="text-sm font-medium">Màu sắc:</span>
                                                     <span className="text-sm">{displayProduct.color}</span>
                                                 </div>
                                             </div>
@@ -450,7 +450,7 @@ export default function ProductDetailWithVariants({
 
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <span className="text-sm font-medium">Mn hnh:</span>
+                                                    <span className="text-sm font-medium">Màn hình:</span>
                                                     <p className="text-sm text-gray-600">
                                                         {displayProduct.displaySizeInches}" {displayProduct.displayResolution}
                                                     </p>
@@ -462,13 +462,13 @@ export default function ProductDetailWithVariants({
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <span className="text-sm font-medium">Trng lng:</span>
+                                                    <span className="text-sm font-medium">Trọng lượng:</span>
                                                     <p className="text-sm text-gray-600">
                                                         {displayProduct.weightKg}kg
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <span className="text-sm font-medium">Bo hnh:</span>
+                                                    <span className="text-sm font-medium">Bảo hành:</span>
                                                     <p className="text-sm text-gray-600">
                                                         {displayProduct.warrantyPeriod}
                                                     </p>
@@ -480,7 +480,7 @@ export default function ProductDetailWithVariants({
                                     {/* Specifications from backend */}
                                     {displayProduct.specifications && displayProduct.specifications.length > 0 && (
                                         <div className="space-y-2">
-                                            <h4 className="font-medium">Thng s b sung</h4>
+                                            <h4 className="font-medium">Thông số bổ sung</h4>
                                             {displayProduct.specifications.map((spec, index) => (
                                                 <div key={index} className="flex justify-between py-1">
                                                     <span className="text-sm font-medium">{spec.name}:</span>
@@ -498,7 +498,7 @@ export default function ProductDetailWithVariants({
                         <Card>
                             <CardContent className="p-4">
                                 <p className="text-gray-500 text-center py-8">
-                                    nh gi s c hin th  y
+                                    Đánh giá sẽ được hiển thị ở đây
                                 </p>
                             </CardContent>
                         </Card>

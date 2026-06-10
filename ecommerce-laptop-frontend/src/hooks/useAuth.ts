@@ -34,10 +34,10 @@ export function useAuth() {
         // but the session has an error. This prevents the toast from showing during/after logout.
         if (status === 'authenticated' && session?.error === "RefreshAccessTokenError") {
             console.log("useAuth detected RefreshAccessTokenError while authenticated, signing out.");
-            toast.error("Phin ng nhp  ht hn", {
-                description: "Vui lng ng nhp li  tip tc.",
+            toast.error("Phiên đăng nhập đã hết hạn", {
+                description: "Vui lòng đăng nhập lại để tiếp tục.",
                 action: {
-                    label: "ng nhp",
+                    label: "Đăng nhập",
                     onClick: () => window.location.href = '/auth/login',
                 },
             });

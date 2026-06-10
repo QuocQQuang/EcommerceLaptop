@@ -1118,7 +1118,7 @@ export const handleApiError = (error: any): string => {
   if (error.message) {
     return error.message;
   }
-  return ' xy ra li khng xc nh';
+  return 'Đã xảy ra lỗi không xác định';
 };
 
 // Order Management API

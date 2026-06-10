@@ -14,38 +14,38 @@ export interface StatusTransition {
 export const ORDER_WORKFLOW: Record<OrderStatus, StatusTransition> = {
   pending: {
     status: 'pending',
-    label: 'Ch xc nhn',
-    description: 'n hng mi c to, ch xc nhn',
+    label: 'Chờ xác nhận',
+    description: 'Đơn hàng mới được tạo, chờ xác nhận',
     allowedFrom: [] // Initial status
   },
   confirmed: {
     status: 'confirmed',
-    label: ' xc nhn',
-    description: 'n hng  c xc nhn v sn sng x l',
+    label: 'Đã xác nhận',
+    description: 'Đơn hàng đã được xác nhận và sẵn sàng xử lý',
     allowedFrom: ['pending']
   },
   processing: {
     status: 'processing',
-    label: 'ang x l',
-    description: 'ang chun b hng v ng gi',
+    label: 'Đang xử lý',
+    description: 'Đang chuẩn bị hàng và đóng gói',
     allowedFrom: ['confirmed']
   },
   shipped: {
     status: 'shipped',
-    label: 'ang giao',
-    description: 'Hng  c gi i v ang trn ng giao',
+    label: 'Đang giao',
+    description: 'Hàng đã được gửi đi và đang trên đường giao',
     allowedFrom: ['processing']
   },
   delivered: {
     status: 'delivered',
-    label: ' giao',
-    description: 'n hng  c giao thnh cng',
+    label: 'Đã giao',
+    description: 'Đơn hàng đã được giao thành công',
     allowedFrom: ['shipped']
   },
   cancelled: {
     status: 'cancelled',
-    label: ' hy',
-    description: 'n hng  b hy',
+    label: 'Đã hủy',
+    description: 'Đơn hàng đã bị hủy',
     allowedFrom: ['pending', 'confirmed', 'processing'] // Cannot cancel after shipped
   }
 };
@@ -78,11 +78,11 @@ export const getTransitionErrorMessage = (fromStatus: OrderStatus, toStatus: Ord
     const validNext = getValidNextStatuses(fromStatus);
     
     if (validNext.length === 0) {
-      return `Khng th thay i trng thi t "${fromLabel}". y l trng thi cui cng.`;
+      return `Không thể thay đổi trạng thái từ "${fromLabel}". Đây là trạng thái cuối cùng.`;
     }
     
     const validLabels = validNext.map(t => `"${t.label}"`).join(', ');
-    return `Khng th chuyn t "${fromLabel}" sang "${toLabel}". Cc trng thi hp l tip theo: ${validLabels}`;
+    return `Không thể chuyển từ "${fromLabel}" sang "${toLabel}". Các trạng thái hợp lệ tiếp theo: ${validLabels}`;
   }
   
   return '';

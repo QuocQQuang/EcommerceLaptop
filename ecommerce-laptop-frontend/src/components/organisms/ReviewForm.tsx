@@ -46,13 +46,13 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
         const newErrors: Record<string, string> = {};
 
         if (rating === 0) {
-            newErrors.rating = 'Vui lng chn s sao nh gi';
+            newErrors.rating = 'Vui lòng chọn số sao đánh giá';
         }
         if (title.trim().length < 5) {
-            newErrors.title = 'Tiu  phi c t nht 5 k t';
+            newErrors.title = 'Tiêu đề phải có ít nhất 5 ký tự';
         }
         if (comment.trim().length < 10) {
-            newErrors.comment = 'Ni dung nh gi phi c t nht 10 k t';
+            newErrors.comment = 'Nội dung đánh giá phải có ít nhất 10 ký tự';
         }
 
         setErrors(newErrors);
@@ -89,7 +89,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b">
                     <h2 className="text-xl font-semibold text-gray-900">
-                        {isEditMode ? 'Chnh sa nh gi' : 'Vit nh gi'}
+                        {isEditMode ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá'}
                     </h2>
                     <button
                         onClick={onClose}
@@ -105,7 +105,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
                     {/* Rating */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            nh gi sao *
+                            Đánh giá sao *
                         </label>
                         <StarRating
                             rating={rating}
@@ -122,14 +122,14 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
                     {/* Title */}
                     <div>
                         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                            Tiu  nh gi *
+                            Tiêu đề đánh giá *
                         </label>
                         <input
                             id="title"
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Nhp tiu  cho nh gi ca bn..."
+                            placeholder="Nhập tiêu đề cho đánh giá của bạn..."
                             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'border-red-500' : 'border-gray-300'
                                 }`}
                             disabled={isLoading}
@@ -148,13 +148,13 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
                     {/* Comment */}
                     <div>
                         <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
-                            Ni dung nh gi *
+                            Nội dung đánh giá *
                         </label>
                         <textarea
                             id="comment"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
-                            placeholder="Chia s tri nghim ca bn v sn phm ny..."
+                            placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
                             rows={4}
                             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${errors.comment ? 'border-red-500' : 'border-gray-300'
                                 }`}
@@ -179,14 +179,14 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
                             className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
                             disabled={isLoading}
                         >
-                            Hy
+                            Hủy
                         </button>
                         <button
                             type="submit"
                             className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={isLoading}
                         >
-                            {isLoading ? 'ang x l...' : (isEditMode ? 'Cp nht' : 'ng nh gi')}
+                            {isLoading ? 'Đang xử lý...' : (isEditMode ? 'Cập nhật' : 'Đăng đánh giá')}
                         </button>
                     </div>
                 </form>

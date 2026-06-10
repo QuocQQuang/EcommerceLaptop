@@ -166,12 +166,12 @@ const formatDate = (dateString: string) => {
 
 const getStatusBadge = (status: string) => {
   const statusConfig = {
-    pending: { label: 'Ch xc nhn', variant: 'outline' as const, icon: Clock },
-    confirmed: { label: ' xc nhn', variant: 'secondary' as const, icon: CheckCircle },
-    processing: { label: 'ang x l', variant: 'default' as const, icon: Package },
-    shipped: { label: 'ang giao', variant: 'default' as const, icon: Truck },
-    delivered: { label: ' giao', variant: 'default' as const, icon: CheckCircle },
-    cancelled: { label: ' hy', variant: 'destructive' as const, icon: XCircle }
+    pending: { label: 'Chờ xác nhận', variant: 'outline' as const, icon: Clock },
+    confirmed: { label: 'Đã xác nhận', variant: 'secondary' as const, icon: CheckCircle },
+    processing: { label: 'Đang xử lý', variant: 'default' as const, icon: Package },
+    shipped: { label: 'Đang giao', variant: 'default' as const, icon: Truck },
+    delivered: { label: 'Đã giao', variant: 'default' as const, icon: CheckCircle },
+    cancelled: { label: 'Đã hủy', variant: 'destructive' as const, icon: XCircle }
   };
 
   const config = statusConfig[status as keyof typeof statusConfig];
@@ -187,10 +187,10 @@ const getStatusBadge = (status: string) => {
 
 const getPaymentStatusBadge = (status: string) => {
   const statusConfig = {
-    pending: { label: 'Ch thanh ton', variant: 'outline' as const },
-    paid: { label: ' thanh ton', variant: 'default' as const },
-    failed: { label: 'Tht bi', variant: 'destructive' as const },
-    refunded: { label: ' hon tin', variant: 'secondary' as const }
+    pending: { label: 'Chờ thanh toán', variant: 'outline' as const },
+    paid: { label: 'Đã thanh toán', variant: 'default' as const },
+    failed: { label: 'Thất bại', variant: 'destructive' as const },
+    refunded: { label: 'Đã hoàn tiền', variant: 'secondary' as const }
   };
 
   const config = statusConfig[status as keyof typeof statusConfig];
@@ -252,7 +252,7 @@ export default function OrdersPage() {
     } catch (error) {
       console.error('Error updating order status:', error);
       // Show error message - for now just console log
-      alert('C li xy ra khi cp nht trng thi n hng. Vui lng th li.');
+      alert('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng. Vui lòng thử lại.');
     } finally {
       setUpdatingOrderId(null);
     }
@@ -272,12 +272,12 @@ export default function OrdersPage() {
 
   const handleExportOrders = () => {
     if (!ordersData?.orders) {
-      alert('Khng c d liu  xut');
+      alert('Không có dữ liệu để xuất');
       return;
     }
 
     // Create CSV content
-    const headers = ['M n hng', 'Khch hng', 'Email', 'in thoi', 'S sn phm', 'Tng tin', 'Trng thi', 'Thanh ton', 'Phng thc', 'Ngy to'];
+    const headers = ['Mã đơn hàng', 'Khách hàng', 'Email', 'Điện thoại', 'Số sản phẩm', 'Tổng tiền', 'Trạng thái', 'Thanh toán', 'Phương thức', 'Ngày tạo'];
     const csvContent = [
       headers.join(','),
       ...ordersData.orders.map(order => [
@@ -311,11 +311,11 @@ export default function OrdersPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold">Li ti d liu</h3>
+          <h3 className="text-lg font-semibold">Lỗi tải dữ liệu</h3>
           <p className="text-muted-foreground mb-4">
-            Khng th ti danh sch n hng. Vui lng th li.
+            Không thể tải danh sách đơn hàng. Vui lòng thử lại.
           </p>
-          <Button onClick={() => refetch()}>Th li</Button>
+          <Button onClick={() => refetch()}>Thử lại</Button>
         </div>
       </div>
     );
@@ -326,9 +326,9 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Qun l n hng</h1>
+          <h1 className="text-3xl font-bold">Quản lý đơn hàng</h1>
           <p className="text-muted-foreground">
-            Theo di v x l n hng ca khch hng
+            Theo dõi và xử lý đơn hàng của khách hàng
           </p>
         </div>
 

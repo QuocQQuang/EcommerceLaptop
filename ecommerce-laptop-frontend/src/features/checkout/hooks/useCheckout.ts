@@ -115,13 +115,13 @@ export function useCheckout() {
                     const match = cleanedMessage.match(/Available: (\d+), Requested: (\d+)/);
                     if (match) {
                         const [, available, requested] = match;
-                        const stockError = `Sn phm khng  hng! Cn li: ${available} sn phm, bn yu cu: ${requested} sn phm.`;
+                        const stockError = `Sản phẩm không đủ hàng! Còn lại: ${available} sản phẩm, bạn yêu cầu: ${requested} sản phẩm.`;
                         setSyncError(stockError);
                         setIsSyncing(false);
                         return { success: false, syncedItems: 0, error: stockError };
                     }
                 }
-                const inventoryError = `Li tn kho: ${cleanedMessage}`;
+                const inventoryError = `Lỗi tồn kho: ${cleanedMessage}`;
                 setSyncError(inventoryError);
                 setIsSyncing(false);
                 return { success: false, syncedItems: 0, error: inventoryError };

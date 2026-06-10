@@ -291,8 +291,8 @@ export function mapToEmailNotifications(settings: UiSystemSetting[]): EmailNotif
     {
       id: 'user_registered',
       eventType: 'user_registered',
-      eventName: 'ng k ti khon',
-      description: 'Gi email cho mng khi ngi dng ng k ti khon mi',
+      eventName: 'Đăng ký tài khoản',
+      description: 'Gửi email chào mừng khi người dùng đăng ký tài khoản mới',
       category: 'user',
       isEnabled: masterEnabled && (settings.find(s => s.key === 'email_notification_user_registered')?.value === 'true'),
       recipients: {
@@ -301,15 +301,15 @@ export function mapToEmailNotifications(settings: UiSystemSetting[]): EmailNotif
         toCustomEmails: []
       },
       template: {
-        subject: 'Cho mng bn n vi Laptop',
+        subject: 'Chào mừng bạn đến với Laptop',
         bodyTemplate: 'welcome_user_template'
       }
     },
     {
       id: 'order_created',
       eventType: 'order_created',
-      eventName: 'n hng mi',
-      description: 'Thng bo khi c n hng mi c to',
+      eventName: 'Đơn hàng mới',
+      description: 'Thông báo khi có đơn hàng mới được tạo',
       category: 'order',
       isEnabled: masterEnabled && (settings.find(s => s.key === 'email_notification_order_created')?.value === 'true'),
       recipients: {
@@ -318,15 +318,15 @@ export function mapToEmailNotifications(settings: UiSystemSetting[]): EmailNotif
         toCustomEmails: ['sales@company.com']
       },
       template: {
-        subject: 'Xc nhn n hng #{orderId}',
+        subject: 'Xác nhận đơn hàng #{orderId}',
         bodyTemplate: 'order_confirmation_template'
       }
     },
     {
       id: 'order_paid',
       eventType: 'order_paid',
-      eventName: 'Thanh ton thnh cng',
-      description: 'Thng bo khi n hng c thanh ton thnh cng',
+      eventName: 'Thanh toán thành công',
+      description: 'Thông báo khi đơn hàng được thanh toán thành công',
       category: 'order',
       isEnabled: masterEnabled && (settings.find(s => s.key === 'email_notification_order_paid')?.value === 'true'),
       recipients: {
@@ -335,7 +335,7 @@ export function mapToEmailNotifications(settings: UiSystemSetting[]): EmailNotif
         toCustomEmails: ['accounting@company.com']
       },
       template: {
-        subject: 'Thanh ton n hng #{orderId} thnh cng',
+        subject: 'Thanh toán đơn hàng #{orderId} thành công',
         bodyTemplate: 'payment_success_template'
       }
     }
@@ -392,25 +392,25 @@ export function mapFromEmailRateLimitSettings(rateLimit: EmailRateLimitSettings)
       key: 'email_rate_limit_max_requests',
       value: String(rateLimit.maxRequests),
       category: 'Notifications',
-      description: 'S lng email ti a c php gi trong khong thi gian'
+      description: 'Số lượng email tối đa được phép gửi trong khoảng thời gian'
     },
     {
       key: 'email_rate_limit_window_seconds',
       value: String(rateLimit.windowSeconds),
       category: 'Notifications',
-      description: 'Khong thi gian tnh bng giy  p dng rate limit'
+      description: 'Khoảng thời gian tính bằng giây để áp dụng rate limit'
     },
     {
       key: 'email_rate_limit_enabled',
       value: String(rateLimit.enableRateLimiting),
       category: 'Notifications',
-      description: 'Bt/tt tnh nng rate limiting cho email'
+      description: 'Bật/tắt tính năng rate limiting cho email'
     },
     {
       key: 'email_rate_limit_cooldown_minutes',
       value: String(rateLimit.cooldownMinutes),
       category: 'Notifications',
-      description: 'Thi gian ch (cooldown) tnh bng pht khi vt qu rate limit'
+      description: 'Thời gian chờ (cooldown) tính bằng phút khi vượt quá rate limit'
     }
   ];
 }

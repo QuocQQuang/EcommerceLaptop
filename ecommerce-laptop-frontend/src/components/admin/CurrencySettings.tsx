@@ -40,7 +40,7 @@ export function CurrencySettings({ className = '' }: CurrencySettingsProps) {
     const handleCurrencyChange = (currency: Currency) => {
         setContextCurrency(currency);
         setSelectedCurrencyState(currency);
-        toast.success(` chuyn sang ${CURRENCY_CONFIGS[currency].code}`);
+        toast.success(`Đã chuyển sang ${CURRENCY_CONFIGS[currency].code}`);
     };
 
     const handleRefreshRates = async () => {
@@ -49,9 +49,9 @@ export function CurrencySettings({ className = '' }: CurrencySettingsProps) {
             const newRates = await fetchLatestExchangeRates();
             setExchangeRatesState(newRates);
             setCustomRates(newRates);
-            toast.success(' cp nht t gi mi nht');
+            toast.success('Đã cập nhật tỷ giá mới nhất');
         } catch (error) {
-            toast.error('Khng th cp nht t gi. S dng t gi mc nh.');
+            toast.error('Không thể cập nhật tỷ giá. Sử dụng tỷ giá mặc định.');
         } finally {
             setIsRefreshing(false);
         }
@@ -62,9 +62,9 @@ export function CurrencySettings({ className = '' }: CurrencySettingsProps) {
         try {
             setExchangeRates(customRates);
             setExchangeRatesState(customRates);
-            toast.success(' lu t gi ty chnh');
+            toast.success('Đã lưu tỷ giá tùy chỉnh');
         } catch (error) {
-            toast.error('Khng th lu t gi ty chnh');
+            toast.error('Không thể lưu tỷ giá tùy chỉnh');
         } finally {
             setIsSaving(false);
         }
@@ -85,18 +85,18 @@ export function CurrencySettings({ className = '' }: CurrencySettingsProps) {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Settings className="h-5 w-5" />
-                        Ci t tin t
+                        Cài đặt tiền tệ
                     </CardTitle>
                     <CardDescription>
-                        Chn loi tin t hin th mc nh cho ton b h thng
+                        Chọn loại tiền tệ hiển thị mặc định cho toàn bộ hệ thống
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="currency-select">Tin t mc nh</Label>
+                        <Label htmlFor="currency-select">Tiền tệ mặc định</Label>
                         <Select value={selectedCurrency} onValueChange={handleCurrencyChange}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Chn tin t" />
+                                <SelectValue placeholder="Chọn tiền tệ" />
                             </SelectTrigger>
                             <SelectContent>
                                 {Object.entries(CURRENCY_CONFIGS).map(([code, config]) => (
@@ -117,7 +117,7 @@ export function CurrencySettings({ className = '' }: CurrencySettingsProps) {
                             checked={autoRefresh}
                             onCheckedChange={setAutoRefresh}
                         />
-                        <Label htmlFor="auto-refresh">T ng cp nht t gi</Label>
+                        <Label htmlFor="auto-refresh">Tự động cập nhật tỷ giá</Label>
                     </div>
                 </CardContent>
             </Card>
@@ -126,7 +126,7 @@ export function CurrencySettings({ className = '' }: CurrencySettingsProps) {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between">
-                        <span>T gi hi oi</span>
+                        <span>Tỷ giá hối đoái</span>
                         <Button
                             variant="outline"
                             size="sm"
@@ -134,11 +134,11 @@ export function CurrencySettings({ className = '' }: CurrencySettingsProps) {
                             disabled={isRefreshing}
                         >
                             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                            Cp nht
+                            Cập nhật
                         </Button>
                     </CardTitle>
                     <CardDescription>
-                        T gi hin ti: 1 USD = {exchangeRates.VND.toLocaleString()} VND
+                        Tỷ giá hiện tại: 1 USD = {exchangeRates.VND.toLocaleString()} VND
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -170,7 +170,7 @@ export function CurrencySettings({ className = '' }: CurrencySettingsProps) {
                         className="w-full"
                     >
                         <Save className="h-4 w-4 mr-2" />
-                        {isSaving ? 'ang lu...' : 'Lu t gi ty chnh'}
+                        {isSaving ? 'Đang lưu...' : 'Lưu tỷ giá tùy chỉnh'}
                     </Button>
                 </CardContent>
             </Card>
@@ -178,23 +178,23 @@ export function CurrencySettings({ className = '' }: CurrencySettingsProps) {
             {/* Current Settings Summary */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Ci t hin ti</CardTitle>
+                    <CardTitle>Cài đặt hiện tại</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                            <span>Tin t mc nh:</span>
+                            <span>Tiền tệ mặc định:</span>
                             <span className="font-medium">
                                 {CURRENCY_CONFIGS[selectedCurrency].code} ({CURRENCY_CONFIGS[selectedCurrency].symbol})
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span>T gi USD  VND:</span>
+                            <span>Tỷ giá USD sang VND:</span>
                             <span className="font-medium">1 : {exchangeRates.VND.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span>T ng cp nht:</span>
-                            <span className="font-medium">{autoRefresh ? 'Bt' : 'Tt'}</span>
+                            <span>Tự động cập nhật:</span>
+                            <span className="font-medium">{autoRefresh ? 'Bật' : 'Tắt'}</span>
                         </div>
                     </div>
                 </CardContent>

@@ -91,7 +91,7 @@ export default function ProductLinkPicker({ onProductSelect, trigger }: ProductL
 
     const handleConfirmSelection = () => {
         if (!selectedProduct) {
-            toast.error('Vui lng chn mt sn phm');
+            toast.error('Vui lòng chọn một sản phẩm');
             return;
         }
 
@@ -106,7 +106,7 @@ export default function ProductLinkPicker({ onProductSelect, trigger }: ProductL
 
         setOpen(false);
         setSelectedProduct(null);
-        toast.success('Link sn phm  c chn vo bi vit');
+        toast.success('Link sản phẩm đã được chèn vào bài viết');
     };
 
     const formatPrice = (price: number) => {
@@ -122,7 +122,7 @@ export default function ProductLinkPicker({ onProductSelect, trigger }: ProductL
                 {trigger || (
                     <Button variant="outline" size="sm">
                         <Package className="w-4 h-4 mr-2" />
-                        Chn link sn phm
+                        Chèn link sản phẩm
                     </Button>
                 )}
             </DialogTrigger>
@@ -130,10 +130,10 @@ export default function ProductLinkPicker({ onProductSelect, trigger }: ProductL
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Package className="w-5 h-5" />
-                        Chn sn phm  chn link
+                        Chọn sản phẩm để chèn link
                     </DialogTitle>
                     <DialogDescription>
-                        Tm kim v chn sn phm  chn link vo bi vit
+                        Tìm kiếm và chọn sản phẩm để chèn link vào bài viết
                     </DialogDescription>
                 </DialogHeader>
 
@@ -142,7 +142,7 @@ export default function ProductLinkPicker({ onProductSelect, trigger }: ProductL
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <Input
-                            placeholder="Tm kim sn phm..."
+                            placeholder="Tìm kiếm sản phẩm..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10"
@@ -181,15 +181,15 @@ export default function ProductLinkPicker({ onProductSelect, trigger }: ProductL
                         ) : error ? (
                             <div className="text-center py-8 text-red-500">
                                 <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                <p>Li khi ti sn phm</p>
-                                <p className="text-sm">Vui lng th li sau</p>
+                                <p>Lỗi khi tải sản phẩm</p>
+                                <p className="text-sm">Vui lòng thử lại sau</p>
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     className="mt-2"
                                     onClick={() => window.location.reload()}
                                 >
-                                    Th li
+                                    Thử lại
                                 </Button>
                             </div>
                         ) : filteredProducts.length > 0 ? (
@@ -247,7 +247,7 @@ export default function ProductLinkPicker({ onProductSelect, trigger }: ProductL
                                                 {/* Selection Indicator */}
                                                 {selectedProduct?.id === product.id && (
                                                     <div className="flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full">
-                                                        
+                                                        ✓
                                                     </div>
                                                 )}
                                             </div>
@@ -258,8 +258,8 @@ export default function ProductLinkPicker({ onProductSelect, trigger }: ProductL
                         ) : (
                             <div className="text-center py-8 text-gray-500">
                                 <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                <p>Khng tm thy sn phm no</p>
-                                <p className="text-sm">Th thay i t kha tm kim</p>
+                                <p>Không tìm thấy sản phẩm nào</p>
+                                <p className="text-sm">Thử thay đổi từ khóa tìm kiếm</p>
                             </div>
                         )}
                     </div>
@@ -268,7 +268,7 @@ export default function ProductLinkPicker({ onProductSelect, trigger }: ProductL
                     {selectedProduct && (
                         <Card className="border-blue-200 bg-blue-50">
                             <CardHeader>
-                                <CardTitle className="text-sm">Sn phm  chn</CardTitle>
+                                <CardTitle className="text-sm">Sản phẩm đã chọn</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex gap-4">
@@ -312,7 +312,7 @@ export default function ProductLinkPicker({ onProductSelect, trigger }: ProductL
                                 </div>
 
                                 <div className="text-xs text-gray-600 bg-white p-3 rounded border">
-                                    <strong>Preview:</strong> Link sn phm s c hin th di dng card vi nh, tn, gi v nt "Xem sn phm"
+                                    <strong>Preview:</strong> Link sản phẩm sẽ được hiển thị dưới dạng card với ảnh, tên, giá và nút "Xem sản phẩm"
                                 </div>
 
                                 <div className="flex justify-end gap-2">
@@ -320,11 +320,11 @@ export default function ProductLinkPicker({ onProductSelect, trigger }: ProductL
                                         variant="outline"
                                         onClick={() => setSelectedProduct(null)}
                                     >
-                                        Hy
+                                        Hủy
                                     </Button>
                                     <Button onClick={handleConfirmSelection}>
                                         <Package className="w-4 h-4 mr-2" />
-                                        Chn link sn phm
+                                        Chèn link sản phẩm
                                     </Button>
                                 </div>
                             </CardContent>

@@ -21,12 +21,12 @@ export default function ForgotPasswordPage() {
         e.preventDefault();
 
         if (!email.trim()) {
-            setError('Email khng c  trng');
+            setError('Email không được để trống');
             return;
         }
 
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setError('Email khng hp l');
+            setError('Email không hợp lệ');
             return;
         }
 
@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
             if (err.response?.data?.message) {
                 setError(err.response.data.message);
             } else {
-                setError(' c li xy ra. Vui lng th li.');
+                setError('Đã có lỗi xảy ra. Vui lòng thử lại.');
             }
         } finally {
             setLoading(false);
@@ -55,13 +55,13 @@ export default function ForgotPasswordPage() {
                         <CardContent className="pt-6 text-center">
                             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                                Email  c gi!
+                                Email đã được gửi!
                             </h2>
                             <p className="text-gray-600 mb-4">
-                                Chng ti  gi link t li mt khu n email ca bn. Vui lng kim tra hp th v lm theo hng dn.
+                                Chúng tôi đã gửi link đặt lại mật khẩu đến email của bạn. Vui lòng kiểm tra hộp thư và làm theo hướng dẫn.
                             </p>
                             <p className="text-sm text-gray-500 mb-6">
-                                Khng nhn c email? Kim tra th mc spam hoc th gi li sau 1 pht.
+                                Không nhận được email? Kiểm tra thư mục spam hoặc thử gửi lại sau 1 phút.
                             </p>
                             <div className="space-y-3">
                                 <Button
@@ -69,12 +69,12 @@ export default function ForgotPasswordPage() {
                                     variant="outline"
                                     className="w-full"
                                 >
-                                    Gi li email
+                                    Gửi lại email
                                 </Button>
                                 <Link href="/auth/login">
                                     <Button variant="ghost" className="w-full">
                                         <ArrowLeft className="h-4 w-4 mr-2" />
-                                        Quay li ng nhp
+                                        Quay lại đăng nhập
                                     </Button>
                                 </Link>
                             </div>
@@ -91,10 +91,10 @@ export default function ForgotPasswordPage() {
                 {/* Header */}
                 <div className="text-center">
                     <h2 className="mt-6 text-3xl font-bold text-gray-900">
-                        Qun mt khu?
+                        Quên mật khẩu?
                     </h2>
                     <p className="mt-2 text-sm text-gray-600">
-                        Nhp email ca bn  nhn link t li mt khu
+                        Nhập email của bạn để nhận link đặt lại mật khẩu
                     </p>
                 </div>
 
@@ -103,10 +103,10 @@ export default function ForgotPasswordPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center">
                             <Mail className="h-5 w-5 mr-2" />
-                            t li mt khu
+                            Đặt lại mật khẩu
                         </CardTitle>
                         <CardDescription>
-                            Chng ti s gi link t li mt khu n email ca bn
+                            Chúng tôi sẽ gửi link đặt lại mật khẩu đến email của bạn
                         </CardDescription>
                     </CardHeader>
 
@@ -133,7 +133,7 @@ export default function ForgotPasswordPage() {
                                         setEmail(e.target.value);
                                         if (error) setError('');
                                     }}
-                                    placeholder="Nhp a ch email ca bn"
+                                    placeholder="Nhập địa chỉ email của bạn"
                                     disabled={loading}
                                 />
                             </div>
@@ -148,12 +148,12 @@ export default function ForgotPasswordPage() {
                                 {loading ? (
                                     <>
                                         <LoadingSpinner size="sm" className="mr-2" />
-                                        ang gi email...
+                                        đang gửi email...
                                     </>
                                 ) : (
                                     <>
                                         <Mail className="h-4 w-4 mr-2" />
-                                        Gi link t li mt khu
+                                        Gửi link đặt lại mật khẩu
                                     </>
                                 )}
                             </Button>
@@ -161,7 +161,7 @@ export default function ForgotPasswordPage() {
                             <Link href="/auth/login">
                                 <Button variant="ghost" className="w-full">
                                     <ArrowLeft className="h-4 w-4 mr-2" />
-                                    Quay li ng nhp
+                                    Quay lại đăng nhập
                                 </Button>
                             </Link>
                         </CardFooter>
@@ -171,9 +171,9 @@ export default function ForgotPasswordPage() {
                 {/* Additional Help */}
                 <div className="text-center">
                     <p className="text-sm text-gray-600">
-                        Gp vn ? {' '}
+                        Gặp vấn đề? {' '}
                         <Link href="/contact" className="text-blue-600 hover:text-blue-500">
-                            Lin h h tr
+                            Liên hệ hỗ trợ
                         </Link>
                     </p>
                 </div>

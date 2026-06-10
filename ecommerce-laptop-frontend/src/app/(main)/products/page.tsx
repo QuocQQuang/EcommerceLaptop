@@ -157,10 +157,10 @@ function ProductsContent() {
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                    Danh Sch Sn Phm
+                    Danh Sách Sản Phẩm
                     {totalCount > 0 && (
                         <span className="text-lg font-normal text-gray-600 ml-2">
-                            ({totalCount} sn phm)
+                            ({totalCount} sản phẩm)
                         </span>
                     )}
                 </h1>
@@ -171,7 +171,7 @@ function ProductsContent() {
                         <SearchBar
                             value={searchQuery}
                             onChange={setSearchQuery}
-                            placeholder="Tm kim sn phm..."
+                            placeholder="Tìm kiếm sản phẩm..."
                         />
                     </div>
 
@@ -179,14 +179,14 @@ function ProductsContent() {
                         {/* Sort */}
                         <Select value={sortBy} onValueChange={(value: 'newest' | 'price_asc' | 'price_desc' | 'name' | 'rating') => setSortBy(value)}>
                             <SelectTrigger className="w-48">
-                                <SelectValue placeholder="Sp xp theo..." />
+                                <SelectValue placeholder="Sắp xếp theo..." />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="newest">Mi nht</SelectItem>
-                                <SelectItem value="price_asc">Gi tng dn</SelectItem>
-                                <SelectItem value="price_desc">Gi gim dn</SelectItem>
-                                <SelectItem value="name">Tn A-Z</SelectItem>
-                                <SelectItem value="rating">nh gi cao</SelectItem>
+                                <SelectItem value="newest">Mới nhất</SelectItem>
+                                <SelectItem value="price_asc">Giá tăng dần</SelectItem>
+                                <SelectItem value="price_desc">Giá giảm dần</SelectItem>
+                                <SelectItem value="name">Tên A-Z</SelectItem>
+                                <SelectItem value="rating">Đánh giá cao</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -217,7 +217,7 @@ function ProductsContent() {
                             className="lg:hidden"
                         >
                             <SlidersHorizontal className="w-4 h-4 mr-2" />
-                            Lc
+                            Lọc
                             {activeFiltersCount > 0 && (
                                 <Badge variant="secondary" className="ml-2">
                                     {activeFiltersCount}
@@ -230,7 +230,7 @@ function ProductsContent() {
                 {/* Active Filters */}
                 {activeFiltersCount > 0 && (
                     <div className="flex flex-wrap items-center gap-2 mt-4">
-                        <span className="text-sm text-gray-600">B lc:</span>
+                        <span className="text-sm text-gray-600">Bộ lọc:</span>
 
                         {selectedBrands.map(brand => (
                             <Badge key={brand} variant="secondary" className="flex items-center gap-1">
@@ -278,7 +278,7 @@ function ProductsContent() {
                             onClick={clearAllFilters}
                             className="text-red-600 hover:text-red-700"
                         >
-                            Xa tt c
+                            Xóa tất cả
                         </Button>
                     </div>
                 )}
@@ -289,15 +289,15 @@ function ProductsContent() {
                 <aside className={`lg:w-64 space-y-6 ${showFilters ? 'block' : 'hidden lg:block'}`}>
                     <div className="bg-white p-6 rounded-lg shadow-sm border">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold text-gray-900">B Lc</h3>
+                            <h3 className="font-semibold text-gray-900">Bộ Lọc</h3>
                             <Filter className="w-4 h-4 text-gray-500" />
                         </div>
 
                         {/* Brand Filter */}
                         <div className="space-y-3">
-                            <h4 className="font-medium text-gray-900">Thng hiu</h4>
+                            <h4 className="font-medium text-gray-900">Thương hiệu</h4>
                             {filtersLoading ? (
-                                <div className="text-sm text-gray-500">ang ti...</div>
+                                <div className="text-sm text-gray-500">Đang tải...</div>
                             ) : (
                                 brands.map(brand => (
                                     <div key={brand.id} className="flex items-center space-x-2">
@@ -321,9 +321,9 @@ function ProductsContent() {
 
                         {/* Category Filter */}
                         <div className="space-y-3">
-                            <h4 className="font-medium text-gray-900">Danh mc</h4>
+                            <h4 className="font-medium text-gray-900">Danh mục</h4>
                             {filtersLoading ? (
-                                <div className="text-sm text-gray-500">ang ti...</div>
+                                <div className="text-sm text-gray-500">Đang tải...</div>
                             ) : (
                                 categories.map(category => (
                                     <div key={category.id} className="flex items-center space-x-2">
@@ -347,7 +347,7 @@ function ProductsContent() {
 
                         {/* Price Range Filter */}
                         <div className="space-y-3">
-                            <h4 className="font-medium text-gray-900">Khong gi</h4>
+                            <h4 className="font-medium text-gray-900">Khoảng giá</h4>
                             <div className="px-2">
                                 <Slider
                                     value={priceRange}
@@ -396,7 +396,7 @@ function ProductsContent() {
                                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                         disabled={currentPage === 1}
                                     >
-                                        Trc
+                                        Trước
                                     </Button>
 
                                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -440,12 +440,12 @@ function ProductsContent() {
                         <div className="text-center py-12">
                             <div className="text-gray-500 mb-4">
                                 <Filter className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                <h3 className="text-lg font-medium">Khng tm thy sn phm</h3>
-                                <p className="text-sm">Hy th iu chnh b lc hoc tm kim vi t kha khc</p>
+                                <h3 className="text-lg font-medium">Không tìm thấy sản phẩm</h3>
+                                <p className="text-sm">Hãy thử điều chỉnh bộ lọc hoặc tìm kiếm với từ khóa khác</p>
                             </div>
                             {activeFiltersCount > 0 && (
                                 <Button onClick={clearAllFilters} variant="outline">
-                                    Xa tt c b lc
+                                    Xóa tất cả bộ lọc
                                 </Button>
                             )}
                         </div>

@@ -69,34 +69,34 @@ interface UserRole {
 // Form validation schema
 const addUserSchema = z.object({
   firstName: z.string()
-    .min(1, 'H l bt buc')
-    .min(2, 'H phi c t nht 2 k t')
-    .max(50, 'H khng c qu 50 k t'),
+    .min(1, 'Họ là bắt buộc')
+    .min(2, 'Họ phải có ít nhất 2 ký tự')
+    .max(50, 'Họ không được quá 50 ký tự'),
   lastName: z.string()
-    .min(1, 'Tn l bt buc')
-    .min(2, 'Tn phi c t nht 2 k t')
-    .max(50, 'Tn khng c qu 50 k t'),
+    .min(1, 'Tên là bắt buộc')
+    .min(2, 'Tên phải có ít nhất 2 ký tự')
+    .max(50, 'Tên không được quá 50 ký tự'),
   email: z.string()
-    .min(1, 'Email l bt buc')
-    .email('Email khng hp l')
-    .max(100, 'Email khng c qu 100 k t'),
+    .min(1, 'Email là bắt buộc')
+    .email('Email không hợp lệ')
+    .max(100, 'Email không được quá 100 ký tự'),
   phone: z.string()
     .optional()
     .refine((val) => !val || /^[0-9]{10,11}$/.test(val), {
-      message: 'S in thoi phi c 10-11 ch s'
+      message: 'Số điện thoại phải có 10-11 chữ số'
     }),
   password: z.string()
-    .min(8, 'Mt khu phi c t nht 8 k t')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Mt khu phi c t nht 1 ch hoa, 1 ch thng v 1 s'),
+    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Mật khẩu phải có ít nhất 1 chữ hoa, 1 chữ thường và 1 số'),
   confirmPassword: z.string()
-    .min(1, 'Xc nhn mt khu l bt buc'),
+    .min(1, 'Xác nhận mật khẩu là bắt buộc'),
   roleId: z.number()
-    .min(1, 'Vui lng chn vai tr'),
+    .min(1, 'Vui lòng chọn vai trò'),
   isActive: z.boolean(),
   bio: z.string().optional(),
   sendWelcomeEmail: z.boolean(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: 'Mt khu xc nhn khng khp',
+  message: 'Mật khẩu xác nhận không khớp',
   path: ['confirmPassword'],
 });
 
@@ -114,31 +114,31 @@ const useUserRolesQuery = () => {
           id: 1,
           name: 'super_admin',
           displayName: 'Super Admin',
-          description: 'Quyn cao nht, c th truy cp tt c chc nng',
+          description: 'Quyền cao nhất, có thể truy cập tất cả chức năng',
           permissions: ['*'],
           isSystemRole: true
         },
         {
           id: 2,
           name: 'manager',
-          displayName: 'Qun l',
-          description: 'Qun l n hng, sn phm v nhn vin',
+          displayName: 'Quản lý',
+          description: 'Quản lý đơn hàng, sản phẩm và nhân viên',
           permissions: ['orders:read', 'orders:write', 'products:read', 'products:write', 'users:read'],
           isSystemRole: false
         },
         {
           id: 3,
           name: 'staff',
-          displayName: 'Nhn vin',
-          description: 'Xem n hng v sn phm, khng c quyn chnh sa',
+          displayName: 'Nhân viên',
+          description: 'Xem đơn hàng và sản phẩm, không có quyền chỉnh sửa',
           permissions: ['orders:read', 'products:read'],
           isSystemRole: false
         },
         {
           id: 4,
           name: 'content_manager',
-          displayName: 'Qun l ni dung',
-          description: 'Qun l blog, tin tc v ni dung website',
+          displayName: 'Quản lý nội dung',
+          description: 'Quản lý blog, tin tức và nội dung website',
           permissions: ['content:read', 'content:write', 'media:read', 'media:write'],
           isSystemRole: false
         }
@@ -175,8 +175,8 @@ const getRoleBadge = (role: UserRole) => {
 };
 
 const getPermissionCount = (permissions: string[]) => {
-  if (permissions.includes('*')) return 'Tt c quyn';
-  return `${permissions.length} quyn`;
+  if (permissions.includes('*')) return 'Tất cả quyền';
+  return `${permissions.length} quyền`;
 };
 
 export default function AddUserPage() {
@@ -217,10 +217,10 @@ export default function AddUserPage() {
   const onSubmit = async (data: AddUserFormData) => {
     try {
       await createUserMutation.mutateAsync(data);
-      toast.success('To ngi dng thnh cng!');
+      toast.success('Tạo người dùng thành công!');
       router.push('/users');
     } catch (error) {
-      toast.error('C li xy ra khi to ngi dng');
+      toast.error('Có lỗi xảy ra khi tạo người dùng');
       console.error('Error creating user:', error);
     }
   };
@@ -247,13 +247,13 @@ export default function AddUserPage() {
             onClick={() => router.back()}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay li
+            Quay lại
           </Button>
 
           <div>
-            <h1 className="text-3xl font-bold">Thm ngi dng mi</h1>
+            <h1 className="text-3xl font-bold">Thêm người dùng mới</h1>
             <p className="text-muted-foreground">
-              To ti khon admin mi cho h thng
+              Tạo tài khoản admin mới cho hệ thống
             </p>
           </div>
         </div>
@@ -268,10 +268,10 @@ export default function AddUserPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <User className="h-5 w-5" />
-                      Thng tin c bn
+                      Thông tin cơ bản
                     </CardTitle>
                     <CardDescription>
-                      Thng tin c nhn ca ngi dng
+                      Thông tin cá nhân của người dùng
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -303,9 +303,9 @@ export default function AddUserPage() {
                         />
                       </div>
                       <div>
-                        <Label className="font-medium">nh i din</Label>
+                        <Label className="font-medium">Ảnh đại diện</Label>
                         <p className="text-sm text-muted-foreground">
-                          Ti ln nh i din cho ngi dng (khng bt buc)
+                          Tải lên ảnh đại diện cho người dùng (không bắt buộc)
                         </p>
                       </div>
                     </div>
@@ -319,9 +319,9 @@ export default function AddUserPage() {
                         name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>H *</FormLabel>
+                            <FormLabel>Họ *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Nhp h..." {...field} />
+                              <Input placeholder="Nhập họ..." {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -333,9 +333,9 @@ export default function AddUserPage() {
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Tn *</FormLabel>
+                            <FormLabel>Tên *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Nhp tn..." {...field} />
+                              <Input placeholder="Nhập tên..." {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -361,7 +361,7 @@ export default function AddUserPage() {
                             />
                           </FormControl>
                           <FormDescription>
-                            Email s c s dng  ng nhp v nhn thng bo
+                            Email sẽ được sử dụng để đăng nhập và nhận thông báo
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -375,7 +375,7 @@ export default function AddUserPage() {
                         <FormItem>
                           <FormLabel className="flex items-center gap-2">
                             <Phone className="h-4 w-4" />
-                            S in thoi
+                            Số điện thoại
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -384,7 +384,7 @@ export default function AddUserPage() {
                             />
                           </FormControl>
                           <FormDescription>
-                            S in thoi lin h (khng bt buc)
+                            Số điện thoại liên hệ (không bắt buộc)
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -397,17 +397,17 @@ export default function AddUserPage() {
                       name="bio"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Gii thiu</FormLabel>
+                            <FormLabel>Giới thiệu</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Gii thiu ngn v ngi dng..."
+                              placeholder="Giới thiệu ngắn về người dùng..."
                               className="resize-none"
                               rows={3}
                               {...field}
                             />
                           </FormControl>
                           <FormDescription>
-                            M t ngn v ngi dng (khng bt buc)
+                            Mô tả ngắn về người dùng (không bắt buộc)
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -421,10 +421,10 @@ export default function AddUserPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Lock className="h-5 w-5" />
-                      Ci t bo mt
+                      Cài đặt bảo mật
                     </CardTitle>
                     <CardDescription>
-                      Mt khu v cc thit lp bo mt
+                      Mật khẩu và các thiết lập bảo mật
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -433,12 +433,12 @@ export default function AddUserPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Mt khu *</FormLabel>
+                          <FormLabel>Mật khẩu *</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Input
                                 type={showPassword ? 'text' : 'password'}
-                                placeholder="Nhp mt khu..."
+                                placeholder="Nhập mật khẩu..."
                                 {...field}
                               />
                               <Button
@@ -457,7 +457,7 @@ export default function AddUserPage() {
                             </div>
                           </FormControl>
                           <FormDescription>
-                            Mt khu phi c t nht 8 k t, bao gm ch hoa, ch thng v s
+                            Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -469,12 +469,12 @@ export default function AddUserPage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Xc nhn mt khu *</FormLabel>
+                          <FormLabel>Xác nhận mật khẩu *</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Input
                                 type={showConfirmPassword ? 'text' : 'password'}
-                                placeholder="Nhp li mt khu..."
+                                placeholder="Nhập lại mật khẩu..."
                                 {...field}
                               />
                               <Button
@@ -507,10 +507,10 @@ export default function AddUserPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Shield className="h-5 w-5" />
-                      Vai tr & Quyn hn
+                      Vai trò & Quyền hạn
                     </CardTitle>
                     <CardDescription>
-                      Chn vai tr v cp quyn cho ngi dng
+                      Chọn vai trò và cấp quyền cho người dùng
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -519,20 +519,20 @@ export default function AddUserPage() {
                       name="roleId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Vai tr *</FormLabel>
+                          <FormLabel>Vai trò *</FormLabel>
                           <Select
                             onValueChange={(value) => field.onChange(parseInt(value))}
                             value={field.value?.toString() || ''}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Chn vai tr..." />
+                                <SelectValue placeholder="Chọn vai trò..." />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               {rolesLoading ? (
                                 <div className="p-2 text-center text-sm text-muted-foreground">
-                                  ang ti...
+                                  Đang tải...
                                 </div>
                               ) : (
                                 roles
@@ -567,20 +567,20 @@ export default function AddUserPage() {
                             {getRoleBadge(selectedRole)}
                             {selectedRole.isSystemRole && (
                               <Badge variant="outline" className="text-xs">
-                                H thng
+                                Hệ thống
                               </Badge>
                             )}
                           </div>
 
                           <div>
-                            <p className="text-sm font-medium mb-1">M t:</p>
+                            <p className="text-sm font-medium mb-1">Mô tả:</p>
                             <p className="text-sm text-muted-foreground">
                               {selectedRole.description}
                             </p>
                           </div>
 
                           <div>
-                            <p className="text-sm font-medium mb-1">Quyn hn:</p>
+                            <p className="text-sm font-medium mb-1">Quyền hạn:</p>
                             <p className="text-sm text-muted-foreground">
                               {getPermissionCount(selectedRole.permissions)}
                             </p>
@@ -590,7 +590,7 @@ export default function AddUserPage() {
                             <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded text-amber-800">
                               <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                               <p className="text-xs">
-                                Vai tr h thng c quyn hn cao, hy cn nhc k trc khi gn.
+                                Vai trò hệ thống có quyền hạn cao, hãy cân nhắc kỹ trước khi gán.
                               </p>
                             </div>
                           )}
@@ -603,9 +603,9 @@ export default function AddUserPage() {
                 {/* Account Settings */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Ci t ti khon</CardTitle>
+                    <CardTitle>Cài đặt tài khoản</CardTitle>
                     <CardDescription>
-                      Trng thi v cc ty chn khc
+                      Trạng thái và các tùy chọn khác
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -616,10 +616,10 @@ export default function AddUserPage() {
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
                             <FormLabel className="text-base">
-                              Ti khon hot ng
+                              Tài khoản hoạt động
                             </FormLabel>
                             <FormDescription>
-                              Cho php ngi dng ng nhp v s dng h thng
+                              Cho phép người dùng đăng nhập và sử dụng hệ thống
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -639,10 +639,10 @@ export default function AddUserPage() {
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
                             <FormLabel className="text-base">
-                              Gi email cho mng
+                              Gửi email chào mừng
                             </FormLabel>
                             <FormDescription>
-                              Gi email cho mng v hng dn ng nhp
+                              Gửi email chào mừng và hướng dẫn đăng nhập
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -667,11 +667,11 @@ export default function AddUserPage() {
                         disabled={createUserMutation.isPending}
                       >
                         {createUserMutation.isPending ? (
-                          <>ang to...</>
+                          <>Đang tạo...</>
                         ) : (
                           <>
                             <Save className="h-4 w-4 mr-2" />
-                            To ngi dng
+                            Tạo người dùng
                           </>
                         )}
                       </Button>
@@ -683,7 +683,7 @@ export default function AddUserPage() {
                         onClick={() => router.back()}
                         disabled={createUserMutation.isPending}
                       >
-                        Hy b
+                        Hủy bỏ
                       </Button>
                     </div>
                   </CardContent>

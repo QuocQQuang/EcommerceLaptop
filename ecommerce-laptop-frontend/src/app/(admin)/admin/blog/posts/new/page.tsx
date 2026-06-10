@@ -241,15 +241,15 @@ export default function NewBlogPage() {
         const errors: Record<string, string> = {};
 
         if (!state.blog.title?.trim()) {
-            errors.title = 'Tiu  l bt buc';
+            errors.title = 'Tiêu đề là bắt buộc';
         }
 
         if (!state.blog.content?.trim()) {
-            errors.content = 'Ni dung l bt buc';
+            errors.content = 'Nội dung là bắt buộc';
         }
 
         if (!state.blog.categoryId) {
-            errors.categoryId = 'Danh mc l bt buc';
+            errors.categoryId = 'Danh mục là bắt buộc';
         }
 
         setState(prev => ({ ...prev, errors }));
@@ -531,12 +531,12 @@ export default function NewBlogPage() {
                 <div className="lg:col-span-2 space-y-6">
                     {/* Header */}
                     <div className="flex items-center justify-between">
-                        <h1 className="text-2xl font-bold text-gray-900">To bi vit mi</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Tạo bài viết mới</h1>
                         <div className="flex items-center gap-2">
                             {state.autoSaving && (
                                 <span className="text-sm text-gray-500 flex items-center gap-1">
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    ang lu...
+                                    Đang lưu...
                                 </span>
                             )}
                             <Button
@@ -546,7 +546,7 @@ export default function NewBlogPage() {
                             >
                                 {state.saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                                 <Save className="w-4 h-4 mr-2" />
-                                Lu nhp
+                                Lưu nháp
                             </Button>
                             <Button
                                 onClick={publishBlog}
@@ -554,7 +554,7 @@ export default function NewBlogPage() {
                             >
                                 {state.publishing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                                 <Send className="w-4 h-4 mr-2" />
-                                Xut bn
+                                Xuất bản
                             </Button>
                         </div>
                     </div>
@@ -562,16 +562,16 @@ export default function NewBlogPage() {
                     {/* Title */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Tiu </CardTitle>
+                            <CardTitle>Tiêu đề</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <Label htmlFor="title">Tiu  bi vit *</Label>
+                                <Label htmlFor="title">Tiêu đề bài viết *</Label>
                                 <Input
                                     id="title"
                                     value={state.blog.title || ''}
                                     onChange={(e) => updateBlog('title', e.target.value)}
-                                    placeholder="Nhp tiu  bi vit..."
+                                    placeholder="Nhập tiêu đề bài viết..."
                                     className={cn(state.errors.title && "border-red-500")}
                                 />
                                 {state.errors.title && (
@@ -583,7 +583,7 @@ export default function NewBlogPage() {
                                 <Label>Slug Preview</Label>
                                 <Input
                                     value={slugPreview}
-                                    placeholder="Slug s c to t ng"
+                                    placeholder="Slug sẽ được tạo tự động"
                                     disabled
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
@@ -592,12 +592,12 @@ export default function NewBlogPage() {
                             </div>
 
                             <div>
-                                <Label htmlFor="excerpt">Tm tt</Label>
+                                <Label htmlFor="excerpt">Tóm tắt</Label>
                                 <Textarea
                                     id="excerpt"
                                     value={state.blog.excerpt || ''}
                                     onChange={(e) => updateBlog('excerpt', e.target.value)}
-                                    placeholder="Tm tt ngn v bi vit..."
+                                    placeholder="Tóm tắt ngắn về bài viết..."
                                     rows={3}
                                 />
                             </div>
@@ -608,12 +608,12 @@ export default function NewBlogPage() {
                     <Card>
                         <CardHeader>
                             <div className="flex items-center justify-between">
-                                <CardTitle>Ni dung bi vit *</CardTitle>
+                                <CardTitle>Nội dung bài viết *</CardTitle>
                                 <div className="flex items-center gap-2">
                                     {readingTime > 0 && (
                                         <Badge variant="outline" className="flex items-center gap-1">
                                             <Clock className="w-3 h-3" />
-                                            {readingTime} pht c
+                                            {readingTime} phút đọc
                                         </Badge>
                                     )}
                                 </div>
@@ -622,13 +622,13 @@ export default function NewBlogPage() {
                         <CardContent>
                             {/* Custom Toolbar */}
                             <div className="flex items-center gap-2 mb-4 p-3 bg-gray-50 rounded-lg border">
-                                <span className="text-sm font-medium text-gray-700">Chn ni dung:</span>
+                                <span className="text-sm font-medium text-gray-700">Chèn nội dung:</span>
                                 <UnsplashImagePicker
                                     onImageSelect={handleImageInsert}
                                     trigger={
                                         <Button variant="outline" size="sm" disabled={!isQuillReady}>
                                             <ImageIcon className="w-4 h-4 mr-2" />
-                                            nh t Unsplash
+                                            Ảnh từ Unsplash
                                         </Button>
                                     }
                                 />
@@ -637,7 +637,7 @@ export default function NewBlogPage() {
                                     trigger={
                                         <Button variant="outline" size="sm" disabled={!isQuillReady}>
                                             <Package className="w-4 h-4 mr-2" />
-                                            Link sn phm
+                                            Link sản phẩm
                                         </Button>
                                     }
                                 />
@@ -684,7 +684,7 @@ export default function NewBlogPage() {
                                     onChange={(value: string) => updateBlog('content', value)}
                                     modules={quillModules}
                                     formats={quillFormats}
-                                    placeholder="Vit ni dung bi vit ca bn  y..."
+                                    placeholder="Viết nội dung bài viết của bạn ở đây..."
                                     className="min-h-[400px]"
                                     ref={quillRef}
                                 />
@@ -695,10 +695,10 @@ export default function NewBlogPage() {
 
                             {/* Help Text */}
                             <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                                <h4 className="text-sm font-medium text-blue-900 mb-2">Hng dn s dng:</h4>
+                                <h4 className="text-sm font-medium text-blue-900 mb-2">Hướng dẫn sử dụng:</h4>
                                 <ul className="text-xs text-blue-800 space-y-1">
-                                    <li> S dng nt "Link sn phm"  chn link n sn phm</li>
-                                    <li> Format link sn phm: [product:ID:Tn:Gi:nh]</li>
+                                    <li> Sử dụng nút "Link sản phẩm" để chèn link đến sản phẩm</li>
+                                    <li> Format link sản phẩm: [product:ID:Tên:Giá:Ảnh]</li>
                                 </ul>
                             </div>
                         </CardContent>
@@ -712,12 +712,12 @@ export default function NewBlogPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <ImageIcon className="w-5 h-5" />
-                                nh i din
+                                Ảnh đại diện
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <Label htmlFor="featuredImage">URL nh</Label>
+                                <Label htmlFor="featuredImage">URL ảnh</Label>
                                 <Input
                                     id="featuredImage"
                                     value={state.blog.featuredImageUrl || ''}
@@ -741,7 +741,7 @@ export default function NewBlogPage() {
                     {/* Category */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Danh mc</CardTitle>
+                                <CardTitle>Danh mục</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Select
@@ -749,10 +749,10 @@ export default function NewBlogPage() {
                                 onValueChange={(value) => updateBlog('categoryId', value === '0' ? undefined : parseInt(value))}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Chn danh mc" />
+                                    <SelectValue placeholder="Chọn danh mục" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="0">Khng danh mc</SelectItem>
+                                    <SelectItem value="0">Không danh mục</SelectItem>
                                     {state.categories.map(category => (
                                         <SelectItem key={category.id} value={category.id.toString()}>
                                             {category.name}
@@ -771,12 +771,12 @@ export default function NewBlogPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Settings className="w-5 h-5" />
-                                Ci t
+                                Cài đặt
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="isPublished">Xut bn ngay</Label>
+                                <Label htmlFor="isPublished">Xuất bản ngay</Label>
                                 <Switch
                                     id="isPublished"
                                     checked={state.blog.isPublished || false}
@@ -811,7 +811,7 @@ export default function NewBlogPage() {
                                     id="metaTitle"
                                     value={state.blog.metaTitle || ''}
                                     onChange={(e) => updateBlog('metaTitle', e.target.value)}
-                                    placeholder="Tiu  meta..."
+                                    placeholder="Tiêu đề meta..."
                                 />
                             </div>
 
@@ -821,7 +821,7 @@ export default function NewBlogPage() {
                                     id="metaDescription"
                                     value={state.blog.metaDescription || ''}
                                     onChange={(e) => updateBlog('metaDescription', e.target.value)}
-                                    placeholder="M t meta..."
+                                    placeholder="Mô tả meta..."
                                     rows={3}
                                 />
                             </div>

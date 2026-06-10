@@ -38,8 +38,8 @@ export function useCart() {
                 });
             }
 
-            toast.success(' thm vo gi hng', {
-                description: `${product.name}  c thm vo gi hng`,
+            toast.success('Đã thêm vào giỏ hàng', {
+                description: `${product.name} đã được thêm vào giỏ hàng`,
             });
         } catch (error: any) {
             console.error('Error adding to cart:', error);
@@ -52,20 +52,20 @@ export function useCart() {
                     const match = errorMessage.match(/Available: (\d+), Requested: (\d+)/);
                     if (match) {
                         const [, available, requested] = match;
-                        toast.error('Khng  hng', {
-                            description: `Sn phm cn li: ${available} sn phm, bn yu cu: ${requested} sn phm.`,
+                        toast.error('Không đủ hàng', {
+                            description: `Sản phẩm còn lại: ${available} sản phẩm, bạn yêu cầu: ${requested} sản phẩm.`,
                         });
                         return;
                     }
                 }
-                toast.error('Khng  hng', {
+                toast.error('Không đủ hàng', {
                     description: errorMessage,
                 });
                 return;
             }
 
-            toast.error('Li', {
-                description: 'Khng th thm sn phm vo gi hng',
+            toast.error('Lỗi', {
+                description: 'Không thể thêm sản phẩm vào giỏ hàng',
             });
         }
     }, [addItem, sessionId]);
@@ -84,13 +84,13 @@ export function useCart() {
                 console.warn('FrontEnd Debug: No session ID');
             }
 
-            toast.success(' xa khi gi hng', {
-                description: 'Sn phm  c xa khi gi hng',
+            toast.success('Đã xóa khỏi giỏ hàng', {
+                description: 'Sản phẩm đã được xóa khỏi giỏ hàng',
             });
         } catch (error) {
             console.error('FrontEnd Debug: Error removing from cart:', error);
-            toast.error('Li', {
-                description: 'Khng th xa sn phm khi gi hng',
+            toast.error('Lỗi', {
+                description: 'Không thể xóa sản phẩm khỏi giỏ hàng',
             });
         }
     }, [removeItem, sessionId]);
@@ -109,8 +109,8 @@ export function useCart() {
             }
         } catch (error) {
             console.error('Error updating cart quantity:', error);
-            toast.error('Li', {
-                description: 'Khng th cp nht s lng',
+            toast.error('Lỗi', {
+                description: 'Không thể cập nhật số lượng',
             });
         }
     }, [updateQuantity, sessionId]);
@@ -124,13 +124,13 @@ export function useCart() {
                 await cartService.clearCart(sessionId);
             }
 
-            toast.success(' xa gi hng', {
-                description: 'Tt c sn phm  c xa khi gi hng',
+            toast.success('Đã xóa giỏ hàng', {
+                description: 'Tất cả sản phẩm đã được xóa khỏi giỏ hàng',
             });
         } catch (error) {
             console.error('Error clearing cart:', error);
-            toast.error('Li', {
-                description: 'Khng th xa gi hng',
+            toast.error('Lỗi', {
+                description: 'Không thể xóa giỏ hàng',
             });
         }
     }, [clearCart, sessionId]);

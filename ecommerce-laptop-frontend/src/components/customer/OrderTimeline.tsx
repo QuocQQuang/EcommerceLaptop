@@ -30,12 +30,12 @@ export function OrderTimeline({ auditTrail, className }: OrderTimelineProps) {
 
     const getStatusInfo = (status: string) => {
         const statusMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-            'pending': { label: 'Ch x l', color: 'bg-yellow-100 text-yellow-800', icon: <Clock className="h-4 w-4" /> },
-            'confirmed': { label: ' xc nhn', color: 'bg-blue-100 text-blue-800', icon: <CheckCircle className="h-4 w-4" /> },
-            'processing': { label: 'ang x l', color: 'bg-purple-100 text-purple-800', icon: <Package className="h-4 w-4" /> },
-            'shipped': { label: ' giao hng', color: 'bg-green-100 text-green-800', icon: <Truck className="h-4 w-4" /> },
-            'delivered': { label: ' nhn hng', color: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-4 w-4" /> },
-            'cancelled': { label: ' hy', color: 'bg-red-100 text-red-800', icon: <XCircle className="h-4 w-4" /> }
+            'pending': { label: 'Chờ xử lý', color: 'bg-yellow-100 text-yellow-800', icon: <Clock className="h-4 w-4" /> },
+            'confirmed': { label: 'Đã xác nhận', color: 'bg-blue-100 text-blue-800', icon: <CheckCircle className="h-4 w-4" /> },
+            'processing': { label: 'Đang xử lý', color: 'bg-purple-100 text-purple-800', icon: <Package className="h-4 w-4" /> },
+            'shipped': { label: 'Đã giao hàng', color: 'bg-green-100 text-green-800', icon: <Truck className="h-4 w-4" /> },
+            'delivered': { label: 'Đã nhận hàng', color: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-4 w-4" /> },
+            'cancelled': { label: 'Đã hủy', color: 'bg-red-100 text-red-800', icon: <XCircle className="h-4 w-4" /> }
         };
         return statusMap[status] || { label: status, color: 'bg-gray-100 text-gray-800', icon: <Clock className="h-4 w-4" /> };
     };
@@ -43,7 +43,7 @@ export function OrderTimeline({ auditTrail, className }: OrderTimelineProps) {
     return (
         <Card className={className}>
             <CardHeader>
-                <CardTitle>Lch s n hng</CardTitle>
+                <CardTitle>Lịch sử đơn hàng</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-6">
@@ -80,12 +80,12 @@ export function OrderTimeline({ auditTrail, className }: OrderTimelineProps) {
 
                                     {audit.reason && (
                                         <p className="text-sm text-gray-600 mb-1">
-                                            <span className="font-medium">L do:</span> {audit.reason}
+                                            <span className="font-medium">Lý do:</span> {audit.reason}
                                         </p>
                                     )}
 
                                     <p className="text-xs text-gray-500">
-                                        Thay i bi: {audit.changedBy}
+                                        Thay đổi bởi: {audit.changedBy}
                                     </p>
                                 </div>
                             </div>

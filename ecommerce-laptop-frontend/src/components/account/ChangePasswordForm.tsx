@@ -45,13 +45,13 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
         let score = 0;
 
         if (password.length < 8) {
-            feedback.push('Mt khu phi c t nht 8 k t');
+            feedback.push('Mật khẩu phải có ít nhất 8 ký tự');
         } else {
             score += 1;
         }
 
         if (password.length > 128) {
-            feedback.push('Mt khu khng c vt qu 128 k t');
+            feedback.push('Mật khẩu không được vượt quá 128 ký tự');
         } else if (password.length >= 8) {
             score += 1;
         }
@@ -67,12 +67,12 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
         if (categoryCount >= 3) {
             score += 2;
         } else {
-            feedback.push('Mt khu phi cha t nht 3 trong 4 loi: ch thng, ch hoa, s, k t c bit');
+            feedback.push('Mật khẩu phải chứa ít nhất 3 trong 4 loại: chữ thường, chữ hoa, số, ký tự đặc biệt');
         }
 
         // Check for common patterns
         if (password === password[0]?.repeat(password.length)) {
-            feedback.push('Mt khu khng c cha tt c k t ging nhau');
+            feedback.push('Mật khẩu không được chứa tất cả ký tự giống nhau');
         } else {
             score += 1;
         }
@@ -80,7 +80,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
         // Check for sequential characters
         const isSequential = /(?:012|123|234|345|456|567|678|789|890|987|876|765|654|543|432|321|210)/.test(password);
         if (isSequential) {
-            feedback.push('Mt khu khng c cha chui k t lin tip');
+            feedback.push('Mật khẩu không được chứa chuỗi ký tự liên tiếp');
         } else {
             score += 1;
         }
@@ -93,7 +93,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
         ];
 
         if (commonPasswords.some(common => password.toLowerCase() === common)) {
-            feedback.push('Mt khu qu ph bin, vui lng chn mt khu mnh hn');
+            feedback.push('Mật khẩu quá phổ biến, vui lòng chọn mật khẩu mạnh hơn');
         } else {
             score += 1;
         }
@@ -125,9 +125,9 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
     };
 
     const getPasswordStrengthText = (score: number) => {
-        if (score < 2) return 'Rt yu';
-        if (score < 4) return 'Trung bnh';
-        return 'Mnh';
+        if (score < 2) return 'Rất yếu';
+        if (score < 4) return 'Trung bình';
+        return 'Mạnh';
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -136,27 +136,27 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
 
         // Client-side validation
         if (!formData.currentPassword) {
-            setError('Vui lng nhp mt khu hin ti');
+            setError('Vui lòng nhập mật khẩu hiện tại');
             return;
         }
 
         if (!formData.newPassword) {
-            setError('Vui lng nhp mt khu mi');
+            setError('Vui lòng nhập mật khẩu mới');
             return;
         }
 
         if (!passwordStrength.isValid) {
-            setError('Mt khu mi khng  mnh');
+            setError('Mật khẩu mới không đủ mạnh');
             return;
         }
 
         if (formData.newPassword !== formData.confirmPassword) {
-            setError('Mt khu xc nhn khng khp');
+            setError('Mật khẩu xác nhận không khớp');
             return;
         }
 
         if (formData.currentPassword === formData.newPassword) {
-            setError('Mt khu mi phi khc vi mt khu hin ti');
+            setError('Mật khẩu mới phải khác với mật khẩu hiện tại');
             return;
         }
 
@@ -169,7 +169,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                 confirmPassword: formData.confirmPassword
             });
 
-            toast.success('Mt khu  c thay i thnh cng');
+            toast.success('Mật khẩu đã được thay đổi thành công');
 
             // Reset form
             setFormData({
@@ -181,7 +181,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
 
             onSuccess?.();
         } catch (err: any) {
-            const errorMessage = err.response?.data?.message || 'C li xy ra khi thay i mt khu';
+            const errorMessage = err.response?.data?.message || 'Có lỗi xảy ra khi thay đổi mật khẩu';
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {
@@ -195,9 +195,9 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
                     <Shield className="h-6 w-6 text-blue-600" />
                 </div>
-                <CardTitle className="text-xl font-semibold text-gray-900">i mt khu</CardTitle>
+                <CardTitle className="text-xl font-semibold text-gray-900">Đổi mật khẩu</CardTitle>
                 <CardDescription className="text-gray-600">
-                     bo mt ti khon, hy chn mt khu mnh v duy nht
+                    Để bảo mật tài khoản, hãy chọn mật khẩu mạnh và duy nhất
                 </CardDescription>
             </CardHeader>
             <CardContent className="px-6 pb-6">
@@ -212,7 +212,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                     {/* Current Password */}
                     <div className="space-y-2 w-full">
                         <Label htmlFor="currentPassword" className="text-sm font-medium text-gray-700 block">
-                            Mt khu hin ti
+                            Mật khẩu hiện tại
                         </Label>
                         <div className="relative w-full">
                             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -222,7 +222,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                                 value={formData.currentPassword}
                                 onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
                                 className="pl-10 pr-10 h-11 w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                placeholder="Nhp mt khu hin ti"
+                                placeholder="Nhập mật khẩu hiện tại"
                                 required
                             />
                             <Button
@@ -244,7 +244,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                     {/* New Password */}
                     <div className="space-y-2 w-full">
                         <Label htmlFor="newPassword" className="text-sm font-medium text-gray-700 block">
-                            Mt khu mi
+                            Mật khẩu mới
                         </Label>
                         <div className="relative w-full">
                             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -254,7 +254,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                                 value={formData.newPassword}
                                 onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
                                 className="pl-10 pr-10 h-11 w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                placeholder="Nhp mt khu mi"
+                                placeholder="Nhập mật khẩu mới"
                                 required
                             />
                             <Button
@@ -276,7 +276,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                         {formData.newPassword && (
                             <div className="mt-3 p-3 bg-gray-50 rounded-md border w-full max-w-full overflow-hidden">
                                 <div className="flex items-center justify-between text-sm mb-2">
-                                    <span className="text-gray-600 font-medium"> mnh mt khu:</span>
+                                    <span className="text-gray-600 font-medium">Độ mạnh mật khẩu:</span>
                                     <span className={`font-semibold ${getPasswordStrengthColor(passwordStrength.score)}`}>
                                         {getPasswordStrengthText(passwordStrength.score)}
                                     </span>
@@ -312,7 +312,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                     {/* Confirm Password */}
                     <div className="space-y-2 w-full">
                         <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 block">
-                            Xc nhn mt khu mi
+                            Xác nhận mật khẩu mới
                         </Label>
                         <div className="relative w-full">
                             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -322,7 +322,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                                 value={formData.confirmPassword}
                                 onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
                                 className="pl-10 pr-10 h-11 w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                placeholder="Nhp li mt khu mi"
+                                placeholder="Nhập lại mật khẩu mới"
                                 required
                             />
                             <Button
@@ -342,7 +342,7 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                         {formData.confirmPassword && formData.newPassword === formData.confirmPassword && (
                             <div className="flex items-center gap-2 text-sm text-green-600 mt-1">
                                 <CheckCircle className="h-4 w-4 flex-shrink-0" />
-                                <span>Mt khu xc nhn khp</span>
+                                <span>Mật khẩu xác nhận khớp</span>
                             </div>
                         )}
                     </div>
@@ -351,24 +351,24 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                     <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                         <h4 className="font-medium text-blue-900 mb-3 flex items-center gap-2">
                             <Shield className="h-4 w-4" />
-                            Yu cu mt khu:
+                            Yêu cầu mật khẩu:
                         </h4>
                         <ul className="text-sm text-blue-800 space-y-2">
                             <li className="flex items-start gap-2">
                                 <span className="text-blue-600 mt-0.5"></span>
-                                <span>S dng t nht 8 k t</span>
+                                <span>Sử dụng ít nhất 8 ký tự</span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-blue-600 mt-0.5"></span>
-                                <span>Kt hp ch hoa, ch thng, s v k t c bit</span>
+                                <span>Kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt</span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-blue-600 mt-0.5"></span>
-                                <span>Trnh thng tin c nhn d on</span>
+                                <span>Tránh thông tin cá nhân dễ đoán</span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <span className="text-blue-600 mt-0.5"></span>
-                                <span>Khng s dng mt khu  dng trc </span>
+                                <span>Không sử dụng mật khẩu đã dùng trước đây</span>
                             </li>
                         </ul>
                     </div>
@@ -382,14 +382,14 @@ export function ChangePasswordForm({ onSuccess, onCancel }: ChangePasswordFormPr
                             className="flex-1"
                             disabled={isLoading}
                         >
-                            Hy
+                            Hủy
                         </Button>
                         <Button
                             type="submit"
                             className="flex-1"
                             disabled={isLoading || !passwordStrength.isValid || formData.newPassword !== formData.confirmPassword}
                         >
-                            {isLoading ? 'ang x l...' : 'i mt khu'}
+                            {isLoading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
                         </Button>
                     </div>
                 </form>

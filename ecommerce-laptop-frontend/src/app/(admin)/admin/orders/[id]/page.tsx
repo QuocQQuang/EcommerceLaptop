@@ -141,7 +141,7 @@ const useOrderDetailQuery = (orderId: string) => {
           return formatAddressForDisplay(address);
         }
 
-        if (!address) return 'Cha c a ch';
+        if (!address) return 'Chưa có địa chỉ';
 
         // Backend returns AddressDto with: Street, City, Province, PostalCode, Country
         const addressParts = [
@@ -152,7 +152,7 @@ const useOrderDetailQuery = (orderId: string) => {
           address.country
         ].filter(part => part && part.trim() !== '');
 
-        return addressParts.length > 0 ? addressParts.join(', ') : 'Cha c a ch';
+        return addressParts.length > 0 ? addressParts.join(', ') : 'Chưa có địa chỉ';
       };
 
       return {
@@ -170,7 +170,7 @@ const useOrderDetailQuery = (orderId: string) => {
         paymentStatus: normalizePaymentStatus(apiOrderAny.paymentStatus || 'pending'),
         paymentMethod: apiOrderAny.paymentMethod || 'Card',
         shippingAddress: formatAddress(apiOrderAny.shippingAddress),
-        shippingMethod: 'Giao hng tiu chun', // Default value
+        shippingMethod: 'Giao hàng tiêu chuẩn', // Default value
         trackingNumber: apiOrderAny.trackingNumber,
         notes: apiOrderAny.notes,
         items: apiOrderAny.items?.map((item: any) => ({
@@ -212,8 +212,8 @@ const useUpdateOrderStatusMutation = () => {
     onSuccess: (_, variables) => {
       // Show success toast
       const statusLabel = ORDER_WORKFLOW[variables.status as OrderStatus]?.label || variables.status;
-      toast.success('Cp nht thnh cng', {
-        description: `Trng thi n hng  c chuyn sang "${statusLabel}"`,
+      toast.success('Cập nhật thành công', {
+        description: `Trạng thái đơn hàng đã được chuyển sang "${statusLabel}"`,
         duration: 4000,
       });
 
@@ -227,23 +227,23 @@ const useUpdateOrderStatusMutation = () => {
       // Enhanced error handling with detailed toast notifications
       if (error.workflowError) {
         const workflowError = error.workflowError as OrderStatusUpdateError;
-        toast.error('Khng th cp nht trng thi', {
+        toast.error('Không thể cập nhật trạng thái', {
           description: workflowError.message || workflowError.details,
           duration: 6000,
         });
       } else if (error.response?.status === 404) {
-        toast.error('Li workflow', {
-          description: 'Chuyn i trng thi khng hp l. Vui lng kim tra quy trnh n hng.',
+        toast.error('Lỗi workflow', {
+          description: 'Chuyển đổi trạng thái không hợp lệ. Vui lòng kiểm tra quy trình đơn hàng.',
           duration: 5000,
         });
       } else if (error.response?.status === 401) {
-        toast.error('Li xc thc', {
-          description: 'Bn khng c quyn thc hin thao tc ny.',
+        toast.error('Lỗi xác thực', {
+          description: 'Bạn không có quyền thực hiện thao tác này.',
           duration: 4000,
         });
       } else {
-        toast.error('Li h thng', {
-          description: error.message || ' xy ra li khi cp nht trng thi n hng.',
+        toast.error('Lỗi hệ thống', {
+          description: error.message || 'Đã xảy ra lỗi khi cập nhật trạng thái đơn hàng.',
           duration: 4000,
         });
       }
@@ -265,12 +265,12 @@ const formatDate = (dateString: string) => {
 
 const getStatusBadge = (status: string) => {
   const statusConfig = {
-    pending: { label: 'Ch xc nhn', variant: 'outline' as const, icon: Clock },
-    confirmed: { label: ' xc nhn', variant: 'secondary' as const, icon: CheckCircle },
-    processing: { label: 'ang x l', variant: 'default' as const, icon: Package },
-    shipped: { label: 'ang giao', variant: 'default' as const, icon: Truck },
-    delivered: { label: ' giao', variant: 'default' as const, icon: CheckCircle },
-    cancelled: { label: ' hy', variant: 'destructive' as const, icon: XCircle }
+    pending: { label: 'Chờ xác nhận', variant: 'outline' as const, icon: Clock },
+    confirmed: { label: 'Đã xác nhận', variant: 'secondary' as const, icon: CheckCircle },
+    processing: { label: 'Đang xử lý', variant: 'default' as const, icon: Package },
+    shipped: { label: 'Đang giao', variant: 'default' as const, icon: Truck },
+    delivered: { label: 'Đã giao', variant: 'default' as const, icon: CheckCircle },
+    cancelled: { label: 'Đã hủy', variant: 'destructive' as const, icon: XCircle }
   };
 
   const config = statusConfig[status as keyof typeof statusConfig];
@@ -286,10 +286,10 @@ const getStatusBadge = (status: string) => {
 
 const getPaymentStatusBadge = (status: string) => {
   const statusConfig = {
-    pending: { label: 'Ch thanh ton', variant: 'outline' as const },
-    paid: { label: ' thanh ton', variant: 'default' as const },
-    failed: { label: 'Tht bi', variant: 'destructive' as const },
-    refunded: { label: ' hon tin', variant: 'secondary' as const }
+    pending: { label: 'Chờ thanh toán', variant: 'outline' as const },
+    paid: { label: 'Đã thanh toán', variant: 'default' as const },
+    failed: { label: 'Thất bại', variant: 'destructive' as const },
+    refunded: { label: 'Đã hoàn tiền', variant: 'secondary' as const }
   };
 
   const config = statusConfig[status as keyof typeof statusConfig];
@@ -337,7 +337,7 @@ export default function OrderDetailPage() {
     // Client-side validation before API call
     if (!isValidTransition(order.status, newStatus as OrderStatus)) {
       const errorMessage = getTransitionErrorMessage(order.status, newStatus as OrderStatus);
-      toast.error('Chuyn i khng hp l', {
+      toast.error('Chuyển đổi không hợp lệ', {
         description: errorMessage,
         duration: 6000,
       });
@@ -394,12 +394,12 @@ export default function OrderDetailPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold">Khng tm thy n hng</h3>
+          <h3 className="text-lg font-semibold">Không tìm thấy đơn hàng</h3>
           <p className="text-muted-foreground mb-4">
-            n hng khng tn ti hoc  b xa.
+            Đơn hàng không tồn tại hoặc đã bị xóa.
           </p>
           <Link href="/admin/orders">
-            <Button>Quay li danh sch</Button>
+            <Button>Quay lại danh sách</Button>
           </Link>
         </div>
       </div>
@@ -414,13 +414,13 @@ export default function OrderDetailPage() {
           <Link href="/admin/orders">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay li
+              Quay lại
             </Button>
           </Link>
           <div>
             <h1 className="text-3xl font-bold">{order.orderCode}</h1>
             <p className="text-muted-foreground">
-              To lc {formatDate(order.createdAt)}
+              Tạo lúc {formatDate(order.createdAt)}
             </p>
           </div>
         </div>
@@ -436,7 +436,7 @@ export default function OrderDetailPage() {
               disabled={isFinalStatus(order.status)}
             >
               <Edit className="h-4 w-4 mr-2" />
-              {isFinalStatus(order.status) ? 'Trng thi cui' : 'Cp nht trng thi'}
+              {isFinalStatus(order.status) ? 'Trạng thái cuối' : 'Cập nhật trạng thái'}
             </Button>
           </PermissionGuard>
         </div>
@@ -448,7 +448,7 @@ export default function OrderDetailPage() {
           {/* Order Items */}
           <Card>
             <CardHeader>
-              <CardTitle>Sn phm t hng</CardTitle>
+              <CardTitle>Sản phẩm đặt hàng</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -478,26 +478,26 @@ export default function OrderDetailPage() {
               {/* Order Summary */}
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span>Tm tnh:</span>
+                  <span>Tạm tính:</span>
                   <span>{formatCurrency(order.subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Ph vn chuyn:</span>
+                  <span>Phí vận chuyển:</span>
                   <span>{formatCurrency(order.shippingFee)}</span>
                 </div>
                 {order.discount > 0 && (
                   <div className="flex justify-between text-red-600">
-                    <span>Gim gi:</span>
+                    <span>Giảm giá:</span>
                     <span>-{formatCurrency(order.discount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span>Thu:</span>
+                  <span>Thuế:</span>
                   <span>{formatCurrency(order.tax)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
-                  <span>Tng cng:</span>
+                  <span>Tổng cộng:</span>
                   <span>{formatCurrency(order.total)}</span>
                 </div>
               </div>
@@ -507,17 +507,17 @@ export default function OrderDetailPage() {
           {/* Workflow Status */}
           <Card>
             <CardHeader>
-              <CardTitle>Quy trnh n hng</CardTitle>
+              <CardTitle>Quy trình đơn hàng</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {(() => {
                   const workflowSteps = [
-                    { status: 'pending', label: 'Ch xc nhn' },
-                    { status: 'confirmed', label: ' xc nhn' },
-                    { status: 'processing', label: 'ang x l' },
-                    { status: 'shipped', label: 'ang giao' },
-                    { status: 'delivered', label: ' giao' }
+                    { status: 'pending', label: 'Chờ xác nhận' },
+                    { status: 'confirmed', label: 'Đã xác nhận' },
+                    { status: 'processing', label: 'Đang xử lý' },
+                    { status: 'shipped', label: 'Đang giao' },
+                    { status: 'delivered', label: 'Đã giao' }
                   ];
 
                   const currentIndex = workflowSteps.findIndex(step => step.status === order.status);
@@ -544,7 +544,7 @@ export default function OrderDetailPage() {
                         </div>
                         {isCurrent && (
                           <Badge variant="outline" className="text-xs">
-                            Hin ti
+                            Hiện tại
                           </Badge>
                         )}
                       </div>
@@ -557,7 +557,7 @@ export default function OrderDetailPage() {
                     <XCircle className="w-3 h-3 text-red-500 flex-shrink-0" />
                     <div className="flex-1">
                       <div className="text-sm font-medium text-red-700">
-                        n hng  b hy
+                        Đơn hàng đã bị hủy
                       </div>
                     </div>
                   </div>
@@ -569,7 +569,7 @@ export default function OrderDetailPage() {
           {/* Status History */}
           <Card>
             <CardHeader>
-              <CardTitle>Lch s trng thi</CardTitle>
+              <CardTitle>Lịch sử trạng thái</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -597,7 +597,7 @@ export default function OrderDetailPage() {
                   ))
                 ) : (
                   <div className="text-sm text-muted-foreground text-center py-4">
-                    Cha c lch s thay i trng thi
+                    Chưa có lịch sử thay đổi trạng thái
                   </div>
                 )}
               </div>
@@ -612,12 +612,12 @@ export default function OrderDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Thng tin khch hng
+                Thông tin khách hàng
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <Label className="text-sm font-medium">H tn</Label>
+                  <Label className="text-sm font-medium">Họ tên</Label>
                 <p>{order.customerName}</p>
               </div>
               <div>
@@ -630,7 +630,7 @@ export default function OrderDetailPage() {
                 </div>
               </div>
               <div>
-                <Label className="text-sm font-medium">S in thoi</Label>
+                  <Label className="text-sm font-medium">Số điện thoại</Label>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <a href={`tel:${order.customerPhone}`} className="text-blue-600 hover:underline">
@@ -646,12 +646,12 @@ export default function OrderDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
-                Thng tin giao hng
+                Thông tin giao hàng
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <Label className="text-sm font-medium">a ch</Label>
+                  <Label className="text-sm font-medium">Địa chỉ</Label>
                 <p>{order.shippingAddress}</p>
               </div>
               <div>
@@ -660,7 +660,7 @@ export default function OrderDetailPage() {
               </div>
               {order.trackingNumber && (
                 <div>
-                  <Label className="text-sm font-medium">M vn n</Label>
+                  <Label className="text-sm font-medium">Mã vận đơn</Label>
                   <p className="font-mono text-sm">{order.trackingNumber}</p>
                 </div>
               )}
@@ -672,16 +672,16 @@ export default function OrderDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5" />
-                Thng tin thanh ton
+                Thông tin thanh toán
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <Label className="text-sm font-medium">Phng thc</Label>
+                  <Label className="text-sm font-medium">Phương thức</Label>
                 <p>{order.paymentMethod}</p>
               </div>
               <div>
-                <Label className="text-sm font-medium">Trng thi</Label>
+                  <Label className="text-sm font-medium">Trạng thái</Label>
                 <div>{getPaymentStatusBadge(order.paymentStatus)}</div>
               </div>
             </CardContent>
@@ -693,7 +693,7 @@ export default function OrderDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Info className="h-5 w-5" />
-                  Bc tip theo
+                  Bước tiếp theo
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -704,7 +704,7 @@ export default function OrderDetailPage() {
                     if (validNext.length === 0) {
                       return (
                         <p className="text-sm text-muted-foreground">
-                          Khng c bc tip theo t trng thi hin ti.
+                          Không có bước tiếp theo từ trạng thái hiện tại.
                         </p>
                       );
                     }
@@ -729,7 +729,7 @@ export default function OrderDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
-                  Ghi ch
+                  Ghi chú
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -744,9 +744,9 @@ export default function OrderDetailPage() {
       <Dialog open={showUpdateStatusDialog} onOpenChange={setShowUpdateStatusDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Cp nht trng thi n hng</DialogTitle>
+            <DialogTitle>Cập nhật trạng thái đơn hàng</DialogTitle>
             <DialogDescription>
-              Thay i trng thi ca n hng {order.orderCode}
+              Thay đổi trạng thái của đơn hàng {order.orderCode}
             </DialogDescription>
           </DialogHeader>
 
@@ -754,14 +754,14 @@ export default function OrderDetailPage() {
             {/* Current Status Info */}
             <div className="p-3 bg-muted rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Trng thi hin ti:</span>
+                <span className="text-sm font-medium">Trạng thái hiện tại:</span>
                 {getStatusBadge(order.status)}
               </div>
             </div>
 
             {/* Valid Next Statuses */}
             <div className="space-y-2">
-              <Label>Trng thi mi</Label>
+                  <Label>Trạng thái mới</Label>
               {(() => {
                 const validOptions = getValidStatusOptions(order.status);
 
@@ -769,7 +769,7 @@ export default function OrderDetailPage() {
                   return (
                     <div className="text-sm text-muted-foreground p-3 bg-muted rounded-lg flex items-center gap-2">
                       <Info className="h-4 w-4" />
-                      Khng c trng thi no c th chuyn i t trng thi hin ti.
+                      Không có trạng thái nào có thể chuyển đổi từ trạng thái hiện tại.
                     </div>
                   );
                 }
@@ -778,7 +778,7 @@ export default function OrderDetailPage() {
                   <>
                     <Select value={newStatus} onValueChange={setNewStatus}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chn trng thi tip theo" />
+                        <SelectValue placeholder="Chọn trạng thái tiếp theo" />
                       </SelectTrigger>
                       <SelectContent>
                         {validOptions.map((option) => (
@@ -797,7 +797,7 @@ export default function OrderDetailPage() {
                     {/* Workflow Info */}
                     <div className="text-xs text-muted-foreground">
                       <Info className="h-3 w-3 inline mr-1" />
-                      Ch hin th cc trng thi hp l theo quy trnh n hng
+                      Chỉ hiển thị các trạng thái hợp lệ theo quy trình đơn hàng
                     </div>
                   </>
                 );
@@ -805,11 +805,11 @@ export default function OrderDetailPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Ghi ch (ty chn)</Label>
+              <Label>Ghi chú (tùy chọn)</Label>
               <Textarea
                 value={updateNote}
                 onChange={(e) => setUpdateNote(e.target.value)}
-                placeholder="Nhp ghi ch v vic thay i trng thi..."
+                placeholder="Nhập ghi chú về việc thay đổi trạng thái..."
                 rows={3}
               />
             </div>
@@ -821,13 +821,13 @@ export default function OrderDetailPage() {
               onClick={() => setShowUpdateStatusDialog(false)}
               disabled={updateStatusMutation.isPending}
             >
-              Hy b
+              Hủy bỏ
             </Button>
             <Button
               onClick={handleUpdateStatus}
               disabled={!newStatus || updateStatusMutation.isPending || getValidStatusOptions(order.status).length === 0}
             >
-              {updateStatusMutation.isPending ? 'ang cp nht...' : 'Cp nht'}
+              {updateStatusMutation.isPending ? 'Đang cập nhật...' : 'Cập nhật'}
             </Button>
           </DialogFooter>
         </DialogContent>

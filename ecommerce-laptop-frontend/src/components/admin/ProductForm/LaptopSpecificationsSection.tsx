@@ -45,8 +45,8 @@ export default function LaptopSpecificationsSection({
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>Thng tin c bn</CardTitle>
-                                    <CardDescription>Series v model ca laptop</CardDescription>
+                                    <CardTitle>Thông tin cơ bản</CardTitle>
+                                    <CardDescription>Series và model của laptop</CardDescription>
                                 </div>
                                 {isExpanded('laptop-basic') ? (
                                     <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -90,8 +90,8 @@ export default function LaptopSpecificationsSection({
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>CPU - B x l</CardTitle>
-                                    <CardDescription>Thng s chi tit v b x l</CardDescription>
+                                    <CardTitle>CPU - Bộ xử lý</CardTitle>
+                                    <CardDescription>Thông số chi tiết về bộ xử lý</CardDescription>
                                 </div>
                                 {isExpanded('laptop-cpu') ? (
                                     <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -105,7 +105,7 @@ export default function LaptopSpecificationsSection({
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="cpuBrand">Thng hiu CPU</Label>
+                                    <Label htmlFor="cpuBrand">Thương hiệu CPU</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.cpuBrands)}
                                         value={formData.cpuBrand || ''}
@@ -117,8 +117,8 @@ export default function LaptopSpecificationsSection({
                                                 onInputChange('cpuModel', '');
                                             }
                                         }}
-                                        placeholder="Chn thng hiu CPU..."
-                                        searchPlaceholder="Tm kim thng hiu..."
+                                        placeholder="Chọn thương hiệu CPU..."
+                                        searchPlaceholder="Tìm kiếm thương hiệu..."
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -127,33 +127,33 @@ export default function LaptopSpecificationsSection({
                                         options={createOptions(cpuModelOptions)}
                                         value={formData.cpuModel || ''}
                                         onValueChange={(value) => onInputChange('cpuModel', value)}
-                                        placeholder="Chn model CPU..."
-                                        searchPlaceholder="Tm kim model..."
-                                        disabled={!selectedCpuBrand || selectedCpuBrand === 'Khc'}
+                                        placeholder="Chọn model CPU..."
+                                        searchPlaceholder="Tìm kiếm model..."
+                                        disabled={!selectedCpuBrand || selectedCpuBrand === 'Khác'}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="cpuGeneration">Th h CPU</Label>
+                                    <Label htmlFor="cpuGeneration">Thế hệ CPU</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.cpuGenerations)}
                                         value={formData.cpuGeneration || ''}
                                         onValueChange={(value) => onInputChange('cpuGeneration', value)}
-                                        placeholder="Chn th h CPU..."
-                                        searchPlaceholder="Tm kim th h..."
+                                        placeholder="Chọn thế hệ CPU..."
+                                        searchPlaceholder="Tìm kiếm thế hệ..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="cpuCores">S nhn</Label>
+                                    <Label htmlFor="cpuCores">Số nhân</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.cpuCores)}
                                         value={formData.cpuCores || ''}
                                         onValueChange={(value) => onInputChange('cpuCores', value)}
-                                        placeholder="Chn s nhn..."
-                                        searchPlaceholder="Tm kim s nhn..."
+                                        placeholder="Chọn số nhân..."
+                                        searchPlaceholder="Tìm kiếm số nhân..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="cpuBaseClockGHz">Tn s c bn (GHz)</Label>
+                                    <Label htmlFor="cpuBaseClockGHz">Tần số cơ bản (GHz)</Label>
                                     <Input
                                         id="cpuBaseClockGHz"
                                         type="number"
@@ -164,7 +164,7 @@ export default function LaptopSpecificationsSection({
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="cpuBoostClockGHz">Tn s tng cng (GHz)</Label>
+                                    <Label htmlFor="cpuBoostClockGHz">Tần số tăng cường (GHz)</Label>
                                     <Input
                                         id="cpuBoostClockGHz"
                                         type="number"
@@ -196,8 +196,8 @@ export default function LaptopSpecificationsSection({
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>RAM - B nh</CardTitle>
-                                    <CardDescription>Thng s chi tit v b nh RAM</CardDescription>
+                                    <CardTitle>RAM - Bộ nhớ</CardTitle>
+                                    <CardDescription>Thông số chi tiết về bộ nhớ RAM</CardDescription>
                                 </div>
                                 {isExpanded('laptop-ram') ? (
                                     <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -211,27 +211,27 @@ export default function LaptopSpecificationsSection({
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="ramType">Loi RAM</Label>
+                                    <Label htmlFor="ramType">Loại RAM</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.ramTypes)}
                                         value={formData.ramType || ''}
                                         onValueChange={(value) => onInputChange('ramType', value)}
-                                        placeholder="Chn loi RAM..."
-                                        searchPlaceholder="Tm kim loi RAM..."
+                                        placeholder="Chọn loại RAM..."
+                                        searchPlaceholder="Tìm kiếm loại RAM..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="ramCapacityGB">Dung lng RAM</Label>
+                                    <Label htmlFor="ramCapacityGB">Dung lượng RAM</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.ramCapacities)}
                                         value={formData.ramCapacityGB || ''}
                                         onValueChange={(value) => onInputChange('ramCapacityGB', value)}
-                                        placeholder="Chn dung lng RAM..."
-                                        searchPlaceholder="Tm kim dung lng..."
+                                        placeholder="Chọn dung lượng RAM..."
+                                        searchPlaceholder="Tìm kiếm dung lượng..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="ramSlots">S khe RAM</Label>
+                                    <Label htmlFor="ramSlots">Số khe RAM</Label>
                                     <Input
                                         id="ramSlots"
                                         type="number"
@@ -241,24 +241,24 @@ export default function LaptopSpecificationsSection({
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="ramSpeed">Tc  RAM</Label>
+                                    <Label htmlFor="ramSpeed">Tốc độ RAM</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.ramSpeeds)}
                                         value={formData.ramSpeed || ''}
                                         onValueChange={(value) => onInputChange('ramSpeed', value)}
-                                        placeholder="Chn tc  RAM..."
-                                        searchPlaceholder="Tm kim tc ..."
+                                        placeholder="Chọn tốc độ RAM..."
+                                        searchPlaceholder="Tìm kiếm tốc độ..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="ramUpgradeable">C th nng cp</Label>
+                                    <Label htmlFor="ramUpgradeable">Có thể nâng cấp</Label>
                                     <select
                                         value={formData.ramUpgradeable ? 'true' : 'false'}
                                         onChange={(e) => onInputChange('ramUpgradeable', e.target.value === 'true')}
                                         className="w-full p-2 border rounded-md"
                                     >
-                                        <option value="false">Khng</option>
-                                        <option value="true">C</option>
+                                        <option value="false">Không</option>
+                                        <option value="true">Có</option>
                                     </select>
                                 </div>
                             </div>
@@ -274,8 +274,8 @@ export default function LaptopSpecificationsSection({
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>Storage -  cng</CardTitle>
-                                    <CardDescription>Thng s chi tit v  cng</CardDescription>
+                                    <CardTitle>Storage - Ổ cứng</CardTitle>
+                                    <CardDescription>Thông số chi tiết về ổ cứng</CardDescription>
                                 </div>
                                 {isExpanded('laptop-storage') ? (
                                     <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -289,44 +289,44 @@ export default function LaptopSpecificationsSection({
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="storageType">Loi  cng</Label>
+                                    <Label htmlFor="storageType">Loại ổ cứng</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.storageTypes)}
                                         value={formData.storageType || ''}
                                         onValueChange={(value) => onInputChange('storageType', value)}
-                                        placeholder="Chn loi  cng..."
-                                        searchPlaceholder="Tm kim loi  cng..."
+                                        placeholder="Chọn loại ổ cứng..."
+                                        searchPlaceholder="Tìm kiếm loại ổ cứng..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="storageCapacityGB">Dung lng</Label>
+                                    <Label htmlFor="storageCapacityGB">Dung lượng</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.storageCapacities)}
                                         value={formData.storageCapacityGB || ''}
                                         onValueChange={(value) => onInputChange('storageCapacityGB', value)}
-                                        placeholder="Chn dung lng..."
-                                        searchPlaceholder="Tm kim dung lng..."
+                                        placeholder="Chọn dung lượng..."
+                                        searchPlaceholder="Tìm kiếm dung lượng..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="storageInterface">Giao tip</Label>
+                                    <Label htmlFor="storageInterface">Giao tiếp</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.storageInterfaces)}
                                         value={formData.storageInterface || ''}
                                         onValueChange={(value) => onInputChange('storageInterface', value)}
-                                        placeholder="Chn giao tip..."
-                                        searchPlaceholder="Tm kim giao tip..."
+                                        placeholder="Chọn giao tiếp..."
+                                        searchPlaceholder="Tìm kiếm giao tiếp..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="nvMeSupport">H tr NVMe</Label>
+                                    <Label htmlFor="nvMeSupport">Hỗ trợ NVMe</Label>
                                     <select
                                         value={formData.nvMeSupport ? 'true' : 'false'}
                                         onChange={(e) => onInputChange('nvMeSupport', e.target.value === 'true')}
                                         className="w-full p-2 border rounded-md"
                                     >
-                                        <option value="false">Khng</option>
-                                        <option value="true">C</option>
+                                        <option value="false">Không</option>
+                                        <option value="true">Có</option>
                                     </select>
                                 </div>
                             </div>
@@ -342,8 +342,8 @@ export default function LaptopSpecificationsSection({
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>GPU - Card  ha</CardTitle>
-                                    <CardDescription>Thng s chi tit v card  ha</CardDescription>
+                                    <CardTitle>GPU - Card đồ họa</CardTitle>
+                                    <CardDescription>Thông số chi tiết về card đồ họa</CardDescription>
                                 </div>
                                 {isExpanded('laptop-gpu') ? (
                                     <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -357,17 +357,17 @@ export default function LaptopSpecificationsSection({
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="gpuType">Loi GPU</Label>
+                                    <Label htmlFor="gpuType">Loại GPU</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.gpuTypes)}
                                         value={formData.gpuType || ''}
                                         onValueChange={(value) => onInputChange('gpuType', value)}
-                                        placeholder="Chn loi GPU..."
-                                        searchPlaceholder="Tm kim loi GPU..."
+                                        placeholder="Chọn loại GPU..."
+                                        searchPlaceholder="Tìm kiếm loại GPU..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="gpuBrand">Thng hiu GPU</Label>
+                                    <Label htmlFor="gpuBrand">Thương hiệu GPU</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.gpuBrands)}
                                         value={formData.gpuBrand || ''}
@@ -379,8 +379,8 @@ export default function LaptopSpecificationsSection({
                                                 onInputChange('gpuModel', '');
                                             }
                                         }}
-                                        placeholder="Chn thng hiu GPU..."
-                                        searchPlaceholder="Tm kim thng hiu..."
+                                        placeholder="Chọn thương hiệu GPU..."
+                                        searchPlaceholder="Tìm kiếm thương hiệu..."
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -389,9 +389,9 @@ export default function LaptopSpecificationsSection({
                                         options={createOptions(gpuModelOptions)}
                                         value={formData.gpuModel || ''}
                                         onValueChange={(value) => onInputChange('gpuModel', value)}
-                                        placeholder="Chn model GPU..."
-                                        searchPlaceholder="Tm kim model..."
-                                        disabled={!selectedGpuBrand || selectedGpuBrand === 'Khc'}
+                                        placeholder="Chọn model GPU..."
+                                        searchPlaceholder="Tìm kiếm model..."
+                                        disabled={!selectedGpuBrand || selectedGpuBrand === 'Khác'}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -400,8 +400,8 @@ export default function LaptopSpecificationsSection({
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.gpuVramSizes)}
                                         value={formData.gpuVramGB || ''}
                                         onValueChange={(value) => onInputChange('gpuVramGB', value)}
-                                        placeholder="Chn VRAM..."
-                                        searchPlaceholder="Tm kim VRAM..."
+                                        placeholder="Chọn VRAM..."
+                                        searchPlaceholder="Tìm kiếm VRAM..."
                                     />
                                 </div>
                             </div>
@@ -417,8 +417,8 @@ export default function LaptopSpecificationsSection({
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>Display - Mn hnh</CardTitle>
-                                    <CardDescription>Thng s chi tit v mn hnh</CardDescription>
+                                    <CardTitle>Display - Màn hình</CardTitle>
+                                    <CardDescription>Thông số chi tiết về màn hình</CardDescription>
                                 </div>
                                 {isExpanded('laptop-display') ? (
                                     <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -432,54 +432,54 @@ export default function LaptopSpecificationsSection({
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="displaySizeInches">Kch thc mn hnh</Label>
+                                    <Label htmlFor="displaySizeInches">Kích thước màn hình</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.displaySizes)}
                                         value={formData.displaySizeInches || ''}
                                         onValueChange={(value) => onInputChange('displaySizeInches', value)}
-                                        placeholder="Chn kch thc mn hnh..."
-                                        searchPlaceholder="Tm kim kch thc..."
+                                        placeholder="Chọn kích thước màn hình..."
+                                        searchPlaceholder="Tìm kiếm kích thước..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="displayResolution"> phn gii</Label>
+                                    <Label htmlFor="displayResolution">Độ phân giải</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.displayResolutions)}
                                         value={formData.displayResolution || ''}
                                         onValueChange={(value) => onInputChange('displayResolution', value)}
-                                        placeholder="Chn  phn gii..."
-                                        searchPlaceholder="Tm kim  phn gii..."
+                                        placeholder="Chọn độ phân giải..."
+                                        searchPlaceholder="Tìm kiếm độ phân giải..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="displayPanelType">Loi panel</Label>
+                                    <Label htmlFor="displayPanelType">Loại panel</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.displayPanels)}
                                         value={formData.displayPanelType || ''}
                                         onValueChange={(value) => onInputChange('displayPanelType', value)}
-                                        placeholder="Chn loi panel..."
-                                        searchPlaceholder="Tm kim loi panel..."
+                                        placeholder="Chọn loại panel..."
+                                        searchPlaceholder="Tìm kiếm loại panel..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="displayRefreshRateHz">Tn s qut</Label>
+                                    <Label htmlFor="displayRefreshRateHz">Tần số quét</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.refreshRates)}
                                         value={formData.displayRefreshRateHz || ''}
                                         onValueChange={(value) => onInputChange('displayRefreshRateHz', value)}
-                                        placeholder="Chn tn s qut..."
-                                        searchPlaceholder="Tm kim tn s qut..."
+                                        placeholder="Chọn tần số quét..."
+                                        searchPlaceholder="Tìm kiếm tần số quét..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="displayTouchscreen">Cm ng</Label>
+                                    <Label htmlFor="displayTouchscreen">Cảm ứng</Label>
                                     <select
                                         value={formData.displayTouchscreen ? 'true' : 'false'}
                                         onChange={(e) => onInputChange('displayTouchscreen', e.target.value === 'true')}
                                         className="w-full p-2 border rounded-md"
                                     >
-                                        <option value="false">Khng</option>
-                                        <option value="true">C</option>
+                                        <option value="false">Không</option>
+                                        <option value="true">Có</option>
                                     </select>
                                 </div>
                             </div>
@@ -495,8 +495,8 @@ export default function LaptopSpecificationsSection({
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>Physical - Thng s vt l</CardTitle>
-                                    <CardDescription>Kch thc, trng lng v cc thng s vt l</CardDescription>
+                                    <CardTitle>Physical - Thông số vật lý</CardTitle>
+                                    <CardDescription>Kích thước, trọng lượng và các thông số vật lý</CardDescription>
                                 </div>
                                 {isExpanded('laptop-physical') ? (
                                     <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -510,37 +510,37 @@ export default function LaptopSpecificationsSection({
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="batteryCapacityWh">Dung lng pin</Label>
+                                    <Label htmlFor="batteryCapacityWh">Dung lượng pin</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.batteryCapacities)}
                                         value={formData.batteryCapacityWh || ''}
                                         onValueChange={(value) => onInputChange('batteryCapacityWh', value)}
-                                        placeholder="Chn dung lng pin..."
-                                        searchPlaceholder="Tm kim dung lng pin..."
+                                        placeholder="Chọn dung lượng pin..."
+                                        searchPlaceholder="Tìm kiếm dung lượng pin..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="weightKg">Trng lng</Label>
+                                    <Label htmlFor="weightKg">Trọng lượng</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.weightRanges)}
                                         value={formData.weightKg || ''}
                                         onValueChange={(value) => onInputChange('weightKg', value)}
-                                        placeholder="Chn trng lng..."
-                                        searchPlaceholder="Tm kim trng lng..."
+                                        placeholder="Chọn trọng lượng..."
+                                        searchPlaceholder="Tìm kiếm trọng lượng..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="color">Mu sc</Label>
+                                    <Label htmlFor="color">Màu sắc</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.colors)}
                                         value={formData.color || ''}
                                         onValueChange={(value) => onInputChange('color', value)}
-                                        placeholder="Chn mu sc..."
-                                        searchPlaceholder="Tm kim mu sc..."
+                                        placeholder="Chọn màu sắc..."
+                                        searchPlaceholder="Tìm kiếm màu sắc..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="ports">Cng kt ni</Label>
+                                    <Label htmlFor="ports">Cổng kết nối</Label>
                                     <Input
                                         id="ports"
                                         value={formData.ports || ''}
@@ -561,8 +561,8 @@ export default function LaptopSpecificationsSection({
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>Connectivity - Kt ni</CardTitle>
-                                    <CardDescription>WiFi, Bluetooth v cc kt ni khc</CardDescription>
+                                    <CardTitle>Connectivity - Kết nối</CardTitle>
+                                    <CardDescription>WiFi, Bluetooth và các kết nối khác</CardDescription>
                                 </div>
                                 {isExpanded('laptop-connectivity') ? (
                                     <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -576,35 +576,35 @@ export default function LaptopSpecificationsSection({
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="wiFi6Support">H tr WiFi 6</Label>
+                                    <Label htmlFor="wiFi6Support">Hỗ trợ WiFi 6</Label>
                                     <select
                                         value={formData.wiFi6Support ? 'true' : 'false'}
                                         onChange={(e) => onInputChange('wiFi6Support', e.target.value === 'true')}
                                         className="w-full p-2 border rounded-md"
                                     >
-                                        <option value="false">Khng</option>
-                                        <option value="true">C</option>
+                                        <option value="false">Không</option>
+                                        <option value="true">Có</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="bluetoothSupport">H tr Bluetooth</Label>
+                                    <Label htmlFor="bluetoothSupport">Hỗ trợ Bluetooth</Label>
                                     <select
                                         value={formData.bluetoothSupport ? 'true' : 'false'}
                                         onChange={(e) => onInputChange('bluetoothSupport', e.target.value === 'true')}
                                         className="w-full p-2 border rounded-md"
                                     >
-                                        <option value="false">Khng</option>
-                                        <option value="true">C</option>
+                                        <option value="false">Không</option>
+                                        <option value="true">Có</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="bluetoothVersion">Phin bn Bluetooth</Label>
+                                    <Label htmlFor="bluetoothVersion">Phiên bản Bluetooth</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.bluetoothVersions)}
                                         value={formData.bluetoothVersion || ''}
                                         onValueChange={(value) => onInputChange('bluetoothVersion', value)}
-                                        placeholder="Chn phin bn Bluetooth..."
-                                        searchPlaceholder="Tm kim phin bn..."
+                                        placeholder="Chọn phiên bản Bluetooth..."
+                                        searchPlaceholder="Tìm kiếm phiên bản..."
                                     />
                                 </div>
                             </div>
@@ -620,8 +620,8 @@ export default function LaptopSpecificationsSection({
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>Business - Thng tin kinh doanh</CardTitle>
-                                    <CardDescription>Bo hnh v i tng khch hng</CardDescription>
+                                    <CardTitle>Business - Thông tin kinh doanh</CardTitle>
+                                    <CardDescription>Bảo hành và đối tượng khách hàng</CardDescription>
                                 </div>
                                 {isExpanded('laptop-business') ? (
                                     <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -635,17 +635,17 @@ export default function LaptopSpecificationsSection({
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="warrantyPeriod">Thi gian bo hnh</Label>
+                                    <Label htmlFor="warrantyPeriod">Thời gian bảo hành</Label>
                                     <Combobox
                                         options={createOptions(PRODUCT_SPECS_OPTIONS.warrantyPeriods)}
                                         value={formData.warrantyPeriod || ''}
                                         onValueChange={(value) => onInputChange('warrantyPeriod', value)}
-                                        placeholder="Chn thi gian bo hnh..."
-                                        searchPlaceholder="Tm kim thi gian bo hnh..."
+                                        placeholder="Chọn thời gian bảo hành..."
+                                        searchPlaceholder="Tìm kiếm thời gian bảo hành..."
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="targetAudience">i tng khch hng</Label>
+                                    <Label htmlFor="targetAudience">Đối tượng khách hàng</Label>
                                     <Input
                                         id="targetAudience"
                                         value={formData.targetAudience || ''}
@@ -666,8 +666,8 @@ export default function LaptopSpecificationsSection({
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>Kt ni & Cng</CardTitle>
-                                    <CardDescription>Thng tin v kt ni v cng kt ni</CardDescription>
+                                    <CardTitle>Kết nối & Cổng</CardTitle>
+                                    <CardDescription>Thông tin về kết nối và cổng kết nối</CardDescription>
                                 </div>
                                 {isExpanded('laptop-connectivity') ? (
                                     <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -681,7 +681,7 @@ export default function LaptopSpecificationsSection({
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="ports">Cng kt ni</Label>
+                                    <Label htmlFor="ports">Cổng kết nối</Label>
                                     <Textarea
                                         id="ports"
                                         value={formData.ports || ''}
@@ -698,7 +698,7 @@ export default function LaptopSpecificationsSection({
                                             checked={formData.wiFi6Support || false}
                                             onChange={(e) => onInputChange('wiFi6Support', e.target.checked)}
                                         />
-                                        <Label htmlFor="wiFi6Support">H tr WiFi 6</Label>
+                                        <Label htmlFor="wiFi6Support">Hỗ trợ WiFi 6</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <input
@@ -707,18 +707,18 @@ export default function LaptopSpecificationsSection({
                                             checked={formData.bluetoothSupport || false}
                                             onChange={(e) => onInputChange('bluetoothSupport', e.target.checked)}
                                         />
-                                        <Label htmlFor="bluetoothSupport">H tr Bluetooth</Label>
+                                        <Label htmlFor="bluetoothSupport">Hỗ trợ Bluetooth</Label>
                                     </div>
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="bluetoothVersion">Phin bn Bluetooth</Label>
+                                <Label htmlFor="bluetoothVersion">Phiên bản Bluetooth</Label>
                                 <Combobox
                                     options={createOptions(PRODUCT_SPECS_OPTIONS.bluetoothVersions)}
                                     value={formData.bluetoothVersion || ''}
                                     onValueChange={(value) => onInputChange('bluetoothVersion', value)}
-                                    placeholder="Chn phin bn Bluetooth..."
-                                    searchPlaceholder="Tm kim phin bn..."
+                                    placeholder="Chọn phiên bản Bluetooth..."
+                                    searchPlaceholder="Tìm kiếm phiên bản..."
                                 />
                             </div>
                         </CardContent>

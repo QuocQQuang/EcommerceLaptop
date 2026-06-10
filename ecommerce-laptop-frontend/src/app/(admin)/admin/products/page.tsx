@@ -164,18 +164,18 @@ const formatDate = (dateString: string) => {
 
 const getStatusBadge = (status: string, stock: number) => {
   if (stock === 0) {
-    return <Badge variant="destructive">Ht hng</Badge>;
+    return <Badge variant="destructive">Hết hàng</Badge>;
   }
 
   switch (status) {
     case 'active':
-      return <Badge variant="default">ang bn</Badge>;
+      return <Badge variant="default">Đang bán</Badge>;
     case 'inactive':
-      return <Badge variant="secondary">Tm ngng</Badge>;
+      return <Badge variant="secondary">Tạm ngừng</Badge>;
     case 'out_of_stock':
-      return <Badge variant="destructive">Ht hng</Badge>;
+      return <Badge variant="destructive">Hết hàng</Badge>;
     default:
-      return <Badge variant="outline">Khng xc nh</Badge>;
+      return <Badge variant="outline">Không xác định</Badge>;
   }
 };
 
@@ -218,16 +218,16 @@ export default function ProductsPage() {
   const deleteProductMutation = useMutation({
     mutationFn: (productId: number) => deleteProduct(productId),
     onSuccess: () => {
-      toast.success('Sn phm  c xa thnh cng!');
+      toast.success('Sản phẩm đã được xóa thành công!');
       queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
     },
     onError: (error: any) => {
-      toast.error(`Li xa sn phm: ${error.message || 'C li xy ra'}`);
+      toast.error(`Lỗi xóa sản phẩm: ${error.message || 'Có lỗi xảy ra'}`);
     }
   });
 
   const handleDeleteProduct = async (productId: number) => {
-    if (window.confirm('Bn c chc chn mun xa sn phm ny? Hnh ng ny khng th hon tc.')) {
+    if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể hoàn tác.')) {
       deleteProductMutation.mutate(productId);
     }
   };
@@ -249,11 +249,11 @@ export default function ProductsPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold">Li ti d liu</h3>
+          <h3 className="text-lg font-semibold">Lỗi tải dữ liệu</h3>
           <p className="text-muted-foreground mb-4">
-            Khng th ti danh sch sn phm. Vui lng th li.
+            Không thể tải danh sách sản phẩm. Vui lòng thử lại.
           </p>
-          <Button onClick={() => refetch()}>Th li</Button>
+          <Button onClick={() => refetch()}>Thử lại</Button>
         </div>
       </div>
     );
@@ -264,9 +264,9 @@ export default function ProductsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Qun l sn phm</h1>
+          <h1 className="text-3xl font-bold">Quản lý sản phẩm</h1>
           <p className="text-muted-foreground">
-            Qun l danh mc sn phm laptop v ph kin
+            Quản lý danh mục sản phẩm laptop và phụ kiện
           </p>
         </div>
 
@@ -276,13 +276,13 @@ export default function ProductsPage() {
             <Link href="/admin/products/categories">
               <Button variant="outline">
                 <Filter className="h-4 w-4 mr-2" />
-                Danh mc
+                Danh mục
               </Button>
             </Link>
             <Link href="/admin/products/brands">
               <Button variant="outline">
                 <Package className="h-4 w-4 mr-2" />
-                Thng hiu
+                Thương hiệu
               </Button>
             </Link>
             <Link href="/admin/products/bundles">
@@ -300,7 +300,7 @@ export default function ProductsPage() {
             <Link href="/admin/products/add">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Thm sn phm
+                Thêm sản phẩm
               </Button>
             </Link>
           </div>
@@ -310,7 +310,7 @@ export default function ProductsPage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Tm kim v lc</CardTitle>
+          <CardTitle>Tìm kiếm và lọc</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 flex-wrap">
@@ -318,7 +318,7 @@ export default function ProductsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Tm theo tn sn phm, SKU..."
+                  placeholder="Tìm theo tên sản phẩm, SKU..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
@@ -331,11 +331,11 @@ export default function ProductsPage() {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-3 py-2 border rounded-md"
             >
-              <option value="">Tt c danh mc</option>
+              <option value="">Tất cả danh mục</option>
               <option value="Laptop">Laptop</option>
               <option value="Gaming Laptop">Gaming Laptop</option>
               <option value="Ultrabook">Ultrabook</option>
-              <option value="Accessories">Ph kin</option>
+              <option value="Accessories">Phụ kiện</option>
             </select>
 
             <select
@@ -343,10 +343,10 @@ export default function ProductsPage() {
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-3 py-2 border rounded-md"
             >
-              <option value="">Tt c trng thi</option>
-              <option value="active">ang bn</option>
-              <option value="inactive">Tm ngng</option>
-              <option value="out_of_stock">Ht hng</option>
+              <option value="">Tất cả trạng thái</option>
+              <option value="active">Đang bán</option>
+              <option value="inactive">Tạm ngừng</option>
+              <option value="out_of_stock">Hết hàng</option>
             </select>
 
             <select
@@ -354,8 +354,8 @@ export default function ProductsPage() {
               onChange={(e) => setSelectedProductType(e.target.value as 'all' | 'base' | 'variant')}
               className="px-3 py-2 border rounded-md"
             >
-              <option value="all">Tt c loi</option>
-              <option value="base">Sn phm gc</option>
+              <option value="all">Tất cả loại</option>
+              <option value="base">Sản phẩm gốc</option>
               <option value="variant">Variants</option>
             </select>
           </div>
@@ -367,10 +367,10 @@ export default function ProductsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
-              Danh sch sn phm ({productsData?.totalCount || 0})
+              Danh sách sản phẩm ({productsData?.totalCount || 0})
             </CardTitle>
             <Button variant="outline" onClick={() => refetch()}>
-              Lm mi
+              Làm mới
             </Button>
           </div>
         </CardHeader>
@@ -399,7 +399,7 @@ export default function ProductsPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Sn phm
+                      Sản phẩm
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -411,7 +411,7 @@ export default function ProductsPage() {
                       SKU
                     </SortableTableHeader>
                   </TableHead>
-                  <TableHead>Loi</TableHead>
+                  <TableHead>Loại</TableHead>
                   <TableHead>Variants</TableHead>
                   <TableHead>
                     <SortableTableHeader
@@ -419,7 +419,7 @@ export default function ProductsPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Danh mc
+                      Danh mục
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -428,7 +428,7 @@ export default function ProductsPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Thng hiu
+                      Thương hiệu
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -437,7 +437,7 @@ export default function ProductsPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Gi bn
+                      Giá bán
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -446,7 +446,7 @@ export default function ProductsPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Tn kho
+                      Tồn kho
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -455,7 +455,7 @@ export default function ProductsPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Trng thi
+                      Trạng thái
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -464,10 +464,10 @@ export default function ProductsPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Cp nht
+                      Cập nhật
                     </SortableTableHeader>
                   </TableHead>
-                  <TableHead className="text-right">Thao tc</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -534,14 +534,14 @@ export default function ProductsPage() {
                           <DropdownMenuItem asChild>
                             <Link href={`/admin/products/${product.id}/view`}>
                               <Eye className="h-4 w-4 mr-2" />
-                              Xem chi tit
+                              Xem chi tiết
                             </Link>
                           </DropdownMenuItem>
                           <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
                             <DropdownMenuItem asChild>
                               <Link href={`/admin/products/${product.id}`}>
                                 <Edit className="h-4 w-4 mr-2" />
-                                Chnh sa
+                                Chỉnh sửa
                               </Link>
                             </DropdownMenuItem>
                           </PermissionGuard>
@@ -550,7 +550,7 @@ export default function ProductsPage() {
                               <DropdownMenuItem asChild>
                                 <Link href={`/admin/products/${product.id}/variants`}>
                                   <Package className="h-4 w-4 mr-2" />
-                                  Qun l Variants
+                                  Quản lý Variants
                                 </Link>
                               </DropdownMenuItem>
                             </PermissionGuard>
@@ -559,7 +559,7 @@ export default function ProductsPage() {
                             <DropdownMenuItem asChild>
                               <Link href={`/admin/products/${product.parentProductId}`}>
                                 <ArrowLeft className="h-4 w-4 mr-2" />
-                                Xem sn phm gc
+                                Xem sản phẩm gốc
                               </Link>
                             </DropdownMenuItem>
                           )}
@@ -569,7 +569,7 @@ export default function ProductsPage() {
                               className="text-red-600"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              Xa
+                              Xóa
                             </DropdownMenuItem>
                           </PermissionGuard>
                         </DropdownMenuContent>

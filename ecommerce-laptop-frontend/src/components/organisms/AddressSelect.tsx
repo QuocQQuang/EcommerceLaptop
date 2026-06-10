@@ -27,7 +27,7 @@ interface ProvinceSelectProps {
     disabled?: boolean;
 }
 
-export function ProvinceSelect({ value, onValueChange, placeholder = "Chn tnh/thnh ph", disabled }: ProvinceSelectProps) {
+export function ProvinceSelect({ value, onValueChange, placeholder = "Chọn tỉnh/thành phố", disabled }: ProvinceSelectProps) {
     const [open, setOpen] = useState(false);
     const [provinces, setProvinces] = useState<Province[]>([]);
     const [filteredProvinces, setFilteredProvinces] = useState<Province[]>([]);
@@ -71,13 +71,13 @@ export function ProvinceSelect({ value, onValueChange, placeholder = "Chn tnh/th
             <PopoverContent className="w-full p-0">
                 <Command>
                     <CommandInput
-                        placeholder="Tm kim tnh/thnh ph..."
+                        placeholder="Tìm kiếm tỉnh/thành phố..."
                         value={search}
                         onValueChange={setSearch}
                     />
                     <CommandList>
                         {filteredProvinces.length === 0 ? (
-                            <CommandEmpty>Khng tm thy tnh/thnh ph no.</CommandEmpty>
+                            <CommandEmpty>Không tìm thấy tỉnh/thành phố nào.</CommandEmpty>
                         ) : (
                             <CommandGroup>
                                 {filteredProvinces.map((province) => (
@@ -116,7 +116,7 @@ interface DistrictSelectProps {
     disabled?: boolean;
 }
 
-export function DistrictSelect({ provinceCode, value, onValueChange, placeholder = "Chn qun/huyn", disabled }: DistrictSelectProps) {
+export function DistrictSelect({ provinceCode, value, onValueChange, placeholder = "Chọn quận/huyện", disabled }: DistrictSelectProps) {
     const [open, setOpen] = useState(false);
     const [districts, setDistricts] = useState<District[]>([]);
     const [filteredDistricts, setFilteredDistricts] = useState<District[]>([]);
@@ -166,13 +166,13 @@ export function DistrictSelect({ provinceCode, value, onValueChange, placeholder
             <PopoverContent className="w-full p-0">
                 <Command>
                     <CommandInput
-                        placeholder="Tm kim qun/huyn..."
+                        placeholder="Tìm kiếm quận/huyện..."
                         value={search}
                         onValueChange={setSearch}
                     />
                     <CommandList>
                         {filteredDistricts.length === 0 ? (
-                            <CommandEmpty>Khng tm thy qun/huyn no.</CommandEmpty>
+                            <CommandEmpty>Không tìm thấy quận/huyện nào.</CommandEmpty>
                         ) : (
                             <CommandGroup>
                                 {filteredDistricts.map((district) => (
@@ -211,7 +211,7 @@ interface WardSelectProps {
     disabled?: boolean;
 }
 
-export function WardSelect({ districtCode, value, onValueChange, placeholder = "Chn phng/x", disabled }: WardSelectProps) {
+export function WardSelect({ districtCode, value, onValueChange, placeholder = "Chọn phường/xã", disabled }: WardSelectProps) {
     const [open, setOpen] = useState(false);
     const [wards, setWards] = useState<Ward[]>([]);
     const [filteredWards, setFilteredWards] = useState<Ward[]>([]);
@@ -261,13 +261,13 @@ export function WardSelect({ districtCode, value, onValueChange, placeholder = "
             <PopoverContent className="w-full p-0">
                 <Command>
                     <CommandInput
-                        placeholder="Tm kim phng/x..."
+                        placeholder="Tìm kiếm phường/xã..."
                         value={search}
                         onValueChange={setSearch}
                     />
                     <CommandList>
                         {filteredWards.length === 0 ? (
-                            <CommandEmpty>Khng tm thy phng/x no.</CommandEmpty>
+                            <CommandEmpty>Không tìm thấy phường/xã nào.</CommandEmpty>
                         ) : (
                             <CommandGroup>
                                 {filteredWards.map((ward) => (

@@ -21,24 +21,24 @@ import {
 
 export default function SupportPage() {
   const tableOfContents = [
-    { id: 'contact-info', title: 'Thng tin lin h' },
-    { id: 'warranty', title: 'Chnh sch bo hnh' },
-    { id: 'shipping', title: 'Vn chuyn & Giao hng' },
-    { id: 'return-policy', title: 'i tr sn phm' },
-    { id: 'faq', title: 'Cu hi thng gp' },
-    { id: 'service-centers', title: 'Trung tm bo hnh' },
-    { id: 'technical-support', title: 'H tr k thut' }
+    { id: 'contact-info', title: 'Thông tin liên hệ' },
+    { id: 'warranty', title: 'Chính sách bảo hành' },
+    { id: 'shipping', title: 'Vận chuyển & Giao hàng' },
+    { id: 'return-policy', title: 'Đổi trả sản phẩm' },
+    { id: 'faq', title: 'Câu hỏi thường gặp' },
+    { id: 'service-centers', title: 'Trung tâm bảo hành' },
+    { id: 'technical-support', title: 'Hỗ trợ kỹ thuật' }
   ];
 
   const breadcrumbs = [
-    { label: 'Trang ch', href: '/' },
-    { label: 'H tr khch hng' }
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Hỗ trợ khách hàng' }
   ];
 
   return (
     <StaticPageLayout
-      title=" H Tr Khch Hng"
-      subtitle="Chng ti lun sn sng h tr bn 24/7 vi i ng chuyn vin giu kinh nghim"
+      title=" Hỗ Trợ Khách Hàng"
+      subtitle="Chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7 với đội ngũ chuyên viên giàu kinh nghiệm"
       lastUpdated="18/09/2025"
       author="Team Support"
       readTime="8"
@@ -56,48 +56,48 @@ function SupportContent() {
       icon: <Phone className="w-6 h-6 text-blue-600" />,
       title: 'Hotline 24/7',
       info: '1900-1234',
-      description: 'T vn v h tr min ph',
-      availability: 'Hot ng 24/7'
+      description: 'Tư vấn và hỗ trợ miễn phí',
+      availability: 'Hoạt động 24/7'
     },
     {
       icon: <MessageCircle className="w-6 h-6 text-green-600" />,
       title: 'Live Chat',
       info: 'Chat ngay',
-      description: 'H tr trc tip qua website',
-      availability: '6:00 - 23:00 hng ngy'
+      description: 'Hỗ trợ trực tiếp qua website',
+      availability: '6:00 - 23:00 hàng ngày'
     },
     {
       icon: <Mail className="w-6 h-6 text-purple-600" />,
       title: 'Email Support',
       info: 'support@laptopstore.vn',
-      description: 'Phn hi trong vng 2 gi',
-      availability: 'Phn hi nhanh chng'
+      description: 'Phản hồi trong vòng 2 giờ',
+      availability: 'Phản hồi nhanh chóng'
     },
     {
       icon: <MapPin className="w-6 h-6 text-red-600" />,
       title: 'Showroom',
       info: '15+ ca hng',
-      description: 'Tri nghim trc tip sn phm',
-      availability: '8:00 - 22:00 hng ngy'
+      description: 'Trải nghiệm trực tiếp sản phẩm',
+      availability: '8:00 - 22:00 hàng ngày'
     }
   ];
 
   const faqItems = [
     {
-      question: 'Lm th no  kim tra bo hnh ca sn phm?',
-      answer: 'Bn c th kim tra tnh trng bo hnh bng cch nhp serial number hoc m n hng trn trang tra cu bo hnh ca chng ti.'
+      question: 'Làm thế nào để kiểm tra bảo hành của sản phẩm?',
+      answer: 'Bạn có thể kiểm tra tình trạng bảo hành bằng cách nhập serial number hoặc mã đơn hàng trên trang tra cứu bảo hành của chúng tôi.'
     },
     {
-      question: 'Ti c th i tr sn phm trong bao lu?',
-      answer: 'Chng ti chp nhn i tr trong vng 15 ngy k t ngy mua hng vi iu kin sn phm cn nguyn seal, y  ph kin v ha n.'
+      question: 'Tôi có thể đổi trả sản phẩm trong bao lâu?',
+      answer: 'Chúng tôi chấp nhận đổi trả trong vòng 15 ngày kể từ ngày mua hàng với điều kiện sản phẩm còn nguyên seal, đầy đủ phụ kiện và hóa đơn.'
     },
     {
-      question: 'Chi ph vn chuyn c tnh nh th no?',
-      answer: 'Min ph vn chuyn cho n hng t 3 triu ng tr ln trong ni thnh. Cc khu vc khc tnh ph theo khong cch v trng lng.'
+      question: 'Chi phí vận chuyển được tính như thế nào?',
+      answer: 'Miễn phí vận chuyển cho đơn hàng từ 3 triệu đồng trở lên trong nội thành. Các khu vực khác tính phí theo khoảng cách và trọng lượng.'
     },
     {
-      question: 'Lm sao  c h tr ci t phn mm?',
-      answer: 'Chng ti cung cp dch v ci t min ph Windows, Office v phn mm c bn. Lin h hotline  t lch hn.'
+      question: 'Làm sao để được hỗ trợ cài đặt phần mềm?',
+      answer: 'Chúng tôi cung cấp dịch vụ cài đặt miễn phí Windows, Office và phần mềm cơ bản. Liên hệ hotline để đặt lịch hẹn.'
     }
   ];
 
@@ -107,7 +107,7 @@ function SupportContent() {
       <section id="contact-info" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
           <HeadphonesIcon className="w-8 h-8 mr-3 text-blue-600" />
-           Lin H Vi Chng Ti
+            Liên Hệ Với Chúng Tôi
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -137,7 +137,7 @@ function SupportContent() {
             size="lg"
             className="bg-blue-600 hover:bg-blue-700"
           >
-             Bt u tr chuyn ngay
+             Bắt đầu trò chuyện ngay
           </Button>
         </div>
       </section>
@@ -146,44 +146,44 @@ function SupportContent() {
       <section id="warranty" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
           <Shield className="w-8 h-8 mr-3 text-green-600" />
-           Chnh Sch Bo Hnh
+           Chính Sách Bảo Hành
         </h2>
 
         <div className="bg-green-50 rounded-xl p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-4xl mb-3"></div>
-              <h3 className="font-semibold text-green-900 mb-2">Bo hnh chnh hng</h3>
-              <p className="text-green-700 text-sm">Ton b sn phm c bo hnh chnh hng t nh sn xut</p>
+              <h3 className="font-semibold text-green-900 mb-2">Bảo hành chính hãng</h3>
+              <p className="text-green-700 text-sm">Toàn bộ sản phẩm được bảo hành chính hãng từ nhà sản xuất</p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-3"></div>
-              <h3 className="font-semibold text-green-900 mb-2">Bo hnh nhanh</h3>
-              <p className="text-green-700 text-sm">Thi gian bo hnh trung bnh 3-5 ngy lm vic</p>
+              <h3 className="font-semibold text-green-900 mb-2">Bảo hành nhanh</h3>
+              <p className="text-green-700 text-sm">Thời gian bảo hành trung bình 3-5 ngày làm việc</p>
             </div>
             <div className="text-4xl mb-3"></div>
-            <h3 className="font-semibold text-green-900 mb-2">i mi 1:1</h3>
-            <p className="text-green-700 text-sm">i mi ngay nu li phn cng trong 30 ngy u</p>
+            <h3 className="font-semibold text-green-900 mb-2">Đổi mới 1:1</h3>
+            <p className="text-green-700 text-sm">Đổi mới ngay nếu lỗi phần cứng trong 30 ngày đầu</p>
           </div>
         </div>
 
         <div className="space-y-6">
           <div className="border-l-4 border-green-500 pl-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3"> Quy trnh bo hnh</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3"> Quy trình bảo hành</h3>
             <ol className="space-y-2 text-gray-700">
-              <li><strong>Bc 1:</strong> Lin h hotline 1900-1234 hoc mang sn phm n trung tm bo hnh</li>
-              <li><strong>Bc 2:</strong> K thut vin kim tra v bo co tnh trng sn phm</li>
-              <li><strong>Bc 3:</strong> Thc hin sa cha hoc thay th linh kin</li>
-              <li><strong>Bc 4:</strong> Test v bn giao sn phm v cho khch hng</li>
+              <li><strong>Bước 1:</strong> Liên hệ hotline 1900-1234 hoặc mang sản phẩm đến trung tâm bảo hành</li>
+              <li><strong>Bước 2:</strong> Kỹ thuật viên kiểm tra và báo cáo tình trạng sản phẩm</li>
+              <li><strong>Bước 3:</strong> Thực hiện sửa chữa hoặc thay thế linh kiện</li>
+              <li><strong>Bước 4:</strong> Test và bàn giao sản phẩm về cho khách hàng</li>
             </ol>
           </div>
 
           <div className="border-l-4 border-blue-500 pl-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3"> Thi gian bo hnh</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3"> Thời gian bảo hành</h3>
             <ul className="space-y-2 text-gray-700">
-              <li> <strong>Laptop:</strong> 12-36 thng ty theo hng v model</li>
-              <li> <strong>Ph kin:</strong> 6-12 thng bo hnh chnh hng</li>
-              <li> <strong>Bo hnh m rng:</strong> C th mua thm gi bo hnh 2-3 nm</li>
+              <li> <strong>Laptop:</strong> 12-36 tháng tùy theo hãng và model</li>
+              <li> <strong>Phụ kiện:</strong> 6-12 tháng bảo hành chính hãng</li>
+              <li> <strong>Bảo hành mở rộng:</strong> Có thể mua thêm gói bảo hành 2-3 năm</li>
             </ul>
           </div>
         </div>
@@ -193,50 +193,50 @@ function SupportContent() {
       <section id="shipping" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
           <Truck className="w-8 h-8 mr-3 text-orange-600" />
-           Vn Chuyn & Giao Hng
+           Vận Chuyển & Giao Hàng
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-4"> Chnh sch giao hng</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4"> Chính sách giao hàng</h3>
             <div className="space-y-4">
               <div className="bg-orange-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-orange-900 mb-2">Giao hng nhanh ni thnh</h4>
-                <p className="text-orange-800 text-sm">1-2 gi (H Ni, TP.HCM) - Ph 30,000</p>
+                <h4 className="font-semibold text-orange-900 mb-2">Giao hàng nhanh nội thành</h4>
+                <p className="text-orange-800 text-sm">1-2 giờ (Hà Nội, TP.HCM) - Phí 30,000</p>
               </div>
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">Giao hng tiu chun</h4>
-                <p className="text-blue-800 text-sm">1-3 ngy lm vic - Min ph t 3 triu</p>
+                <h4 className="font-semibold text-blue-900 mb-2">Giao hàng tiêu chuẩn</h4>
+                <p className="text-blue-800 text-sm">1-3 ngày làm việc - Miễn phí từ 3 triệu</p>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-green-900 mb-2">Giao hng ton quc</h4>
-                <p className="text-green-800 text-sm">2-5 ngy lm vic - Ph theo khu vc</p>
+                <h4 className="font-semibold text-green-900 mb-2">Giao hàng toàn quốc</h4>
+                <p className="text-green-800 text-sm">2-5 ngày làm việc - Phí theo khu vực</p>
               </div>
             </div>
           </div>
 
           <div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-4"> Dch v c bit</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4"> Dịch vụ đặc biệt</h3>
             <ul className="space-y-3 text-gray-700">
               <li className="flex items-start">
                 <span className="w-2 h-2 bg-orange-500 rounded-full mr-3 mt-2"></span>
                 <div>
-                  <strong>Giao hng v setup ti nh:</strong><br />
-                  <span className="text-sm text-gray-600">Ph 100,000 - Bao gm ci t phn mm c bn</span>
+                  <strong>Giao hàng và setup tại nhà:</strong><br />
+                  <span className="text-sm text-gray-600">Phí 100,000 - Bao gồm cài đặt phần mềm cơ bản</span>
                 </div>
               </li>
               <li className="flex items-start">
                 <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2"></span>
                 <div>
-                  <strong>Giao hng theo lch hn:</strong><br />
-                  <span className="text-sm text-gray-600">t lch giao hng theo thi gian mong mun</span>
+                  <strong>Giao hàng theo lịch hẹn:</strong><br />
+                  <span className="text-sm text-gray-600">Đặt lịch giao hàng theo thời gian mong muốn</span>
                 </div>
               </li>
               <li className="flex items-start">
                 <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-2"></span>
                 <div>
-                  <strong>Kim tra hng trc khi thanh ton:</strong><br />
-                  <span className="text-sm text-gray-600">Cho php m seal v test my trc khi nhn</span>
+                  <strong>Kiểm tra hàng trước khi thanh toán:</strong><br />
+                  <span className="text-sm text-gray-600">Cho phép mở seal và test máy trước khi nhận</span>
                 </div>
               </li>
             </ul>
@@ -248,58 +248,58 @@ function SupportContent() {
       <section id="return-policy" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
           <RefreshCw className="w-8 h-8 mr-3 text-purple-600" />
-           Chnh Sch i Tr
+           Chính Sách Đổi Trả
         </h2>
 
         <div className="bg-purple-50 rounded-xl p-6 mb-6">
           <div className="text-center mb-6">
             <h3 className="text-2xl font-bold text-purple-900 mb-2">
-              i tr min ph trong 15 ngy
+              Đổi trả miễn phí trong 15 ngày
             </h3>
             <p className="text-purple-700">
-              Cam kt 100% hon tin nu khng hi lng v sn phm
+              Cam kết 100% hoàn tiền nếu không hài lòng về sản phẩm
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-3xl mb-3"></div>
-              <h4 className="font-semibold text-purple-900 mb-2">15 ngy u</h4>
-              <p className="text-purple-700 text-sm">i mi hoc hon tin 100%</p>
+              <h4 className="font-semibold text-purple-900 mb-2">15 ngày đầu</h4>
+              <p className="text-purple-700 text-sm">Đổi mới hoặc hoàn tiền 100%</p>
             </div>
             <div className="text-center">
               <div className="text-3xl mb-3"></div>
-              <h4 className="font-semibold text-purple-900 mb-2">Li nh sn xut</h4>
-              <p className="text-purple-700 text-sm">i mi min ph ton b chi ph</p>
+              <h4 className="font-semibold text-purple-900 mb-2">Lỗi nhà sản xuất</h4>
+              <p className="text-purple-700 text-sm">Đổi mới miễn phí toàn bộ chi phí</p>
             </div>
             <div className="text-center">
               <div className="text-3xl mb-3"></div>
-              <h4 className="font-semibold text-purple-900 mb-2">iu kin n gin</h4>
-              <p className="text-purple-700 text-sm">Gi nguyn hp, ph kin v ha n</p>
+              <h4 className="font-semibold text-purple-900 mb-2">Điều kiện đơn giản</h4>
+              <p className="text-purple-700 text-sm">Giữ nguyên hộp, phụ kiện và hóa đơn</p>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3"> iu kin i tr</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3"> Điều kiện đổi trả</h3>
             <ul className="space-y-2 text-gray-700 text-sm">
-              <li> Sn phm trong thi gian bo hnh</li>
-              <li> Cn nguyn tem nim phong (nu c)</li>
-              <li> y  hp, ph kin, ti liu</li>
-              <li> Khng c du hiu va p, cn mp</li>
-              <li> C ha n mua hng hoc phiu bo hnh</li>
+              <li> Sản phẩm trong thời gian bảo hành</li>
+              <li> Còn nguyên tem niêm phong (nếu có)</li>
+              <li> Đầy đủ hộp, phụ kiện, tài liệu</li>
+              <li> Không có dấu hiệu va đập, cấn móp</li>
+              <li> Có hóa đơn mua hàng hoặc phiếu bảo hành</li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3"> Trng hp khng i tr</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3"> Trường hợp không đổi trả</h3>
             <ul className="space-y-2 text-gray-700 text-sm">
-              <li> Sn phm  qua s dng lu di</li>
-              <li> H hng do tc ng ngoi lc</li>
-              <li> H hng do ngm nc, chy n</li>
-              <li> Sn phm  can thip sa cha</li>
-              <li> Qu thi hn i tr quy nh</li>
+              <li> Sản phẩm đã qua sử dụng lâu dài</li>
+              <li> Hư hỏng do tác động ngoại lực</li>
+              <li> Hư hỏng do ngấm nước, cháy nổ</li>
+              <li> Sản phẩm đã can thiệp sửa chữa</li>
+              <li> Quá thời hạn đổi trả quy định</li>
             </ul>
           </div>
         </div>
@@ -309,7 +309,7 @@ function SupportContent() {
       <section id="faq" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
           <HelpCircle className="w-8 h-8 mr-3 text-indigo-600" />
-           Cu Hi Thng Gp
+           Câu Hỏi Thường Gặp
         </h2>
 
         <div className="space-y-4">
@@ -326,13 +326,13 @@ function SupportContent() {
         </div>
 
         <div className="mt-8 text-center">
-          <p className="text-gray-600 mb-4">Khng tm thy cu tr li bn cn?</p>
+          <p className="text-gray-600 mb-4">Không tìm thấy câu trả lời bạn cần?</p>
           <AppLink
             href="/contact"
             pageType="static"
             className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
           >
-            t cu hi cho chng ti
+            Đặt câu hỏi cho chúng tôi
           </AppLink>
         </div>
       </section>
@@ -344,51 +344,51 @@ function SupportContent() {
       <section id="technical-support" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
           <Users className="w-8 h-8 mr-3 text-teal-600" />
-           H Tr K Thut
+           Hỗ Trợ Kỹ Thuật
         </h2>
 
         <div className="bg-teal-50 rounded-xl p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-xl font-semibold text-teal-900 mb-4"> Dch v min ph</h3>
+              <h3 className="text-xl font-semibold text-teal-900 mb-4"> Dịch vụ miễn phí</h3>
               <ul className="space-y-3 text-teal-800">
                 <li className="flex items-center">
                   <Download className="w-5 h-5 mr-3" />
-                  <span>Ci t Windows & Office bn quyn</span>
+                  <span>Cài đặt Windows & Office bản quyền</span>
                 </li>
                 <li className="flex items-center">
                   <Shield className="w-5 h-5 mr-3" />
-                  <span>Ci t phn mm bo mt & antivirus</span>
+                  <span>Cài đặt phần mềm bảo mật & antivirus</span>
                 </li>
                 <li className="flex items-center">
                   <RefreshCw className="w-5 h-5 mr-3" />
-                  <span>Chuyn d liu t my c sang my mi</span>
+                  <span>Chuyển dữ liệu từ máy cũ sang máy mới</span>
                 </li>
                 <li className="flex items-center">
                   <Clock className="w-5 h-5 mr-3" />
-                  <span>Ti u ha hiu nng h thng</span>
+                  <span>Tối ưu hóa hiệu năng hệ thống</span>
                 </li>
               </ul>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold text-teal-900 mb-4"> Dch v cao cp</h3>
+              <h3 className="text-xl font-semibold text-teal-900 mb-4"> Dịch vụ cao cấp</h3>
               <ul className="space-y-3 text-teal-800">
                 <li className="flex items-center">
                   <span className="w-5 h-5 bg-teal-600 rounded-full mr-3 flex items-center justify-center text-white text-xs">1</span>
-                  <span>Nng cp RAM, SSD - T vn min ph</span>
+                  <span>Nâng cấp RAM, SSD - Tư vấn miễn phí</span>
                 </li>
                 <li className="flex items-center">
                   <span className="w-5 h-5 bg-teal-600 rounded-full mr-3 flex items-center justify-center text-white text-xs">2</span>
-                  <span>V sinh laptop nh k - 200,000/ln</span>
+                  <span>Vệ sinh laptop định kỳ - 200,000/lần</span>
                 </li>
                 <li className="flex items-center">
                   <span className="w-5 h-5 bg-teal-600 rounded-full mr-3 flex items-center justify-center text-white text-xs">3</span>
-                  <span>Ci t phn mm chuyn ngnh</span>
+                  <span>Cài đặt phần mềm chuyên ngành</span>
                 </li>
                 <li className="flex items-center">
                   <span className="w-5 h-5 bg-teal-600 rounded-full mr-3 flex items-center justify-center text-white text-xs">4</span>
-                  <span>H tr k thut t xa 24/7</span>
+                  <span>Hỗ trợ kỹ thuật từ xa 24/7</span>
                 </li>
               </ul>
             </div>
@@ -399,7 +399,7 @@ function SupportContent() {
               size="lg"
               className="bg-teal-600 hover:bg-teal-700"
             >
-               t lch h tr k thut
+               Đặt lịch hỗ trợ kỹ thuật
             </Button>
           </div>
         </div>

@@ -55,7 +55,7 @@ export function usePaymentSession() {
                     isReady: true,
                     isValid: false,
                     userId: null,
-                    error: 'Bn cn ng nhp  thc hin thanh ton'
+                    error: 'Bạn cần đăng nhập để thực hiện thanh toán'
                 });
                 return;
             }
@@ -87,7 +87,7 @@ export function usePaymentSession() {
                     isReady: true,
                     isValid: false,
                     userId: null,
-                    error: 'Thng tin ngi dng khng hp l'
+                    error: 'Thông tin người dùng không hợp lệ'
                 });
                 return;
             }

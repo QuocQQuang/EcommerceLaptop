@@ -12,22 +12,22 @@ import {
 
 export default function StoreLocatorPage() {
   const tableOfContents = [
-    { id: 'search-stores', title: 'Tm ca hng' },
-    { id: 'flagship-stores', title: 'Ca hng flagship' },
-    { id: 'regional-stores', title: 'Ca hng khu vc' },
-    { id: 'store-services', title: 'Dch v ti ca hng' },
-    { id: 'visit-tips', title: 'Li khuyn khi n ca hng' }
+    { id: 'search-stores', title: 'Tìm cửa hàng' },
+    { id: 'flagship-stores', title: 'Cửa hàng flagship' },
+    { id: 'regional-stores', title: 'Cửa hàng khu vực' },
+    { id: 'store-services', title: 'Dịch vụ tại cửa hàng' },
+    { id: 'visit-tips', title: 'Lời khuyên khi đến cửa hàng' }
   ];
 
   const breadcrumbs = [
-    { label: 'Trang ch', href: '/' },
-    { label: 'H thng ca hng' }
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Hệ thống cửa hàng' }
   ];
 
   return (
     <StaticPageLayout
-      title=" H Thng Ca Hng"
-      subtitle="Khm ph 50+ ca hng trn ton quc vi khng gian hin i v i ng t vn chuyn nghip"
+      title=" Hệ Thống Cửa Hàng"
+      subtitle="Khám phá 50+ cửa hàng trên toàn quốc với không gian hiện đại và đội ngũ tư vấn chuyên nghiệp"
       lastUpdated="18/09/2025"
       author="Store Operations Team"
       readTime="12"
@@ -49,7 +49,7 @@ function StoreLocatorContent() {
       <section id="store-services" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
           <Package className="w-8 h-8 mr-3 text-purple-600" />
-           Dch V Ti Ca Hng
+           Dịch Vụ Tại Cửa Hàng
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -57,15 +57,15 @@ function StoreLocatorContent() {
             <CardHeader>
               <CardTitle className="flex items-center text-lg">
                 <Users className="w-6 h-6 mr-3 text-blue-600" />
-                T vn chuyn su
+                Tư vấn chuyên sâu
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-gray-600">
-                <li> Phn tch nhu cu s dng chi tit</li>
-                <li>  xut cu hnh ph hp ngn sch</li>
-                <li> So snh cc dng sn phm</li>
-                <li> T vn ph kin i km</li>
+                <li> Phân tích nhu cầu sử dụng chi tiết</li>
+                <li> Đề xuất cấu hình phù hợp ngân sách</li>
+                <li> So sánh các dòng sản phẩm</li>
+                <li> Tư vấn phụ kiện đi kèm</li>
               </ul>
             </CardContent>
           </Card>
@@ -74,15 +74,15 @@ function StoreLocatorContent() {
             <CardHeader>
               <CardTitle className="flex items-center text-lg">
                 <Star className="w-6 h-6 mr-3 text-yellow-600" />
-                Test sn phm
+                Test sản phẩm
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-gray-600">
-                <li> Tri nghim thc t trc khi mua</li>
-                <li> Test hiu nng vi phn mm chuyn dng</li>
-                <li> Kim tra cht lng mn hnh, bn phm</li>
-                <li> Demo cc tnh nng c bit</li>
+                <li> Trải nghiệm thực tế trước khi mua</li>
+                <li> Test hiệu năng với phần mềm chuyên dụng</li>
+                <li> Kiểm tra chất lượng màn hình, bàn phím</li>
+                <li> Demo các tính năng đặc biệt</li>
               </ul>
             </CardContent>
           </Card>
@@ -91,15 +91,15 @@ function StoreLocatorContent() {
             <CardHeader>
               <CardTitle className="flex items-center text-lg">
                 <Shield className="w-6 h-6 mr-3 text-green-600" />
-                Bo hnh ti ch
+                Bảo hành tại chỗ
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-gray-600">
-                <li> Kim tra v sa cha ngay ti ca hng</li>
-                <li> Thay th linh kin chnh hng</li>
-                <li> Backup d liu trc sa cha</li>
-                <li> Bo hnh m rng c ph</li>
+                <li> Kiểm tra và sửa chữa ngay tại cửa hàng</li>
+                <li> Thay thế linh kiện chính hãng</li>
+                <li> Backup dữ liệu trước sửa chữa</li>
+                <li> Bảo hành mở rộng có phí</li>
               </ul>
             </CardContent>
           </Card>
@@ -110,35 +110,35 @@ function StoreLocatorContent() {
       <section id="visit-tips" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
           <Clock className="w-8 h-8 mr-3 text-orange-600" />
-           Li Khuyn Khi n Ca Hng
+           Lời Khuyên Khi Đến Cửa Hàng
         </h2>
 
         <div className="bg-orange-50 rounded-xl p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-xl font-bold text-orange-900 mb-4">
-                 Trc khi n
+                 Trước khi đến
               </h3>
               <ul className="space-y-3 text-orange-800">
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-orange-500 rounded-full mr-3 mt-2"></span>
                   <div>
-                    <strong>Gi in t lch:</strong><br />
-                    <span className="text-sm">m bo c nhn vin t vn sn sng</span>
+                    <strong>Gọi điện đặt lịch:</strong><br />
+                    <span className="text-sm">Đảm bảo có nhân viên tư vấn sẵn sàng</span>
                   </div>
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-orange-500 rounded-full mr-3 mt-2"></span>
                   <div>
-                    <strong>Chun b ngn sch:</strong><br />
-                    <span className="text-sm">C khung gi r rng  t vn chnh xc</span>
+                    <strong>Chuẩn bị ngân sách:</strong><br />
+                    <span className="text-sm">Có khung giá rõ ràng để tư vấn chính xác</span>
                   </div>
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-orange-500 rounded-full mr-3 mt-2"></span>
                   <div>
-                    <strong>Lit k nhu cu:</strong><br />
-                    <span className="text-sm">Gaming, vn phng,  ha, lp trnh...</span>
+                    <strong>Liệt kê nhu cầu:</strong><br />
+                    <span className="text-sm">Gaming, văn phòng, đồ họa, lập trình...</span>
                   </div>
                 </li>
               </ul>
@@ -146,28 +146,28 @@ function StoreLocatorContent() {
 
             <div>
               <h3 className="text-xl font-bold text-orange-900 mb-4">
-                 Khi n ca hng
+                 Khi đến cửa hàng
               </h3>
               <ul className="space-y-3 text-orange-800">
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-orange-500 rounded-full mr-3 mt-2"></span>
                   <div>
-                    <strong>Mang theo giy t:</strong><br />
-                    <span className="text-sm">CMND/CCCD  lm th tc mua hng</span>
+                    <strong>Mang theo giấy tờ:</strong><br />
+                    <span className="text-sm">CMND/CCCD để làm thủ tục mua hàng</span>
                   </div>
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-orange-500 rounded-full mr-3 mt-2"></span>
                   <div>
-                    <strong>Test k sn phm:</strong><br />
-                    <span className="text-sm">Kim tra tt c cc cng, phm, touchpad</span>
+                    <strong>Test kỹ sản phẩm:</strong><br />
+                    <span className="text-sm">Kiểm tra tất cả các cổng, phím, touchpad</span>
                   </div>
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-orange-500 rounded-full mr-3 mt-2"></span>
                   <div>
-                    <strong>Hi v promotion:</strong><br />
-                    <span className="text-sm">Cc u i hin ti, qu tng km</span>
+                    <strong>Hỏi về promotion:</strong><br />
+                    <span className="text-sm">Các ưu đãi hiện tại, quà tặng kèm</span>
                   </div>
                 </li>
               </ul>
@@ -176,34 +176,34 @@ function StoreLocatorContent() {
 
           <div className="mt-8 p-4 bg-white rounded-lg">
             <h4 className="font-bold text-orange-900 mb-3 text-center">
-               Checklist mua laptop hon ho
+               Checklist mua laptop hoàn hảo
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <h5 className="font-semibold text-orange-900">Hardware</h5>
                 <ul className="text-sm text-orange-700 space-y-1">
-                  <li> CPU ph hp vi cng vic</li>
-                  <li> RAM  cho multitasking</li>
-                  <li> Storage SSD cho tc </li>
-                  <li> GPU ph hp vi  ha</li>
+                   <li> CPU phù hợp với công việc</li>
+                   <li> RAM đủ cho multitasking</li>
+                   <li> Storage SSD cho tốc độ</li>
+                   <li> GPU phù hợp với đồ họa</li>
                 </ul>
               </div>
               <div className="space-y-2">
-                <h5 className="font-semibold text-orange-900">Ngoi hnh</h5>
+                <h5 className="font-semibold text-orange-900">Ngoại hình</h5>
                 <ul className="text-sm text-orange-700 space-y-1">
-                  <li> Kch thc ph hp</li>
-                  <li> Trng lng mang vc</li>
-                  <li> Cht lng build solid</li>
-                  <li> Bn phm comfortable</li>
+                  <li> Kích thước phù hợp</li>
+                  <li> Trọng lượng mang vác</li>
+                  <li> Chất lượng build solid</li>
+                  <li> Bàn phím comfortable</li>
                 </ul>
               </div>
               <div className="space-y-2">
-                <h5 className="font-semibold text-orange-900">Dch v</h5>
+                <h5 className="font-semibold text-orange-900">Dịch vụ</h5>
                 <ul className="text-sm text-orange-700 space-y-1">
-                  <li> Chnh sch bo hnh</li>
-                  <li> Gi software km theo</li>
-                  <li> H tr sau bn hng</li>
-                  <li> Trade-in laptop c</li>
+                  <li> Chính sách bảo hành</li>
+                  <li> Giá software kèm theo</li>
+                  <li> Hỗ trợ sau bán hàng</li>
+                  <li> Trade-in laptop cũ</li>
                 </ul>
               </div>
             </div>
@@ -215,15 +215,15 @@ function StoreLocatorContent() {
       <section className="content-section">
         <div className="bg-gray-50 rounded-xl p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">
-             Thng Tin Lin H & Gi M Ca
+              Thông Tin Liên Hệ & Giờ Mở Cửa
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-white rounded-lg">
               <div className="text-3xl mb-2"></div>
-              <h4 className="font-semibold text-gray-900 mb-2">Gi m ca</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Giờ mở cửa</h4>
               <p className="text-gray-600">
-                Th 2 - Ch nht<br />
+                Thứ 2 - Chủ nhật<br />
                 8:00 - 22:00
               </p>
             </div>
@@ -239,10 +239,10 @@ function StoreLocatorContent() {
 
             <div className="text-center p-4 bg-white rounded-lg">
               <div className="text-3xl mb-2"></div>
-              <h4 className="font-semibold text-gray-900 mb-2">Chat h tr</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Chat hỗ trợ</h4>
               <p className="text-gray-600">
                 Zalo, Facebook, Website<br />
-                Phn hi trong 5 pht
+                Phản hồi trong 5 phút
               </p>
             </div>
           </div>
@@ -253,7 +253,7 @@ function StoreLocatorContent() {
               pageType="static"
               className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
             >
-               Gi yu cu h tr
+               Gửi yêu cầu hỗ trợ
             </AppLink>
           </div>
         </div>

@@ -98,7 +98,7 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
       });
     } catch (err: any) {
       console.error('Error loading customer data:', err);
-      setError(err?.response?.data?.message || 'Khng th ti thng tin khch hng');
+      setError(err?.response?.data?.message || 'Không thể tải thông tin khách hàng');
     } finally {
       setLoading(false);
     }
@@ -108,21 +108,21 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
     const errors: Record<string, string> = {};
 
     if (!formData.firstName.trim()) {
-      errors.firstName = 'Tn khng c  trng';
+      errors.firstName = 'Tên không được để trống';
     }
 
     if (!formData.lastName.trim()) {
-      errors.lastName = 'H khng c  trng';
+      errors.lastName = 'Họ không được để trống';
     }
 
     if (!formData.email.trim()) {
-      errors.email = 'Email khng c  trng';
+      errors.email = 'Email không được để trống';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = 'Email khng hp l';
+      errors.email = 'Email không hợp lệ';
     }
 
     if (formData.phoneNumber && !/^[0-9\+\-\s\(\)]{10,15}$/.test(formData.phoneNumber.replace(/\s/g, ''))) {
-      errors.phoneNumber = 'S in thoi khng hp l';
+      errors.phoneNumber = 'Số điện thoại không hợp lệ';
     }
 
     setValidationErrors(errors);
@@ -167,7 +167,7 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
         });
         setValidationErrors(serverErrors);
       } else {
-        setError(err?.response?.data?.message || 'Khng th cp nht thng tin khch hng');
+        setError(err?.response?.data?.message || 'Không thể cập nhật thông tin khách hàng');
       }
     } finally {
       setSaving(false);
@@ -189,15 +189,15 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Chnh sa thng tin khch hng</DialogTitle>
+          <DialogTitle>Chỉnh sửa thông tin khách hàng</DialogTitle>
           <DialogDescription>
-            Cp nht thng tin c nhn v trng thi ca khch hng
+            Cập nhật thông tin cá nhân và trạng thái của khách hàng
           </DialogDescription>
         </DialogHeader>
 
         {loading && (
           <div className="flex items-center justify-center h-48">
-            <div>ang ti thng tin khch hng...</div>
+            <div>Đang tải thông tin khách hàng...</div>
           </div>
         )}
 
@@ -205,7 +205,7 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="text-red-800">{error}</div>
             <Button onClick={loadCustomerData} variant="outline" size="sm" className="mt-2">
-              Th li
+              Thử lại
             </Button>
           </div>
         )}
@@ -214,12 +214,12 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">Tn *</Label>
+                <Label htmlFor="firstName">Tên *</Label>
                 <Input
                   id="firstName"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  placeholder="Nhp tn"
+                  placeholder="Nhập tên"
                   disabled={saving}
                 />
                 {validationErrors.firstName && (
@@ -228,12 +228,12 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="lastName">H *</Label>
+                <Label htmlFor="lastName">Họ *</Label>
                 <Input
                   id="lastName"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  placeholder="Nhp h"
+                  placeholder="Nhập họ"
                   disabled={saving}
                 />
                 {validationErrors.lastName && (
@@ -249,7 +249,7 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="Nhp a ch email"
+                placeholder="Nhập địa chỉ email"
                 disabled={saving}
               />
               {validationErrors.email && (
@@ -258,12 +258,12 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber">S in thoi</Label>
+              <Label htmlFor="phoneNumber">Số điện thoại</Label>
               <Input
                 id="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                placeholder="Nhp s in thoi"
+                placeholder="Nhập số điện thoại"
                 disabled={saving}
               />
               {validationErrors.phoneNumber && (
@@ -272,13 +272,13 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
             </div>
 
             <div className="space-y-4">
-              <Label>Trng thi ti khon</Label>
+              <Label>Trạng thái tài khoản</Label>
 
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
-                  <div className="font-medium">Ti khon hot ng</div>
+                  <div className="font-medium">Tài khoản hoạt động</div>
                   <div className="text-sm text-gray-500">
-                    Cho php khch hng ng nhp v thc hin n hng
+                    Cho phép khách hàng đăng nhập và thực hiện đơn hàng
                   </div>
                 </div>
                 <Switch
@@ -290,9 +290,9 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
 
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
-                  <div className="font-medium">Email  xc minh</div>
+                  <div className="font-medium">Email đã xác minh</div>
                   <div className="text-sm text-gray-500">
-                    nh du email  c xc minh
+                    Đánh dấu email đã được xác minh
                   </div>
                 </div>
                 <Switch
@@ -305,13 +305,13 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
 
             {/* Current status display */}
             <div className="bg-gray-50 p-4 rounded-lg">
-              <Label className="text-sm font-medium text-gray-500">Trng thi hin ti</Label>
+              <Label className="text-sm font-medium text-gray-500">Trạng thái hiện tại</Label>
               <div className="flex gap-2 mt-2">
                 <Badge variant={customer.isActive ? "default" : "secondary"}>
-                  {customer.isActive ? "ang hot ng" : "Ngng hot ng"}
+                  {customer.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
                 </Badge>
                 <Badge variant={customer.emailConfirmed ? "default" : "destructive"}>
-                  {customer.emailConfirmed ? " xc minh" : "Cha xc minh"}
+                  {customer.emailConfirmed ? "Đã xác minh" : "Chưa xác minh"}
                 </Badge>
                 {customer.vipTierName && (
                   <Badge variant="outline">{customer.vipTierName}</Badge>
@@ -321,10 +321,10 @@ const CustomerEditModal: React.FC<CustomerEditModalProps> = ({
 
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
-                Hy
+                Hủy
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? 'ang lu...' : 'Lu thay i'}
+                {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
               </Button>
             </div>
           </form>

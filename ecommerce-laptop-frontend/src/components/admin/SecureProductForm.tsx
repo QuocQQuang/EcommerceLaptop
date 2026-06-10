@@ -51,56 +51,56 @@ import {
 // Enhanced product schema with security validation
 const secureProductSchema = z.object({
     name: z.string()
-        .min(1, 'Tn sn phm l bt buc')
-        .min(3, 'Tn sn phm phi c t nht 3 k t')
-        .max(200, 'Tn sn phm khng c qu 200 k t')
-        .refine((val) => !/[<>\"'&]/.test(val), 'Tn sn phm cha k t khng hp l'),
+        .min(1, 'Tên sản phẩm là bắt buộc')
+        .min(3, 'Tên sản phẩm phải có ít nhất 3 ký tự')
+        .max(200, 'Tên sản phẩm không được quá 200 ký tự')
+        .refine((val) => !/[<>\"'&]/.test(val), 'Tên sản phẩm chứa ký tự không hợp lệ'),
 
     sku: z.string()
-        .min(1, 'SKU l bt buc')
-        .min(3, 'SKU phi c t nht 3 k t')
-        .max(50, 'SKU khng c qu 50 k t')
-        .regex(/^[A-Z0-9-_]+$/, 'SKU ch c cha ch ci in hoa, s, du gch ngang v gch di'),
+        .min(1, 'SKU là bắt buộc')
+        .min(3, 'SKU phải có ít nhất 3 ký tự')
+        .max(50, 'SKU không được quá 50 ký tự')
+        .regex(/^[A-Z0-9-_]+$/, 'SKU chỉ được chứa chữ cái in hoa, số, dấu gạch ngang và gạch dưới'),
 
     description: z.string()
-        .min(10, 'M t phi c t nht 10 k t')
-        .max(2000, 'M t khng c qu 2000 k t'),
+        .min(10, 'Mô tả phải có ít nhất 10 ký tự')
+        .max(2000, 'Mô tả không được quá 2000 ký tự'),
 
     shortDescription: z.string()
-        .min(10, 'M t ngn phi c t nht 10 k t')
-        .max(500, 'M t ngn khng c qu 500 k t'),
+        .min(10, 'Mô tả ngắn phải có ít nhất 10 ký tự')
+        .max(500, 'Mô tả ngắn không được quá 500 ký tự'),
 
-    categoryId: z.string().min(1, 'Vui lng chn danh mc'),
-    brandId: z.string().min(1, 'Vui lng chn thng hiu'),
+    categoryId: z.string().min(1, 'Vui lòng chọn danh mục'),
+    brandId: z.string().min(1, 'Vui lòng chọn thương hiệu'),
 
     price: z.string()
-        .min(1, 'Gi l bt buc')
-        .regex(/^\d+(\.\d{1,2})?$/, 'Gi phi l s hp l')
-        .refine((val) => parseFloat(val) > 0, 'Gi phi ln hn 0'),
+        .min(1, 'Giá là bắt buộc')
+        .regex(/^\d+(\.\d{1,2})?$/, 'Giá phải là số hợp lệ')
+        .refine((val) => parseFloat(val) > 0, 'Giá phải lớn hơn 0'),
 
     comparePrice: z.string()
         .optional()
-        .refine((val) => !val || /^\d+(\.\d{1,2})?$/.test(val), 'Gi so snh phi l s hp l'),
+        .refine((val) => !val || /^\d+(\.\d{1,2})?$/.test(val), 'Giá so sánh phải là số hợp lệ'),
 
     costPrice: z.string()
         .optional()
-        .refine((val) => !val || /^\d+(\.\d{1,2})?$/.test(val), 'Gi vn phi l s hp l'),
+        .refine((val) => !val || /^\d+(\.\d{1,2})?$/.test(val), 'Giá vốn phải là số hợp lệ'),
 
     stock: z.string()
-        .min(1, 'S lng tn kho l bt buc')
-        .regex(/^\d+$/, 'S lng phi l s nguyn')
-        .refine((val) => parseInt(val) >= 0, 'S lng khng c m'),
+        .min(1, 'Số lượng tồn kho là bắt buộc')
+        .regex(/^\d+$/, 'Số lượng phải là số nguyên')
+        .refine((val) => parseInt(val) >= 0, 'Số lượng không được âm'),
 
     lowStockThreshold: z.string()
         .optional()
-        .refine((val) => !val || /^\d+$/.test(val), 'Ngng tn kho thp phi l s nguyn'),
+        .refine((val) => !val || /^\d+$/.test(val), 'Ngưỡng tồn kho thấp phải là số nguyên'),
 
     weight: z.string()
         .optional()
-        .refine((val) => !val || /^\d+(\.\d{1,2})?$/.test(val), 'Trng lng phi l s hp l'),
+        .refine((val) => !val || /^\d+(\.\d{1,2})?$/.test(val), 'Trọng lượng phải là số hợp lệ'),
 
     dimensions: z.string()
-        .max(100, 'Kch thc khng c qu 100 k t')
+        .max(100, 'Kích thước không được quá 100 ký tự')
         .optional(),
 
     status: z.enum(['active', 'inactive']),
@@ -108,22 +108,22 @@ const secureProductSchema = z.object({
     productType: z.enum(['Laptop', 'Accessory']),
 
     // Laptop specific fields
-    cpu: z.string().optional().refine((val) => !val || val.length <= 200, 'CPU khng c qu 200 k t'),
-    ram: z.string().optional().refine((val) => !val || val.length <= 100, 'RAM khng c qu 100 k t'),
-    storage: z.string().optional().refine((val) => !val || val.length <= 100, 'Storage khng c qu 100 k t'),
-    gpu: z.string().optional().refine((val) => !val || val.length <= 200, 'GPU khng c qu 200 k t'),
-    display: z.string().optional().refine((val) => !val || val.length <= 100, 'Display khng c qu 100 k t'),
-    battery: z.string().optional().refine((val) => !val || val.length <= 100, 'Battery khng c qu 100 k t'),
-    weight_kg: z.string().optional().refine((val) => !val || /^\d+(\.\d{1,2})?$/.test(val), 'Trng lng phi l s hp l'),
-    operatingSystem: z.string().optional().refine((val) => !val || val.length <= 100, 'OS khng c qu 100 k t'),
-    ports: z.string().optional().refine((val) => !val || val.length <= 200, 'Ports khng c qu 200 k t'),
+    cpu: z.string().optional().refine((val) => !val || val.length <= 200, 'CPU không được quá 200 ký tự'),
+    ram: z.string().optional().refine((val) => !val || val.length <= 100, 'RAM không được quá 100 ký tự'),
+    storage: z.string().optional().refine((val) => !val || val.length <= 100, 'Storage không được quá 100 ký tự'),
+    gpu: z.string().optional().refine((val) => !val || val.length <= 200, 'GPU không được quá 200 ký tự'),
+    display: z.string().optional().refine((val) => !val || val.length <= 100, 'Display không được quá 100 ký tự'),
+    battery: z.string().optional().refine((val) => !val || val.length <= 100, 'Battery không được quá 100 ký tự'),
+    weight_kg: z.string().optional().refine((val) => !val || /^\d+(\.\d{1,2})?$/.test(val), 'Trọng lượng phải là số hợp lệ'),
+    operatingSystem: z.string().optional().refine((val) => !val || val.length <= 100, 'OS không được quá 100 ký tự'),
+    ports: z.string().optional().refine((val) => !val || val.length <= 200, 'Ports không được quá 200 ký tự'),
 
     // Accessory specific fields
-    accessoryType: z.string().optional().refine((val) => !val || val.length <= 100, 'Loi ph kin khng c qu 100 k t'),
-    compatibility: z.string().optional().refine((val) => !val || val.length <= 300, 'Tng thch khng c qu 300 k t'),
-    color: z.string().optional().refine((val) => !val || val.length <= 50, 'Mu sc khng c qu 50 k t'),
-    material: z.string().optional().refine((val) => !val || val.length <= 100, 'Cht liu khng c qu 100 k t'),
-    warranty: z.string().optional().refine((val) => !val || val.length <= 100, 'Bo hnh khng c qu 100 k t'),
+    accessoryType: z.string().optional().refine((val) => !val || val.length <= 100, 'Loại phụ kiện không được quá 100 ký tự'),
+    compatibility: z.string().optional().refine((val) => !val || val.length <= 300, 'Tương thích không được quá 300 ký tự'),
+    color: z.string().optional().refine((val) => !val || val.length <= 50, 'Màu sắc không được quá 50 ký tự'),
+    material: z.string().optional().refine((val) => !val || val.length <= 100, 'Chất liệu không được quá 100 ký tự'),
+    warranty: z.string().optional().refine((val) => !val || val.length <= 100, 'Bảo hành không được quá 100 ký tự'),
 });
 
 type SecureProductFormData = z.infer<typeof secureProductSchema>;
@@ -191,27 +191,27 @@ export function SecureProductForm({
             // Final security check
             const hasSecurityErrors = Object.values(securityValidations).some(v => !v.isValid);
             if (hasSecurityErrors) {
-                toast.error('Vui lng khc phc cc li bo mt trc khi lu');
+                toast.error('Vui lòng khắc phục các lỗi bảo mật trước khi lưu');
                 return;
             }
 
             if (overallSecurityScore < 70) {
-                toast.error('im bo mt tng th qu thp. Vui lng kim tra li cc trng nhp liu');
+                toast.error('Điểm bảo mật tổng thể quá thấp. Vui lòng kiểm tra lại các trường nhập liệu');
                 return;
             }
 
             await onSubmit(data, productImages);
-            toast.success('Sn phm  c lu thnh cng');
+            toast.success('Sản phẩm đã được lưu thành công');
         } catch (error) {
             console.error('Submit error:', error);
-            toast.error('C li xy ra khi lu sn phm');
+            toast.error('Có lỗi xảy ra khi lưu sản phẩm');
         }
     };
 
     return (
         <SecureFormWrapper
-            title="Thm sn phm mi"
-            description="To sn phm mi vi form nng cao"
+            title="Thêm sản phẩm mới"
+            description="Tạo sản phẩm mới với form nâng cao"
             securityLevel="enhanced"
         >
             <div className="space-y-6">
@@ -220,7 +220,7 @@ export function SecureProductForm({
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Shield className="h-5 w-5" />
-                            Tng quan bo mt
+                            Tổng quan bảo mật
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -229,19 +229,19 @@ export function SecureProductForm({
                                 <Badge
                                     variant={overallSecurityScore > 80 ? "default" : overallSecurityScore > 60 ? "secondary" : "destructive"}
                                 >
-                                    im bo mt: {overallSecurityScore}/100
+                                    Điểm bảo mật: {overallSecurityScore}/100
                                 </Badge>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 {overallSecurityScore > 80 ? (
                                     <>
                                         <CheckCircle className="h-4 w-4 text-green-600" />
-                                        Mc  bo mt tt
+                                        Mức độ bảo mật tốt
                                     </>
                                 ) : (
                                     <>
                                         <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                                        Cn ci thin bo mt
+                                        Cần cải thiện bảo mật
                                     </>
                                 )}
                             </div>
@@ -255,13 +255,13 @@ export function SecureProductForm({
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <FileText className="h-5 w-5" />
-                                Thng tin c bn
+                                Thông tin cơ bản
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name">Tn sn phm</Label>
+                                    <Label htmlFor="name">Tên sản phẩm</Label>
                                     <SecureInput
                                         id="name"
                                         securityContext={SECURITY_CONTEXTS.NAME}
@@ -292,7 +292,7 @@ export function SecureProductForm({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="shortDescription">M t ngn</Label>
+                                <Label htmlFor="shortDescription">Mô tả ngắn</Label>
                                 <SecureTextarea
                                     id="shortDescription"
                                     securityContext={{
@@ -308,7 +308,7 @@ export function SecureProductForm({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="description">M t chi tit</Label>
+                                <Label htmlFor="description">Mô tả chi tiết</Label>
                                 <SecureTextarea
                                     id="description"
                                     securityContext={SECURITY_CONTEXTS.DESCRIPTION}
@@ -328,13 +328,13 @@ export function SecureProductForm({
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Tag className="h-5 w-5" />
-                                Phn loi
+                                Phân loại
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <Label>Loi sn phm</Label>
+                                    <Label>Loại sản phẩm</Label>
                                     <Select
                                         value={productType}
                                         onValueChange={(value) => form.setValue('productType', value as 'Laptop' | 'Accessory')}
@@ -344,19 +344,19 @@ export function SecureProductForm({
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="Laptop">Laptop</SelectItem>
-                                            <SelectItem value="Accessory">Ph kin</SelectItem>
+                                            <SelectItem value="Accessory">Phụ kiện</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Danh mc</Label>
+                                    <Label>Danh mục</Label>
                                     <Select
                                         value={form.watch('categoryId')}
                                         onValueChange={(value) => form.setValue('categoryId', value)}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Chn danh mc" />
+                                            <SelectValue placeholder="Chọn danh mục" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {categories.map((category) => (
@@ -372,13 +372,13 @@ export function SecureProductForm({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Thng hiu</Label>
+                                    <Label>Thương hiệu</Label>
                                     <Select
                                         value={form.watch('brandId')}
                                         onValueChange={(value) => form.setValue('brandId', value)}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Chn thng hiu" />
+                                            <SelectValue placeholder="Chọn thương hiệu" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {brands.map((brand) => (
@@ -401,13 +401,13 @@ export function SecureProductForm({
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <DollarSign className="h-5 w-5" />
-                                Gi v tn kho
+                                Giá và tồn kho
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="price">Gi bn *</Label>
+                                    <Label htmlFor="price">Giá bán *</Label>
                                     <SecureInput
                                         id="price"
                                         securityContext={SECURITY_CONTEXTS.PRICE}
@@ -420,7 +420,7 @@ export function SecureProductForm({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="comparePrice">Gi so snh</Label>
+                                    <Label htmlFor="comparePrice">Giá so sánh</Label>
                                     <SecureInput
                                         id="comparePrice"
                                         securityContext={SECURITY_CONTEXTS.PRICE}
@@ -430,7 +430,7 @@ export function SecureProductForm({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="costPrice">Gi vn</Label>
+                                    <Label htmlFor="costPrice">Giá vốn</Label>
                                     <SecureInput
                                         id="costPrice"
                                         securityContext={SECURITY_CONTEXTS.PRICE}
@@ -442,7 +442,7 @@ export function SecureProductForm({
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="stock">Tn kho *</Label>
+                                    <Label htmlFor="stock">Tồn kho *</Label>
                                     <SecureInput
                                         id="stock"
                                         securityContext={SECURITY_CONTEXTS.QUANTITY}
@@ -455,7 +455,7 @@ export function SecureProductForm({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="lowStockThreshold">Ngng tn kho thp</Label>
+                                    <Label htmlFor="lowStockThreshold">Ngưỡng tồn kho thấp</Label>
                                     <SecureInput
                                         id="lowStockThreshold"
                                         securityContext={SECURITY_CONTEXTS.QUANTITY}
@@ -470,9 +470,9 @@ export function SecureProductForm({
                     {/* Product Images */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Hnh nh sn phm</CardTitle>
+                            <CardTitle>Hình ảnh sản phẩm</CardTitle>
                             <CardDescription>
-                                Upload hnh nh sn phm vi form nng cao.
+                                Upload hình ảnh sản phẩm với form nâng cao.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -487,14 +487,14 @@ export function SecureProductForm({
                     {/* Status and Settings */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Trng thi v ci t</CardTitle>
+                            <CardTitle>Trạng thái và cài đặt</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label>Trng thi sn phm</Label>
+                                    <Label>Trạng thái sản phẩm</Label>
                                     <p className="text-sm text-muted-foreground">
-                                        Sn phm c c hin th trn website khng
+                                        Sản phẩm có được hiển thị trên website không
                                     </p>
                                 </div>
                                 <Switch
@@ -507,9 +507,9 @@ export function SecureProductForm({
 
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label>Sn phm ni bt</Label>
+                                    <Label>Sản phẩm nổi bật</Label>
                                     <p className="text-sm text-muted-foreground">
-                                        Hin th sn phm trong danh sch ni bt
+                                        Hiển thị sản phẩm trong danh sách nổi bật
                                     </p>
                                 </div>
                                 <Switch
@@ -530,12 +530,12 @@ export function SecureProductForm({
                             {isLoading ? (
                                 <>
                                     <Package className="h-4 w-4 mr-2 animate-spin" />
-                                    ang lu...
+                                    Đang lưu...
                                 </>
                             ) : (
                                 <>
                                     <Save className="h-4 w-4 mr-2" />
-                                    Lu sn phm
+                                    Lưu sản phẩm
                                 </>
                             )}
                         </Button>
@@ -544,7 +544,7 @@ export function SecureProductForm({
                             <Alert>
                                 <AlertTriangle className="h-4 w-4" />
                                 <AlertDescription>
-                                    im bo mt qu thp. Vui lng kim tra li cc trng nhp liu.
+                                    Điểm bảo mật quá thấp. Vui lòng kiểm tra lại các trường nhập liệu.
                                 </AlertDescription>
                             </Alert>
                         )}

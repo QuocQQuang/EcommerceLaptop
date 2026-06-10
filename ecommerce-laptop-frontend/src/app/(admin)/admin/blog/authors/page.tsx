@@ -115,7 +115,7 @@ function AuthorModal({ isOpen, mode, author, onClose, onSave, saving }: AuthorMo
 
     const handleSave = async () => {
         if (!formData.firstName?.trim() || !formData.lastName?.trim() || !formData.email?.trim()) {
-            toast.error('Vui lng in y  thng tin bt buc');
+            toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
             return;
         }
 
@@ -129,39 +129,39 @@ function AuthorModal({ isOpen, mode, author, onClose, onSave, saving }: AuthorMo
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
-                        {mode === 'create' && 'Thm tc gi mi'}
-                        {mode === 'edit' && 'Chnh sa tc gi'}
-                        {mode === 'view' && 'Chi tit tc gi'}
+                        {mode === 'create' && 'Thêm tác giả mới'}
+                        {mode === 'edit' && 'Chỉnh sửa tác giả'}
+                        {mode === 'view' && 'Chi tiết tác giả'}
                     </DialogTitle>
                     <DialogDescription>
-                        {mode === 'create' && 'To ti khon tc gi mi cho h thng blog'}
-                        {mode === 'edit' && 'Cp nht thng tin tc gi'}
-                        {mode === 'view' && 'Xem chi tit thng tin tc gi'}
+                        {mode === 'create' && 'Tạo tài khoản tác giả mới cho hệ thống blog'}
+                        {mode === 'edit' && 'Cập nhật thông tin tác giả'}
+                        {mode === 'view' && 'Xem chi tiết thông tin tác giả'}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-6">
                     {/* Basic Information */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Thng tin c bn</h3>
+                        <h3 className="text-lg font-semibold">Thông tin cơ bản</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <Label htmlFor="firstName">Tn *</Label>
+                                <Label htmlFor="firstName">Tên *</Label>
                                 <Input
                                     id="firstName"
                                     value={formData.firstName || ''}
                                     onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                                    placeholder="Nhp tn"
+                                    placeholder="Nhập tên"
                                     disabled={isViewMode}
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="lastName">H *</Label>
+                                <Label htmlFor="lastName">Họ *</Label>
                                 <Input
                                     id="lastName"
                                     value={formData.lastName || ''}
                                     onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                                    placeholder="Nhp h"
+                                    placeholder="Nhập họ"
                                     disabled={isViewMode}
                                 />
                             </div>
@@ -174,29 +174,29 @@ function AuthorModal({ isOpen, mode, author, onClose, onSave, saving }: AuthorMo
                                 type="email"
                                 value={formData.email || ''}
                                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                                placeholder="Nhp email"
+                                    placeholder="Nhập email"
                                 disabled={isViewMode || mode === 'edit'}
                             />
                         </div>
 
                         <div>
-                            <Label htmlFor="displayName">Tn hin th</Label>
-                            <Input
-                                id="displayName"
-                                value={formData.displayName || ''}
-                                onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                                placeholder="Tn hin th cng khai"
+                                <Label htmlFor="displayName">Tên hiển thị</Label>
+                                <Input
+                                    id="displayName"
+                                    value={formData.displayName || ''}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
+                                    placeholder="Tên hiển thị công khai"
                                 disabled={isViewMode}
                             />
                         </div>
 
                         <div>
-                            <Label htmlFor="bio">Gii thiu</Label>
+                            <Label htmlFor="bio">Giới thiệu</Label>
                             <Textarea
                                 id="bio"
                                 value={formData.bio || ''}
                                 onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                                placeholder="Vit gii thiu v tc gi..."
+                                    placeholder="Viết giới thiệu về tác giả..."
                                 className="min-h-20"
                                 disabled={isViewMode}
                             />
@@ -216,7 +216,7 @@ function AuthorModal({ isOpen, mode, author, onClose, onSave, saving }: AuthorMo
 
                     {/* Social Links */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Lin kt mng x hi</h3>
+                        <h3 className="text-lg font-semibold">Liên kết mạng xã hội</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label htmlFor="twitter">Twitter</Label>
@@ -288,23 +288,23 @@ function AuthorModal({ isOpen, mode, author, onClose, onSave, saving }: AuthorMo
                     {/* Stats (View mode only) */}
                     {isViewMode && author && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold">Thng k</h3>
+                            <h3 className="text-lg font-semibold">Thống kê</h3>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                                     <div className="text-2xl font-bold text-blue-600">{author.postCount}</div>
-                                    <div className="text-sm text-gray-600">Bi vit</div>
+                                    <div className="text-sm text-gray-600">Bài viết</div>
                                 </div>
                                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                                     <div className="text-2xl font-bold text-green-600">
-                                        {author.isActive ? 'Hot ng' : 'Tm kha'}
+                                        {author.isActive ? 'Hoạt động' : 'Tạm khóa'}
                                     </div>
-                                    <div className="text-sm text-gray-600">Trng thi</div>
+                                    <div className="text-sm text-gray-600">Trạng thái</div>
                                 </div>
                                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                                     <div className="text-2xl font-bold text-gray-600">
                                         {new Date(author.createdAt || '').toLocaleDateString('vi-VN')}
                                     </div>
-                                    <div className="text-sm text-gray-600">Ngy tham gia</div>
+                                    <div className="text-sm text-gray-600">Ngày tham gia</div>
                                 </div>
                             </div>
                         </div>
@@ -321,14 +321,14 @@ function AuthorModal({ isOpen, mode, author, onClose, onSave, saving }: AuthorMo
                                 {saving ? (
                                     <>
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                                        ang lu...
+                                        Đang lưu...
                                     </>
                                 ) : (
-                                    mode === 'create' ? 'To tc gi' : 'Cp nht'
+                                    mode === 'create' ? 'Tạo tác giả' : 'Cập nhật'
                                 )}
                             </Button>
-                            <Button variant="outline" onClick={onClose} disabled={saving}>
-                                Hy
+                                <Button variant="outline" onClick={onClose} disabled={saving}>
+                                    Hủy
                             </Button>
                         </div>
                     )}
@@ -383,7 +383,7 @@ export default function BlogAuthorsPage() {
         } catch (error) {
             console.error('Failed to load authors:', error);
             setState(prev => ({ ...prev, loading: false }));
-            toast.error('Khng th ti danh sch tc gi');
+            toast.error('Không thể tải danh sách tác giả');
         }
     }, []);
 
@@ -439,11 +439,11 @@ export default function BlogAuthorsPage() {
             if (state.modalState.mode === 'create') {
                 // Mock API call - replace with actual service call
                 console.log('Creating author:', authorData);
-                toast.success('Tc gi  c to thnh cng');
+                toast.success('Tác giả đã được tạo thành công');
             } else {
                 // Mock API call - replace with actual service call
                 console.log('Updating author:', authorData);
-                toast.success('Thng tin tc gi  c cp nht');
+                toast.success('Thông tin tác giả đã được cập nhật');
             }
 
             closeModal();
@@ -451,21 +451,21 @@ export default function BlogAuthorsPage() {
         } catch (error) {
             console.error('Failed to save author:', error);
             setState(prev => ({ ...prev, saving: false }));
-            toast.error('Khng th lu thng tin tc gi');
+            toast.error('Không thể lưu thông tin tác giả');
         }
     };
 
     const handleDeleteAuthor = async (authorId: string) => {
-        if (!confirm('Bn c chc chn mun xa tc gi ny?')) return;
+        if (!confirm('Bạn có chắc chắn muốn xóa tác giả này?')) return;
 
         try {
             // Mock API call - replace with actual service call
             console.log('Deleting author:', authorId);
-            toast.success('Tc gi  c xa');
+            toast.success('Tác giả đã được xóa');
             await loadAuthors();
         } catch (error) {
             console.error('Failed to delete author:', error);
-            toast.error('Khng th xa tc gi');
+            toast.error('Không thể xóa tác giả');
         }
     };
 
@@ -474,7 +474,7 @@ export default function BlogAuthorsPage() {
     };
 
     const getStatusText = (isActive: boolean) => {
-        return isActive ? 'Hot ng' : 'Tm kha';
+        return isActive ? 'Hoạt động' : 'Tạm khóa';
     };
 
     return (
@@ -482,12 +482,12 @@ export default function BlogAuthorsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Qun l Tc gi</h1>
-                    <p className="text-gray-500">Qun l ti khon tc gi v quyn hn</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Quản lý Tác giả</h1>
+                    <p className="text-gray-500">Quản lý tài khoản tác giả và quyền hạn</p>
                 </div>
                 <Button onClick={() => openModal('create')}>
                     <Plus className="w-4 h-4 mr-2" />
-                    Thm tc gi
+                    Thêm tác giả
                 </Button>
             </div>
 
@@ -499,7 +499,7 @@ export default function BlogAuthorsPage() {
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <Input
-                                    placeholder="Tm kim theo tn, email..."
+                                    placeholder="Tìm kiếm theo tên, email..."
                                     value={state.searchTerm}
                                     onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.target.value }))}
                                     className="pl-10"
@@ -516,14 +516,14 @@ export default function BlogAuthorsPage() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Tt c</SelectItem>
-                                <SelectItem value="active">Hot ng</SelectItem>
-                                <SelectItem value="inactive">Tm kha</SelectItem>
+                                <SelectItem value="all">Tất cả</SelectItem>
+                                <SelectItem value="active">Hoạt động</SelectItem>
+                                <SelectItem value="inactive">Tạm khóa</SelectItem>
                             </SelectContent>
                         </Select>
                         <Button variant="outline" onClick={loadAuthors} disabled={state.loading}>
                             <RefreshCw className={cn("w-4 h-4 mr-2", state.loading && "animate-spin")} />
-                            Lm mi
+                            Làm mới
                         </Button>
                     </div>
                 </CardContent>
@@ -534,10 +534,10 @@ export default function BlogAuthorsPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Users className="w-5 h-5" />
-                        Danh sch Tc gi ({filteredAuthors.length})
+                        Danh sách Tác giả ({filteredAuthors.length})
                     </CardTitle>
                     <CardDescription>
-                        Qun l thng tin v quyn hn ca cc tc gi
+                        Quản lý thông tin và quyền hạn của các tác giả
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -549,12 +549,12 @@ export default function BlogAuthorsPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Tc gi</TableHead>
+                                    <TableHead>Tác giả</TableHead>
                                     <TableHead>Email</TableHead>
-                                    <TableHead>Bi vit</TableHead>
-                                    <TableHead>Trng thi</TableHead>
-                                    <TableHead>Ngy tham gia</TableHead>
-                                    <TableHead className="text-right">Thao tc</TableHead>
+                                    <TableHead>Bài viết</TableHead>
+                                    <TableHead>Trạng thái</TableHead>
+                                    <TableHead>Ngày tham gia</TableHead>
+                                    <TableHead className="text-right">Thao tác</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -589,7 +589,7 @@ export default function BlogAuthorsPage() {
                                             <TableCell>{author.email}</TableCell>
                                             <TableCell>
                                                 <Badge variant="outline">
-                                                    {author.postCount} bi vit
+                                                    {author.postCount} bài viết
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
@@ -600,7 +600,7 @@ export default function BlogAuthorsPage() {
                                             <TableCell>
                                                 {author.createdAt
                                                     ? new Date(author.createdAt).toLocaleDateString('vi-VN')
-                                                    : 'Cha xc nh'}
+                                                    : 'Chưa xác định'}
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex items-center justify-end gap-2">
@@ -634,11 +634,11 @@ export default function BlogAuthorsPage() {
                                     <TableRow>
                                         <TableCell colSpan={6} className="text-center py-8">
                                             <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                            <p className="text-gray-500 mb-2">Khng c tc gi no</p>
+                                            <p className="text-gray-500 mb-2">Không có tác giả nào</p>
                                             <p className="text-sm text-gray-400">
                                                 {state.searchTerm || state.statusFilter !== 'all'
-                                                    ? 'Khng tm thy tc gi ph hp vi b lc'
-                                                    : 'Hy thm tc gi u tin cho h thng'
+                                                    ? 'Không tìm thấy tác giả phù hợp với bộ lọc'
+                                                    : 'Hãy thêm tác giả đầu tiên cho hệ thống'
                                                 }
                                             </p>
                                         </TableCell>

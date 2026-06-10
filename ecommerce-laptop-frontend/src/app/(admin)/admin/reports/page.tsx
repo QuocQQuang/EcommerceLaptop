@@ -150,14 +150,14 @@ const useReportsQuery = (dateRange: { from: Date; to: Date }) => {
         ],
         revenueByCategory: [
           { category: 'Laptop Gaming', revenue: 920000000, percentage: 33.5 },
-          { category: 'Laptop Vn phng', revenue: 780000000, percentage: 28.4 },
+          { category: 'Laptop Văn phòng', revenue: 780000000, percentage: 28.4 },
           { category: 'MacBook', revenue: 650000000, percentage: 23.6 },
-          { category: 'Ph kin', revenue: 280000000, percentage: 10.2 },
-          { category: 'Linh kin', revenue: 120000000, percentage: 4.4 }
+          { category: 'Phụ kiện', revenue: 280000000, percentage: 10.2 },
+          { category: 'Linh kiện', revenue: 120000000, percentage: 4.4 }
         ],
         customerSegments: [
           { segment: 'VIP', customers: 45, revenue: 890000000, percentage: 32.4 },
-          { segment: 'Thng xuyn', customers: 178, revenue: 1250000000, percentage: 45.5 },
+          { segment: 'Thường xuyên', customers: 178, revenue: 1250000000, percentage: 45.5 },
           { segment: 'Mi', customers: 633, revenue: 610000000, percentage: 22.2 }
         ]
       };
@@ -196,12 +196,12 @@ const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'
 
 const getStatusLabel = (status: string) => {
   const statusLabels = {
-    delivered: ' giao',
-    processing: 'ang x l',
-    shipped: 'ang giao',
-    confirmed: ' xc nhn',
-    pending: 'Ch xc nhn',
-    cancelled: ' hy'
+    delivered: 'Đã giao',
+    processing: 'Đang xử lý',
+    shipped: 'Đang giao',
+    confirmed: 'Đã xác nhận',
+    pending: 'Chờ xác nhận',
+    cancelled: 'Đã hủy'
   };
   return statusLabels[status as keyof typeof statusLabels] || status;
 };
@@ -242,11 +242,11 @@ export default function ReportsPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <Activity className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold">C li xy ra</h3>
+          <h3 className="text-lg font-semibold">Có lỗi xảy ra</h3>
           <p className="text-muted-foreground mb-4">
-            Khng th ti d liu bo co. Vui lng th li.
+            Không thể tải dữ liệu báo cáo. Vui lòng thử lại.
           </p>
-          <Button onClick={() => refetch()}>Th li</Button>
+          <Button onClick={() => refetch()}>Thử lại</Button>
         </div>
       </div>
     );
@@ -258,9 +258,9 @@ export default function ReportsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Bo co & Thng k</h1>
+            <h1 className="text-3xl font-bold">Báo cáo & Thống kê</h1>
             <p className="text-muted-foreground">
-              Phn tch doanh s v hiu sut kinh doanh
+              Phân tích doanh số và hiệu suất kinh doanh
             </p>
           </div>
 
@@ -281,22 +281,22 @@ export default function ReportsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              B lc bo co
+              Bộ lọc báo cáo
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">Loi bo co</label>
+                <label className="text-sm font-medium mb-2 block">Loại báo cáo</label>
                 <Select value={reportType} onValueChange={setReportType}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="overview">Tng quan</SelectItem>
-                    <SelectItem value="sales">Doanh s</SelectItem>
-                    <SelectItem value="products">Sn phm</SelectItem>
-                    <SelectItem value="customers">Khch hng</SelectItem>
+                    <SelectItem value="overview">Tổng quan</SelectItem>
+                    <SelectItem value="sales">Doanh số</SelectItem>
+                    <SelectItem value="products">Sản phẩm</SelectItem>
+                    <SelectItem value="customers">Khách hàng</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -374,7 +374,7 @@ export default function ReportsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Tng doanh thu</CardTitle>
+                  <CardTitle className="text-sm font-medium">Tổng doanh thu</CardTitle>
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -383,14 +383,14 @@ export default function ReportsPage() {
                   </div>
                   <div className={`text-xs flex items-center gap-1 ${getChangeColor(reportData.salesOverview.revenueChange)}`}>
                     {getChangeIcon(reportData.salesOverview.revenueChange)}
-                    {formatPercent(reportData.salesOverview.revenueChange)} so vi thng trc
+                    {formatPercent(reportData.salesOverview.revenueChange)} so với tháng trước
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Tng n hng</CardTitle>
+                  <CardTitle className="text-sm font-medium">Tổng đơn hàng</CardTitle>
                   <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -406,7 +406,7 @@ export default function ReportsPage() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Khch hng mi</CardTitle>
+                  <CardTitle className="text-sm font-medium">Khách hàng mới</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -422,7 +422,7 @@ export default function ReportsPage() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Gi tr n TB</CardTitle>
+                  <CardTitle className="text-sm font-medium">Giá trị đơn TB</CardTitle>
                   <Package className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -444,10 +444,10 @@ export default function ReportsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-5 w-5" />
-                    Xu hng doanh s
+                    Xu hướng doanh số
                   </CardTitle>
                   <CardDescription>
-                    Doanh thu v n hng theo ngy
+                    Doanh thu và đơn hàng theo ngày
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -470,9 +470,9 @@ export default function ReportsPage() {
                       <Tooltip
                         formatter={(value, name) => [
                           name === 'revenue' ? formatCurrency(value as number) : value,
-                          name === 'revenue' ? 'Doanh thu' : 'n hng'
+                          name === 'revenue' ? 'Doanh thu' : 'Đơn hàng'
                         ]}
-                        labelFormatter={(value) => `Ngy ${formatDate(value)}`}
+                        labelFormatter={(value) => `Ngày ${formatDate(value)}`}
                       />
                       <Area
                         yAxisId="revenue"
@@ -501,10 +501,10 @@ export default function ReportsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <PieChartIcon className="h-5 w-5" />
-                    Trng thi n hng
+                    Trạng thái đơn hàng
                   </CardTitle>
                   <CardDescription>
-                    Phn b n hng theo trng thi
+                    Phân bổ đơn hàng theo trạng thái
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -539,9 +539,9 @@ export default function ReportsPage() {
               {/* Top Products */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Sn phm bn chy</CardTitle>
-                  <CardDescription>
-                    Top 5 sn phm c doanh thu cao nht
+                    <CardTitle>Sản phẩm bán chạy</CardTitle>
+                    <CardDescription>
+                      Top 5 sản phẩm có doanh thu cao nhất
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -555,7 +555,7 @@ export default function ReportsPage() {
                           <div>
                             <div className="font-medium">{product.name}</div>
                             <div className="text-sm text-muted-foreground">
-                              {formatNumber(product.quantity)} sn phm  {formatNumber(product.orders)} n hng
+                              {formatNumber(product.quantity)} sản phẩm • {formatNumber(product.orders)} đơn hàng
                             </div>
                           </div>
                         </div>
@@ -571,9 +571,9 @@ export default function ReportsPage() {
               {/* Revenue by Category */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Doanh thu theo danh mc</CardTitle>
+                  <CardTitle>Doanh thu theo danh mục</CardTitle>
                   <CardDescription>
-                    Phn b doanh thu theo danh mc sn phm
+                    Phân bổ doanh thu theo danh mục sản phẩm
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -602,9 +602,9 @@ export default function ReportsPage() {
             {/* Customer Segments */}
             <Card>
               <CardHeader>
-                <CardTitle>Phn khc khch hng</CardTitle>
+                <CardTitle>Phân khúc khách hàng</CardTitle>
                 <CardDescription>
-                  Phn tch khch hng theo mc  mua sm
+                  Phân tích khách hàng theo mức độ mua sắm
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -615,13 +615,13 @@ export default function ReportsPage() {
                         {formatNumber(segment.customers)}
                       </div>
                       <div className="text-sm text-muted-foreground mb-2">
-                        Khch hng {segment.segment}
+                        Khách hàng {segment.segment}
                       </div>
                       <div className="text-lg font-semibold text-blue-600">
                         {formatCurrency(segment.revenue)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {segment.percentage}% tng doanh thu
+                        {segment.percentage}% tổng doanh thu
                       </div>
                     </div>
                   ))}

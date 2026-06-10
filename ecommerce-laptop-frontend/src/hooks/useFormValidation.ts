@@ -220,7 +220,7 @@ export function useSafeFormSubmit<T extends z.ZodTypeAny>(
         });
       } else {
         // Handle submission errors
-        setSubmitError(error instanceof Error ? error.message : ' xy ra li khng xc nh');
+        setSubmitError(error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định');
       }
     } finally {
       setIsSubmitting(false);

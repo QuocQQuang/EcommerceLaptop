@@ -2,115 +2,115 @@ import { Separator } from '@/components/ui/separator';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Chnh sch bo mt - Laptop Store',
-    description: 'Chnh sch bo v thng tin c nhn ca ngi dng trn Laptop Store',
+    title: 'Chính sách bảo mật - Laptop Store',
+    description: 'Chính sách bảo vệ thông tin cá nhân của người dùng trên Laptop Store',
 };
 
 export default function PrivacyPage() {
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
-            <h1 className="text-3xl font-bold mb-6">Chnh Sch Bo Mt</h1>
+            <h1 className="text-3xl font-bold mb-6">Chính Sách Bảo Mật</h1>
             <p className="text-lg text-gray-700 mb-8">
-                Ti Laptop Store, chng ti coi trng quyn ring t ca bn. Chnh sch ny gii thch cch chng ti thu thp, s dng v bo v thng tin c nhn ca bn khi s dng website v dch v. Chnh sch c hiu lc t ngy 25/09/2025 v tun th Lut An ninh mng 2018 v Lut Bo v d liu c nhn 2023 ca Vit Nam.
+                Tại Laptop Store, chúng tôi coi trọng quyền riêng tư của bạn. Chính sách này giải thích cách chúng tôi thu thập, sử dụng và bảo vệ thông tin cá nhân của bạn khi sử dụng website và dịch vụ. Chính sách có hiệu lực từ ngày 25/09/2025 và tuân thủ Luật An ninh mạng 2018 và Luật Bảo vệ dữ liệu cá nhân 2023 của Việt Nam.
             </p>
 
             <Separator className="my-8" />
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">1. Thng Tin Chng Ti Thu Thp</h2>
+                <h2 className="text-2xl font-semibold mb-4">1. Thông Tin Chúng Tôi Thu Thập</h2>
                 <p className="text-gray-700 mb-4">
-                    Chng ti thu thp thng tin cn thit  cung cp dch v, bao gm:
+                    Chúng tôi thu thập thông tin cần thiết để cung cấp dịch vụ, bao gồm:
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1 mb-4">
-                    <li>Tn, email, s in thoi khi ng k ti khon hoc t hng.</li>
-                    <li>a ch giao hng, thng tin thanh ton (khng lu th tn dng).</li>
-                    <li>Thng tin duyt web (IP, thit b, trnh duyt)  ci thin dch v v ngn chn gian ln.</li>
-                    <li>D liu s dng (sn phm xem, tm kim)  c nhn ha khuyn ngh.</li>
+                    <li>Tên, email, số điện thoại khi đăng ký tài khoản hoặc đặt hàng.</li>
+                    <li>Địa chỉ giao hàng, thông tin thanh toán (không lưu thẻ tín dụng).</li>
+                    <li>Thông tin duyệt web (IP, thiết bị, trình duyệt) để cải thiện dịch vụ và ngăn chặn gian lận.</li>
+                    <li>Dữ liệu sử dụng (sản phẩm xem, tìm kiếm) để cá nhân hóa khuyến nghị.</li>
                 </ul>
                 <p className="text-gray-700">
-                    Chng ti khng thu thp d liu nhy cm khng cn thit. D liu c m ha truyn ti (HTTPS).
+                    Chúng tôi không thu thập dữ liệu nhạy cảm không cần thiết. Dữ liệu được mã hóa truyền tải (HTTPS).
                 </p>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">2. Cch Chng Ti S Dng Thng Tin</h2>
+                <h2 className="text-2xl font-semibold mb-4">2. Cách Chúng Tôi Sử Dụng Thông Tin</h2>
                 <p className="text-gray-700 mb-4">
-                    Thng tin c s dng :
+                    Thông tin được sử dụng để:
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1 mb-4">
-                    <li>X l n hng, giao hng, thanh ton.</li>
-                    <li>Gi email xc nhn, khuyn mi (c th hy ng k).</li>
-                    <li>Ci thin website (phn tch n danh).</li>
-                    <li>Ngn chn lm dng (rate limiting, IP block nu vi phm).</li>
+                    <li>Xử lý đơn hàng, giao hàng, thanh toán.</li>
+                    <li>Gửi email xác nhận, khuyến mãi (có thể hủy đăng ký).</li>
+                    <li>Cải thiện website (phân tích ẩn danh).</li>
+                    <li>Ngăn chặn lạm dụng (rate limiting, IP block nếu vi phạm).</li>
                 </ul>
                 <p className="text-gray-700">
-                    Chng ti khng bn hoc chia s d liu vi bn th ba ngoi i tc vn chuyn/thanh ton (vi s ng ).
+                    Chúng tôi không bán hoặc chia sẻ dữ liệu với bên thứ ba ngoài đối tác vận chuyển/thanh toán (với sự đồng ý của bạn).
                 </p>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">3. Chia S Thng Tin</h2>
+                <h2 className="text-2xl font-semibold mb-4">3. Chia Sẻ Thông Tin</h2>
                 <p className="text-gray-700 mb-4">
-                    Chng ti ch chia s vi:
+                    Chúng tôi chỉ chia sẻ với:
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1 mb-4">
-                    <li>i tc giao hng (a ch, s in thoi).</li>
-                    <li>Cng thanh ton (thng tin giao dch, khng lu th).</li>
-                    <li>C quan php lut nu yu cu (gian ln, lm dng).</li>
+                    <li>Đối tác giao hàng (địa chỉ, số điện thoại).</li>
+                    <li>Cổng thanh toán (thông tin giao dịch, không lưu thẻ).</li>
+                    <li>Cơ quan pháp luật nếu yêu cầu (gian lận, lạm dụng).</li>
                 </ul>
                 <p className="text-gray-700">
-                    Khng chia s vi bn th ba qung co. Cookie ch dng cho phin ng nhp/gi hng (c th xa).
+                    Không chia sẻ với bên thứ ba quảng cáo. Cookie chỉ dùng cho phiên đăng nhập/giỏ hàng (có thể xóa).
                 </p>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">4. Bo V D Liu</h2>
+                <h2 className="text-2xl font-semibold mb-4">4. Bảo Vệ Dữ Liệu</h2>
                 <p className="text-gray-700 mb-4">
-                    Chng ti s dng:
+                    Chúng tôi sử dụng:
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1 mb-4">
-                    <li>M ha d liu (AES-256 cho mt khu).</li>
-                    <li>HTTPS cho tt c truyn ti.</li>
-                    <li>Firewall, rate limiting, IP blocking chng tn cng.</li>
-                    <li>Backup m ha, lu tr an ton.</li>
+                    <li>Mã hóa dữ liệu (AES-256 cho mật khẩu).</li>
+                    <li>HTTPS cho tất cả truyền tải.</li>
+                    <li>Firewall, rate limiting, IP blocking chống tấn công.</li>
+                    <li>Backup mã hóa, lưu trữ an toàn.</li>
                 </ul>
                 <p className="text-gray-700">
-                    Trong trng hp vi phm d liu, chng ti thng bo trong 72 gi theo lut.
+                    Trong trường hợp vi phạm dữ liệu, chúng tôi thông báo trong 72 giờ theo luật.
                 </p>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">5. Quyn Ca Bn</h2>
+                <h2 className="text-2xl font-semibold mb-4">5. Quyền Của Bạn</h2>
                 <p className="text-gray-700">
-                    Bn c quyn:
+                    Bạn có quyền:
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1 mb-4">
-                    <li>Xem/xa/cp nht d liu c nhn (ti khon).</li>
-                    <li>Hy ng k email marketing.</li>
-                    <li>Ti d liu (email support@laptopstore.vn).</li>
-                    <li>Khiu ni nu vi phm (lin h hotline).</li>
+                    <li>Xem/xóa/cập nhật dữ liệu cá nhân (tài khoản).</li>
+                    <li>Hủy đăng ký email marketing.</li>
+                    <li>Tải dữ liệu (email support@laptopstore.vn).</li>
+                    <li>Khiếu nại nếu vi phạm (liên hệ hotline).</li>
                 </ul>
                 <p className="text-gray-700">
-                    D liu lu 5 nm sau ti khon khng hot ng, xa theo yu cu.
+                    Dữ liệu lưu 5 năm sau khi tài khoản không hoạt động, xóa theo yêu cầu.
                 </p>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">6. Cookie V Theo Di</h2>
+                <h2 className="text-2xl font-semibold mb-4">6. Cookie Và Theo Dõi</h2>
                 <p className="text-gray-700">
-                    Chng ti s dng cookie cho phin ng nhp, gi hng (essential). Cookie phn tch n danh (Google Analytics). Bn c th xa cookie qua trnh duyt settings.
+                    Chúng tôi sử dụng cookie cho phiên đăng nhập, giỏ hàng (essential). Cookie phân tích ẩn danh (Google Analytics). Bạn có thể xóa cookie qua trình duyệt settings.
                 </p>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">7. Thay i Chnh Sch</h2>
+                <h2 className="text-2xl font-semibold mb-4">7. Thay Đổi Chính Sách</h2>
                 <p className="text-gray-700">
-                    Chng ti c th cp nht chnh sch ny. Thay i s c ng ti trn website v thng bo qua email nu nh hng ln. Tip tc s dng sau cp nht = ng .
+                    Chúng tôi có thể cập nhật chính sách này. Thay đổi sẽ được đăng tải trên website và thông báo qua email nếu ảnh hưởng lớn. Tiếp tục sử dụng sau khi cập nhật = đồng ý.
                 </p>
             </section>
 
             <p className="text-sm text-gray-500 mt-8">
-                C cu hi? Lin h <a href="/contact" className="text-blue-600 hover:underline">support@laptopstore.vn</a> hoc hotline 1800-123-456.
+                Có câu hỏi? Liên hệ <a href="/contact" className="text-blue-600 hover:underline">support@laptopstore.vn</a> hoặc hotline 1800-123-456.
             </p>
         </div>
     );

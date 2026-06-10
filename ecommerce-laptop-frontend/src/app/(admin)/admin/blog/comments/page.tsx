@@ -297,13 +297,13 @@ export default function CommentsPage() {
     const getStatusText = (status: CommentStatus) => {
         switch (status) {
             case CommentStatus.Approved:
-                return ' duyt';
+                return 'Đã duyệt';
             case CommentStatus.Pending:
-                return 'Ch duyt';
+                return 'Chờ duyệt';
             case CommentStatus.Rejected:
-                return ' t chi';
+                return 'Đã từ chối';
             default:
-                return 'Khng xc nh';
+                return 'Không xác định';
         }
     };
 
@@ -316,27 +316,27 @@ export default function CommentsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Qun l bnh lun</h1>
-                    <p className="text-gray-500">Duyt v qun l bnh lun t ngi dng</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Quản lý bình luận</h1>
+                    <p className="text-gray-500">Duyệt và quản lý bình luận từ người dùng</p>
                 </div>
                 <div className="flex items-center gap-2">
                     {state.bulkSelectMode ? (
                         <>
                             <Button variant="outline" onClick={toggleBulkSelectMode}>
-                                Hy
+                                Hủy
                             </Button>
                             {state.selectedComments.size > 0 && (
                                 <>
                                     <Button onClick={bulkApproveComments}>
                                         <Check className="w-4 h-4 mr-2" />
-                                        Duyt ({state.selectedComments.size})
+                                        Duyệt ({state.selectedComments.size})
                                     </Button>
                                     <Button
                                         variant="destructive"
                                         onClick={bulkRejectComments}
                                     >
                                         <X className="w-4 h-4 mr-2" />
-                                        T chi ({state.selectedComments.size})
+                                        Từ chối ({state.selectedComments.size})
                                     </Button>
                                 </>
                             )}
@@ -344,7 +344,7 @@ export default function CommentsPage() {
                     ) : (
                         filteredComments.length > 0 && (
                             <Button variant="outline" onClick={toggleBulkSelectMode}>
-                                Chn nhiu
+                                Chọn nhiều
                             </Button>
                         )
                     )}
@@ -356,25 +356,25 @@ export default function CommentsPage() {
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-2xl font-bold text-gray-900">{state.comments.length}</div>
-                        <p className="text-sm text-gray-500">Tng bnh lun</p>
+                        <p className="text-sm text-gray-500">Tổng bình luận</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-2xl font-bold text-yellow-600">{pendingCount}</div>
-                        <p className="text-sm text-gray-500">Ch duyt</p>
+                        <p className="text-sm text-gray-500">Chờ duyệt</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-2xl font-bold text-green-600">{approvedCount}</div>
-                        <p className="text-sm text-gray-500"> duyt</p>
+                        <p className="text-sm text-gray-500">Đã duyệt</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-2xl font-bold text-red-600">{rejectedCount}</div>
-                        <p className="text-sm text-gray-500"> t chi</p>
+                        <p className="text-sm text-gray-500">Đã từ chối</p>
                     </CardContent>
                 </Card>
             </div>
@@ -388,7 +388,7 @@ export default function CommentsPage() {
                             <Input
                                 value={state.searchTerm}
                                 onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.target.value }))}
-                                placeholder="Tm kim bnh lun, tn ngi dng, email..."
+                                placeholder="Tìm kiếm bình luận, tên người dùng, email..."
                                 className="pl-10"
                             />
                         </div>
@@ -403,10 +403,10 @@ export default function CommentsPage() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Tt c trng thi</SelectItem>
-                                <SelectItem value={CommentStatus.Pending}>Ch duyt</SelectItem>
-                                <SelectItem value={CommentStatus.Approved}> duyt</SelectItem>
-                                <SelectItem value={CommentStatus.Rejected}> t chi</SelectItem>
+                                <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                                <SelectItem value={CommentStatus.Pending}>Chờ duyệt</SelectItem>
+                                <SelectItem value={CommentStatus.Approved}>Đã duyệt</SelectItem>
+                                <SelectItem value={CommentStatus.Rejected}>Đã từ chối</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -418,7 +418,7 @@ export default function CommentsPage() {
                                     onClick={selectAllComments}
                                     disabled={state.selectedComments.size === filteredComments.length}
                                 >
-                                    Chn tt c
+                                    Chọn tất cả
                                 </Button>
                                 <Button
                                     variant="outline"
@@ -426,7 +426,7 @@ export default function CommentsPage() {
                                     onClick={deselectAllComments}
                                     disabled={state.selectedComments.size === 0}
                                 >
-                                    B chn
+                                    Bỏ chọn
                                 </Button>
                             </div>
                         )}
@@ -439,11 +439,11 @@ export default function CommentsPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <MessageCircle className="w-5 h-5" />
-                        Danh sch bnh lun ({filteredComments.length})
+                        Danh sách bình luận ({filteredComments.length})
                     </CardTitle>
                     {state.selectedComments.size > 0 && (
                         <CardDescription>
-                             chn {state.selectedComments.size} bnh lun
+                             đã chọn {state.selectedComments.size} bình luận
                         </CardDescription>
                     )}
                 </CardHeader>
@@ -457,14 +457,14 @@ export default function CommentsPage() {
                             <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
                                 {state.searchTerm || state.statusFilter !== 'all'
-                                    ? 'Khng tm thy bnh lun'
-                                    : 'Cha c bnh lun no'
+                                    ? 'Không tìm thấy bình luận'
+                                    : 'Chưa có bình luận nào'
                                 }
                             </h3>
                             <p className="text-gray-500">
                                 {state.searchTerm || state.statusFilter !== 'all'
-                                    ? 'Th thay i b lc hoc t kha tm kim'
-                                    : 'Bnh lun t ngi dng s hin th  y'
+                                    ? 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm'
+                                    : 'Bình luận từ người dùng sẽ hiển thị ở đây'
                                 }
                             </p>
                         </div>
@@ -522,20 +522,20 @@ export default function CommentsPage() {
                                                 {comment.status !== CommentStatus.Approved && (
                                                     <DropdownMenuItem onClick={() => approveComment(comment)}>
                                                         <Check className="w-4 h-4 mr-2" />
-                                                        Duyt bnh lun
+                                                        Duyệt bình luận
                                                     </DropdownMenuItem>
                                                 )}
 
                                                 {comment.status !== CommentStatus.Rejected && (
                                                     <DropdownMenuItem onClick={() => rejectComment(comment)}>
                                                         <X className="w-4 h-4 mr-2" />
-                                                        T chi
+                                                        Từ chối
                                                     </DropdownMenuItem>
                                                 )}
 
                                                 <DropdownMenuItem onClick={() => openReplyModal(comment)}>
                                                     <Reply className="w-4 h-4 mr-2" />
-                                                    Tr li
+                                                    Trả lời
                                                 </DropdownMenuItem>
 
                                                 <DropdownMenuSeparator />
@@ -545,7 +545,7 @@ export default function CommentsPage() {
                                                     className="text-red-600"
                                                 >
                                                     <Trash2 className="w-4 h-4 mr-2" />
-                                                    Xa bnh lun
+                                                    Xóa bình luận
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -561,26 +561,26 @@ export default function CommentsPage() {
             <Dialog open={state.replyModalOpen} onOpenChange={(open) => !open && closeReplyModal()}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Tr li bnh lun</DialogTitle>
+                        <DialogTitle>Trả lời bình luận</DialogTitle>
                         <DialogDescription>
-                            Tr li bnh lun t {state.selectedComment?.authorName}
+                            Trả lời bình luận từ {state.selectedComment?.authorName}
                         </DialogDescription>
                     </DialogHeader>
 
                     {state.selectedComment && (
                         <div className="space-y-4">
                             <div className="p-3 bg-gray-50 rounded-lg">
-                                <div className="text-sm font-medium mb-1">Bnh lun gc:</div>
+                                <div className="text-sm font-medium mb-1">Bình luận gốc:</div>
                                 <p className="text-sm text-gray-700">{state.selectedComment.content}</p>
                             </div>
 
                             <div>
-                                <Label htmlFor="replyContent">Ni dung tr li</Label>
+                                <Label htmlFor="replyContent">Nội dung trả lời</Label>
                                 <Textarea
                                     id="replyContent"
                                     value={state.replyContent}
                                     onChange={(e) => setState(prev => ({ ...prev, replyContent: e.target.value }))}
-                                    placeholder="Nhp ni dung tr li..."
+                                    placeholder="Nhập nội dung trả lời..."
                                     rows={4}
                                 />
                             </div>
@@ -589,14 +589,14 @@ export default function CommentsPage() {
 
                     <DialogFooter>
                         <Button variant="outline" onClick={closeReplyModal}>
-                            Hy
+                            Hủy
                         </Button>
                         <Button
                             onClick={replyToComment}
                             disabled={state.replying || !state.replyContent.trim()}
                         >
                             {state.replying && <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />}
-                            Gi tr li
+                            Gửi trả lời
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -609,19 +609,19 @@ export default function CommentsPage() {
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Xa bnh lun</AlertDialogTitle>
+                        <AlertDialogTitle>Xóa bình luận</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Bn c chc chn mun xa bnh lun t {state.deletingComment?.authorName}?
-                            Hnh ng ny khng th hon tc.
+                            Bạn có chắc chắn muốn xóa bình luận từ {state.deletingComment?.authorName}?
+                            Hành động này không thể hoàn tác.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Hy</AlertDialogCancel>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => state.deletingComment && deleteComment(state.deletingComment)}
                             className="bg-red-600 hover:bg-red-700"
                         >
-                            Xa bnh lun
+                            Xóa bình luận
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

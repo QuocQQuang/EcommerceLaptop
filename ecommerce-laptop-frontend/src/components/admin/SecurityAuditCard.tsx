@@ -47,7 +47,7 @@ export function SecurityAuditCard({
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Shield className="h-5 w-5" />
-                    Bo mt & Audit
+                    Bảo mật & Audit
                     <Badge variant="outline" className="ml-auto">
                         ID: {orderId}
                     </Badge>
@@ -58,7 +58,7 @@ export function SecurityAuditCard({
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                     <div className="flex items-center gap-2">
                         <SecurityIcon className="h-4 w-4" />
-                        <span className="text-sm font-medium">Mc  truy cp</span>
+                        <span className="text-sm font-medium">Mức độ truy cập</span>
                     </div>
                     <Badge className={securityInfo.color}>
                         {securityInfo.level}
@@ -68,25 +68,25 @@ export function SecurityAuditCard({
                 {/* Access Statistics */}
                 <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                        <Label className="text-xs font-medium text-muted-foreground">Truy cp cui</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Truy cập cuối</Label>
                         <p className="font-medium flex items-center gap-1">
                             <User className="h-3 w-3" />
                             {lastAccessedBy || 'N/A'}
                         </p>
                     </div>
                     <div>
-                        <Label className="text-xs font-medium text-muted-foreground">Thi gian</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Thời gian</Label>
                         <p className="text-xs flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {lastAccessedAt ? formatDate(lastAccessedAt) : 'N/A'}
                         </p>
                     </div>
                     <div>
-                        <Label className="text-xs font-medium text-muted-foreground">S ln truy cp</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Số lần truy cập</Label>
                         <p className="font-medium">{accessCount}</p>
                     </div>
                     <div>
-                        <Label className="text-xs font-medium text-muted-foreground">M n hng</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Mã đơn hàng</Label>
                         <p className="font-mono text-xs">{orderNumber}</p>
                     </div>
                 </div>
@@ -98,10 +98,10 @@ export function SecurityAuditCard({
                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                         <div className="flex items-center gap-2 text-red-800">
                             <AlertTriangle className="h-4 w-4" />
-                            <span className="text-sm font-medium">Cnh bo bo mt</span>
+                            <span className="text-sm font-medium">Cảnh báo bảo mật</span>
                         </div>
                         <p className="text-xs text-red-700 mt-1">
-                            n hng ny  c truy cp qu nhiu ln. Vui lng kim tra tnh hp l.
+                            Đơn hàng này đã được truy cập quá nhiều lần. Vui lòng kiểm tra tính hợp lệ.
                         </p>
                     </div>
                 )}
@@ -110,10 +110,10 @@ export function SecurityAuditCard({
                     <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                         <div className="flex items-center gap-2 text-green-800">
                             <Shield className="h-4 w-4" />
-                            <span className="text-sm font-medium">Bo mt tt</span>
+                            <span className="text-sm font-medium">Bảo mật tốt</span>
                         </div>
                         <p className="text-xs text-green-700 mt-1">
-                            n hng cha c truy cp trc . Thng tin c bo v tt.
+                            Đơn hàng chưa được truy cập trước đó. Thông tin được bảo vệ tốt.
                         </p>
                     </div>
                 )}
@@ -122,10 +122,10 @@ export function SecurityAuditCard({
                 <div className="text-xs text-muted-foreground space-y-1">
                     <div className="flex items-center gap-1">
                         <Shield className="h-3 w-3" />
-                        <span>Thng tin nhy cm - Ch dnh cho Admin</span>
+                        <span>Thông tin nhạy cảm - Chỉ dành cho Admin</span>
                     </div>
-                    <p>Mi thao tc u c ghi li  m bo bo mt.</p>
-                    <p>Khng chia s thng tin ny vi ngi khng c quyn.</p>
+                    <p>Mọi thao tác đều được ghi lại để đảm bảo bảo mật.</p>
+                    <p>Không chia sẻ thông tin này với người không có quyền.</p>
                 </div>
             </CardContent>
         </Card>

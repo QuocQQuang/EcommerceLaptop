@@ -88,16 +88,16 @@ export default function AdvancedDeleteDialog({
     switch (deleteMethod) {
       case 'simple':
         return canSimpleDelete
-          ? `Xa ${itemType === 'brand' ? 'thng hiu' : 'danh mc'} ny vnh vin.`
-          : `Khng th xa ${itemType === 'brand' ? 'thng hiu' : 'danh mc'} ny v c ${hasProducts ? `${productCount} sn phm` : ''}${hasProducts && hasChildren ? ' v ' : ''}${hasChildren ? `${childCount} danh mc con` : ''} lin quan.`;
+          ? `Xóa ${itemType === 'brand' ? 'thương hiệu' : 'danh mục'} này vĩnh viễn.`
+          : `Không thể xóa ${itemType === 'brand' ? 'thương hiệu' : 'danh mục'} này vì có ${hasProducts ? `${productCount} sản phẩm` : ''}${hasProducts && hasChildren ? ' và ' : ''}${hasChildren ? `${childCount} danh mục con` : ''} liên quan.`;
 
       case 'reassign':
-        return `Chuyn tt c ${productCount} sn phm sang ${itemType === 'brand' ? 'thng hiu' : 'danh mc'} khc, sau  xa ${itemType === 'brand' ? 'thng hiu' : 'danh mc'} ny.`;
+        return `Chuyển tất cả ${productCount} sản phẩm sang ${itemType === 'brand' ? 'thương hiệu' : 'danh mục'} khác, sau đó xóa ${itemType === 'brand' ? 'thương hiệu' : 'danh mục'} này.`;
 
       case 'force':
         return itemType === 'brand'
-          ? `Xa thng hiu v t ng TT trng thi ca ${productCount} sn phm lin quan.`
-          : `Xa danh mc, TT trng thi ca ${productCount} sn phm${hasChildren ? ` v chuyn ${childCount} danh mc con ln cp cha` : ''}.`;
+          ? `Xóa thương hiệu và tự động đặt trạng thái của ${productCount} sản phẩm liên quan.`
+          : `Xóa danh mục, đặt trạng thái của ${productCount} sản phẩm${hasChildren ? ` và chuyển ${childCount} danh mục con lên cấp cha` : ''}.`;
 
       default:
         return '';
@@ -117,18 +117,18 @@ export default function AdvancedDeleteDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-orange-500" />
-            Xa {itemType === 'brand' ? 'thng hiu' : 'danh mc'}: {itemName}
+            Xóa {itemType === 'brand' ? 'thương hiệu' : 'danh mục'}: {itemName}
           </DialogTitle>
           <DialogDescription>
-            {itemType === 'brand' ? 'Thng hiu' : 'Danh mc'} ny c:
+            {itemType === 'brand' ? 'Thương hiệu' : 'Danh mục'} này có:
             {hasProducts && (
               <Badge variant="secondary" className="ml-2">
-                {productCount} sn phm
+                {productCount} sản phẩm
               </Badge>
             )}
             {hasChildren && (
               <Badge variant="secondary" className="ml-2">
-                {childCount} danh mc con
+                {childCount} danh mục con
               </Badge>
             )}
           </DialogDescription>
@@ -150,7 +150,7 @@ export default function AdvancedDeleteDialog({
               <Label htmlFor="simple" className={!canSimpleDelete ? 'text-muted-foreground' : ''}>
                 <div className="flex items-center gap-2">
                   <Trash2 className="h-4 w-4" />
-                  Xa trc tip
+                  Xóa trực tiếp
                 </div>
               </Label>
             </div>
@@ -171,7 +171,7 @@ export default function AdvancedDeleteDialog({
                 <Label htmlFor="reassign">
                   <div className="flex items-center gap-2">
                     <RefreshCw className="h-4 w-4" />
-                    Chuyn sn phm v xa
+                    Chuyển sản phẩm và xóa
                   </div>
                 </Label>
               </div>
@@ -179,11 +179,11 @@ export default function AdvancedDeleteDialog({
               {deleteMethod === 'reassign' && (
                 <div className="ml-6 space-y-2">
                   <Label htmlFor="target-select">
-                    Chn {itemType === 'brand' ? 'thng hiu' : 'danh mc'} ch:
+                    Chọn {itemType === 'brand' ? 'thương hiệu' : 'danh mục'} đích:
                   </Label>
                   <Select value={selectedTargetId} onValueChange={setSelectedTargetId}>
                     <SelectTrigger>
-                      <SelectValue placeholder={`Chn ${itemType === 'brand' ? 'thng hiu' : 'danh mc'} khc...`} />
+                      <SelectValue placeholder={`Chọn ${itemType === 'brand' ? 'thương hiệu' : 'danh mục'} khác...`} />
                     </SelectTrigger>
                     <SelectContent>
                       {availableOptions.map((option) => (
@@ -219,7 +219,7 @@ export default function AdvancedDeleteDialog({
               <Label htmlFor="force" className="text-red-600">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" />
-                  Xa p buc (Nguy him)
+                  Xóa bắt buộc (Nguy hiểm)
                 </div>
               </Label>
             </div>
@@ -228,7 +228,7 @@ export default function AdvancedDeleteDialog({
           {/* Method Description */}
           <div className="p-3 bg-muted rounded-lg">
             <p className="text-sm text-muted-foreground">
-              <strong>Hnh ng:</strong> {getMethodDescription()}
+              <strong>Hành động:</strong> {getMethodDescription()}
             </p>
           </div>
         </div>
@@ -239,7 +239,7 @@ export default function AdvancedDeleteDialog({
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
-            Hy
+            Hủy
           </Button>
           <Button
             variant={deleteMethod === 'force' ? 'destructive' : 'default'}
@@ -247,7 +247,7 @@ export default function AdvancedDeleteDialog({
             disabled={isConfirmDisabled()}
             className={deleteMethod === 'force' ? 'bg-red-600 hover:bg-red-700' : ''}
           >
-            {isLoading ? 'ang x l...' : 'Xc nhn xa'}
+            {isLoading ? 'Đang xử lý...' : 'Xác nhận xóa'}
           </Button>
         </DialogFooter>
       </DialogContent>

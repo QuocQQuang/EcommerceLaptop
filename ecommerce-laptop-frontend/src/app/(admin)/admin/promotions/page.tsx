@@ -110,9 +110,9 @@ const usePromotionsQuery = () => {
       const promotions: Promotion[] = [
         {
           id: 1,
-          name: 'Khuyn mi Tt 2025',
+          name: 'Khuyến mãi Tết 2025',
           code: 'TET2025',
-          description: 'Gim gi c bit cho dp Tt Nguyn n',
+          description: 'Giảm giá đặc biệt cho dịp Tết Nguyên đán',
           type: 'percentage',
           value: 15,
           minimumOrderAmount: 5000000,
@@ -128,9 +128,9 @@ const usePromotionsQuery = () => {
         },
         {
           id: 2,
-          name: 'Min ph vn chuyn',
+          name: 'Miễn phí vận chuyển',
           code: 'FREESHIP50',
-          description: 'Min ph vn chuyn cho n hng t 5 triu',
+          description: 'Miễn phí vận chuyển cho đơn hàng từ 5 triệu',
           type: 'free_shipping',
           value: 0,
           minimumOrderAmount: 5000000,
@@ -145,9 +145,9 @@ const usePromotionsQuery = () => {
         },
         {
           id: 3,
-          name: 'Gim c nh 500K',
+          name: 'Giảm cố định 500K',
           code: 'SAVE500K',
-          description: 'Gim ngay 500.000 cho n hng t 10 triu',
+          description: 'Giảm ngay 500.000 cho đơn hàng từ 10 triệu',
           type: 'fixed_amount',
           value: 500000,
           minimumOrderAmount: 10000000,
@@ -164,7 +164,7 @@ const usePromotionsQuery = () => {
           id: 4,
           name: 'Black Friday 2025',
           code: 'BF2025',
-          description: 'Gim gi Black Friday -  kt thc',
+          description: 'Giảm giá Black Friday - Đã kết thúc',
           type: 'percentage',
           value: 30,
           minimumOrderAmount: 2000000,
@@ -253,9 +253,9 @@ const formatDateTime = (dateString: string) => {
 
 const getPromotionTypeBadge = (type: string) => {
   const typeConfig = {
-    percentage: { label: 'Phn trm', variant: 'default' as const, icon: Percent },
-    fixed_amount: { label: 'Gim c nh', variant: 'secondary' as const, icon: Tag },
-    free_shipping: { label: 'Min ph ship', variant: 'outline' as const, icon: TrendingUp }
+    percentage: { label: 'Phần trăm', variant: 'default' as const, icon: Percent },
+    fixed_amount: { label: 'Giảm cố định', variant: 'secondary' as const, icon: Tag },
+    free_shipping: { label: 'Miễn phí ship', variant: 'outline' as const, icon: TrendingUp }
   };
 
   const config = typeConfig[type as keyof typeof typeConfig];
@@ -271,10 +271,10 @@ const getPromotionTypeBadge = (type: string) => {
 
 const getStatusBadge = (status: string) => {
   const statusConfig = {
-    draft: { label: 'Nhp', variant: 'outline' as const, icon: Clock },
-    active: { label: 'ang hot ng', variant: 'default' as const, icon: CheckCircle },
-    expired: { label: ' ht hn', variant: 'secondary' as const, icon: XCircle },
-    disabled: { label: 'Tm dng', variant: 'destructive' as const, icon: AlertTriangle }
+    draft: { label: 'Nháp', variant: 'outline' as const, icon: Clock },
+    active: { label: 'Đang hoạt động', variant: 'default' as const, icon: CheckCircle },
+    expired: { label: 'Đã hết hạn', variant: 'secondary' as const, icon: XCircle },
+    disabled: { label: 'Tạm dừng', variant: 'destructive' as const, icon: AlertTriangle }
   };
 
   const config = statusConfig[status as keyof typeof statusConfig];
@@ -321,7 +321,7 @@ export default function PromotionsPage() {
       case 'fixed_amount':
         return formatCurrency(promotion.value);
       case 'free_shipping':
-        return 'Min ph';
+        return 'Miễn phí';
       default:
         return promotion.value.toString();
     }
@@ -387,11 +387,11 @@ export default function PromotionsPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold">C li xy ra</h3>
+          <h3 className="text-lg font-semibold">Có lỗi xảy ra</h3>
           <p className="text-muted-foreground mb-4">
-            Khng th ti danh sch khuyn mi. Vui lng th li.
+            Không thể tải danh sách khuyến mãi. Vui lòng thử lại.
           </p>
-          <Button onClick={() => refetch()}>Th li</Button>
+          <Button onClick={() => refetch()}>Thử lại</Button>
         </div>
       </div>
     );
@@ -402,9 +402,9 @@ export default function PromotionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Qun l khuyn mi</h1>
+          <h1 className="text-3xl font-bold">Quản lý khuyến mãi</h1>
           <p className="text-muted-foreground">
-            Qun l cc chng trnh khuyn mi v m gim gi
+            Quản lý các chương trình khuyến mãi và mã giảm giá
           </p>
         </div>
 
@@ -412,7 +412,7 @@ export default function PromotionsPage() {
           <Link href="/promotions/add">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Thm khuyn mi
+              Thêm khuyến mãi
             </Button>
           </Link>
         </PermissionGuard>
@@ -421,7 +421,7 @@ export default function PromotionsPage() {
       {/* Filters and Search */}
       <Card>
         <CardHeader>
-          <CardTitle>B lc</CardTitle>
+          <CardTitle>Bộ lọc</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4">
@@ -429,7 +429,7 @@ export default function PromotionsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Tm kim tn, m hoc m t khuyn mi..."
+                  placeholder="Tìm kiếm tên, mã hoặc mô tả khuyến mãi..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -440,32 +440,32 @@ export default function PromotionsPage() {
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Trng thi" />
+                  <SelectValue placeholder="Trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tt c trng thi</SelectItem>
-                  <SelectItem value="active">ang hot ng</SelectItem>
-                  <SelectItem value="draft">Nhp</SelectItem>
-                  <SelectItem value="expired"> ht hn</SelectItem>
-                  <SelectItem value="disabled">Tm dng</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="active">Đang hoạt động</SelectItem>
+                  <SelectItem value="draft">Nháp</SelectItem>
+                  <SelectItem value="expired">Đã hết hạn</SelectItem>
+                  <SelectItem value="disabled">Tạm dừng</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Loi khuyn mi" />
+                  <SelectValue placeholder="Loại khuyến mãi" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tt c loi</SelectItem>
-                  <SelectItem value="percentage">Phn trm</SelectItem>
-                  <SelectItem value="fixed_amount">Gim c nh</SelectItem>
-                  <SelectItem value="free_shipping">Min ph ship</SelectItem>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
+                  <SelectItem value="percentage">Phần trăm</SelectItem>
+                  <SelectItem value="fixed_amount">Giảm cố định</SelectItem>
+                  <SelectItem value="free_shipping">Miễn phí ship</SelectItem>
                 </SelectContent>
               </Select>
 
               <Button variant="outline">
                 <Filter className="h-4 w-4 mr-2" />
-                Lc nng cao
+                Lọc nâng cao
               </Button>
             </div>
           </div>
@@ -476,10 +476,10 @@ export default function PromotionsPage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            Danh sch khuyn mi ({filteredPromotions.length})
+            Danh sách khuyến mãi ({filteredPromotions.length})
           </CardTitle>
           <CardDescription>
-            Qun l tt c cc chng trnh khuyn mi v m gim gi ca ca hng
+            Quản lý tất cả các chương trình khuyến mãi và mã giảm giá của cửa hàng
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -492,18 +492,18 @@ export default function PromotionsPage() {
           ) : filteredPromotions.length === 0 ? (
             <div className="text-center py-12">
               <Tag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Cha c khuyn mi no</h3>
+              <h3 className="text-lg font-semibold mb-2">Chưa có khuyến mãi nào</h3>
               <p className="text-muted-foreground mb-4">
                 {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
-                  ? 'Khng tm thy khuyn mi no ph hp vi b lc.'
-                  : 'Bt u to chng trnh khuyn mi u tin ca bn.'}
+                  ? 'Không tìm thấy khuyến mãi nào phù hợp với bộ lọc.'
+                  : 'Bắt đầu tạo chương trình khuyến mãi đầu tiên của bạn.'}
               </p>
               {(!searchTerm && statusFilter === 'all' && typeFilter === 'all') && (
                 <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
                   <Link href="/promotions/add">
                     <Button>
                       <Plus className="h-4 w-4 mr-2" />
-                      Thm khuyn mi
+                      Thêm khuyến mãi
                     </Button>
                   </Link>
                 </PermissionGuard>
@@ -514,14 +514,14 @@ export default function PromotionsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Tn khuyn mi</TableHead>
-                    <TableHead>M</TableHead>
-                    <TableHead>Loi</TableHead>
-                    <TableHead>Gi tr</TableHead>
-                    <TableHead>Thi gian</TableHead>
-                    <TableHead>S dng</TableHead>
-                    <TableHead>Trng thi</TableHead>
-                    <TableHead className="text-right">Thao tc</TableHead>
+                    <TableHead>Tên khuyến mãi</TableHead>
+                    <TableHead>Mã</TableHead>
+                    <TableHead>Loại</TableHead>
+                    <TableHead>Giá trị</TableHead>
+                    <TableHead>Thời gian</TableHead>
+                    <TableHead>Sử dụng</TableHead>
+                    <TableHead>Trạng thái</TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -551,7 +551,7 @@ export default function PromotionsPage() {
                           {getPromotionValue(promotion)}
                           {promotion.minimumOrderAmount && (
                             <div className="text-xs text-muted-foreground">
-                              n ti thiu {formatCurrency(promotion.minimumOrderAmount)}
+                              Đơn tối thiểu {formatCurrency(promotion.minimumOrderAmount)}
                             </div>
                           )}
                         </TableCell>
@@ -559,11 +559,11 @@ export default function PromotionsPage() {
                           <div className="text-sm">
                             <div>{formatDate(promotion.startDate)}</div>
                             <div className="text-muted-foreground">
-                              n {formatDate(promotion.endDate)}
+                              Đến {formatDate(promotion.endDate)}
                             </div>
                             {isExpired && (
                               <Badge variant="destructive" className="mt-1">
-                                 ht hn
+                                Đã hết hạn
                               </Badge>
                             )}
                           </div>
@@ -598,14 +598,14 @@ export default function PromotionsPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Thao tc</DropdownMenuLabel>
+                              <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
 
                               <PermissionGuard permission={PERMISSIONS.PRODUCTS_READ}>
                                 <DropdownMenuItem
                                   onClick={() => router.push(`/promotions/${promotion.id}`)}
                                 >
                                   <Eye className="h-4 w-4 mr-2" />
-                                  Xem chi tit
+                                  Xem chi tiết
                                 </DropdownMenuItem>
                               </PermissionGuard>
 
@@ -614,7 +614,7 @@ export default function PromotionsPage() {
                                   onClick={() => router.push(`/promotions/${promotion.id}/edit`)}
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
-                                  Chnh sa
+                                  Chỉnh sửa
                                 </DropdownMenuItem>
 
                                 <DropdownMenuItem
@@ -622,7 +622,7 @@ export default function PromotionsPage() {
                                   disabled={duplicatePromotionMutation.isPending}
                                 >
                                   <Copy className="h-4 w-4 mr-2" />
-                                  Nhn bn
+                                  Nhân bản
                                 </DropdownMenuItem>
 
                                 <DropdownMenuItem
@@ -632,12 +632,12 @@ export default function PromotionsPage() {
                                   {promotion.isActive ? (
                                     <>
                                       <XCircle className="h-4 w-4 mr-2" />
-                                      Tm dng
+                                      Tạm dừng
                                     </>
                                   ) : (
                                     <>
                                       <CheckCircle className="h-4 w-4 mr-2" />
-                                      Kch hot
+                                      Kích hoạt
                                     </>
                                   )}
                                 </DropdownMenuItem>
@@ -652,7 +652,7 @@ export default function PromotionsPage() {
                                   }}
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />
-                                  Xa
+                                  Xóa
                                 </DropdownMenuItem>
                               </PermissionGuard>
                             </DropdownMenuContent>
@@ -672,10 +672,10 @@ export default function PromotionsPage() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xc nhn xa khuyn mi</DialogTitle>
+            <DialogTitle>Xác nhận xóa khuyến mãi</DialogTitle>
             <DialogDescription>
-              Bn c chc chn mun xa khuyn mi &quot;{selectedPromotion?.name}&quot;?
-              Hnh ng ny khng th hon tc.
+              Bạn có chắc chắn muốn xóa khuyến mãi &quot;{selectedPromotion?.name}&quot;?
+              Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -683,14 +683,14 @@ export default function PromotionsPage() {
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
             >
-              Hy b
+              Hủy bỏ
             </Button>
             <Button
               variant="destructive"
               onClick={handleDeletePromotion}
               disabled={deletePromotionMutation.isPending}
             >
-              {deletePromotionMutation.isPending ? 'ang xa...' : 'Xa khuyn mi'}
+              {deletePromotionMutation.isPending ? 'đang xóa...' : 'Xóa khuyến mãi'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -16,7 +16,7 @@ export const cartService = {
         } catch (error: any) {
             if (error.response?.status === 409) {
                 // Handle inventory conflict
-                let errorMessage = 'Sn phm khng  hng trong kho';
+                let errorMessage = 'Sản phẩm không đủ hàng trong kho';
 
                 // Try to extract detailed error message
                 if (error.response?.data) {

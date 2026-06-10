@@ -82,20 +82,20 @@ const PAYMENT_SECURITY_CONTEXTS: Record<string, SecurityContext> = {
 // Enhanced card validation schema
 const secureCardSchema = z.object({
     cardNumber: z.string()
-        .min(1, 'S th l bt buc')
+        .min(1, 'Số thẻ là bắt buộc')
         .refine((val) => {
             const cleaned = val.replace(/\s/g, '');
             return /^\d{13,19}$/.test(cleaned);
-        }, 'S th phi c 13-19 ch s')
+        }, 'Số thẻ phải có 13-19 chữ số')
         .refine((val) => {
             // Luhn algorithm validation
             const cleaned = val.replace(/\s/g, '');
             return luhnCheck(cleaned);
-        }, 'S th khng hp l'),
+        }, 'Số thẻ không hợp lệ'),
 
     expiryDate: z.string()
-        .min(1, 'Ngy ht hn l bt buc')
-        .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, 'nh dng phi l MM/YY')
+        .min(1, 'Ngày hết hạn là bắt buộc')
+        .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, 'Định dạng phải là MM/YY')
         .refine((val) => {
             const [month, year] = val.split('/');
             const currentDate = new Date();
@@ -108,21 +108,21 @@ const secureCardSchema = z.object({
             if (cardYear === currentYear && cardMonth < currentMonth) return false;
 
             return true;
-        }, 'Th  ht hn'),
+        }, 'Thẻ đã hết hạn'),
 
     cvv: z.string()
-        .min(3, 'CVV phi c t nht 3 ch s')
-        .max(4, 'CVV khng c qu 4 ch s')
-        .regex(/^\d{3,4}$/, 'CVV ch c cha s'),
+        .min(3, 'CVV phải có ít nhất 3 chữ số')
+        .max(4, 'CVV không được quá 4 chữ số')
+        .regex(/^\d{3,4}$/, 'CVV chỉ được chứa số'),
 
     cardholderName: z.string()
-        .min(1, 'Tn ch th l bt buc')
-        .min(2, 'Tn ch th phi c t nht 2 k t')
-        .max(100, 'Tn ch th khng c qu 100 k t')
-        .regex(/^[A-Za-z\s.'-]+$/, 'Tn ch th ch c cha ch ci v k t hp l'),
+        .min(1, 'Tên chủ thẻ là bắt buộc')
+        .min(2, 'Tên chủ thẻ phải có ít nhất 2 ký tự')
+        .max(100, 'Tên chủ thẻ không được quá 100 ký tự')
+        .regex(/^[A-Za-z\s.'-]+$/, 'Tên chủ thẻ chỉ được chứa chữ cái và ký tự hợp lệ'),
 
     saveCard: z.boolean().optional(),
-    agreedToTerms: z.boolean().refine(val => val === true, 'Vui lng ng  vi iu khon'),
+    agreedToTerms: z.boolean().refine(val => val === true, 'Vui lòng đồng ý với điều khoản'),
 });
 
 type SecureCardFormData = z.infer<typeof secureCardSchema>;
@@ -256,12 +256,12 @@ export function SecurePaymentForm({
             // Final security check
             const hasSecurityErrors = Object.values(securityValidations).some(v => !v.isValid);
             if (hasSecurityErrors) {
-                toast.error('Vui lng khc phc cc li bo mt trc khi thanh ton');
+                toast.error('Vui lòng khắc phục các lỗi bảo mật trước khi thanh toán');
                 return;
             }
 
             if (overallSecurityScore < 90) {
-                toast.error('im bo mt thanh ton qu thp. Vui lng kim tra li thng tin');
+                toast.error('Điểm bảo mật thanh toán quá thấp. Vui lòng kiểm tra lại thông tin');
                 return;
             }
 
@@ -275,15 +275,15 @@ export function SecurePaymentForm({
             ];
 
             if (testCardNumbers.includes(cardNumber)) {
-                toast.error('Khng th s dng s th test trong mi trng production');
+                toast.error('Không thể sử dụng số thẻ test trong môi trường production');
                 return;
             }
 
             await onPaymentSubmit({ ...data, paymentToken });
-            toast.success('Thanh ton  c x l thnh cng');
+            toast.success('Thanh toán đã được xử lý thành công');
         } catch (error) {
             console.error('Payment error:', error);
-            toast.error('C li xy ra khi x l thanh ton');
+            toast.error('Có lỗi xảy ra khi xử lý thanh toán');
         }
     };
 
@@ -298,8 +298,8 @@ export function SecurePaymentForm({
 
     return (
         <SecureFormWrapper
-            title="Thanh ton an ton"
-            description="Thng tin th ca bn c m ha v bo v theo tiu chun PCI DSS"
+            title="Thanh toán an toàn"
+            description="Thông tin thẻ của bạn được mã hóa và bảo vệ theo tiêu chuẩn PCI DSS"
             securityLevel="strict"
         >
             <div className="space-y-6">
@@ -308,12 +308,12 @@ export function SecurePaymentForm({
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <DollarSign className="h-5 w-5" />
-                            Tng thanh ton
+                            Tổng thanh toán
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center justify-between">
-                            <span className="text-lg">n hng #{orderId}</span>
+                            <span className="text-lg">Đơn hàng #{orderId}</span>
                             <span className="text-2xl font-bold">
                                 {new Intl.NumberFormat('vi-VN', {
                                     style: 'currency',
@@ -329,7 +329,7 @@ export function SecurePaymentForm({
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Shield className="h-5 w-5" />
-                            Bo mt thanh ton
+                            Bảo mật thanh toán
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -337,7 +337,7 @@ export function SecurePaymentForm({
                             <Badge
                                 variant={overallSecurityScore > 90 ? "default" : "destructive"}
                             >
-                                im bo mt: {overallSecurityScore}/100
+                                Điểm bảo mật: {overallSecurityScore}/100
                             </Badge>
                             <div className="flex items-center gap-2 text-sm">
                                 <Lock className="h-4 w-4" />
@@ -357,16 +357,16 @@ export function SecurePaymentForm({
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <CreditCard className="h-5 w-5" />
-                                Thng tin th
+                                Thông tin thẻ
                             </CardTitle>
                             <CardDescription>
-                                Thng tin th ca bn c m ha v khng c lu tr trn my ch
+                                Thông tin thẻ của bạn được mã hóa và không được lưu trữ trên máy chủ
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {/* Card Number */}
                             <div className="space-y-2">
-                                <Label htmlFor="cardNumber">S th</Label>
+                                <Label htmlFor="cardNumber">Số thẻ</Label>
                                 <div className="relative">
                                     <SecureInput
                                         id="cardNumber"
@@ -383,7 +383,7 @@ export function SecurePaymentForm({
                                 </div>
                                 {cardType !== 'unknown' && (
                                     <p className="text-sm text-muted-foreground capitalize">
-                                        Loi th: {cardType}
+                                        Loại thẻ: {cardType}
                                     </p>
                                 )}
                                 {form.formState.errors.cardNumber && (
@@ -394,7 +394,7 @@ export function SecurePaymentForm({
                             <div className="grid grid-cols-2 gap-4">
                                 {/* Expiry Date */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="expiryDate">Ngy ht hn</Label>
+                                    <Label htmlFor="expiryDate">Ngày hết hạn</Label>
                                     <SecureInput
                                         id="expiryDate"
                                         securityContext={PAYMENT_SECURITY_CONTEXTS.EXPIRY}
@@ -444,7 +444,7 @@ export function SecurePaymentForm({
 
                             {/* Cardholder Name */}
                             <div className="space-y-2">
-                                <Label htmlFor="cardholderName">Tn ch th</Label>
+                                <Label htmlFor="cardholderName">Tên chủ thẻ</Label>
                                 <SecureInput
                                     id="cardholderName"
                                     securityContext={PAYMENT_SECURITY_CONTEXTS.CARDHOLDER_NAME}
@@ -463,7 +463,7 @@ export function SecurePaymentForm({
                     {/* Security Features */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Tnh nng bo mt</CardTitle>
+                            <CardTitle>Tính năng bảo mật</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center space-x-2">
@@ -474,7 +474,7 @@ export function SecurePaymentForm({
                                     className="rounded"
                                 />
                                 <Label htmlFor="saveCard" className="text-sm">
-                                    Lu th ny cho ln thanh ton sau (an ton vi tokenization)
+                                    Lưu thẻ này cho lần thanh toán sau (an toàn với tokenization)
                                 </Label>
                             </div>
 
@@ -486,8 +486,8 @@ export function SecurePaymentForm({
                                     className="rounded"
                                 />
                                 <Label htmlFor="agreedToTerms" className="text-sm">
-                                    Ti ng  vi <a href="/terms" className="text-primary hover:underline">iu khon dch v</a> v
-                                    <a href="/privacy" className="text-primary hover:underline"> chnh sch bo mt</a>
+                                    Tôi đồng ý với <a href="/terms" className="text-primary hover:underline">điều khoản dịch vụ</a> và
+                                    <a href="/privacy" className="text-primary hover:underline"> chính sách bảo mật</a>
                                 </Label>
                             </div>
                             {form.formState.errors.agreedToTerms && (
@@ -501,7 +501,7 @@ export function SecurePaymentForm({
                         <Alert variant="destructive">
                             <AlertTriangle className="h-4 w-4" />
                             <AlertDescription>
-                                im bo mt thanh ton qu thp. Vui lng kim tra li thng tin th.
+                                Điểm bảo mật thanh toán quá thấp. Vui lòng kiểm tra lại thông tin thẻ.
                             </AlertDescription>
                         </Alert>
                     )}
@@ -515,12 +515,12 @@ export function SecurePaymentForm({
                         {isLoading ? (
                             <>
                                 <Shield className="h-5 w-5 mr-2 animate-spin" />
-                                ang x l thanh ton...
+                                Đang xử lý thanh toán...
                             </>
                         ) : (
                             <>
                                 <Lock className="h-5 w-5 mr-2" />
-                                Thanh ton an ton {new Intl.NumberFormat('vi-VN', {
+                                Thanh toán an toàn {new Intl.NumberFormat('vi-VN', {
                                     style: 'currency',
                                     currency: currency
                                 }).format(amount)}
@@ -530,8 +530,8 @@ export function SecurePaymentForm({
 
                     {/* Security Notice */}
                     <div className="text-center text-sm text-muted-foreground">
-                        <p> Thanh ton c bo v bi m ha SSL 256-bit</p>
-                        <p>Thng tin th ca bn khng c lu tr trn my ch</p>
+                        <p>🔒 Thanh toán được bảo vệ bởi mã hóa SSL 256-bit</p>
+                        <p>Thông tin thẻ của bạn không được lưu trữ trên máy chủ</p>
                     </div>
                 </form>
             </div>
@@ -557,28 +557,28 @@ export function AlternativePaymentMethods({
         {
             id: 'vnpay',
             name: 'VNPay',
-            description: 'Thanh ton qua VNPay',
+            description: 'Thanh toán qua VNPay',
             icon: '',
             fee: 0
         },
         {
             id: 'momo',
             name: 'MoMo',
-            description: 'V in t MoMo',
+            description: 'Ví điện tử MoMo',
             icon: '',
             fee: 0
         },
         {
             id: 'sepay',
             name: 'SePay',
-            description: 'Chuyn khon ngn hng',
+            description: 'Chuyển khoản ngân hàng',
             icon: '',
             fee: 0
         },
         {
             id: 'cod',
-            name: 'Thanh ton khi nhn hng',
-            description: 'Thanh ton bng tin mt',
+            name: 'Thanh toán khi nhận hàng',
+            description: 'Thanh toán bằng tiền mặt',
             icon: '',
             fee: 15000
         }
@@ -589,10 +589,10 @@ export function AlternativePaymentMethods({
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Smartphone className="h-5 w-5" />
-                    Phng thc thanh ton khc
+                    Phương thức thanh toán khác
                 </CardTitle>
                 <CardDescription>
-                    Chn phng thc thanh ton ph hp vi bn
+                    Chọn phương thức thanh toán phù hợp với bạn
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -619,7 +619,7 @@ export function AlternativePaymentMethods({
                                         }).format(method.fee)}
                                     </p>
                                 ) : (
-                                    <p className="text-sm text-green-600">Min ph</p>
+                                    <p className="text-sm text-green-600">Miễn phí</p>
                                 )}
                             </div>
                         </div>

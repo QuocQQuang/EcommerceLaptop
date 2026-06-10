@@ -50,9 +50,9 @@ export default function BasicInformationSection({
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle>Thng tin c bn</CardTitle>
+                                <CardTitle>Thông tin cơ bản</CardTitle>
                                 <CardDescription>
-                                    Nhp thng tin c bn ca sn phm
+                                    Nhập thông tin cơ bản của sản phẩm
                                 </CardDescription>
                             </div>
                             {isExpanded ? (
@@ -67,12 +67,12 @@ export default function BasicInformationSection({
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">Tn sn phm *</Label>
+                                <Label htmlFor="name">Tên sản phẩm *</Label>
                                 <Input
                                     id="name"
                                     value={formData.name}
                                     onChange={(e) => onInputChange('name', e.target.value)}
-                                    placeholder="Nhp tn sn phm"
+                                    placeholder="Nhập tên sản phẩm"
                                     className={validationErrors.name ? 'border-red-500' : ''}
                                 />
                                 {validationErrors.name && (
@@ -80,7 +80,7 @@ export default function BasicInformationSection({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="sku">M SKU *</Label>
+                                <Label htmlFor="sku">Mã SKU *</Label>
                                 <Input
                                     id="sku"
                                     value={formData.sku}
@@ -96,19 +96,19 @@ export default function BasicInformationSection({
 
 
                         <div className="space-y-2">
-                            <Label htmlFor="description">M t chi tit</Label>
+                            <Label htmlFor="description">Mô tả chi tiết</Label>
                             <Textarea
                                 id="description"
                                 value={formData.description}
                                 onChange={(e) => onInputChange('description', e.target.value)}
-                                placeholder="M t chi tit v sn phm"
+                                placeholder="Mô tả chi tiết về sản phẩm"
                                 rows={4}
                             />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="price">Gi bn *</Label>
+                                <Label htmlFor="price">Giá bán *</Label>
                                 <Input
                                     id="price"
                                     type="number"
@@ -122,7 +122,7 @@ export default function BasicInformationSection({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="stock">S lng *</Label>
+                                <Label htmlFor="stock">Số lượng *</Label>
                                 <Input
                                     id="stock"
                                     type="number"
@@ -139,17 +139,17 @@ export default function BasicInformationSection({
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="weight">Trng lng</Label>
+                                <Label htmlFor="weight">Trọng lượng</Label>
                                 <Combobox
                                     options={createOptions(PRODUCT_SPECS_OPTIONS.weightRanges)}
                                     value={formData.weight}
                                     onValueChange={(value) => onInputChange('weight', value)}
-                                    placeholder="Chn trng lng..."
-                                    searchPlaceholder="Tm kim trng lng..."
+                                    placeholder="Chọn trọng lượng..."
+                                    searchPlaceholder="Tìm kiếm trọng lượng..."
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="dimensions">Kch thc</Label>
+                                <Label htmlFor="dimensions">Kích thước</Label>
                                 <Input
                                     id="dimensions"
                                     value={formData.dimensions}
@@ -161,17 +161,17 @@ export default function BasicInformationSection({
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="productType">Loi sn phm *</Label>
+                                <Label htmlFor="productType">Loại sản phẩm *</Label>
                                 <Select
                                     value={formData.productType}
                                     onValueChange={(value: 'Laptop' | 'Accessory' | 'Bundle') => onInputChange('productType', value)}
                                 >
                                     <SelectTrigger className={validationErrors.productType ? 'border-red-500' : ''}>
-                                        <SelectValue placeholder="Chn loi sn phm" />
+                                        <SelectValue placeholder="Chọn loại sản phẩm" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="Laptop">Laptop</SelectItem>
-                                        <SelectItem value="Accessory">Ph kin</SelectItem>
+                                        <SelectItem value="Accessory">Phụ kiện</SelectItem>
                                         <SelectItem value="Bundle">Combo</SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -181,14 +181,14 @@ export default function BasicInformationSection({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="categoryId">Danh mc *</Label>
+                                <Label htmlFor="categoryId">Danh mục *</Label>
                                 <div className="flex gap-2">
                                     <Select
                                         value={formData.categoryId}
                                         onValueChange={(value) => onInputChange('categoryId', value)}
                                     >
                                         <SelectTrigger className={validationErrors.categoryId ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder="Chn danh mc" />
+                                            <SelectValue placeholder="Chọn danh mục" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {categories?.map((category) => (
@@ -214,14 +214,14 @@ export default function BasicInformationSection({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="brandId">Thng hiu *</Label>
+                                <Label htmlFor="brandId">Thương hiệu *</Label>
                                 <div className="flex gap-2">
                                     <Select
                                         value={formData.brandId}
                                         onValueChange={(value) => onInputChange('brandId', value)}
                                     >
                                         <SelectTrigger className={validationErrors.brandId ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder="Chn thng hiu" />
+                                            <SelectValue placeholder="Chọn thương hiệu" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {brands?.map((brand) => (
@@ -249,7 +249,7 @@ export default function BasicInformationSection({
 
                         <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="status">Trng thi sn phm</Label>
+                                <Label htmlFor="status">Trạng thái sản phẩm</Label>
                                 <Select
                                     value={formData.status}
                                     onValueChange={(value: 'active' | 'inactive') => onInputChange('status', value)}
@@ -258,8 +258,8 @@ export default function BasicInformationSection({
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="active">ang bn</SelectItem>
-                                        <SelectItem value="inactive">Tm ngng</SelectItem>
+                                        <SelectItem value="active">Đang bán</SelectItem>
+                                        <SelectItem value="inactive">Tạm ngừng</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -293,4 +293,3 @@ export default function BasicInformationSection({
         </Card>
     );
 }
-

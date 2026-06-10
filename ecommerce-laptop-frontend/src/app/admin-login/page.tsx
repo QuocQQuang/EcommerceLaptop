@@ -27,17 +27,17 @@ export default function AdminLoginPage() {
 
   const validateForm = () => {
     if (!email || !password) {
-      setError('Email v mt khu khng c  trng');
+      setError('Email và mật khẩu không được để trống');
       return false;
     }
 
     if (!email.includes('@')) {
-      setError('Email khng hp l');
+      setError('Email không hợp lệ');
       return false;
     }
 
     if (password.length < 6) {
-      setError('Mt khu phi c t nht 6 k t');
+      setError('Mật khẩu phải có ít nhất 6 ký tự');
       return false;
     }
 
@@ -49,7 +49,7 @@ export default function AdminLoginPage() {
     setError('');
 
     if (isBlocked) {
-      setError('Ti khon  b kha do qu nhiu ln ng nhp sai. Vui lng th li sau.');
+      setError('Tài khoản đã bị khóa do quá nhiều lần đăng nhập sai. Vui lòng thử lại sau.');
       return;
     }
 
@@ -69,13 +69,13 @@ export default function AdminLoginPage() {
 
       // Handle different error types
       if (error.response?.status === 401) {
-        setError('Email hoc mt khu khng chnh xc');
+        setError('Email hoặc mật khẩu không chính xác');
       } else if (error.response?.status === 429) {
-        setError('Qu nhiu ln th ng nhp. Vui lng th li sau.');
+        setError('Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau.');
       } else if (error.response?.status === 403) {
-        setError('Ti khon khng c quyn truy cp admin');
+        setError('Tài khoản không có quyền truy cập admin');
       } else {
-        setError('C li xy ra. Vui lng th li sau.');
+        setError('Có lỗi xảy ra. Vui lòng thử lại sau.');
       }
     } finally {
       setIsLoading(false);
@@ -91,10 +91,10 @@ export default function AdminLoginPage() {
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            ng nhp Admin
+            Đăng nhập Admin
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Truy cp h thng qun tr
+            Truy cập hệ thống quản trị
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export default function AdminLoginPage() {
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Cn {MAX_ATTEMPTS - attempts} ln th trc khi b kha
+                    Còn {MAX_ATTEMPTS - attempts} lần thử trước khi bị khóa
                   </AlertDescription>
                 </Alert>
               )}
@@ -143,12 +143,12 @@ export default function AdminLoginPage() {
 
               {/* Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="password">Mt khu</Label>
+                <Label htmlFor="password">Mật khẩu</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Nhp mt khu admin"
+                    placeholder="Nhập mật khẩu admin"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading || isBlocked}
@@ -183,10 +183,10 @@ export default function AdminLoginPage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ang xc thc...
+                    đang xác thực...
                   </div>
                 ) : (
-                  'ng nhp'
+                  'Đăng nhập'
                 )}
               </Button>
             </form>
@@ -198,7 +198,7 @@ export default function AdminLoginPage() {
                 href="/"
                 className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
               >
-                 Quay v trang ch
+                 Quay về trang chủ
               </Link>
             </div>
           </CardContent>

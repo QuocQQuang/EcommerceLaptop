@@ -101,21 +101,21 @@ export async function validateFileSecurityAsync(
         // Minimal mode: only sanitize name and check extension
         if (config.minimalChecks) {
             if (!file || file.size === 0) {
-                errors.push('File khng hp l hoc rng');
+                errors.push('File không hợp lệ hoặc rỗng');
                 return { isValid: false, errors, warnings, securityScore: 0 };
             }
 
             if (config.sanitizeFilenames) {
                 sanitizedName = sanitizeFilename(file.name);
                 if (sanitizedName !== file.name) {
-                    warnings.push('Tn file  c lm sch  m bo an ton');
+                    warnings.push('Tên file đã được làm sạch để đảm bảo an toàn');
                     securityScore -= 2;
                 }
             }
 
             const fileExtension = getFileExtension(sanitizedName).toLowerCase();
             if (!config.allowedExtensions.includes(fileExtension)) {
-                errors.push(`nh dng file khng c php. Cho php: ${config.allowedExtensions.join(', ')}`);
+                errors.push(`Định dạng file không được phép. Cho phép: ${config.allowedExtensions.join(', ')}`);
                 securityScore -= 50;
             }
 
@@ -131,13 +131,13 @@ export async function validateFileSecurityAsync(
 
         // 1. Basic file validation
         if (!file || file.size === 0) {
-            errors.push('File khng hp l hoc rng');
+            errors.push('File không hợp lệ hoặc rỗng');
             return { isValid: false, errors, warnings, securityScore: 0 };
         }
 
         // 2. File size validation
         if (file.size > config.maxFileSize) {
-            errors.push(`File qu ln. Ti a: ${formatFileSize(config.maxFileSize)}`);
+            errors.push(`File quá lớn. Tối đa: ${formatFileSize(config.maxFileSize)}`);
             securityScore -= 20;
         }
 
@@ -145,7 +145,7 @@ export async function validateFileSecurityAsync(
         if (config.sanitizeFilenames) {
             sanitizedName = sanitizeFilename(file.name);
             if (sanitizedName !== file.name) {
-                warnings.push('Tn file  c lm sch  m bo an ton');
+                warnings.push('Tên file đã được làm sạch để đảm bảo an toàn');
                 securityScore -= 5;
             }
         }
@@ -153,20 +153,20 @@ export async function validateFileSecurityAsync(
         // 4. Extension validation
         const fileExtension = getFileExtension(sanitizedName).toLowerCase();
         if (!config.allowedExtensions.includes(fileExtension)) {
-            warnings.push(`nh dng file khng nm trong danh sch  xut. Cho php: ${config.allowedExtensions.join(', ')}`);
+            warnings.push(`Định dạng file không nằm trong danh sách đề xuất. Cho phép: ${config.allowedExtensions.join(', ')}`);
             securityScore -= 10;
         }
 
         // 5. MIME type validation
         if (!config.allowedMimeTypes.includes(file.type)) {
-            warnings.push(`Loi file khng nm trong danh sch  xut. Cho php: ${config.allowedMimeTypes.join(', ')}`);
+            warnings.push(`Loại file không nằm trong danh sách đề xuất. Cho phép: ${config.allowedMimeTypes.join(', ')}`);
             securityScore -= 10;
         }
 
         // 6. MIME type vs extension consistency
         const expectedExtensions = MIME_TYPE_MAP[file.type] || [];
         if (expectedExtensions.length > 0 && !expectedExtensions.includes(fileExtension)) {
-            warnings.push('nh dng file c th khng khp vi loi ni dung');
+            warnings.push('Định dạng file có thể không khớp với loại nội dung');
             securityScore -= 5;
         }
 
@@ -175,7 +175,7 @@ export async function validateFileSecurityAsync(
         if (config.checkMagicBytes) {
             detectedMimeType = await detectMimeTypeFromContent(file);
             if (detectedMimeType && detectedMimeType !== file.type) {
-                warnings.push('Loi file thc t khc vi loi file c khai bo');
+                warnings.push('Loại file thực tế khác với loại file được khai báo');
                 securityScore -= 15;
             }
         }
@@ -184,10 +184,10 @@ export async function validateFileSecurityAsync(
         if (config.scanForMalware) {
             const malwareResult = await scanForMalware(file);
             if (malwareResult.detected) {
-                errors.push(`Pht hin ni dung ng ng: ${malwareResult.threats.join(', ')}`);
+                errors.push(`Phát hiện nội dung độc hại: ${malwareResult.threats.join(', ')}`);
                 securityScore -= 50;
             } else if (malwareResult.suspicious) {
-                warnings.push('File c mt s c im ng ng');
+                warnings.push('File có một số đặc điểm độc hại');
                 securityScore -= 10;
             }
         }
@@ -204,7 +204,7 @@ export async function validateFileSecurityAsync(
                 warnings.push(...imageValidation.warnings);
             } catch {
                 // Any unexpected validation error becomes a warning in relaxed mode
-                warnings.push('Khng th xc minh nh, vn cho php upload');
+                warnings.push('Không thể xác minh ảnh, vẫn cho phép upload');
                 securityScore -= 5;
             }
         }
@@ -222,7 +222,7 @@ export async function validateFileSecurityAsync(
         console.error('File validation error:', error);
         return {
             isValid: false,
-            errors: ['Li khi kim tra file'],
+            errors: ['Lỗi khi kiểm tra file'],
             warnings,
             securityScore: 0
         };
@@ -347,11 +347,11 @@ async function validateImageSecurity(file: File): Promise<{ isValid: boolean; er
 
                 // Check for suspicious dimensions
                 if (img.width * img.height > 50_000_000) { // 50MP limit
-                    warnings.push('nh c  phn gii rt cao');
+                    warnings.push('Ảnh có độ phân giải rất cao');
                 }
 
                 if (img.width < 10 || img.height < 10) {
-                    warnings.push('nh c kch thc nh bt thng');
+                    warnings.push('Ảnh có kích thước nhỏ bất thường');
                 }
 
                 resolve();
@@ -359,13 +359,13 @@ async function validateImageSecurity(file: File): Promise<{ isValid: boolean; er
 
             img.onerror = () => {
                 URL.revokeObjectURL(objectUrl);
-                reject(new Error('Khng th ti nh'));
+                reject(new Error('Không thể tải ảnh'));
             };
 
             // Timeout after 5 seconds
             setTimeout(() => {
                 URL.revokeObjectURL(objectUrl);
-                reject(new Error('Timeout khi ti nh'));
+                reject(new Error('Timeout khi tải ảnh'));
             }, 5000);
         });
 
@@ -375,7 +375,7 @@ async function validateImageSecurity(file: File): Promise<{ isValid: boolean; er
         return { isValid: errors.length === 0, errors, warnings };
 
     } catch (error) {
-        errors.push('nh khng hp l hoc b li');
+        errors.push('Ảnh không hợp lệ hoặc bị lỗi');
         return { isValid: false, errors, warnings };
     }
 }
@@ -435,7 +435,7 @@ export const secureImageUploadSchema = z.object({
             const result = await validateFileSecurityAsync(file, SECURITY_CONFIGS.IMAGE);
             return result.isValid;
         }, {
-            message: 'File khng p ng yu cu bo mt'
+            message: 'File không đáp ứng yêu cầu bảo mật'
         })
 });
 
@@ -446,7 +446,7 @@ export const secureAvatarUploadSchema = z.object({
             const result = await validateFileSecurityAsync(file, SECURITY_CONFIGS.AVATAR);
             return result.isValid;
         }, {
-            message: 'Avatar khng p ng yu cu bo mt'
+            message: 'Avatar không đáp ứng yêu cầu bảo mật'
         })
 });
 

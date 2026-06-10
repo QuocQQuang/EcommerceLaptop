@@ -43,19 +43,19 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 const shippingSchema = z.object({
-    recipientName: z.string().min(1, 'Tn ngi nhn l bt buc'),
-    shippingAddress: z.string().min(1, 'a ch giao hng l bt buc'),
-    provinceCode: z.string().min(1, 'Tnh/Thnh ph l bt buc'),
-    districtCode: z.string().min(1, 'Qun/Huyn l bt buc'),
-    wardCode: z.string().min(1, 'Phng/X l bt buc'),
+    recipientName: z.string().min(1, 'Tên người nhận là bắt buộc'),
+    shippingAddress: z.string().min(1, 'Địa chỉ giao hàng là bắt buộc'),
+    provinceCode: z.string().min(1, 'Tỉnh/Thành phố là bắt buộc'),
+    districtCode: z.string().min(1, 'Quận/Huyện là bắt buộc'),
+    wardCode: z.string().min(1, 'Phường/Xã là bắt buộc'),
     shippingPostalCode: z.string().optional(),
     phoneNumber: z
         .string()
-        .min(10, 'S in thoi phi c t nht 10 ch s')
-        .max(15, 'S in thoi khng c qu 15 ch s')
-        .regex(/^\d{10,15}$/, 'S in thoi ch cha s'),
+        .min(10, 'Số điện thoại phải có ít nhất 10 chữ số')
+        .max(15, 'Số điện thoại không được quá 15 chữ số')
+        .regex(/^\d{10,15}$/, 'Số điện thoại chỉ chứa số'),
     paymentMethod: z.enum(['COD', 'SEPAY', 'PayPal', 'Stripe'], {
-        required_error: 'Vui lng chn phng thc thanh ton.',
+        required_error: 'Vui lòng chọn phương thức thanh toán.',
     }),
 });
 
@@ -154,10 +154,10 @@ function CheckoutContent() {
                     const match = errorMessage.match(/Available: (\d+), Requested: (\d+)/);
                     if (match) {
                         const [, available, requested] = match;
-                        throw new Error(`Sn phm khng  hng! Cn li: ${available} sn phm, bn yu cu: ${requested} sn phm.`);
+                        throw new Error(`Sản phẩm không đủ hàng! Còn lại: ${available} sản phẩm, bạn yêu cầu: ${requested} sản phẩm.`);
                     }
                 }
-                throw new Error(`Li tn kho: ${errorMessage}`);
+                throw new Error(`Lỗi tồn kho: ${errorMessage}`);
             }
 
             throw new Error('Failed to sync cart to server');
@@ -183,7 +183,7 @@ function CheckoutContent() {
 
         if (!isAuthenticated) {
             logger.warn(' Redirecting to login - not authenticated');
-            toast.info('Vui lng ng nhp  tip tc thanh ton.');
+            toast.info('Vui lòng đăng nhập để tiếp tục thanh toán.');
             router.push('/auth/login?callbackUrl=/checkout');
         } else if (itemCount === 0 && isPlacingOrder === false && !isProcessingPayment) {
             logger.warn(' Redirecting to home - empty cart and not placing order', {
@@ -191,7 +191,7 @@ function CheckoutContent() {
                 isPlacingOrder,
                 isProcessingPayment
             });
-            toast.info('Gi hng ca bn ang trng.');
+            toast.info('Giỏ hàng của bạn đang trống.');
             router.push('/');
         }
     }, [isAuthenticated, itemCount, router, isPlacingOrder, isProcessingPayment]);
@@ -295,7 +295,7 @@ function CheckoutContent() {
                 province: provinceObj?.name || '', // Tnh  Province
                 district: wardObj?.name || '', // X/Phng  District
                 postalCode: newAddressForm.postalCode,
-                country: 'Vit Nam',
+                country: 'Việt Nam',
                 isDefault: newAddressForm.isDefault,
                 // Keep original codes for frontend state management
                 wardCode: newAddressForm.wardCode,
@@ -324,9 +324,9 @@ function CheckoutContent() {
                 type: 'home',
                 isDefault: false,
             });
-            toast.success('Thm a ch mi thnh cng');
+            toast.success('Thêm địa chỉ mới thành công');
         } catch (err) {
-            toast.error('Thm a ch tht bi');
+            toast.error('Thêm địa chỉ thất bại');
         } finally {
             setIsSavingAddress(false);
         }
@@ -352,7 +352,7 @@ function CheckoutContent() {
 
     const onSubmit = async (data: ShippingFormValues) => {
         setIsPlacingOrder(true);
-        const toastId = toast.loading('ang to n hng...');
+        const toastId = toast.loading('Đang tạo đơn hàng...');
 
         const addressInfo = formatShippingAddress(data);
 
@@ -397,7 +397,7 @@ function CheckoutContent() {
                     cartData,
                     availableKeys: Object.keys(cartData)
                 });
-                throw new Error('Khng th ly ID gi hng. Vui lng th li.');
+                throw new Error('Không thể lấy ID giỏ hàng. Vui lòng thử lại.');
             }
 
             logger.info(' Checkout: Using cart ID', { cartId });
@@ -424,7 +424,7 @@ function CheckoutContent() {
                 paymentMethod: data.paymentMethod
             });
 
-            toast.success(`n hng #${orderResult.orderNumber}  c to!`, {
+            toast.success(`Đơn hàng #${orderResult.orderNumber} đã được tạo!`, {
                 id: toastId,
             });
 
@@ -474,9 +474,9 @@ function CheckoutContent() {
                         case 'VNPAY':
                             return { gateway: PaymentGateway.VnPay, method: PaymentMethod.CreditCard };
                         case 'COD':
-                            throw new Error('COD khng s dng payment gateway');
+                            throw new Error('COD không sử dụng payment gateway');
                         default:
-                            throw new Error('Phng thc thanh ton khng hp l');
+                            throw new Error('Phương thức thanh toán không hợp lệ');
                     }
                 };
 
@@ -517,7 +517,7 @@ function CheckoutContent() {
                     });
 
                     // For SEPAY, show QR code inline instead of redirect
-                    toast.success('Vui lng qut m QR  thanh ton!', { id: toastId });
+                    toast.success('Vui lòng quét mã QR để thanh toán!', { id: toastId });
 
                     // Store payment data for inline display
                     localStorage.setItem('sepayPaymentData', JSON.stringify({
@@ -552,7 +552,7 @@ function CheckoutContent() {
                         errorMessage: result.errorMessage,
                         result
                     });
-                    throw new Error(result.errorMessage || 'To phin thanh ton tht bi');
+                    throw new Error(result.errorMessage || 'Tạo phiên thanh toán thất bại');
                 }
             }
         } catch (error: any) {
@@ -565,30 +565,30 @@ function CheckoutContent() {
             const errorMessage =
                 error.response?.data?.message ||
                 error.message ||
-                'To n hng tht bi. Vui lng th li.';
+                'Tạo đơn hàng thất bại. Vui lòng thử lại.';
             // Detect email-not-verified error and show actionable toast
             const lowerMsg = (errorMessage || '').toLowerCase();
-            if (lowerMsg.includes('cha xc thc email')) {
-                toast.error('Bn cn xc thc email  tip tc thanh ton.', {
+            if (lowerMsg.includes('chưa xác thực email') || lowerMsg.includes('cha xc thc email')) {
+                toast.error('Bạn cần xác thực email để tiếp tục thanh toán.', {
                     id: toastId,
-                    description: 'Kim tra hp th  xc thc. Bn cng c th gi li email xc thc.',
+                    description: 'Kiểm tra hộp thư để xác thực. Bạn cũng có thể gửi lại email xác thực.',
                     action: {
-                        label: 'Gi li email',
+                        label: 'Gửi lại email',
                         onClick: async () => {
                             try {
                                 const email = user?.email;
                                 if (!email) {
-                                    toast.error('Khng tm thy email ti khon');
+                                    toast.error('Không tìm thấy email tài khoản');
                                     return;
                                 }
                                 const res = await userService.resendEmailConfirmation(email);
                                 if (res.success) {
-                                    toast.success(res.message || ' gi li email xc thc');
+                                    toast.success(res.message || 'đã gửi lại email xác thực');
                                 } else {
-                                    toast.error(res.message || 'Gi li email xc thc tht bi');
+                                    toast.error(res.message || 'Gửi lại email xác thực thất bại');
                                 }
                             } catch (e: any) {
-                                toast.error(e?.response?.data?.message || 'Khng th gi li email xc thc');
+                                toast.error(e?.response?.data?.message || 'Không thể gửi lại email xác thực');
                             }
                         }
                     }
@@ -620,7 +620,7 @@ function CheckoutContent() {
     return (
         <Suspense fallback={<LoadingSpinner size="lg" />}>
             <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-6">Thanh ton</h1>
+                <h1 className="text-3xl font-bold mb-6">Thanh toán</h1>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <Form {...form}>
@@ -630,7 +630,7 @@ function CheckoutContent() {
                             >
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Thng tin giao hng</CardTitle>
+                                        <CardTitle>Thông tin giao hàng</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <FormField
@@ -638,10 +638,10 @@ function CheckoutContent() {
                                             name="recipientName"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Tn ngi nhn</FormLabel>
+                                                    <FormLabel>Tên người nhận</FormLabel>
                                                     <FormControl>
                                                         <Input
-                                                            placeholder="Nguyn Vn A"
+                                                            placeholder="Nguyễn Văn A"
                                                             {...field}
                                                         />
                                                     </FormControl>
@@ -654,33 +654,33 @@ function CheckoutContent() {
                                             name="shippingAddress"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>a ch c th</FormLabel>
+                                                    <FormLabel>Địa chỉ cụ thể</FormLabel>
                                                     <FormControl>
                                                         <div className="flex flex-col space-y-2">
                                                             <div className="flex items-center space-x-2">
                                                                 <Input
-                                                                    placeholder="S nh, tn ng"
+                                                                    placeholder="Số nhà, tên đường"
                                                                     {...field}
                                                                 />
                                                                 <Dialog open={isAddAddressOpen} onOpenChange={setIsAddAddressOpen}>
                                                                     <DialogTrigger asChild>
-                                                                        <UIButton type="button" variant="outline" size="sm">Thm a ch mi</UIButton>
+                                                                        <UIButton type="button" variant="outline" size="sm">Thêm địa chỉ mới</UIButton>
                                                                     </DialogTrigger>
                                                                     <DialogContent className="max-w-md">
                                                                         <DialogHeader>
-                                                                            <DialogTitle>Thm a ch mi</DialogTitle>
+                                                                            <DialogTitle>Thêm địa chỉ mới</DialogTitle>
                                                                         </DialogHeader>
                                                                         <form onSubmit={handleAddAddress} className="space-y-3">
-                                                                            <UIInput value={newAddressForm.fullName} onChange={e => setNewAddressForm(f => ({ ...f, fullName: e.target.value }))} placeholder="H v tn" required />
-                                                                            <UIInput value={newAddressForm.phoneNumber} onChange={e => setNewAddressForm(f => ({ ...f, phoneNumber: e.target.value }))} placeholder="S in thoi" required />
-                                                                            <UIInput value={newAddressForm.address} onChange={e => setNewAddressForm(f => ({ ...f, address: e.target.value }))} placeholder="S nh, tn ng" required />
-                                                                            <ProvinceSelect value={newAddressForm.provinceCode} onValueChange={v => setNewAddressForm(f => ({ ...f, provinceCode: v, districtCode: '', wardCode: '' }))} placeholder="Chn tnh/thnh ph" />
-                                                                            <DistrictSelect provinceCode={newAddressForm.provinceCode} value={newAddressForm.districtCode} onValueChange={v => setNewAddressForm(f => ({ ...f, districtCode: v, wardCode: '' }))} placeholder="Chn qun/huyn" disabled={!newAddressForm.provinceCode} />
-                                                                            <WardSelect districtCode={newAddressForm.districtCode} value={newAddressForm.wardCode} onValueChange={v => setNewAddressForm(f => ({ ...f, wardCode: v }))} placeholder="Chn phng/x" disabled={!newAddressForm.districtCode} />
-                                                                            <UIInput value={newAddressForm.postalCode} onChange={e => setNewAddressForm(f => ({ ...f, postalCode: e.target.value }))} placeholder="M bu in" />
+                                                                            <UIInput value={newAddressForm.fullName} onChange={e => setNewAddressForm(f => ({ ...f, fullName: e.target.value }))} placeholder="Họ và tên" required />
+                                                                            <UIInput value={newAddressForm.phoneNumber} onChange={e => setNewAddressForm(f => ({ ...f, phoneNumber: e.target.value }))} placeholder="Số điện thoại" required />
+                                                                            <UIInput value={newAddressForm.address} onChange={e => setNewAddressForm(f => ({ ...f, address: e.target.value }))} placeholder="Số nhà, tên đường" required />
+                                                                            <ProvinceSelect value={newAddressForm.provinceCode} onValueChange={v => setNewAddressForm(f => ({ ...f, provinceCode: v, districtCode: '', wardCode: '' }))} placeholder="Chọn tỉnh/thành phố" />
+                                                                            <DistrictSelect provinceCode={newAddressForm.provinceCode} value={newAddressForm.districtCode} onValueChange={v => setNewAddressForm(f => ({ ...f, districtCode: v, wardCode: '' }))} placeholder="Chọn quận/huyện" disabled={!newAddressForm.provinceCode} />
+                                                                            <WardSelect districtCode={newAddressForm.districtCode} value={newAddressForm.wardCode} onValueChange={v => setNewAddressForm(f => ({ ...f, wardCode: v }))} placeholder="Chọn phường/xã" disabled={!newAddressForm.districtCode} />
+                                                                            <UIInput value={newAddressForm.postalCode} onChange={e => setNewAddressForm(f => ({ ...f, postalCode: e.target.value }))} placeholder="Mã bưu điện" />
                                                                             <DialogFooter>
-                                                                                <UIButton type="button" variant="outline" onClick={() => setIsAddAddressOpen(false)}>Hy</UIButton>
-                                                                                <UIButton type="submit" disabled={isSavingAddress}>Lu</UIButton>
+                                                                                <UIButton type="button" variant="outline" onClick={() => setIsAddAddressOpen(false)}>Hủy</UIButton>
+                                                                                <UIButton type="submit" disabled={isSavingAddress}>Lưu</UIButton>
                                                                             </DialogFooter>
                                                                         </form>
                                                                     </DialogContent>
@@ -707,7 +707,7 @@ function CheckoutContent() {
                                                                             <div className="text-left">
                                                                                 <div className="font-medium">{a.fullName}</div>
                                                                                 <div className="text-sm text-gray-600">{fullAddress}</div>
-                                                                                {a.isDefault && <span className="text-xs text-blue-600">(Mc nh)</span>}
+                                                                                {a.isDefault && <span className="text-xs text-blue-600">(Mặc định)</span>}
                                                                             </div>
                                                                         </button>
                                                                     );
@@ -726,7 +726,7 @@ function CheckoutContent() {
                                                 name="provinceCode"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Tnh/Thnh ph *</FormLabel>
+                                                        <FormLabel>Tỉnh/Thành phố *</FormLabel>
                                                         <FormControl>
                                                             <ProvinceSelect
                                                                 value={field.value}
@@ -735,7 +735,7 @@ function CheckoutContent() {
                                                                     form.setValue('districtCode', '');
                                                                     form.setValue('wardCode', '');
                                                                 }}
-                                                                placeholder="Chn tnh/thnh ph"
+                                                                placeholder="Chọn tỉnh/thành phố"
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -747,7 +747,7 @@ function CheckoutContent() {
                                                 name="districtCode"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Qun/Huyn *</FormLabel>
+                                                        <FormLabel>Quận/Huyện *</FormLabel>
                                                         <FormControl>
                                                             <DistrictSelect
                                                                 provinceCode={form.watch('provinceCode')}
@@ -756,7 +756,7 @@ function CheckoutContent() {
                                                                     field.onChange(value);
                                                                     form.setValue('wardCode', '');
                                                                 }}
-                                                                placeholder="Chn qun/huyn"
+                                                                placeholder="Chọn quận/huyện"
                                                                 disabled={!form.watch('provinceCode')}
                                                             />
                                                         </FormControl>
@@ -769,13 +769,13 @@ function CheckoutContent() {
                                                 name="wardCode"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Phng/X *</FormLabel>
+                                                        <FormLabel>Phường/Xã *</FormLabel>
                                                         <FormControl>
                                                             <WardSelect
                                                                 districtCode={form.watch('districtCode')}
                                                                 value={field.value}
                                                                 onValueChange={field.onChange}
-                                                                placeholder="Chn phng/x"
+                                                                placeholder="Chọn phường/xã"
                                                                 disabled={!form.watch('districtCode')}
                                                             />
                                                         </FormControl>
@@ -789,7 +789,7 @@ function CheckoutContent() {
                                             name="phoneNumber"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>S in thoi</FormLabel>
+                                                    <FormLabel>Số điện thoại</FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             placeholder="09xxxxxxxx"
@@ -805,7 +805,7 @@ function CheckoutContent() {
 
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Ch  thanh ton</CardTitle>
+                                        <CardTitle>Chế độ thanh toán</CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-4">
                                         <div className="flex items-center space-x-2">
@@ -818,18 +818,18 @@ function CheckoutContent() {
                                                 htmlFor="environment-toggle"
                                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                             >
-                                                {environment === 'sandbox' ? 'Ch  Test (Sandbox)' : 'Ch  Thc t (Production)'}
+                                                {environment === 'sandbox' ? 'Chế độ Test (Sandbox)' : 'Chế độ Thực tế (Production)'}
                                             </label>
                                         </div>
                                         <p className="text-sm text-muted-foreground mt-1">
-                                            {environment === 'sandbox' ? 'S dng d liu test, khng tr tin tht.' : 'Thanh ton thc t vi tin tht.'}
+                                            {environment === 'sandbox' ? 'Sử dụng dữ liệu test, không trả tiền thật.' : 'Thanh toán thực tế với tiền thật.'}
                                         </p>
                                     </CardContent>
                                 </Card>
 
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Phng thc thanh ton</CardTitle>
+                                        <CardTitle>Phương thức thanh toán</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <FormField
@@ -837,7 +837,7 @@ function CheckoutContent() {
                                             name="paymentMethod"
                                             render={({ field }) => (
                                                 <FormItem className="space-y-2">
-                                                    <FormLabel>Chn phng thc thanh ton</FormLabel>
+                                                    <FormLabel>Chọn phương thức thanh toán</FormLabel>
                                                     <FormControl>
                                                         <RadioGroup
                                                             onValueChange={field.onChange}
@@ -853,8 +853,8 @@ function CheckoutContent() {
                                                                         <span className="text-sm font-medium">COD</span>
                                                                     </div>
                                                                     <div>
-                                                                        <h3 className="font-medium">Thanh ton khi nhn hng</h3>
-                                                                        <p className="text-sm text-muted-foreground">An ton v tin li</p>
+                                                                        <h3 className="font-medium">Thanh toán khi nhận hàng</h3>
+                                                                        <p className="text-sm text-muted-foreground">An toàn và tiện lợi</p>
                                                                     </div>
                                                                 </div>
                                                             </FormItem>
@@ -869,7 +869,7 @@ function CheckoutContent() {
                                                                     </div>
                                                                     <div>
                                                                         <h3 className="font-medium">SePay</h3>
-                                                                        <p className="text-sm text-muted-foreground">Chuyn khon ngn hng qua QR</p>
+                                                                        <p className="text-sm text-muted-foreground">Chuyển khoản ngân hàng qua QR</p>
                                                                     </div>
                                                                 </div>
                                                             </FormItem>
@@ -883,7 +883,7 @@ function CheckoutContent() {
                                                                     </div>
                                                                     <div>
                                                                         <h3 className="font-medium">Stripe</h3>
-                                                                        <p className="text-sm text-muted-foreground">Thanh ton bng th tn dng/ghi n</p>
+                                                                        <p className="text-sm text-muted-foreground">Thanh toán bằng thẻ tín dụng/ghi nợ</p>
                                                                     </div>
                                                                 </div>
                                                             </FormItem>
@@ -897,7 +897,7 @@ function CheckoutContent() {
                                                                     </div>
                                                                     <div>
                                                                         <h3 className="font-medium">PayPal</h3>
-                                                                        <p className="text-sm text-muted-foreground">Thanh ton an ton qua cng PayPal</p>
+                                                                        <p className="text-sm text-muted-foreground">Thanh toán an toàn qua cổng PayPal</p>
                                                                     </div>
                                                                 </div>
                                                             </FormItem>
@@ -919,7 +919,7 @@ function CheckoutContent() {
                                     {isPlacingOrder ? (
                                         <LoadingSpinner />
                                     ) : (
-                                        't hng & Thanh ton'
+                                        'Đặt hàng & Thanh toán'
                                     )}
                                 </Button>
                             </form>
@@ -929,9 +929,9 @@ function CheckoutContent() {
                     <div className="lg:col-span-1">
                         <Card className="sticky top-24">
                             <CardHeader>
-                                <CardTitle>Tm tt n hng</CardTitle>
+                                <CardTitle>Tóm tắt đơn hàng</CardTitle>
                                 <CardDescription>
-                                    {itemCount} sn phm
+                                    {itemCount} sản phẩm
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -971,16 +971,16 @@ function CheckoutContent() {
                                 <Separator />
                                 <div className="space-y-2">
                                     <div className="flex justify-between">
-                                        <span>Tm tnh</span>
+                                        <span>Tạm tính</span>
                                         <span>{formatCurrencyPrice(total, selectedCurrency)}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span>Ph vn chuyn</span>
-                                        <span>Min ph</span>
+                                        <span>Phí vận chuyển</span>
+                                        <span>Miễn phí</span>
                                     </div>
                                     <Separator />
                                     <div className="flex justify-between text-lg font-bold">
-                                        <span>Tng cng</span>
+                                        <span>Tổng cộng</span>
                                         <span>{formatCurrencyPrice(total, selectedCurrency)}</span>
                                     </div>
                                 </div>

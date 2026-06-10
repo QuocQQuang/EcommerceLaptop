@@ -133,8 +133,8 @@ const CustomerManagementDashboard: React.FC = () => {
     } catch (error) {
       if (logger) logger.error('Error initializing dashboard', { error });
       toast({
-        title: "Li",
-        description: "Khng th khi to bng iu khin qun l khch hng",
+        title: "Lỗi",
+        description: "Không thể khởi tạo bảng điều khiển quản lý khách hàng",
         variant: "destructive",
       });
     } finally {
@@ -164,8 +164,8 @@ const CustomerManagementDashboard: React.FC = () => {
       const mockCustomers: CustomerManagementDto[] = [
         {
           id: 1,
-          firstName: "Nguyn",
-          lastName: "Vn A",
+          firstName: "Nguyễn",
+          lastName: "Văn A",
           email: "nguyenvana@example.com",
           maskedEmail: "ng***@***.com",
           phoneNumber: "0123456789",
@@ -188,8 +188,8 @@ const CustomerManagementDashboard: React.FC = () => {
         },
         {
           id: 2,
-          firstName: "Trn",
-          lastName: "Th B",
+          firstName: "Trần",
+          lastName: "Thị B",
           email: "tranthib@example.com",
           maskedEmail: "tr***@***.com",
           phoneNumber: "0987654321",
@@ -233,8 +233,8 @@ const CustomerManagementDashboard: React.FC = () => {
       await customerService.deactivateCustomer(customerId, "Deactivated by admin");
 
       toast({
-        title: "Thnh cng",
-        description: " v hiu ha ti khon khch hng",
+        title: "Thành công",
+        description: "Đã vô hiệu hóa tài khoản khách hàng",
         variant: "success",
       });
 
@@ -243,8 +243,8 @@ const CustomerManagementDashboard: React.FC = () => {
     } catch (error) {
       if (logger) logger.error('Error deactivating customer', { error });
       toast({
-        title: "Li",
-        description: "Khng th v hiu ha ti khon khch hng",
+        title: "Lỗi",
+        description: "Không thể vô hiệu hóa tài khoản khách hàng",
         variant: "destructive",
       });
     }
@@ -255,8 +255,8 @@ const CustomerManagementDashboard: React.FC = () => {
       await customerService.reactivateCustomer(customerId, "Reactivated by admin");
 
       toast({
-        title: "Thnh cng",
-        description: " kch hot li ti khon khch hng",
+        title: "Thành công",
+        description: "Đã kích hoạt lại tài khoản khách hàng",
         variant: "success",
       });
 
@@ -265,8 +265,8 @@ const CustomerManagementDashboard: React.FC = () => {
     } catch (error) {
       if (logger) logger.error('Error reactivating customer', { error });
       toast({
-        title: "Li",
-        description: "Khng th kch hot li ti khon khch hng",
+        title: "Lỗi",
+        description: "Không thể kích hoạt lại tài khoản khách hàng",
         variant: "destructive",
       });
     }
@@ -291,8 +291,8 @@ const CustomerManagementDashboard: React.FC = () => {
     );
 
     toast({
-      title: "Thnh cng",
-      description: " cp nht thng tin khch hng",
+      title: "Thành công",
+      description: "Đã cập nhật thông tin khách hàng",
       variant: "success",
     });
   };
@@ -320,15 +320,15 @@ const CustomerManagementDashboard: React.FC = () => {
       window.URL.revokeObjectURL(url);
 
       toast({
-        title: "Thnh cng",
-        description: " xut danh sch khch hng",
+        title: "Thành công",
+        description: "Đã xuất danh sách khách hàng",
         variant: "success",
       });
     } catch (error) {
       if (logger) logger.error('Error exporting customers', { error });
       toast({
-        title: "Li",
-        description: "Khng th xut danh sch khch hng",
+        title: "Lỗi",
+        description: "Không thể xuất danh sách khách hàng",
         variant: "destructive",
       });
     }
@@ -337,16 +337,16 @@ const CustomerManagementDashboard: React.FC = () => {
   const handleBulkOperations = async () => {
     if (selectedCustomers.length === 0) {
       toast({
-        title: "Thng bo",
-        description: "Vui lng chn t nht mt khch hng",
+        title: "Thông báo",
+        description: "Vui lòng chọn ít nhất một khách hàng",
       });
       return;
     }
 
     // This is a placeholder - you can implement specific bulk operations
     toast({
-      title: "Thng bo",
-      description: ` chn ${selectedCustomers.length} khch hng  thc hin thao tc hng lot`,
+      title: "Thông báo",
+      description: `Đã chọn ${selectedCustomers.length} khách hàng để thực hiện thao tác hàng loạt`,
     });
   };
 
@@ -364,7 +364,7 @@ const CustomerManagementDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-lg">ang ti bng iu khin qun l khch hng...</div>
+        <div className="text-lg">Đang tải bảng điều khiển quản lý khách hàng...</div>
       </div>
     );
   }
@@ -373,8 +373,8 @@ const CustomerManagementDashboard: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">T chi truy cp</h2>
-          <p className="text-gray-600">Bn khng c quyn truy cp chc nng qun l khch hng.</p>
+          <h2 className="text-xl font-semibold mb-2">Từ chối truy cập</h2>
+          <p className="text-gray-600">Bạn không có quyền truy cập chức năng quản lý khách hàng.</p>
         </div>
       </div>
     );
@@ -384,16 +384,16 @@ const CustomerManagementDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Qun l khch hng</h1>
+        <h1 className="text-3xl font-bold">Quản lý khách hàng</h1>
         <div className="flex gap-2">
           {permissions.canExport && (
             <Button variant="outline" onClick={handleExportCustomers}>
-              Xut danh sch admin
+              Xuất danh sách admin
             </Button>
           )}
           {permissions.canManage && (
             <Button onClick={handleBulkOperations}>
-              Thao tc hng lot ({selectedCustomers.length})
+              Thao tác hàng loạt ({selectedCustomers.length})
             </Button>
           )}
         </div>
@@ -404,46 +404,46 @@ const CustomerManagementDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tng s khch hng</CardTitle>
+              <CardTitle className="text-sm font-medium">Tổng số khách hàng</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{statistics.totalCustomers}</div>
               <p className="text-xs text-muted-foreground">
-                {statistics.activeCustomers} ang hot ng
+                {statistics.activeCustomers} đang hoạt động
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Khch hng mi trong thng</CardTitle>
+              <CardTitle className="text-sm font-medium">Khách hàng mới trong tháng</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{statistics.newCustomersThisMonth}</div>
               <p className="text-xs text-muted-foreground">
-                {statistics.newCustomersToday} hm nay
+                {statistics.newCustomersToday} hôm nay
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Gi tr trung bnh</CardTitle>
+              <CardTitle className="text-sm font-medium">Giá trị trung bình</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(statistics.averageCustomerValue)}</div>
-              <p className="text-xs text-muted-foreground">mi khch hng</p>
+              <p className="text-xs text-muted-foreground">mỗi khách hàng</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Email  xc minh</CardTitle>
+              <CardTitle className="text-sm font-medium">Email đã xác minh</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{statistics.emailVerifiedCustomers}</div>
               <p className="text-xs text-muted-foreground">
-                {statistics.unverifiedCustomers} cha xc minh
+                {statistics.unverifiedCustomers} chưa xác minh
               </p>
             </CardContent>
           </Card>
@@ -455,12 +455,12 @@ const CustomerManagementDashboard: React.FC = () => {
         <CardContent className="pt-6">
           <div className="flex gap-4">
             <Input
-              placeholder="Tm khch hng theo tn hoc email..."
+              placeholder="Tìm khách hàng theo tên hoặc email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1"
             />
-            <Button onClick={handleSearch}>Tm kim</Button>
+            <Button onClick={handleSearch}>Tìm kiếm</Button>
           </div>
         </CardContent>
       </Card>
@@ -468,7 +468,7 @@ const CustomerManagementDashboard: React.FC = () => {
       {/* Customer List */}
       <Card>
         <CardHeader>
-          <CardTitle>Khch hng ({totalCount})</CardTitle>
+          <CardTitle>Khách hàng ({totalCount})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -486,10 +486,10 @@ const CustomerManagementDashboard: React.FC = () => {
                     </div>
                     <div className="flex gap-2">
                       <Badge variant={customer.isActive ? "default" : "secondary"}>
-                        {customer.isActive ? "ang hot ng" : "Ngng hot ng"}
+                        {customer.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
                       </Badge>
                       <Badge variant={customer.emailConfirmed ? "default" : "destructive"}>
-                        {customer.emailConfirmed ? " xc minh" : "Cha xc minh"}
+                        {customer.emailConfirmed ? "Đã xác minh" : "Chưa xác minh"}
                       </Badge>
                       {customer.vipTierName && (
                         <Badge variant="outline">{customer.vipTierName}</Badge>
@@ -497,11 +497,11 @@ const CustomerManagementDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="mt-2 text-sm text-gray-500">
-                    <span>n hng: {customer.totalOrders}</span>
-                    <span className="ml-4">Chi tiu: {formatCurrency(customer.totalSpent)}</span>
+                    <span>Đơn hàng: {customer.totalOrders}</span>
+                    <span className="ml-4">Chi tiêu: {formatCurrency(customer.totalSpent)}</span>
                     <span className="ml-4">Tham gia: {formatDate(customer.createdAt)}</span>
                     {customer.lastLoginAt && (
-                      <span className="ml-4">ng nhp gn nht: {formatDate(customer.lastLoginAt)}</span>
+                      <span className="ml-4">Đăng nhập gần nhất: {formatDate(customer.lastLoginAt)}</span>
                     )}
                   </div>
                 </div>
@@ -512,7 +512,7 @@ const CustomerManagementDashboard: React.FC = () => {
                     size="sm"
                     onClick={() => handleViewCustomerDetail(customer.id)}
                   >
-                    Xem chi tit
+                    Xem chi tiết
                   </Button>
                   {permissions.canWrite && (
                     <Button
@@ -520,7 +520,7 @@ const CustomerManagementDashboard: React.FC = () => {
                       size="sm"
                       onClick={() => handleEditCustomer(customer.id)}
                     >
-                      Chnh sa
+                      Chỉnh sửa
                     </Button>
                   )}
                   {permissions.canDelete && customer.isActive && (
@@ -529,7 +529,7 @@ const CustomerManagementDashboard: React.FC = () => {
                       size="sm"
                       onClick={() => handleDeactivateCustomer(customer.id)}
                     >
-                      V hiu ha
+                      Vô hiệu hóa
                     </Button>
                   )}
                   {permissions.canManage && !customer.isActive && (
@@ -538,7 +538,7 @@ const CustomerManagementDashboard: React.FC = () => {
                       size="sm"
                       onClick={() => handleReactivateCustomer(customer.id)}
                     >
-                      Kch hot li
+                      Kích hoạt lại
                     </Button>
                   )}
                 </div>
@@ -549,7 +549,7 @@ const CustomerManagementDashboard: React.FC = () => {
           {/* Pagination */}
           <div className="flex justify-between items-center mt-6">
             <div className="text-sm text-gray-500">
-              Hin th {((currentPage - 1) * pageSize) + 1} n {Math.min(currentPage * pageSize, totalCount)} trong tng s {totalCount} khch hng
+              Hiển thị {((currentPage - 1) * pageSize) + 1} đến {Math.min(currentPage * pageSize, totalCount)} trong tổng số {totalCount} khách hàng
             </div>
             <div className="flex gap-2">
               <Button
@@ -558,7 +558,7 @@ const CustomerManagementDashboard: React.FC = () => {
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
               >
-                Trc
+                Trước
               </Button>
               <Button
                 variant="outline"

@@ -118,7 +118,7 @@ export default function UnsplashImagePicker({ onImageSelect, trigger }: Unsplash
 
         } catch (error) {
             console.error('Error searching images:', error);
-            toast.error('Khng th ti nh t Unsplash. Vui lng kim tra cu hnh API key.');
+            toast.error('Không thể tải ảnh từ Unsplash. Vui lòng kiểm tra cấu hình API key.');
 
             // Fallback to mock data on error
             setIsUsingMockData(true);
@@ -169,7 +169,7 @@ export default function UnsplashImagePicker({ onImageSelect, trigger }: Unsplash
         setOpen(false);
         setSelectedImage(null);
         setCustomAltText('');
-        toast.success('nh  c chn vo bi vit');
+        toast.success('Ảnh đã được chèn vào bài viết');
     };
 
     const handleSearch = (e: React.FormEvent) => {
@@ -192,7 +192,7 @@ export default function UnsplashImagePicker({ onImageSelect, trigger }: Unsplash
                 {trigger || (
                     <Button variant="outline" size="sm">
                         <ImageIcon className="w-4 h-4 mr-2" />
-                        Chn nh t Unsplash
+                        Chèn ảnh từ Unsplash
                     </Button>
                 )}
             </DialogTrigger>
@@ -200,15 +200,15 @@ export default function UnsplashImagePicker({ onImageSelect, trigger }: Unsplash
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <ImageIcon className="w-5 h-5" />
-                        Chn nh t Unsplash
+                        Chèn ảnh từ Unsplash
                     </DialogTitle>
                     <DialogDescription>
-                        Tm kim v chn nh min ph t Unsplash  chn vo bi vit
+                        Tìm kiếm và chọn ảnh miễn phí từ Unsplash để chèn vào bài viết
                     </DialogDescription>
                     {isUsingMockData && (
                         <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
                             <p className="text-sm text-amber-800">
-                                <strong>Demo Mode:</strong> ang s dng nh mu.  s dng Unsplash API thc t,
+                                <strong>Demo Mode:</strong> Đang sử dụng ảnh mẫu. Để sử dụng Unsplash API thực tế,
                             </p>
                         </div>
                     )}
@@ -220,7 +220,7 @@ export default function UnsplashImagePicker({ onImageSelect, trigger }: Unsplash
                         <div className="flex-1 relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <Input
-                                placeholder="Tm kim nh..."
+                                placeholder="Tìm kiếm ảnh..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-10"
@@ -228,13 +228,13 @@ export default function UnsplashImagePicker({ onImageSelect, trigger }: Unsplash
                         </div>
                         <Button type="submit" disabled={loading}>
                             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                            Tm kim
+                            Tìm kiếm
                         </Button>
                     </form>
 
                     {/* Popular Terms */}
                     <div className="flex flex-wrap gap-2">
-                        <span className="text-sm text-gray-600">Tm kim ph bin:</span>
+                        <span className="text-sm text-gray-600">Tìm kiếm phổ biến:</span>
                         {popularTerms.map(term => (
                             <Badge
                                 key={term}
@@ -294,7 +294,7 @@ export default function UnsplashImagePicker({ onImageSelect, trigger }: Unsplash
                         ) : (
                             <div className="text-center py-8 text-gray-500">
                                 <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                <p>Cha c nh no. Hy th tm kim!</p>
+                                <p>Chưa có ảnh nào. Hãy thử tìm kiếm!</p>
                             </div>
                         )}
                     </div>
@@ -303,7 +303,7 @@ export default function UnsplashImagePicker({ onImageSelect, trigger }: Unsplash
                     {selectedImage && (
                         <Card className="border-blue-200 bg-blue-50">
                             <CardHeader>
-                                <CardTitle className="text-sm">nh  chn</CardTitle>
+                                <CardTitle className="text-sm">Ảnh đã chọn</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex gap-4">
@@ -327,19 +327,19 @@ export default function UnsplashImagePicker({ onImageSelect, trigger }: Unsplash
                                                 className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
                                             >
                                                 <ExternalLink className="w-3 h-3" />
-                                                Xem trn Unsplash
+                                                Xem trên Unsplash
                                             </a>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="alt-text">Alt text (m t nh)</Label>
+                                    <Label htmlFor="alt-text">Alt text (mô tả ảnh)</Label>
                                     <Input
                                         id="alt-text"
                                         value={customAltText}
                                         onChange={(e) => setCustomAltText(e.target.value)}
-                                        placeholder="M t nh cho ngi khim th..."
+                                        placeholder="Mô tả ảnh cho người khiếm thị..."
                                         className="mt-1"
                                     />
                                 </div>
@@ -349,11 +349,11 @@ export default function UnsplashImagePicker({ onImageSelect, trigger }: Unsplash
                                         variant="outline"
                                         onClick={() => setSelectedImage(null)}
                                     >
-                                        Hy
+                                        Hủy
                                     </Button>
                                     <Button onClick={handleConfirmSelection}>
                                         <Download className="w-4 h-4 mr-2" />
-                                        Chn nh
+                                        Chèn ảnh
                                     </Button>
                                 </div>
                             </CardContent>

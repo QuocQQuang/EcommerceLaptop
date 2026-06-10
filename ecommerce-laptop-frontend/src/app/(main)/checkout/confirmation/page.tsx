@@ -51,7 +51,7 @@ function OrderConfirmationContent() {
                             userId: user?.id,
                             orderUserId: res.customerId
                         });
-                        toast.error('Bn khng c quyn truy cp n hng ny.');
+                        toast.error('Bạn không có quyền truy cập đơn hàng này.');
                         router.push('/account/orders');
                         return;
                     }
@@ -63,7 +63,7 @@ function OrderConfirmationContent() {
                             status: res.status,
                             paymentStatus: res.paymentStatus
                         });
-                        toast.success('n hng  c xc nhn thnh cng!');
+                        toast.success('Đơn hàng đã được xác nhận thành công!');
                         // Show success on this page
                         return;
                     }
@@ -74,7 +74,7 @@ function OrderConfirmationContent() {
                             status: res.status,
                             paymentStatus: res.paymentStatus
                         });
-                        toast.error('Trng thi n hng khng hp l cho trang xc nhn.');
+                        toast.error('Trạng thái đơn hàng không hợp lệ cho trang xác nhận.');
                         router.push('/account/orders');
                         return;
                     }
@@ -92,7 +92,7 @@ function OrderConfirmationContent() {
                         orderId,
                         error: error instanceof Error ? error.message : 'Unknown error'
                     });
-                    toast.error('Khng th ti thng tin n hng');
+                    toast.error('Không thể tải thông tin đơn hàng');
                     router.push('/account/orders');
                 } finally {
                     setIsLoading(false);
@@ -103,7 +103,7 @@ function OrderConfirmationContent() {
             fetchOrder();
         } else {
             logger.error(' Order Confirmation: Invalid order ID', { orderId });
-            toast.error('ID n hng khng hp l');
+            toast.error('ID đơn hàng không hợp lệ');
             router.push('/checkout');
         }
     }, [orderId, router, user]);
@@ -131,7 +131,7 @@ function OrderConfirmationContent() {
         <div className="container mx-auto px-4 py-8">
             <Link href="/account/orders" className="flex items-center text-muted-foreground hover:text-foreground mb-6">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Xem tt c n hng
+                Xem tất cả đơn hàng
             </Link>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -140,7 +140,7 @@ function OrderConfirmationContent() {
                         <CardHeader>
                             <CardTitle className="flex items-center">
                                 {isSuccess ? <PackageCheck className="h-5 w-5 mr-2 text-green-500" /> : <Truck className="h-5 w-5 mr-2 text-yellow-500" />}
-                                Xc nhn n hng
+                                Xác nhận đơn hàng
                             </CardTitle>
                             <CardDescription>
                                 n hng #{order.orderNumber} - {formatCurrencyPrice(order.totalAmount, selectedCurrency)}
@@ -148,19 +148,19 @@ function OrderConfirmationContent() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="space-y-4">
-                                <h3 className="font-semibold">Trng thi n hng</h3>
+                                <h3 className="font-semibold">Trạng thái đơn hàng</h3>
                                 <Badge variant={isSuccess ? 'default' : 'secondary'}>
                                     {order.status}
                                 </Badge>
                                 <p className="text-sm text-muted-foreground">
-                                    {isSuccess ? 'Thanh ton  c xc nhn thnh cng!' : 'n hng ang ch x l. Chng ti s cp nht trng thi sm.'}
+                                    {isSuccess ? 'Thanh toán đã được xác nhận thành công!' : 'Đơn hàng đang chờ xử lý. Chúng tôi sẽ cập nhật trạng thái sớm.'}
                                 </p>
                                 {order.status === 'Pending' && (
                                     <div className="mt-4 p-3 bg-blue-50 rounded-md">
-                                        <p className="text-sm font-medium text-blue-800 mb-2">n hng cha thanh ton</p>
+                                        <p className="text-sm font-medium text-blue-800 mb-2">Đơn hàng chưa thanh toán</p>
                                         <Button asChild variant="outline" size="sm">
                                             <Link href={`/payment/${order.paymentMethod.toLowerCase()}?orderId=${order.id}&env=sandbox`}>
-                                                Thanh ton li ({order.paymentMethod})
+                                                Thanh toán lại ({order.paymentMethod})
                                             </Link>
                                         </Button>
                                     </div>
@@ -168,22 +168,22 @@ function OrderConfirmationContent() {
                             </div>
 
                             <div className="space-y-4">
-                                <h3 className="font-semibold">Chi tit n hng</h3>
+                                <h3 className="font-semibold">Chi tiết đơn hàng</h3>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                        <p className="text-muted-foreground">M n hng:</p>
+                                        <p className="text-muted-foreground">Mã đơn hàng:</p>
                                         <p className="font-medium">{order.orderNumber}</p>
                                     </div>
                                     <div>
-                                        <p className="text-muted-foreground">Ngy t hng:</p>
+                                        <p className="text-muted-foreground">Ngày đặt hàng:</p>
                                         <p>{new Date(order.createdAt).toLocaleDateString('vi-VN')}</p>
                                     </div>
                                     <div>
-                                        <p className="text-muted-foreground">Phng thc thanh ton:</p>
+                                        <p className="text-muted-foreground">Phương thức thanh toán:</p>
                                         <p>{order.paymentMethod}</p>
                                     </div>
                                     <div>
-                                        <p className="text-muted-foreground">a ch giao hng:</p>
+                                        <p className="text-muted-foreground">Địa chỉ giao hàng:</p>
                                         <div className="text-sm">
                                             {formatAddressParts(order.shippingAddress).full}
                                         </div>
@@ -192,7 +192,7 @@ function OrderConfirmationContent() {
                             </div>
 
                             <div className="space-y-4">
-                                <h3 className="font-semibold">Sn phm trong n hng</h3>
+                                <h3 className="font-semibold">Sản phẩm trong đơn hàng</h3>
                                 <div className="space-y-3">
                                     {order.items.map((item) => (
                                         <div key={item.id} className="flex items-center space-x-4 p-3 border rounded-md">
@@ -210,16 +210,16 @@ function OrderConfirmationContent() {
                                 <Separator />
                                 <div className="space-y-2">
                                     <div className="flex justify-between">
-                                        <span>Tm tnh</span>
+                                        <span>Tạm tính</span>
                                         <span>{formatCurrencyPrice(order.subtotal, selectedCurrency)}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span>Ph vn chuyn</span>
-                                        <span>Min ph</span>
+                                        <span>Phí vận chuyển</span>
+                                        <span>Miễn phí</span>
                                     </div>
                                     <Separator />
                                     <div className="flex justify-between text-lg font-bold">
-                                        <span>Tng cng</span>
+                                        <span>Tổng cộng</span>
                                         <span>{formatCurrencyPrice(order.totalAmount, selectedCurrency)}</span>
                                     </div>
                                 </div>
@@ -228,7 +228,7 @@ function OrderConfirmationContent() {
                             <div className="flex space-x-3">
                                 <Button asChild>
                                     <Link href={`/account/orders/${order.id}`}>
-                                        Theo di n hng
+                                        Theo dõi đơn hàng
                                     </Link>
                                 </Button>
                                 {isSuccess && (
@@ -245,13 +245,13 @@ function OrderConfirmationContent() {
                 <div className="lg:col-span-1">
                     <Card className="sticky top-24">
                         <CardHeader>
-                            <CardTitle>Hng dn theo di</CardTitle>
+                            <CardTitle>Hướng dẫn theo dõi</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
-                            <p> Bn s nhn c email xc nhn trong vi pht</p>
-                            <p> Theo di trng thi n hng trong ti khon ca bn</p>
-                            <p> c tnh giao hng: 2-5 ngy lm vic</p>
-                            <p> Min ph vn chuyn cho tt c n hng</p>
+                            <p> Bạn sẽ nhận được email xác nhận trong vài phút</p>
+                            <p> Theo dõi trạng thái đơn hàng trong tài khoản của bạn</p>
+                            <p> Dự kiến giao hàng: 2-5 ngày làm việc</p>
+                            <p> Miễn phí vận chuyển cho tất cả đơn hàng</p>
                         </CardContent>
                     </Card>
                 </div>

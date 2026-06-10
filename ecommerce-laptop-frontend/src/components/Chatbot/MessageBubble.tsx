@@ -56,7 +56,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                                     ),
                                 }}
                             >
-                                {message.content.replace(/(ng nhp|login)/gi, '[$1](/auth?mode=login)').replace(/(ng k|register|to ti khon)/gi, '[$1](/auth?mode=register)')}
+                                {message.content.replace(/(đăng nhập|login)/gi, '[$1](/auth?mode=login)').replace(/(đăng ký|register|tạo tài khoản)/gi, '[$1](/auth?mode=register)')}
                             </ReactMarkdown>
                         </div>
                     ) : (

@@ -217,13 +217,13 @@ export function ProtectedAdminRoute({
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-2">Truy cp b t chi</h1>
-          <p className="text-muted-foreground">Ti khon khch hng khng c quyn truy cp vo trang qun tr.</p>
+          <h1 className="text-2xl font-bold text-destructive mb-2">Truy cập bị từ chối</h1>
+          <p className="text-muted-foreground">Tài khoản khách hàng không có quyền truy cập vào trang quản trị.</p>
           <button
             onClick={() => window.location.href = '/'}
             className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
           >
-            V trang ch
+            Về trang chủ
           </button>
         </div>
       </div>
@@ -237,8 +237,8 @@ export function ProtectedAdminRoute({
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-destructive mb-2">Khng c quyn truy cp</h1>
-            <p className="text-muted-foreground">Bn khng c quyn truy cp vo trang ny.</p>
+            <h1 className="text-2xl font-bold text-destructive mb-2">Không có quyền truy cập</h1>
+            <p className="text-muted-foreground">Bạn không có quyền truy cập vào trang này.</p>
           </div>
         </div>
       );
@@ -252,8 +252,8 @@ export function ProtectedAdminRoute({
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-destructive mb-2">Khng c quyn truy cp</h1>
-            <p className="text-muted-foreground">Bn khng c quyn thc hin hnh ng ny.</p>
+            <h1 className="text-2xl font-bold text-destructive mb-2">Không có quyền truy cập</h1>
+            <p className="text-muted-foreground">Bạn không có quyền thực hiện hành động này.</p>
           </div>
         </div>
       );
@@ -322,56 +322,56 @@ export const getAdminMenuItems = (user: AdminUser | null) => {
     },
     {
       id: 'users',
-      label: 'Qun l Admin',
+      label: 'Quản lý Admin',
       icon: 'Users',
       href: '/admin/users',
       requiredPermission: PERMISSIONS.USERS_READ,
     },
     {
       id: 'customers',
-      label: 'Qun l khch hng',
+      label: 'Quản lý khách hàng',
       icon: 'Users',
       href: '/admin/customers',
       requiredPermission: null,
     },
     {
       id: 'roles',
-      label: 'Qun l vai tr',
+      label: 'Quản lý vai trò',
       icon: 'Shield',
       href: '/admin/roles',
       requiredPermission: PERMISSIONS.ROLES_READ,
     },
     {
       id: 'products',
-      label: 'Sn phm',
+      label: 'Sản phẩm',
       icon: 'Package',
       href: '/admin/products',
       requiredPermission: PERMISSIONS.PRODUCTS_READ,
     },
     {
       id: 'orders',
-      label: 'n hng',
+      label: 'Đơn hàng',
       icon: 'ShoppingCart',
       href: '/admin/orders',
       requiredPermission: PERMISSIONS.ORDERS_READ,
     },
     {
       id: 'blog',
-      label: 'Qun l blog',
+      label: 'Quản lý blog',
       icon: 'FileText',
       href: '/admin/blog',
       requiredPermission: null,
     },
     {
       id: 'security',
-      label: 'Bo mt',
+      label: 'Bảo mật',
       icon: 'Lock',
       href: '/admin/security',
       requiredPermission: PERMISSIONS.SECURITY_READ,
     },
     {
       id: 'settings',
-      label: 'Ci t',
+      label: 'Cài đặt',
       icon: 'Settings',
       href: '/admin/settings',
       requiredPermission: PERMISSIONS.SETTINGS_READ,

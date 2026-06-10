@@ -64,9 +64,9 @@ interface Address {
 const mockAddresses: Address[] = [
     {
         id: '1',
-        fullName: 'Nguyn Vn A',
+        fullName: 'Nguyễn Văn A',
         phoneNumber: '0123456789',
-        address: '123 Nguyn Hu',
+        address: '123 Nguyễn Huệ',
         wardCode: '00001',
         districtCode: '001',
         provinceCode: '79',
@@ -76,9 +76,9 @@ const mockAddresses: Address[] = [
     },
     {
         id: '2',
-        fullName: 'Nguyn Vn A',
+        fullName: 'Nguyễn Văn A',
         phoneNumber: '0123456789',
-        address: '456 L Li',
+        address: '456 Lê Lợi',
         wardCode: '00002',
         districtCode: '001',
         provinceCode: '79',
@@ -228,7 +228,7 @@ export default function AddressesPage() {
                 province: provinceObj?.name || '', // Tnh  Province  
                 district: wardObj?.name || '', // X/Phng  District
                 postalCode: addressForm.postalCode,
-                country: 'Vit Nam',
+                country: 'Việt Nam',
                 isDefault: addressForm.isDefault,
                 // Keep original codes for frontend state management
                 wardCode: addressForm.wardCode,
@@ -246,9 +246,9 @@ export default function AddressesPage() {
                             ? { ...addr, ...addressForm }
                             : addressForm.isDefault ? { ...addr, isDefault: false } : addr
                     ));
-                    toast.success('Cp nht a ch thnh cng');
+                    toast.success('Cập nhật địa chỉ thành công');
                 } catch (err) {
-                    toast.error('Cp nht a ch tht bi');
+                    toast.error('Cập nhật địa chỉ thất bại');
                 }
             } else {
                 // Add new address via API
@@ -271,16 +271,16 @@ export default function AddressesPage() {
                         ? [newAddress, ...prev.map(addr => ({ ...addr, isDefault: false }))]
                         : [newAddress, ...prev]
                     );
-                    toast.success('Thm a ch mi thnh cng');
+                    toast.success('Thêm địa chỉ mới thành công');
                 } catch (err) {
-                    toast.error('Thm a ch tht bi');
+                    toast.error('Thêm địa chỉ thất bại');
                 }
             }
 
             setIsDialogOpen(false);
             resetForm();
         } catch (error) {
-            toast.error('C li xy ra, vui lng th li');
+            toast.error('Có lỗi xảy ra, vui lòng thử lại');
         } finally {
             setIsSaving(false);
         }
@@ -291,12 +291,12 @@ export default function AddressesPage() {
             const res = await userService.deleteAddress(addressId);
             if (res) {
                 setAddresses(prev => prev.filter(addr => addr.id !== addressId));
-                toast.success('Xa a ch thnh cng');
+                toast.success('Xóa địa chỉ thành công');
             } else {
-                toast.error('Xa a ch tht bi');
+                toast.error('Xóa địa chỉ thất bại');
             }
         } catch (error) {
-            toast.error('C li xy ra, vui lng th li');
+            toast.error('Có lỗi xảy ra, vui lòng thử lại');
         }
     };
 
@@ -308,12 +308,12 @@ export default function AddressesPage() {
                     ...addr,
                     isDefault: addr.id === addressId
                 })));
-                toast.success(' t lm a ch mc nh');
+                toast.success('Đã đặt làm địa chỉ mặc định');
             } else {
-                toast.error('t mc nh tht bi');
+                toast.error('Đặt mặc định thất bại');
             }
         } catch (error) {
-            toast.error('C li xy ra, vui lng th li');
+            toast.error('Có lỗi xảy ra, vui lòng thử lại');
         }
     };
 
@@ -331,11 +331,11 @@ export default function AddressesPage() {
     const getAddressTypeLabel = (type: string) => {
         switch (type) {
             case 'home':
-                return 'Nh ring';
+                return 'Nhà riêng';
             case 'office':
-                return 'Vn phng';
+                return 'Văn phòng';
             default:
-                return 'Khc';
+                return 'Khác';
         }
     };
 
@@ -367,10 +367,10 @@ export default function AddressesPage() {
                         <div>
                             <CardTitle className="flex items-center space-x-2">
                                 <MapPin className="h-6 w-6" />
-                                <span>S a ch</span>
+                                <span>Sổ địa chỉ</span>
                             </CardTitle>
                             <CardDescription>
-                                Qun l a ch giao hng ca bn
+                                Quản lý địa chỉ giao hàng của bạn
                             </CardDescription>
                         </div>
                         <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -380,56 +380,56 @@ export default function AddressesPage() {
                             <DialogTrigger asChild>
                                 <Button>
                                     <Plus className="h-4 w-4 mr-2" />
-                                    Thm a ch mi
+                                    Thêm địa chỉ mới
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[600px]">
                                 <DialogHeader>
                                     <DialogTitle>
-                                        {editingAddress ? 'Chnh sa a ch' : 'Thm a ch mi'}
+                                        {editingAddress ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới'}
                                     </DialogTitle>
                                     <DialogDescription>
-                                        in thng tin a ch giao hng
+                                        Điền thông tin địa chỉ giao hàng
                                     </DialogDescription>
                                 </DialogHeader>
                                 <form onSubmit={handleSave} className="space-y-4">
                                     <div className="grid gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="fullName">H v tn *</Label>
+                                            <Label htmlFor="fullName">Họ và tên *</Label>
                                             <Input
                                                 id="fullName"
                                                 value={addressForm.fullName}
                                                 onChange={(e) => setAddressForm(prev => ({ ...prev, fullName: e.target.value }))}
-                                                placeholder="Nhp h v tn"
+                                                placeholder="Nhập họ và tên"
                                                 required
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="phoneNumber">S in thoi *</Label>
+                                            <Label htmlFor="phoneNumber">Số điện thoại *</Label>
                                             <Input
                                                 id="phoneNumber"
                                                 value={addressForm.phoneNumber}
                                                 onChange={(e) => setAddressForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                                                placeholder="Nhp s in thoi"
+                                                placeholder="Nhập số điện thoại"
                                                 required
                                             />
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="address">a ch c th *</Label>
+                                        <Label htmlFor="address">Địa chỉ cụ thể *</Label>
                                         <Input
                                             id="address"
                                             value={addressForm.address}
                                             onChange={(e) => setAddressForm(prev => ({ ...prev, address: e.target.value }))}
-                                            placeholder="S nh, tn ng"
+                                            placeholder="Số nhà, tên đường"
                                             required
                                         />
                                     </div>
 
                                     <div className="grid gap-4 md:grid-cols-3">
                                         <div className="space-y-2">
-                                            <Label>Tnh/Thnh ph *</Label>
+                                            <Label>Tỉnh/Thành phố *</Label>
                                             <ProvinceSelect
                                                 value={addressForm.provinceCode}
                                                 onValueChange={(value) => setAddressForm(prev => ({
@@ -438,11 +438,11 @@ export default function AddressesPage() {
                                                     districtCode: '',
                                                     wardCode: ''
                                                 }))}
-                                                placeholder="Chn tnh/thnh ph"
+                                                placeholder="Chọn tỉnh/thành phố"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Qun/Huyn *</Label>
+                                            <Label>Quận/Huyện *</Label>
                                             <DistrictSelect
                                                 provinceCode={addressForm.provinceCode}
                                                 value={addressForm.districtCode}
@@ -451,12 +451,12 @@ export default function AddressesPage() {
                                                     districtCode: value,
                                                     wardCode: ''
                                                 }))}
-                                                placeholder="Chn qun/huyn"
+                                                placeholder="Chọn quận/huyện"
                                                 disabled={!addressForm.provinceCode}
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Phng/X *</Label>
+                                            <Label>Phường/Xã *</Label>
                                             <WardSelect
                                                 districtCode={addressForm.districtCode}
                                                 value={addressForm.wardCode}
@@ -464,7 +464,7 @@ export default function AddressesPage() {
                                                     ...prev,
                                                     wardCode: value
                                                 }))}
-                                                placeholder="Chn phng/x"
+                                                placeholder="Chọn phường/xã"
                                                 disabled={!addressForm.districtCode}
                                             />
                                         </div>
@@ -472,24 +472,24 @@ export default function AddressesPage() {
 
                                     <div className="grid gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="postalCode">M bu in</Label>
+                                            <Label htmlFor="postalCode">Mã bưu điện</Label>
                                             <Input
                                                 id="postalCode"
                                                 value={addressForm.postalCode}
                                                 onChange={(e) => setAddressForm(prev => ({ ...prev, postalCode: e.target.value }))}
-                                                placeholder="Nhp m bu in"
+                                                placeholder="Nhập mã bưu điện"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="type">Loi a ch</Label>
+                                            <Label htmlFor="type">Loại địa chỉ</Label>
                                             <Select value={addressForm.type} onValueChange={(value: 'home' | 'office' | 'other') => setAddressForm(prev => ({ ...prev, type: value }))}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Chn loi a ch" />
+                                                    <SelectValue placeholder="Chọn loại địa chỉ" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="home">Nh ring</SelectItem>
-                                                    <SelectItem value="office">Vn phng</SelectItem>
-                                                    <SelectItem value="other">Khc</SelectItem>
+                                                    <SelectItem value="home">Nhà riêng</SelectItem>
+                                                    <SelectItem value="office">Văn phòng</SelectItem>
+                                                    <SelectItem value="other">Khác</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -502,7 +502,7 @@ export default function AddressesPage() {
                                             onCheckedChange={(checked) => setAddressForm(prev => ({ ...prev, isDefault: !!checked }))}
                                         />
                                         <Label htmlFor="isDefault" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                            t lm a ch mc nh
+                                            Đặt làm địa chỉ mặc định
                                         </Label>
                                     </div>
 
@@ -512,10 +512,10 @@ export default function AddressesPage() {
                                             variant="outline"
                                             onClick={() => setIsDialogOpen(false)}
                                         >
-                                            Hy
+                                            Hủy
                                         </Button>
                                         <Button type="submit" disabled={isSaving}>
-                                            {isSaving ? 'ang lu...' : 'Lu a ch'}
+                                            {isSaving ? 'đang lưu...' : 'Lưu địa chỉ'}
                                         </Button>
                                     </DialogFooter>
                                 </form>
@@ -528,14 +528,14 @@ export default function AddressesPage() {
                         <div className="text-center py-12">
                             <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                Cha c a ch no
+                                Chưa có địa chỉ nào
                             </h3>
                             <p className="text-gray-500 mb-4">
-                                Thm a ch giao hng  t hng nhanh hn
+                                Thêm địa chỉ giao hàng để đặt hàng nhanh hơn
                             </p>
                             <Button onClick={() => setIsDialogOpen(true)}>
                                 <Plus className="h-4 w-4 mr-2" />
-                                Thm a ch u tin
+                                Thêm địa chỉ đầu tiên
                             </Button>
                         </div>
                     ) : (
@@ -555,7 +555,7 @@ export default function AddressesPage() {
                                                     {address.isDefault && (
                                                         <Badge variant="default" className="bg-blue-100 text-blue-800">
                                                             <Star className="h-3 w-3 mr-1" />
-                                                            Mc nh
+                                                            Mặc định
                                                         </Badge>
                                                     )}
                                                 </div>
@@ -578,7 +578,7 @@ export default function AddressesPage() {
                                                         size="sm"
                                                         onClick={() => handleSetDefault(address.id)}
                                                     >
-                                                        t mc nh
+                                                        Đặt mặc định
                                                     </Button>
                                                 )}
                                                 <Button
@@ -596,18 +596,18 @@ export default function AddressesPage() {
                                                     </AlertDialogTrigger>
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
-                                                            <AlertDialogTitle>Xa a ch</AlertDialogTitle>
+                                                            <AlertDialogTitle>Xóa địa chỉ</AlertDialogTitle>
                                                             <AlertDialogDescription>
-                                                                Bn c chc chn mun xa a ch ny? Hnh ng ny khng th hon tc.
+                                                                Bạn có chắc chắn muốn xóa địa chỉ này? Hành động này không thể hoàn tác.
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
-                                                            <AlertDialogCancel>Hy</AlertDialogCancel>
+                                                            <AlertDialogCancel>Hủy</AlertDialogCancel>
                                                             <AlertDialogAction
                                                                 onClick={() => handleDelete(address.id)}
                                                                 className="bg-red-600 hover:bg-red-700"
                                                             >
-                                                                Xa
+                                                                Xóa
                                                             </AlertDialogAction>
                                                         </AlertDialogFooter>
                                                     </AlertDialogContent>

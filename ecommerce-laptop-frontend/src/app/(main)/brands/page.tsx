@@ -7,22 +7,22 @@ import Image from 'next/image';
 
 export default function BrandsPage() {
   const tableOfContents = [
-    { id: 'premium-brands', title: 'Thng hiu cao cp' },
-    { id: 'business-brands', title: 'Thng hiu doanh nghip' },
-    { id: 'gaming-brands', title: 'Thng hiu gaming' },
-    { id: 'budget-brands', title: 'Thng hiu ph thng' },
-    { id: 'why-choose', title: 'Ti sao chn chng ti' }
+    { id: 'premium-brands', title: 'Thương hiệu cao cấp' },
+    { id: 'business-brands', title: 'Thương hiệu doanh nghiệp' },
+    { id: 'gaming-brands', title: 'Thương hiệu gaming' },
+    { id: 'budget-brands', title: 'Thương hiệu phổ thông' },
+    { id: 'why-choose', title: 'Tại sao chọn chúng tôi' }
   ];
 
   const breadcrumbs = [
-    { label: 'Trang ch', href: '/' },
-    { label: 'Thng hiu' }
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Thương hiệu' }
   ];
 
   return (
     <StaticPageLayout
-      title="Thng Hiu Laptop Uy Tn"
-      subtitle="Khm ph cc thng hiu laptop hng u th gii vi cht lng c chng minh"
+      title="Thương Hiệu Laptop Uy Tín"
+      subtitle="Khám phá các thương hiệu laptop hàng đầu thế giới với chất lượng được chứng minh"
       lastUpdated="18/09/2025"
       author="Team LaptopStore"
       readTime="5"
@@ -39,7 +39,7 @@ function BrandsContent() {
     {
       name: 'Apple',
       logo: '/images/brands/apple.png',
-      description: 'Thit k ng cp, hiu nng vt tri vi chip M-series',
+      description: 'Thiết kế đẳng cấp, hiệu năng vượt trội với chip M-series',
       rating: 4.8,
       products: 15,
       highlights: ['MacBook Air M3', 'MacBook Pro M3 Max', 'iMac 24"']
@@ -47,7 +47,7 @@ function BrandsContent() {
     {
       name: 'Dell',
       logo: '/images/brands/dell.png',
-      description: 'ng tin cy cho doanh nghip v sng to chuyn nghip',
+      description: 'Độ tin cậy cho doanh nghiệp và sáng tạo chuyên nghiệp',
       rating: 4.6,
       products: 42,
       highlights: ['XPS 13 Plus', 'Alienware m16', 'Inspiron 15 3000']
@@ -55,7 +55,7 @@ function BrandsContent() {
     {
       name: 'HP',
       logo: '/images/brands/hp.png',
-      description: 'a dng dng sn phm t vn phng n gaming',
+      description: 'Đa dạng dòng sản phẩm từ văn phòng đến gaming',
       rating: 4.5,
       products: 38,
       highlights: ['Spectre x360', 'Omen Gaming', 'Pavilion']
@@ -66,7 +66,7 @@ function BrandsContent() {
     {
       name: 'Lenovo',
       logo: '/images/brands/lenovo.png',
-      description: 'ThinkPad huyn thoi v Legion gaming mnh m',
+      description: 'ThinkPad huyền thoại và Legion gaming mạnh mẽ',
       rating: 4.7,
       products: 35,
       highlights: ['ThinkPad X1 Carbon', 'Legion Pro 7', 'IdeaPad']
@@ -74,7 +74,7 @@ function BrandsContent() {
     {
       name: 'Asus',
       logo: '/images/brands/asus.png',
-      description: 'Cn bng hon ho gia hiu nng v gi c',
+      description: 'Cân bằng hoàn hảo giữa hiệu năng và giá cả',
       rating: 4.4,
       products: 28,
       highlights: ['ZenBook Pro', 'ROG Strix', 'VivoBook']
@@ -85,7 +85,7 @@ function BrandsContent() {
     {
       name: 'MSI',
       logo: '/images/brands/msi.png',
-      description: 'Chuyn gia laptop gaming vi RGB p mt',
+      description: 'Chuyên gia laptop gaming với RGB đẹp mắt',
       rating: 4.6,
       products: 22,
       highlights: ['GE78 Raider', 'Katana 15', 'Creator Z16']
@@ -93,7 +93,7 @@ function BrandsContent() {
     {
       name: 'Acer',
       logo: '/images/brands/acer.png',
-      description: 'Predator gaming v Swift siu mng',
+      description: 'Predator gaming và Swift siêu mỏng',
       rating: 4.3,
       products: 25,
       highlights: ['Predator Helios', 'Swift X', 'Aspire 5']
@@ -104,13 +104,13 @@ function BrandsContent() {
     <div className="space-y-12">
       {/* Premium Brands Section */}
       <section id="premium-brands" className="content-section">
-        <h2 className="text-3xl font-bold text-gray-900 mb-6">
-           Thng Hiu Cao Cp
-        </h2>
-        <p className="text-gray-600 mb-8 leading-7">
-          Nhng thng hiu dn u th gii vi cng ngh tin tin nht,
-          thit k ng cp v cht lng c cng nhn ton cu.
-        </p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">
+            Thương Hiệu Cao Cấp
+          </h2>
+          <p className="text-gray-600 mb-8 leading-7">
+            Những thương hiệu dẫn đầu thế giới với công nghệ tiên tiến nhất,
+            thiết kế đẳng cấp và chất lượng được công nhận toàn cầu.
+          </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {premiumBrands.map((brand) => (
@@ -122,12 +122,12 @@ function BrandsContent() {
       {/* Business Brands Section */}
       <section id="business-brands" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6">
-           Thng Hiu Doanh Nghip
-        </h2>
-        <p className="text-gray-600 mb-8 leading-7">
-          Ti u cho cng vic chuyn nghip vi  bn cao,
-          bo mt tt v h tr doanh nghip ton din.
-        </p>
+            Thương Hiệu Doanh Nghiệp
+          </h2>
+          <p className="text-gray-600 mb-8 leading-7">
+            Tối ưu cho công việc chuyên nghiệp với độ bền cao,
+            bảo mật tốt và hỗ trợ doanh nghiệp toàn diện.
+          </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {businessBrands.map((brand) => (
@@ -139,12 +139,12 @@ function BrandsContent() {
       {/* Gaming Brands Section */}
       <section id="gaming-brands" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6">
-           Thng Hiu Gaming
-        </h2>
-        <p className="text-gray-600 mb-8 leading-7">
-          Hiu nng nh cao cho game th vi card  ha mnh m,
-          tn nhit ti u v thit k gaming c trng.
-        </p>
+            Thương Hiệu Gaming
+          </h2>
+          <p className="text-gray-600 mb-8 leading-7">
+            Hiệu năng đỉnh cao cho game thủ với card đồ họa mạnh mẽ,
+            tản nhiệt tối ưu và thiết kế gaming đặc trưng.
+          </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {gamingBrands.map((brand) => (
@@ -156,8 +156,8 @@ function BrandsContent() {
       {/* Why Choose Section */}
       <section id="why-choose" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6">
-           Ti Sao Chn LaptopStore?
-        </h2>
+            Tại Sao Chọn LaptopStore?
+          </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
@@ -166,10 +166,10 @@ function BrandsContent() {
                 <span className="text-blue-600 font-bold">1</span>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Chnh Hng 100%</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Chính Hãng 100%</h3>
                 <p className="text-gray-600">
-                  Tt c sn phm u l hng chnh hng, c tem phiu y 
-                  v c bo hnh theo chnh sch ca hng.
+                  Tất cả sản phẩm đều là hàng chính hãng, có tem phiếu đầy đủ
+                  và được bảo hành theo chính sách của hàng.
                 </p>
               </div>
             </div>
@@ -179,10 +179,10 @@ function BrandsContent() {
                 <span className="text-green-600 font-bold">2</span>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Gi Tt Nht</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Giá Tốt Nhất</h3>
                 <p className="text-gray-600">
-                  Cam kt gi tt nht th trng vi ch  hon tin
-                  nu tm thy gi r hn  ni khc.
+                  Cam kết giá tốt nhất thị trường với chế độ hoàn tiền
+                  nếu tìm thấy giá rẻ hơn ở nơi khác.
                 </p>
               </div>
             </div>
@@ -194,10 +194,10 @@ function BrandsContent() {
                 <span className="text-purple-600 font-bold">3</span>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">T Vn Chuyn Su</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Tư Vấn Chuyên Sâu</h3>
                 <p className="text-gray-600">
-                  i ng chuyn gia t vn min ph  gip bn chn
-                  laptop ph hp vi nhu cu v ngn sch.
+                  Đội ngũ chuyên gia tư vấn miễn phí để giúp bạn chọn
+                  laptop phù hợp với nhu cầu và ngân sách.
                 </p>
               </div>
             </div>
@@ -207,10 +207,10 @@ function BrandsContent() {
                 <span className="text-orange-600 font-bold">4</span>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">H Tr Sau Bn</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Hỗ Trợ Sau Bán</h3>
                 <p className="text-gray-600">
-                  Dch v h tr 24/7, bo hnh nhanh chng v
-                  chm sc khch hng tn tnh.
+                  Dịch vụ hỗ trợ 24/7, bảo hành nhanh chóng và
+                  chăm sóc khách hàng tận tình.
                 </p>
               </div>
             </div>
@@ -240,7 +240,7 @@ function BrandCard({ brand }: { brand: any }) {
             <Star className="w-4 h-4 text-yellow-400 fill-current" />
             <span className="text-sm font-medium ml-1">{brand.rating}</span>
           </div>
-          <Badge variant="secondary">{brand.products} sn phm</Badge>
+          <Badge variant="secondary">{brand.products} sản phẩm</Badge>
         </div>
       </CardHeader>
 
@@ -250,7 +250,7 @@ function BrandCard({ brand }: { brand: any }) {
         </p>
 
         <div className="space-y-2 mb-4">
-          <h4 className="font-medium text-sm text-gray-900">Sn phm ni bt:</h4>
+          <h4 className="font-medium text-sm text-gray-900">Sản phẩm nổi bật:</h4>
           <ul className="text-sm text-gray-600 space-y-1">
             {brand.highlights.map((product: string, index: number) => (
               <li key={index} className="flex items-center">
@@ -266,7 +266,7 @@ function BrandCard({ brand }: { brand: any }) {
           pageType="static"
           className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors font-medium"
         >
-          Xem sn phm {brand.name}
+          Xem sản phẩm {brand.name}
         </AppLink>
       </CardContent>
     </Card>

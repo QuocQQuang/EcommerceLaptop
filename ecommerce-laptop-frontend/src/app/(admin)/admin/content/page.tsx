@@ -142,20 +142,20 @@ const useBlogPostsQuery = () => {
       const posts: BlogPost[] = [
         {
           id: 1,
-          title: 'Top 10 laptop gaming tt nht nm 2025',
+          title: 'Top 10 laptop gaming tốt nhất năm 2025',
           slug: 'top-10-laptop-gaming-tot-nhat-2025',
-          excerpt: 'Khm ph nhng chic laptop gaming mnh m nht vi hiu sut vt tri v thit k n tng.',
-          content: 'Ni dung chi tit v laptop gaming...',
+          excerpt: 'Khám phá những chiếc laptop gaming mạnh mẽ nhất với hiệu suất vượt trội và thiết kế ấn tượng.',
+          content: 'Nội dung chi tiết về laptop gaming...',
           featuredImage: 'https://example.com/gaming-laptops.jpg',
           status: 'published',
           author: {
             id: 1,
-            name: 'Nguyn Vn A',
+            name: 'Nguyễn Văn A',
             email: 'author@example.com'
           },
           category: {
             id: 1,
-            name: 'nh gi sn phm',
+            name: 'Đánh giá sản phẩm',
             slug: 'danh-gia-san-pham'
           },
           tags: [
@@ -164,9 +164,9 @@ const useBlogPostsQuery = () => {
             { id: 3, name: 'Review', slug: 'review' }
           ],
           seo: {
-            title: 'Top 10 laptop gaming tt nht 2025 | TechReview',
-            description: 'Danh sch laptop gaming tt nht nm 2025 vi nh gi chi tit v hiu sut v gi c.',
-            keywords: 'laptop gaming, gaming laptop 2025, laptop chi game'
+            title: 'Top 10 laptop gaming tốt nhất 2025 | TechReview',
+            description: 'Danh sách laptop gaming tốt nhất năm 2025 với đánh giá chi tiết về hiệu suất và giá cả.',
+            keywords: 'laptop gaming, gaming laptop 2025, laptop chơi game'
           },
           publishedAt: '2025-01-22T10:00:00Z',
           createdAt: '2025-01-20T14:30:00Z',
@@ -176,30 +176,30 @@ const useBlogPostsQuery = () => {
         },
         {
           id: 2,
-          title: 'Hng dn chn laptop vn phng ph hp',
+          title: 'Hướng dẫn chọn laptop văn phòng phù hợp',
           slug: 'huong-dan-chon-laptop-van-phong-phu-hop',
-          excerpt: 'Nhng tiu ch quan trng khi la chn laptop cho cng vic vn phng hiu qu.',
-          content: 'Ni dung hng dn chi tit...',
+          excerpt: 'Những tiêu chí quan trọng khi lựa chọn laptop cho công việc văn phòng hiệu quả.',
+          content: 'Nội dung hướng dẫn chi tiết...',
           status: 'draft',
           author: {
             id: 2,
-            name: 'Trn Th B',
+            name: 'Trần Thị B',
             email: 'editor@example.com'
           },
           category: {
             id: 2,
-            name: 'Hng dn',
+            name: 'Hướng dẫn',
             slug: 'huong-dan'
           },
           tags: [
             { id: 2, name: 'Laptop', slug: 'laptop' },
-            { id: 4, name: 'Vn phng', slug: 'van-phong' },
-            { id: 5, name: 'Hng dn', slug: 'huong-dan' }
+            { id: 4, name: 'Văn phòng', slug: 'van-phong' },
+            { id: 5, name: 'Hướng dẫn', slug: 'huong-dan' }
           ],
           seo: {
-            title: 'Cch chn laptop vn phng tt nht',
-            description: 'Hng dn chi tit cch chn laptop ph hp cho cng vic vn phng.',
-            keywords: 'laptop vn phng, chn laptop, laptop lm vic'
+            title: 'Cách chọn laptop văn phòng tốt nhất',
+            description: 'Hướng dẫn chi tiết cách chọn laptop phù hợp cho công việc văn phòng.',
+            keywords: 'laptop văn phòng, chọn laptop, laptop làm việc'
           },
           createdAt: '2025-01-22T08:15:00Z',
           updatedAt: '2025-01-22T14:20:00Z',
@@ -223,27 +223,27 @@ const useCategoriesQuery = () => {
       return [
         {
           id: 1,
-          name: 'nh gi sn phm',
+          name: 'Đánh giá sản phẩm',
           slug: 'danh-gia-san-pham',
-          description: 'nh gi chi tit v cc sn phm laptop',
+          description: 'Đánh giá chi tiết về các sản phẩm laptop',
           postCount: 15,
           isActive: true,
           createdAt: '2025-01-01T00:00:00Z'
         },
         {
           id: 2,
-          name: 'Hng dn',
+          name: 'Hướng dẫn',
           slug: 'huong-dan',
-          description: 'Cc bi hng dn s dng v chn mua',
+          description: 'Các bài hướng dẫn sử dụng và chọn mua',
           postCount: 8,
           isActive: true,
           createdAt: '2025-01-01T00:00:00Z'
         },
         {
           id: 3,
-          name: 'Tin tc cng ngh',
+          name: 'Tin tức công nghệ',
           slug: 'tin-tuc-cong-nghe',
-          description: 'Cp nht tin tc mi nht v cng ngh',
+          description: 'Cập nhật tin tức mới nhất về công nghệ',
           postCount: 12,
           isActive: true,
           createdAt: '2025-01-01T00:00:00Z'
@@ -264,8 +264,8 @@ const useTagsQuery = () => {
         { id: 1, name: 'Gaming', slug: 'gaming', postCount: 12, createdAt: '2025-01-01T00:00:00Z' },
         { id: 2, name: 'Laptop', slug: 'laptop', postCount: 28, createdAt: '2025-01-01T00:00:00Z' },
         { id: 3, name: 'Review', slug: 'review', postCount: 15, createdAt: '2025-01-01T00:00:00Z' },
-        { id: 4, name: 'Vn phng', slug: 'van-phong', postCount: 8, createdAt: '2025-01-01T00:00:00Z' },
-        { id: 5, name: 'Hng dn', slug: 'huong-dan', postCount: 10, createdAt: '2025-01-01T00:00:00Z' }
+        { id: 4, name: 'Văn phòng', slug: 'van-phong', postCount: 8, createdAt: '2025-01-01T00:00:00Z' },
+        { id: 5, name: 'Hướng dẫn', slug: 'huong-dan', postCount: 10, createdAt: '2025-01-01T00:00:00Z' }
       ];
     },
     staleTime: 5 * 60 * 1000,
@@ -304,10 +304,10 @@ const formatNumber = (num: number) => {
 
 const getStatusBadge = (status: string) => {
   const statusConfig = {
-    draft: { label: 'Nhp', variant: 'outline' as const, icon: Clock },
-    published: { label: ' xut bn', variant: 'default' as const, icon: CheckCircle },
-    scheduled: { label: ' ln lch', variant: 'secondary' as const, icon: Calendar },
-    archived: { label: 'Lu tr', variant: 'destructive' as const, icon: XCircle }
+    draft: { label: 'Nháp', variant: 'outline' as const, icon: Clock },
+    published: { label: 'Đã xuất bản', variant: 'default' as const, icon: CheckCircle },
+    scheduled: { label: 'Đã lên lịch', variant: 'secondary' as const, icon: Calendar },
+    archived: { label: 'Lưu trữ', variant: 'destructive' as const, icon: XCircle }
   };
 
   const config = statusConfig[status as keyof typeof statusConfig];
@@ -380,11 +380,11 @@ export default function ContentManagementPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold">C li xy ra</h3>
+          <h3 className="text-lg font-semibold">Có lỗi xảy ra</h3>
           <p className="text-muted-foreground mb-4">
-            Khng th ti ni dung. Vui lng th li.
+            Không thể tải nội dung. Vui lòng thử lại.
           </p>
-          <Button onClick={() => refetchPosts()}>Th li</Button>
+          <Button onClick={() => refetchPosts()}>Thử lại</Button>
         </div>
       </div>
     );
@@ -395,9 +395,9 @@ export default function ContentManagementPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Qun l ni dung</h1>
+          <h1 className="text-3xl font-bold">Quản lý nội dung</h1>
           <p className="text-muted-foreground">
-            Qun l blog, bi vit v ni dung website
+            Quản lý blog, bài viết và nội dung website
           </p>
         </div>
         
@@ -405,7 +405,7 @@ export default function ContentManagementPage() {
           <Link href="/content/posts/add">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Thm bi vit
+              Thêm bài viết
             </Button>
           </Link>
         </PermissionGuard>
@@ -416,11 +416,11 @@ export default function ContentManagementPage() {
         <TabsList>
           <TabsTrigger value="posts" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            Bi vit
+            Bài viết
           </TabsTrigger>
           <TabsTrigger value="categories" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
-            Danh mc
+            Danh mục
           </TabsTrigger>
           <TabsTrigger value="tags" className="flex items-center gap-2">
             <Tag className="h-4 w-4" />
@@ -428,7 +428,7 @@ export default function ContentManagementPage() {
           </TabsTrigger>
           <TabsTrigger value="media" className="flex items-center gap-2">
             <Image className="h-4 w-4" />
-            Th vin media
+            Thư viện media
           </TabsTrigger>
         </TabsList>
 
@@ -437,7 +437,7 @@ export default function ContentManagementPage() {
           {/* Filters */}
           <Card>
             <CardHeader>
-              <CardTitle>B lc bi vit</CardTitle>
+              <CardTitle>Bộ lọc bài viết</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -445,7 +445,7 @@ export default function ContentManagementPage() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
-                      placeholder="Tm kim tiu , ni dung hoc tc gi..."
+                      placeholder="Tìm kiếm tiêu đề, nội dung hoặc tác giả..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -456,23 +456,23 @@ export default function ContentManagementPage() {
                 <div className="flex gap-2">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Trng thi" />
+                      <SelectValue placeholder="Trạng thái" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tt c trng thi</SelectItem>
-                      <SelectItem value="published"> xut bn</SelectItem>
-                      <SelectItem value="draft">Nhp</SelectItem>
-                      <SelectItem value="scheduled"> ln lch</SelectItem>
-                      <SelectItem value="archived">Lu tr</SelectItem>
+                      <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                      <SelectItem value="published">Đã xuất bản</SelectItem>
+                      <SelectItem value="draft">Nháp</SelectItem>
+                      <SelectItem value="scheduled">Đã lên lịch</SelectItem>
+                      <SelectItem value="archived">Lưu trữ</SelectItem>
                     </SelectContent>
                   </Select>
 
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                     <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Danh mc" />
+                      <SelectValue placeholder="Danh mục" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tt c danh mc</SelectItem>
+                      <SelectItem value="all">Tất cả danh mục</SelectItem>
                       {categories?.map((category) => (
                         <SelectItem key={category.id} value={category.id.toString()}>
                           {category.name}
@@ -489,7 +489,7 @@ export default function ContentManagementPage() {
           <Card>
             <CardHeader>
               <CardTitle>
-                Danh sch bi vit ({filteredPosts.length})
+                Danh sách bài viết ({filteredPosts.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -502,11 +502,11 @@ export default function ContentManagementPage() {
               ) : filteredPosts.length === 0 ? (
                 <div className="text-center py-12">
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Cha c bi vit no</h3>
+                  <h3 className="text-lg font-semibold mb-2">Chưa có bài viết nào</h3>
                   <p className="text-muted-foreground mb-4">
                     {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all'
-                      ? 'Khng tm thy bi vit no ph hp vi b lc.'
-                      : 'Bt u to bi vit u tin ca bn.'}
+                      ? 'Không tìm thấy bài viết nào phù hợp với bộ lọc.'
+                      : 'Bắt đầu tạo bài viết đầu tiên của bạn.'}
                   </p>
                   {(!searchTerm && statusFilter === 'all' && categoryFilter === 'all') && (
                     <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
@@ -524,13 +524,13 @@ export default function ContentManagementPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Tiu </TableHead>
-                        <TableHead>Tc gi</TableHead>
-                        <TableHead>Danh mc</TableHead>
-                        <TableHead>Trng thi</TableHead>
-                        <TableHead>Lt xem</TableHead>
-                        <TableHead>Ngy to</TableHead>
-                        <TableHead className="text-right">Thao tc</TableHead>
+                        <TableHead>Tiêu đề</TableHead>
+                        <TableHead>Tác giả</TableHead>
+                        <TableHead>Danh mục</TableHead>
+                        <TableHead>Trạng thái</TableHead>
+                        <TableHead>Lượt xem</TableHead>
+                        <TableHead>Ngày tạo</TableHead>
+                        <TableHead className="text-right">Thao tác</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -600,14 +600,14 @@ export default function ContentManagementPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Thao tc</DropdownMenuLabel>
+                                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                                 
                                 <PermissionGuard permission={PERMISSIONS.PRODUCTS_READ}>
                                   <DropdownMenuItem
                                     onClick={() => router.push(`/content/posts/${post.id}`)}
                                   >
                                     <Eye className="h-4 w-4 mr-2" />
-                                    Xem chi tit
+                                    Xem chi tiết
                                   </DropdownMenuItem>
 
                                   {post.status === 'published' && (
@@ -618,7 +618,7 @@ export default function ContentManagementPage() {
                                         rel="noopener noreferrer"
                                       >
                                         <ExternalLink className="h-4 w-4 mr-2" />
-                                        Xem trn web
+                                        Xem trên web
                                       </a>
                                     </DropdownMenuItem>
                                   )}
@@ -629,7 +629,7 @@ export default function ContentManagementPage() {
                                     onClick={() => router.push(`/content/posts/${post.id}/edit`)}
                                   >
                                     <Edit className="h-4 w-4 mr-2" />
-                                    Chnh sa
+                                    Chỉnh sửa
                                   </DropdownMenuItem>
 
                                   <DropdownMenuSeparator />
@@ -642,7 +642,7 @@ export default function ContentManagementPage() {
                                     }}
                                   >
                                     <Trash2 className="h-4 w-4 mr-2" />
-                                    Xa
+                                    Xóa
                                   </DropdownMenuItem>
                                 </PermissionGuard>
                               </DropdownMenuContent>
@@ -663,11 +663,11 @@ export default function ContentManagementPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                Danh mc bi vit
+                Danh mục bài viết
                 <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
                   <Button size="sm">
                     <Plus className="h-4 w-4 mr-2" />
-                    Thm danh mc
+                    Thêm danh mục
                   </Button>
                 </PermissionGuard>
               </CardTitle>
@@ -689,12 +689,12 @@ export default function ContentManagementPage() {
                           {category.description}
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          {formatNumber(category.postCount)} bi vit  To {formatDate(category.createdAt)}
+                          {formatNumber(category.postCount)} bài viết • Tạo {formatDate(category.createdAt)}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant={category.isActive ? 'default' : 'secondary'}>
-                          {category.isActive ? 'Hot ng' : 'Tm dng'}
+                          {category.isActive ? 'Hoạt động' : 'Tạm dừng'}
                         </Badge>
                         <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
                           <DropdownMenu>
@@ -706,11 +706,11 @@ export default function ContentManagementPage() {
                             <DropdownMenuContent>
                               <DropdownMenuItem>
                                 <Edit className="h-4 w-4 mr-2" />
-                                Chnh sa
+                                Chỉnh sửa
                               </DropdownMenuItem>
                               <DropdownMenuItem className="text-red-600">
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Xa
+                                Xóa
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -729,11 +729,11 @@ export default function ContentManagementPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                Tags bi vit
+                Tags bài viết
                 <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
                   <Button size="sm">
                     <Plus className="h-4 w-4 mr-2" />
-                    Thm tag
+                    Thêm tag
                   </Button>
                 </PermissionGuard>
               </CardTitle>
@@ -763,21 +763,21 @@ export default function ContentManagementPage() {
                             <DropdownMenuContent>
                               <DropdownMenuItem>
                                 <Edit className="h-4 w-4 mr-2" />
-                                Chnh sa
+                                Chỉnh sửa
                               </DropdownMenuItem>
                               <DropdownMenuItem className="text-red-600">
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Xa
+                                Xóa
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </PermissionGuard>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {formatNumber(tag.postCount)} bi vit
+                        {formatNumber(tag.postCount)} bài viết
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        To {formatDate(tag.createdAt)}
+                        Tạo {formatDate(tag.createdAt)}
                       </div>
                     </div>
                   ))}
@@ -792,7 +792,7 @@ export default function ContentManagementPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                Th vin media
+                Thư viện media
                 <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
                   <Button size="sm">
                     <Plus className="h-4 w-4 mr-2" />
@@ -804,14 +804,14 @@ export default function ContentManagementPage() {
             <CardContent>
               <div className="text-center py-12">
                 <Image className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Th vin media trng</h3>
+                <h3 className="text-lg font-semibold mb-2">Thư viện media trống</h3>
                 <p className="text-muted-foreground mb-4">
-                  Upload hnh nh v video  s dng trong bi vit
+                  Upload hình ảnh và video để sử dụng trong bài viết
                 </p>
                 <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Upload media u tin
+                    Upload media đầu tiên
                   </Button>
                 </PermissionGuard>
               </div>
@@ -824,10 +824,10 @@ export default function ContentManagementPage() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xc nhn xa bi vit</DialogTitle>
+            <DialogTitle>Xác nhận xóa bài viết</DialogTitle>
             <DialogDescription>
-              Bn c chc chn mun xa bi vit &quot;{selectedPost?.title}&quot;?
-              Hnh ng ny khng th hon tc.
+              Bạn có chắc chắn muốn xóa bài viết &quot;{selectedPost?.title}&quot;?
+              Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -835,14 +835,14 @@ export default function ContentManagementPage() {
               variant="outline" 
               onClick={() => setShowDeleteDialog(false)}
             >
-              Hy b
+              Hủy bỏ
             </Button>
             <Button 
               variant="destructive" 
               onClick={handleDeletePost}
               disabled={deletePostMutation.isPending}
             >
-              {deletePostMutation.isPending ? 'ang xa...' : 'Xa bi vit'}
+              {deletePostMutation.isPending ? 'đang xóa...' : 'Xóa bài viết'}
             </Button>
           </DialogFooter>
         </DialogContent>

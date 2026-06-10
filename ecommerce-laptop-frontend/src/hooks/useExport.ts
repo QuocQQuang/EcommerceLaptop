@@ -9,7 +9,7 @@ export function useExport() {
     const exportWithLoading = useCallback(async (
         exportFn: () => Promise<void>,
         successMessage: string,
-        errorMessage: string = 'C li xy ra khi xut file',
+        errorMessage: string = 'Có lỗi xảy ra khi xuất file',
         type?: string
     ) => {
         setIsLoading(true);
@@ -30,8 +30,8 @@ export function useExport() {
     const exportOrders = useCallback(async (options: ExportOptions = {}) => {
         await exportWithLoading(
             () => ExportService.downloadOrdersExcel(options),
-            ' xut danh sch n hng thnh cng',
-            'C li xy ra khi xut danh sch n hng',
+            'Đã xuất danh sách đơn hàng thành công',
+            'Có lỗi xảy ra khi xuất danh sách đơn hàng',
             'orders'
         );
     }, [exportWithLoading]);
@@ -39,8 +39,8 @@ export function useExport() {
     const exportProducts = useCallback(async (options: ExportOptions = {}) => {
         await exportWithLoading(
             () => ExportService.downloadProductsExcel(options),
-            ' xut danh sch sn phm thnh cng',
-            'C li xy ra khi xut danh sch sn phm',
+            'Đã xuất danh sách sản phẩm thành công',
+            'Có lỗi xảy ra khi xuất danh sách sản phẩm',
             'products'
         );
     }, [exportWithLoading]);
@@ -48,27 +48,27 @@ export function useExport() {
     const exportUsers = useCallback(async (options: ExportOptions = {}) => {
         await exportWithLoading(
             () => ExportService.downloadUsersExcel(options),
-            ' xut danh sch khch hng thnh cng',
-            'C li xy ra khi xut danh sch khch hng',
+            'Đã xuất danh sách khách hàng thành công',
+            'Có lỗi xảy ra khi xuất danh sách khách hàng',
             'users'
         );
     }, [exportWithLoading]);
 
     const exportRevenueReport = useCallback(async (startDate: string, endDate: string) => {
         if (!startDate || !endDate) {
-            toast.error('Vui lng chn ngy bt u v kt thc');
+            toast.error('Vui lòng chọn ngày bắt đầu và kết thúc');
             return;
         }
 
         if (new Date(startDate) > new Date(endDate)) {
-            toast.error('Ngy bt u khng c ln hn ngy kt thc');
+            toast.error('Ngày bắt đầu không được lớn hơn ngày kết thúc');
             return;
         }
 
         await exportWithLoading(
             () => ExportService.downloadRevenueReportExcel(startDate, endDate),
-            ' xut bo co doanh thu thnh cng',
-            'C li xy ra khi xut bo co doanh thu',
+            'Đã xuất báo cáo doanh thu thành công',
+            'Có lỗi xảy ra khi xuất báo cáo doanh thu',
             'revenue'
         );
     }, [exportWithLoading]);
@@ -76,8 +76,8 @@ export function useExport() {
     const exportInventoryReport = useCallback(async () => {
         await exportWithLoading(
             () => ExportService.downloadInventoryReportExcel(),
-            ' xut bo co tn kho thnh cng',
-            'C li xy ra khi xut bo co tn kho',
+            'Đã xuất báo cáo tồn kho thành công',
+            'Có lỗi xảy ra khi xuất báo cáo tồn kho',
             'inventory'
         );
     }, [exportWithLoading]);
@@ -85,8 +85,8 @@ export function useExport() {
     const exportInvoicePdf = useCallback(async (orderId: number, orderNumber: string, includeDigitalSignature: boolean = true) => {
         await exportWithLoading(
             () => ExportService.downloadInvoicePdf(orderId, orderNumber, includeDigitalSignature),
-            ' xut ha n PDF thnh cng',
-            'C li xy ra khi xut ha n PDF',
+            'Đã xuất hóa đơn PDF thành công',
+            'Có lỗi xảy ra khi xuất hóa đơn PDF',
             'pdf'
         );
     }, [exportWithLoading]);
@@ -94,8 +94,8 @@ export function useExport() {
     const exportInvoiceXml = useCallback(async (orderId: number, orderNumber: string) => {
         await exportWithLoading(
             () => ExportService.downloadInvoiceXml(orderId, orderNumber),
-            ' xut ha n XML thnh cng',
-            'C li xy ra khi xut ha n XML',
+            'Đã xuất hóa đơn XML thành công',
+            'Có lỗi xảy ra khi xuất hóa đơn XML',
             'xml'
         );
     }, [exportWithLoading]);
@@ -103,8 +103,8 @@ export function useExport() {
     const exportSecurityEvents = useCallback(async (options: ExportOptions = {}) => {
         await exportWithLoading(
             () => ExportService.downloadSecurityEventsExcel(options),
-            ' xut danh sch s kin bo mt thnh cng',
-            'C li xy ra khi xut danh sch s kin bo mt',
+            'Đã xuất danh sách sự kiện bảo mật thành công',
+            'Có lỗi xảy ra khi xuất danh sách sự kiện bảo mật',
             'security-events'
         );
     }, [exportWithLoading]);
@@ -112,8 +112,8 @@ export function useExport() {
     const exportIPBlockRules = useCallback(async (options: ExportOptions = {}) => {
         await exportWithLoading(
             () => ExportService.downloadIPBlockRulesExcel(options),
-            ' xut danh sch IP Block Rules thnh cng',
-            'C li xy ra khi xut danh sch IP Block Rules',
+            'Đã xuất danh sách IP Block Rules thành công',
+            'Có lỗi xảy ra khi xuất danh sách IP Block Rules',
             'ip-block-rules'
         );
     }, [exportWithLoading]);
@@ -121,8 +121,8 @@ export function useExport() {
     const exportRateLimitRules = useCallback(async (options: ExportOptions = {}) => {
         await exportWithLoading(
             () => ExportService.downloadRateLimitRulesExcel(options),
-            ' xut danh sch Rate Limit Rules thnh cng',
-            'C li xy ra khi xut danh sch Rate Limit Rules',
+            'Đã xuất danh sách Rate Limit Rules thành công',
+            'Có lỗi xảy ra khi xuất danh sách Rate Limit Rules',
             'rate-limit-rules'
         );
     }, [exportWithLoading]);
@@ -130,8 +130,8 @@ export function useExport() {
     const exportSecurityReport = useCallback(async (startDate?: string, endDate?: string) => {
         await exportWithLoading(
             () => ExportService.downloadSecurityReportExcel(startDate, endDate),
-            ' xut bo co bo mt tng hp thnh cng',
-            'C li xy ra khi xut bo co bo mt tng hp',
+            'Đã xuất báo cáo bảo mật tổng hợp thành công',
+            'Có lỗi xảy ra khi xuất báo cáo bảo mật tổng hợp',
             'security-report'
         );
     }, [exportWithLoading]);

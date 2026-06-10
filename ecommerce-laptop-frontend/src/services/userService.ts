@@ -120,7 +120,7 @@ export const userService = {
             province: addressData.province || '', // Tnh  Province
             district: addressData.district || '', // X/Phng  District
             postalCode: addressData.postalCode || addressData.PostalCode,
-            country: addressData.country || addressData.Country || 'Vit Nam',
+            country: addressData.country || addressData.Country || 'Việt Nam',
             isDefault: addressData.isDefault || false
         };
 
@@ -143,7 +143,7 @@ export const userService = {
             province: addressData.province || '', // Tnh  Province
             district: addressData.district || '', // X/Phng  District
             postalCode: addressData.postalCode || addressData.PostalCode,
-            country: addressData.country || addressData.Country || 'Vit Nam',
+            country: addressData.country || addressData.Country || 'Việt Nam',
             isDefault: addressData.isDefault || false
         };
 

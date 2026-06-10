@@ -34,13 +34,13 @@ const getGatewayDisplayName = (gateway: PaymentGateway): string => {
 
 const getMethodDisplayName = (method: PaymentMethod): string => {
     switch (method) {
-        case PaymentMethod.CreditCard: return 'Th tn dng';
-        case PaymentMethod.DebitCard: return 'Th ghi n';
-        case PaymentMethod.EWallet: return 'V in t';
-        case PaymentMethod.BankTransfer: return 'Chuyn khon ngn hng';
+        case PaymentMethod.CreditCard: return 'Thẻ tín dụng';
+        case PaymentMethod.DebitCard: return 'Thẻ ghi nợ';
+        case PaymentMethod.EWallet: return 'Ví điện tử';
+        case PaymentMethod.BankTransfer: return 'Chuyển khoản ngân hàng';
         case PaymentMethod.QRCode: return 'QR Code';
-        case PaymentMethod.Installment: return 'Tr gp';
-        case PaymentMethod.CashOnDelivery: return 'Thanh ton khi nhn hng';
+        case PaymentMethod.Installment: return 'Trả góp';
+        case PaymentMethod.CashOnDelivery: return 'Thanh toán khi nhận hàng';
         default: return 'Unknown';
     }
 };
@@ -110,7 +110,7 @@ export function RetryPaymentModal({
     const handleRetryPayment = async () => {
         // Check retry limits
         if (retryCount >= 3) {
-            toast.error(' vt qu s ln th li cho php (3 ln)');
+            toast.error('Đã vượt quá số lần thử lại cho phép (3 lần)');
             return;
         }
 
@@ -119,7 +119,7 @@ export function RetryPaymentModal({
             const timeSinceLastRetry = Date.now() - lastRetryTime.getTime();
             if (timeSinceLastRetry < 30000) {
                 const remainingTime = Math.ceil((30000 - timeSinceLastRetry) / 1000);
-                toast.error(`Vui lng i ${remainingTime} giy trc khi th li`);
+                toast.error(`Vui lòng đợi ${remainingTime} giây trước khi thử lại`);
                 return;
             }
         }
@@ -140,19 +140,19 @@ export function RetryPaymentModal({
             if (result && result.isSuccess) {
                 if (result.paymentUrl && result.paymentUrl.trim() !== '') {
                     // Other gateways will redirect
-                    toast.success('ang chuyn hng n trang thanh ton...');
+                    toast.success('Đang chuyển hướng đến trang thanh toán...');
                 } else if (result.additionalData?.client_secret) {
                     // For Stripe payment
-                    toast.success('ang chuyn hng n trang thanh ton Stripe...');
+                    toast.success('Đang chuyển hướng đến trang thanh toán Stripe...');
                 } else {
-                    toast.error('Khng nhn c lin kt thanh ton. Vui lng th li.');
+                    toast.error('Không nhận được liên kết thanh toán. Vui lòng thử lại.');
                 }
             } else {
-                toast.error('Khng th khi to thanh ton li');
+                toast.error('Không thể khởi tạo thanh toán lại');
             }
         } catch (error: any) {
             console.error('Retry payment error:', error);
-            toast.error(error.message || 'C li xy ra khi thanh ton li');
+            toast.error(error.message || 'Có lỗi xảy ra khi thanh toán lại');
         }
     };
 
@@ -191,9 +191,9 @@ export function RetryPaymentModal({
     };
 
     const getRetryStatus = () => {
-        if (retryCount === 0) return { status: 'ready', message: 'Sn sng th li' };
-        if (retryCount < 3) return { status: 'warning', message: ` th ${retryCount}/3 ln` };
-        return { status: 'error', message: ' vt qu s ln th li' };
+        if (retryCount === 0) return { status: 'ready', message: 'Sẵn sàng thử lại' };
+        if (retryCount < 3) return { status: 'warning', message: `Đã thử ${retryCount}/3 lần` };
+        return { status: 'error', message: 'Đã vượt quá số lần thử lại' };
     };
 
     const retryStatus = getRetryStatus();
@@ -204,7 +204,7 @@ export function RetryPaymentModal({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <RefreshCw className="h-5 w-5" />
-                        Thanh ton li n hng
+                        Thanh toán lại đơn hàng
                     </DialogTitle>
                 </DialogHeader>
 
@@ -214,23 +214,23 @@ export function RetryPaymentModal({
                         <CardHeader>
                             <CardTitle className="text-lg flex items-center gap-2">
                                 <Info className="h-4 w-4" />
-                                Thng tin n hng
+                                Thông tin đơn hàng
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">M n hng:</span>
+                                <span className="text-sm text-muted-foreground">Mã đơn hàng:</span>
                                 <Badge variant="outline">{orderNumber}</Badge>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">S tin:</span>
+                                <span className="text-sm text-muted-foreground">Số tiền:</span>
                                 <span className="font-semibold text-lg">
                                     {formatCurrencyPrice(orderAmount, selectedCurrency)}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">Trng thi:</span>
-                                <Badge variant="destructive">Cha thanh ton</Badge>
+                                <span className="text-sm text-muted-foreground">Trạng thái:</span>
+                                <Badge variant="destructive">Chưa thanh toán</Badge>
                             </div>
                         </CardContent>
                     </Card>
@@ -244,7 +244,7 @@ export function RetryPaymentModal({
                             {retryStatus.message}
                             {lastRetryTime && (
                                 <div className="text-xs mt-1 text-muted-foreground">
-                                    Ln th cui: {lastRetryTime.toLocaleString('vi-VN')}
+                                    Lần thử cuối: {lastRetryTime.toLocaleString('vi-VN')}
                                 </div>
                             )}
                         </AlertDescription>
@@ -253,12 +253,12 @@ export function RetryPaymentModal({
                     {/* Payment Method Selection */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-lg">Chn phng thc thanh ton</CardTitle>
+                            <CardTitle className="text-lg">Chọn phương thức thanh toán</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-4">
                                 <div>
-                                    <Label htmlFor="gateway">Cng thanh ton</Label>
+                                    <Label htmlFor="gateway">Cổng thanh toán</Label>
                                     <Select
                                         value={selectedGateway.toString()}
                                         onValueChange={(value) => setSelectedGateway(parseInt(value) as PaymentGateway)}
@@ -281,12 +281,12 @@ export function RetryPaymentModal({
 
                                 {/* Auto-selected payment method display */}
                                 <div>
-                                    <Label>Phng thc thanh ton</Label>
+                                    <Label>Phương thức thanh toán</Label>
                                     <div className="flex items-center gap-2 p-3 border rounded-md bg-muted/50">
                                         {getMethodIcon(selectedMethod)}
                                         <span className="font-medium">{getMethodDisplayName(selectedMethod)}</span>
                                         <span className="text-sm text-muted-foreground ml-auto">
-                                            (T ng chn)
+                                            (Tự động chọn)
                                         </span>
                                     </div>
                                 </div>
@@ -296,18 +296,18 @@ export function RetryPaymentModal({
 
                             {/* Payment Summary */}
                             <div className="bg-muted/50 rounded-lg p-4">
-                                <h4 className="font-medium mb-2">Tm tt thanh ton</h4>
+                                <h4 className="font-medium mb-2">Tóm tắt thanh toán</h4>
                                 <div className="space-y-1 text-sm">
                                     <div className="flex justify-between">
-                                        <span>Cng thanh ton:</span>
+                                        <span>Cổng thanh toán:</span>
                                         <span className="font-medium">{getGatewayDisplayName(selectedGateway)}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span>Phng thc:</span>
-                                        <span className="font-medium">{getMethodDisplayName(selectedMethod)} (T ng chn)</span>
+                                        <span>Phương thức:</span>
+                                        <span className="font-medium">{getMethodDisplayName(selectedMethod)} (Tự động chọn)</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span>S tin:</span>
+                                        <span>Số tiền:</span>
                                         <span className="font-semibold">
                                             {formatCurrencyPrice(orderAmount, selectedCurrency)}
                                         </span>
@@ -320,7 +320,7 @@ export function RetryPaymentModal({
                     {/* Action Buttons */}
                     <div className="flex gap-3 justify-end">
                         <Button variant="outline" onClick={onClose}>
-                            Hy
+                            Hủy
                         </Button>
                         <Button
                             onClick={handleRetryPayment}
@@ -330,12 +330,12 @@ export function RetryPaymentModal({
                             {state.isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    ang x l...
+                                    Đang xử lý...
                                 </>
                             ) : (
                                 <>
                                     <RefreshCw className="mr-2 h-4 w-4" />
-                                    Thanh ton li
+                                    Thanh toán lại
                                 </>
                             )}
                         </Button>

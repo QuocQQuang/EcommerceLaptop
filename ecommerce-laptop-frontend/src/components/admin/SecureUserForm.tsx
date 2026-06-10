@@ -54,23 +54,23 @@ const vietnamesePhoneRegex = /^(0|\+84)(3[2-9]|5[689]|7[06-9]|8[1-689]|9[0-46-9]
 // Enhanced user schema with security validation
 const secureUserSchema = z.object({
     firstName: z.string()
-        .min(1, 'H l bt buc')
-        .min(2, 'H phi c t nht 2 k t')
-        .max(50, 'H khng c qu 50 k t')
-        .regex(/^[\p{L}\p{M}\s.'-]+$/u, 'H ch c cha ch ci, du cch v cc k t c bit hp l')
-        .refine((val) => !/[<>\"'&]/.test(val), 'H cha k t khng an ton'),
+        .min(1, 'Họ là bắt buộc')
+        .min(2, 'Họ phải có ít nhất 2 ký tự')
+        .max(50, 'Họ không được quá 50 ký tự')
+        .regex(/^[\p{L}\p{M}\s.'-]+$/u, 'Họ chỉ được chứa chữ cái, dấu cách và các ký tự đặc biệt hợp lệ')
+        .refine((val) => !/[<>\"'&]/.test(val), 'Họ chứa ký tự không an toàn'),
 
     lastName: z.string()
-        .min(1, 'Tn l bt buc')
-        .min(2, 'Tn phi c t nht 2 k t')
-        .max(50, 'Tn khng c qu 50 k t')
-        .regex(/^[\p{L}\p{M}\s.'-]+$/u, 'Tn ch c cha ch ci, du cch v cc k t c bit hp l')
-        .refine((val) => !/[<>\"'&]/.test(val), 'Tn cha k t khng an ton'),
+        .min(1, 'Tên là bắt buộc')
+        .min(2, 'Tên phải có ít nhất 2 ký tự')
+        .max(50, 'Tên không được quá 50 ký tự')
+        .regex(/^[\p{L}\p{M}\s.'-]+$/u, 'Tên chỉ được chứa chữ cái, dấu cách và các ký tự đặc biệt hợp lệ')
+        .refine((val) => !/[<>\"'&]/.test(val), 'Tên chứa ký tự không an toàn'),
 
     email: z.string()
-        .min(1, 'Email l bt buc')
-        .email('Email khng hp l')
-        .max(254, 'Email khng c qu 254 k t')
+        .min(1, 'Email là bắt buộc')
+        .email('Email không hợp lệ')
+        .max(254, 'Email không được quá 254 ký tự')
         .toLowerCase()
         .refine((val) => {
             // Check for common malicious patterns in emails
@@ -83,19 +83,19 @@ const secureUserSchema = z.object({
                 /onerror=/i
             ];
             return !maliciousPatterns.some(pattern => pattern.test(val));
-        }, 'Email cha ni dung khng an ton'),
+        }, 'Email chứa nội dung không an toàn'),
 
     phone: z.string()
         .optional()
         .refine((val) => !val || vietnamesePhoneRegex.test(val), {
-            message: 'S in thoi Vit Nam khng hp l (v d: 0912345678, +84912345678)'
+            message: 'Số điện thoại Việt Nam không hợp lệ (ví dụ: 0912345678, +84912345678)'
         }),
 
     password: z.string()
-        .min(8, 'Mt khu phi c t nht 8 k t')
-        .max(128, 'Mt khu khng c qu 128 k t')
+        .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+        .max(128, 'Mật khẩu không được quá 128 ký tự')
         .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-            'Mt khu phi c t nht 1 ch hoa, 1 ch thng, 1 s v 1 k t c bit')
+            'Mật khẩu phải có ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt')
         .refine((val) => {
             // Check against common weak passwords
             const commonPasswords = [
@@ -103,19 +103,19 @@ const secureUserSchema = z.object({
                 'welcome', 'monkey', '1234567890', 'password123'
             ];
             return !commonPasswords.includes(val.toLowerCase());
-        }, 'Mt khu qu ph bin, vui lng chn mt khu khc'),
+        }, 'Mật khẩu quá phổ biến, vui lòng chọn mật khẩu khác'),
 
     confirmPassword: z.string()
-        .min(1, 'Xc nhn mt khu l bt buc'),
+        .min(1, 'Xác nhận mật khẩu là bắt buộc'),
 
     roleId: z.number()
-        .min(1, 'Vui lng chn vai tr'),
+        .min(1, 'Vui lòng chọn vai trò'),
 
     isActive: z.boolean(),
 
     bio: z.string()
         .optional()
-        .refine((val) => !val || val.length <= 500, 'Tiu s khng c qu 500 k t'),
+        .refine((val) => !val || val.length <= 500, 'Tiểu sử không được quá 500 ký tự'),
 
     sendWelcomeEmail: z.boolean(),
 
@@ -124,7 +124,7 @@ const secureUserSchema = z.object({
     twoFactorEnabled: z.boolean(),
 
 }).refine((data) => data.password === data.confirmPassword, {
-    message: 'Mt khu xc nhn khng khp',
+    message: 'Mật khẩu xác nhận không khớp',
     path: ['confirmPassword'],
 });
 
@@ -217,25 +217,25 @@ export function SecureUserForm({
             // Final security check
             const hasSecurityErrors = Object.values(securityValidations).some(v => !v.isValid);
             if (hasSecurityErrors) {
-                toast.error('Vui lng khc phc cc li bo mt trc khi lu');
+                toast.error('Vui lòng khắc phục các lỗi bảo mật trước khi lưu');
                 return;
             }
 
             if (overallSecurityScore < 80) {
-                toast.error('im bo mt tng th qu thp. Vui lng kim tra li cc trng nhp liu');
+                toast.error('Điểm bảo mật tổng thể quá thấp. Vui lòng kiểm tra lại các trường nhập liệu');
                 return;
             }
 
             if (!isEdit && passwordStrength < 60) {
-                toast.error('Mt khu khng  mnh. Vui lng chn mt khu phc tp hn');
+                toast.error('Mật khẩu không đủ mạnh. Vui lòng chọn mật khẩu phức tạp hơn');
                 return;
             }
 
             await onSubmit(data);
-            toast.success(`Ngi dng  c ${isEdit ? 'cp nht' : 'to'} thnh cng`);
+            toast.success(`Người dùng đã được ${isEdit ? 'cập nhật' : 'tạo'} thành công`);
         } catch (error) {
             console.error('Submit error:', error);
-            toast.error(`C li xy ra khi ${isEdit ? 'cp nht' : 'to'} ngi dng`);
+            toast.error(`Có lỗi xảy ra khi ${isEdit ? 'cập nhật' : 'tạo'} người dùng`);
         }
     };
 
@@ -243,8 +243,8 @@ export function SecureUserForm({
 
     return (
         <SecureFormWrapper
-            title={isEdit ? "Chnh sa ngi dng" : "Thm ngi dng mi"}
-            description={`${isEdit ? 'Cp nht thng tin' : 'To ti khon'} ngi dng vi form nghim ngt`}
+            title={isEdit ? "Chỉnh sửa người dùng" : "Thêm người dùng mới"}
+            description={`${isEdit ? 'Cập nhật thông tin' : 'Tạo tài khoản'} người dùng với form nghiêm ngặt`}
             securityLevel="strict"
         >
             <div className="space-y-6">
@@ -253,7 +253,7 @@ export function SecureUserForm({
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Shield className="h-5 w-5" />
-                            Tng quan bo mt
+                            Tổng quan bảo mật
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -262,7 +262,7 @@ export function SecureUserForm({
                                 <Badge
                                     variant={overallSecurityScore > 80 ? "default" : overallSecurityScore > 60 ? "secondary" : "destructive"}
                                 >
-                                    Tng im: {overallSecurityScore}/100
+                                    Tổng điểm: {overallSecurityScore}/100
                                 </Badge>
                             </div>
 
@@ -271,7 +271,7 @@ export function SecureUserForm({
                                     <Badge
                                         variant={passwordStrength > 80 ? "default" : passwordStrength > 60 ? "secondary" : "destructive"}
                                     >
-                                        Mt khu: {passwordStrength}/100
+                                        Mật khẩu: {passwordStrength}/100
                                     </Badge>
                                 </div>
                             )}
@@ -280,12 +280,12 @@ export function SecureUserForm({
                                 {overallSecurityScore > 80 ? (
                                     <>
                                         <CheckCircle className="h-4 w-4 text-green-600" />
-                                        Mc  bo mt cao
+                                        Mức độ bảo mật cao
                                     </>
                                 ) : (
                                     <>
                                         <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                                        Cn ci thin bo mt
+                                        Cần cải thiện bảo mật
                                     </>
                                 )}
                             </div>
@@ -299,7 +299,7 @@ export function SecureUserForm({
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <User className="h-5 w-5" />
-                                Thng tin c nhn
+                                Thông tin cá nhân
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -311,13 +311,13 @@ export function SecureUserForm({
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="text-sm text-muted-foreground">
-                                    Avatar s c to t ng t tn ngi dng
+                                    Avatar sẽ được tạo tự động từ tên người dùng
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="firstName">H v tn m *</Label>
+                                    <Label htmlFor="firstName">Họ và tên đệm *</Label>
                                     <SecureInput
                                         id="firstName"
                                         securityContext={SECURITY_CONTEXTS.NAME}
@@ -330,7 +330,7 @@ export function SecureUserForm({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="lastName">Tn *</Label>
+                                    <Label htmlFor="lastName">Tên *</Label>
                                     <SecureInput
                                         id="lastName"
                                         securityContext={SECURITY_CONTEXTS.NAME}
@@ -350,7 +350,7 @@ export function SecureUserForm({
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Mail className="h-5 w-5" />
-                                Thng tin lin h
+                                Thông tin liên hệ
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -370,12 +370,12 @@ export function SecureUserForm({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone">S in thoi</Label>
+                                    <Label htmlFor="phone">Số điện thoại</Label>
                                     <SecureInput
                                         id="phone"
                                         securityContext={SECURITY_CONTEXTS.PHONE}
                                         onSecurityValidation={(result) => handleSecurityValidation('phone', result)}
-                                        placeholder="0912345678 hoc +84912345678"
+                                        placeholder="0912345678 hoặc +84912345678"
                                         {...form.register('phone')}
                                     />
                                     {form.formState.errors.phone && (
@@ -392,13 +392,13 @@ export function SecureUserForm({
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Lock className="h-5 w-5" />
-                                    Ci t bo mt
+                                    Cài đặt bảo mật
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="password">Mt khu *</Label>
+                                        <Label htmlFor="password">Mật khẩu *</Label>
                                         <SecureInput
                                             id="password"
                                             type="password"
@@ -419,7 +419,7 @@ export function SecureUserForm({
                                         {/* Password Strength Indicator */}
                                         <div className="space-y-2">
                                             <div className="flex justify-between text-xs">
-                                                <span> mnh mt khu</span>
+                                                <span>Độ mạnh mật khẩu</span>
                                                 <span>{passwordStrength}/100</span>
                                             </div>
                                             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -437,7 +437,7 @@ export function SecureUserForm({
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="confirmPassword">Xc nhn mt khu *</Label>
+                                        <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
                                         <SecureInput
                                             id="confirmPassword"
                                             type="password"
@@ -459,9 +459,9 @@ export function SecureUserForm({
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
-                                            <Label>Yu cu i mt khu khi ng nhp u tin</Label>
+                                            <Label>Yêu cầu đổi mật khẩu khi đăng nhập đầu tiên</Label>
                                             <p className="text-sm text-muted-foreground">
-                                                Bt buc ngi dng i mt khu ngay ln ng nhp u tin
+                                                Bắt buộc người dùng đổi mật khẩu ngay lần đăng nhập đầu tiên
                                             </p>
                                         </div>
                                         <Switch
@@ -472,9 +472,9 @@ export function SecureUserForm({
 
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
-                                            <Label>Bt xc thc hai lp (2FA)</Label>
+                                            <Label>Bật xác thực hai lớp (2FA)</Label>
                                             <p className="text-sm text-muted-foreground">
-                                                Tng cng bo mt vi xc thc hai lp
+                                                Tăng cường bảo mật với xác thực hai lớp
                                             </p>
                                         </div>
                                         <Switch
@@ -492,18 +492,18 @@ export function SecureUserForm({
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Shield className="h-5 w-5" />
-                                Vai tr v quyn hn
+                                Vai trò và quyền hạn
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
-                                <Label>Vai tr *</Label>
+                                <Label>Vai trò *</Label>
                                 <Select
                                     value={form.watch('roleId')?.toString()}
                                     onValueChange={(value) => form.setValue('roleId', parseInt(value))}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Chn vai tr" />
+                                        <SelectValue placeholder="Chọn vai trò" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {roles.map((role) => (
@@ -512,7 +512,7 @@ export function SecureUserForm({
                                                     {role.displayName}
                                                     {role.isSystemRole && (
                                                         <Badge variant="secondary" className="text-xs">
-                                                            H thng
+                                                            Hệ thống
                                                         </Badge>
                                                     )}
                                                 </div>
@@ -537,7 +537,7 @@ export function SecureUserForm({
                                         ))}
                                         {selectedRole.permissions.length > 5 && (
                                             <Badge variant="outline" className="text-xs">
-                                                +{selectedRole.permissions.length - 5} khc
+                                                +{selectedRole.permissions.length - 5} khác
                                             </Badge>
                                         )}
                                     </div>
@@ -549,11 +549,11 @@ export function SecureUserForm({
                     {/* Additional Information */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Thng tin b sung</CardTitle>
+                            <CardTitle>Thông tin bổ sung</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="bio">Tiu s</Label>
+                                <Label htmlFor="bio">Tiểu sử</Label>
                                 <SecureTextarea
                                     id="bio"
                                     securityContext={{
@@ -562,7 +562,7 @@ export function SecureUserForm({
                                     }}
                                     onSecurityValidation={(result) => handleSecurityValidation('bio', result)}
                                     rows={3}
-                                    placeholder="Thng tin ngn v ngi dng..."
+                                    placeholder="Thông tin ngắn về người dùng..."
                                     {...form.register('bio')}
                                 />
                             </div>
@@ -570,9 +570,9 @@ export function SecureUserForm({
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label>Ti khon hot ng</Label>
+                                        <Label>Tài khoản hoạt động</Label>
                                         <p className="text-sm text-muted-foreground">
-                                            Cho php ngi dng ng nhp v s dng h thng
+                                            Cho phép người dùng đăng nhập và sử dụng hệ thống
                                         </p>
                                     </div>
                                     <Switch
@@ -584,9 +584,9 @@ export function SecureUserForm({
                                 {!isEdit && (
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
-                                            <Label>Gi email cho mng</Label>
+                                            <Label>Gửi email chào mừng</Label>
                                             <p className="text-sm text-muted-foreground">
-                                                Gi email hng dn v thng tin ng nhp cho ngi dng mi
+                                                Gửi email hướng dẫn và thông tin đăng nhập cho người dùng mới
                                             </p>
                                         </div>
                                         <Switch
@@ -609,12 +609,12 @@ export function SecureUserForm({
                             {isLoading ? (
                                 <>
                                     <UserPlus className="h-4 w-4 mr-2 animate-spin" />
-                                    {isEdit ? 'ang cp nht...' : 'ang to...'}
+                                    {isEdit ? 'Đang cập nhật...' : 'Đang tạo...'}
                                 </>
                             ) : (
                                 <>
                                     <Save className="h-4 w-4 mr-2" />
-                                    {isEdit ? 'Cp nht ngi dng' : 'To ngi dng'}
+                                    {isEdit ? 'Cập nhật người dùng' : 'Tạo người dùng'}
                                 </>
                             )}
                         </Button>
@@ -624,9 +624,9 @@ export function SecureUserForm({
                                 <AlertTriangle className="h-4 w-4" />
                                 <AlertDescription>
                                     {overallSecurityScore < 80
-                                        ? 'im bo mt tng th qu thp.'
-                                        : 'Mt khu cha  mnh.'
-                                    } Vui lng kim tra li.
+                                        ? 'Điểm bảo mật tổng thể quá thấp.'
+                                        : 'Mật khẩu chưa đủ mạnh.'
+                                    } Vui lòng kiểm tra lại.
                                 </AlertDescription>
                             </Alert>
                         )}

@@ -3,74 +3,74 @@ import { Separator } from '@/components/ui/separator';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Gii thiu - Laptop Store',
-    description: 'Tm hiu v Laptop Store - ca hng laptop chnh hng uy tn nht Vit Nam',
+    title: 'Giới thiệu - Laptop Store',
+    description: 'Tìm hiểu về Laptop Store - cửa hàng laptop chính hãng uy tín nhất Việt Nam',
 };
 
 export default function AboutPage() {
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
-            <h1 className="text-3xl font-bold mb-6">Gii Thiu V Laptop Store</h1>
+            <h1 className="text-3xl font-bold mb-6">Giới Thiệu Về Laptop Store</h1>
             <p className="text-lg text-gray-700 mb-8">
-                Laptop Store l ca hng chuyn cung cp laptop chnh hng vi hn 10 nm kinh nghim trong lnh vc cng ngh. Chng ti cam kt mang n cho khch hng nhng sn phm cht lng cao t cc thng hiu hng u th gii nh Dell, HP, Lenovo, Asus, MacBook v nhiu hn na.
+                Laptop Store là cửa hàng chuyên cung cấp laptop chính hãng với hơn 10 năm kinh nghiệm trong lĩnh vực công nghệ. Chúng tôi cam kết mang đến cho khách hàng những sản phẩm chất lượng cao từ các thương hiệu hàng đầu thế giới như Dell, HP, Lenovo, Asus, MacBook và nhiều hơn nữa.
             </p>
 
             <Separator className="my-8" />
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">S Mnh Ca Chng Ti</h2>
+                <h2 className="text-2xl font-semibold mb-4">Sứ Mệnh Của Chúng Tôi</h2>
                 <p className="text-gray-700">
-                    Chng ti khng ch bn laptop m cn ng hnh cng khch hng trong vic la chn thit b ph hp vi nhu cu cng vic, hc tp v gii tr. Vi i ng chuyn vin t vn giu kinh nghim, Laptop Store lun sn sng h tr bn 24/7.
+                    Chúng tôi không chỉ bán laptop mà còn đồng hành cùng khách hàng trong việc lựa chọn thiết bị phù hợp với nhu cầu công việc, học tập và giải trí. Với đội ngũ chuyên viên tư vấn giàu kinh nghiệm, Laptop Store luôn sẵn sàng hỗ trợ bạn 24/7.
                 </p>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">Lch S Hnh Thnh</h2>
+                <h2 className="text-2xl font-semibold mb-4">Lịch Sử Hình Thành</h2>
                 <p className="text-gray-700">
-                    Thnh lp t nm 2015, Laptop Store bt u nh mt ca hng nh chuyn cung cp laptop cho sinh vin v nhn vin vn phng. Vi s pht trin khng ngng v cam kt cht lng, chng ti  m rng quy m v tr thnh mt trong nhng nh phn phi laptop ln nht ti Vit Nam.
+                    Thành lập từ năm 2015, Laptop Store bắt đầu như một cửa hàng nhỏ chuyên cung cấp laptop cho sinh viên và nhân viên văn phòng. Với sự phát triển không ngừng và cam kết chất lượng, chúng tôi đã mở rộng quy mô và trở thành một trong những nhà phân phối laptop lớn nhất tại Việt Nam.
                 </p>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">Gi Tr Ct Li</h2>
+                <h2 className="text-2xl font-semibold mb-4">Giá Trị Cốt Lõi</h2>
                 <div className="grid md:grid-cols-2 gap-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Cht Lng u Tin</CardTitle>
+                            <CardTitle>Chất Lượng Đầu Tiên</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p>Tt c sn phm u c kim tra nghim ngt trc khi n tay khch hng. Chng ti ch bn hng chnh hng vi y  giy t chng nhn.</p>
+                            <p>Tất cả sản phẩm đều được kiểm tra nghiêm ngặt trước khi đến tay khách hàng. Chúng tôi chỉ bán hàng chính hãng với đầy đủ giấy tờ chứng nhận.</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Phc V Tn Tm</CardTitle>
+                            <CardTitle>Phục Vụ Tận Tâm</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p>H tr khch hng t t vn n hu mi vi thi  chuyn nghip. i ng ca chng ti lun sn sng gii p mi thc mc.</p>
+                            <p>Hỗ trợ khách hàng từ tư vấn đến hậu mãi với thời gian chuyên nghiệp. Đội ngũ của chúng tôi luôn sẵn sàng giải đáp mọi thắc mắc.</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Gi C Cnh Tranh</CardTitle>
+                            <CardTitle>Giá Cả Cạnh Tranh</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p>Cam kt gi tt nht th trng vi chnh sch bo hnh r rng v nhiu chng trnh khuyn mi hp dn.</p>
+                            <p>Cam kết giá tốt nhất thị trường với chính sách bảo hành rõ ràng và nhiều chương trình khuyến mãi hấp dẫn.</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>i Tr Linh Hot</CardTitle>
+                            <CardTitle>Đổi Trả Linh Hoạt</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p>Chnh sch i tr trong 30 ngy vi iu kin n gin. Chng ti lun t s hi lng ca khch hng ln hng u.</p>
+                            <p>Chính sách đổi trả trong 30 ngày với điều kiện đơn giản. Chúng tôi luôn đặt sự hài lòng của khách hàng lên hàng đầu.</p>
                         </CardContent>
                     </Card>
                 </div>
             </section>
 
             <section className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">Lin H Vi Chng Ti</h2>
+                <h2 className="text-2xl font-semibold mb-4">Liên Hệ Với Chúng Tôi</h2>
                 <div className="grid md:grid-cols-3 gap-6">
                     <Card>
                         <CardHeader>
@@ -78,7 +78,7 @@ export default function AboutPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-lg font-bold">1800-123-456</p>
-                            <p className="text-sm text-gray-600">T vn 24/7</p>
+                            <p className="text-sm text-gray-600">Tư vấn 24/7</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -87,16 +87,16 @@ export default function AboutPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-lg">support@laptopstore.vn</p>
-                            <p className="text-sm text-gray-600">Phn hi trong 24h</p>
+                            <p className="text-sm text-gray-600">Phản hồi trong 24h</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>a Ch</CardTitle>
+                            <CardTitle>Địa Chỉ</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-lg">123 ng Laptop, TP.HCM</p>
-                            <p className="text-sm text-gray-600">M ca 8:00 - 22:00</p>
+                            <p className="text-lg">123 Đường Laptop, TP.HCM</p>
+                            <p className="text-sm text-gray-600">Mở cửa 8:00 - 22:00</p>
                         </CardContent>
                     </Card>
                 </div>

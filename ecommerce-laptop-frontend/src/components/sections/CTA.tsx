@@ -37,10 +37,10 @@ export function CTA() {
                 viewport={{ once: true }}
             >
                 <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4">
-                    Sn sng nng cp?
+                    Sẵn sàng nâng cấp?
                 </h2>
                 <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                    Tham gia hng ngn khch hng hi lng  nng cao nng sut vi laptop cao cp ca chng ti.
+                    Tham gia hàng ngàn khách hàng hài lòng để nâng cao năng suất với laptop cao cấp của chúng tôi.
                 </p>
                 <motion.div
                     whileHover={{ scale: 1.05 }}

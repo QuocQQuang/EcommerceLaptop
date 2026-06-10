@@ -6,23 +6,23 @@ import { Battery, Cpu, Monitor, Settings } from 'lucide-react';
 const features = [
     {
         icon: Cpu,
-        title: 'Hiu nng vt tri',
-        description: 'c trang b vi x l Intel Core i9 th h mi v GPU NVIDIA RTX 40-series  x l mt mi tc v v chi game.',
+        title: 'Hiệu năng vượt trội',
+        description: 'Được trang bị vi xử lý Intel Core i9 thế hệ mới và GPU NVIDIA RTX 40-series để xử lý mọi tác vụ và chơi game.',
     },
     {
         icon: Monitor,
-        title: 'Mn hnh n tng',
-        description: 'Mn hnh OLED 16" 4K, cm ng, tn s qut 120Hz,  ph mu 100% DCI-P3 v chng chi.',
+        title: 'Màn hình ấn tượng',
+        description: 'Màn hình OLED 16" 4K, cảm ứng, tần số quét 120Hz, độ phủ màu 100% DCI-P3 và chống chói.',
     },
     {
         icon: Battery,
-        title: 'Pin c ngy',
-        description: 'Ln ti 18 gi s dng vi sc nhanh  lm vic, sng to v gii tr khng gin on.',
+        title: 'Pin cả ngày',
+        description: 'Lên tới 18 giờ sử dụng với sạc nhanh để làm việc, sáng tạo và giải trí không gián đoạn.',
     },
     {
         icon: Settings,
-        title: 'Thit k cao cp',
-        description: 'V nhm mng nh, bn phm n nn RGB v h thng tn nhit ti u cho tri nghim tuyt vi.',
+        title: 'Thiết kế cao cấp',
+        description: 'Vỏ nhôm mịn đẹp, bàn phím đèn nền RGB và hệ thống tản nhiệt tối ưu cho trải nghiệm tuyệt vời.',
     },
 ];
 
@@ -57,9 +57,9 @@ export function Features() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
                 >
-                    <h2 className="text-4xl font-bold text-foreground mb-4">Tnh nng chnh</h2>
+                    <h2 className="text-4xl font-bold text-foreground mb-4">Tính năng chính</h2>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                        Khm ph iu g lm cho laptop ca chng ti ni bt so vi i th.
+                        Khám phá điều gì làm cho laptop của chúng tôi nổi bật so với đối thủ.
                     </p>
                 </motion.div>
 

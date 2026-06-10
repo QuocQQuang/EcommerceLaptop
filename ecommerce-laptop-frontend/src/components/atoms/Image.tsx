@@ -71,7 +71,7 @@ export function Image({
                     placeholder={placeholder}
                     blurDataURL={blurDataURL}
                     sizes={sizes}
-                    // Bt unoptimized cho tt c nh theo yu cu (b ton b Next optimizer)
+                    // Bật unoptimized cho tất cả ảnh theo yêu cầu (bỏ toàn bộ Next optimizer)
                     unoptimized={true}
                     className={cn(
                         'transition-opacity duration-300',
@@ -85,7 +85,7 @@ export function Image({
 
             {hasError && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-xs">
-                    Khng th ti nh
+                    Không thể tải ảnh
                 </div>
             )}
         </div>

@@ -54,7 +54,7 @@ adminClient.interceptors.response.use(
 
 export class ExportService {
     /**
-     * Xut ha n PDF vi ch k s (Admin only)
+     * Xuất hóa đơn PDF với chữ ký số (Admin only)
      */
     static async exportInvoicePdf(orderId: number, includeDigitalSignature: boolean = true): Promise<Blob> {
         const response = await adminClient.get(`/export/invoice/pdf/${orderId}`, {
@@ -65,7 +65,7 @@ export class ExportService {
     }
 
     /**
-     * Xut ha n XML (Admin only)
+     * Xuất hóa đơn XML (Admin only)
      */
     static async exportInvoiceXml(orderId: number): Promise<Blob> {
         const response = await adminClient.get(`/export/invoice/xml/${orderId}`, {
@@ -75,7 +75,7 @@ export class ExportService {
     }
 
     /**
-     * Xut ha n PDF cho khch hng (khng cn quyn admin)
+     * Xuất hóa đơn PDF cho khách hàng (không cần quyền admin)
      */
     static async exportCustomerInvoicePdf(orderId: number, includeDigitalSignature: boolean = false): Promise<Blob> {
         const response = await adminClient.get(`/export/customer/invoice/pdf/${orderId}`, {
@@ -86,7 +86,7 @@ export class ExportService {
     }
 
     /**
-     * Xut ha n XML cho khch hng (khng cn quyn admin)
+     * Xuất hóa đơn XML cho khách hàng (không cần quyền admin)
      */
     static async exportCustomerInvoiceXml(orderId: number): Promise<Blob> {
         const response = await adminClient.get(`/export/customer/invoice/xml/${orderId}`, {
@@ -96,7 +96,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch n hng ra Excel
+     * Xuất danh sách đơn hàng ra Excel
      */
     static async exportOrdersToExcel(options: ExportOptions = {}): Promise<Blob> {
         const response = await adminClient.get('/export/orders/excel', {
@@ -107,7 +107,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch sn phm ra Excel
+     * Xuất danh sách sản phẩm ra Excel
      */
     static async exportProductsToExcel(options: ExportOptions = {}): Promise<Blob> {
         const response = await adminClient.get('/export/products/excel', {
@@ -118,7 +118,7 @@ export class ExportService {
     }
 
     /**
-     * Xut bo co doanh thu ra Excel
+     * Xuất báo cáo doanh thu ra Excel
      */
     static async exportRevenueReportToExcel(startDate: string, endDate: string): Promise<Blob> {
         const response = await adminClient.get('/export/revenue/excel', {
@@ -129,7 +129,7 @@ export class ExportService {
     }
 
     /**
-     * Xut bo co tn kho ra Excel
+     * Xuất báo cáo tồn kho ra Excel
      */
     static async exportInventoryReportToExcel(): Promise<Blob> {
         const response = await adminClient.get('/export/inventory/excel', {
@@ -139,7 +139,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch khch hng ra Excel
+     * Xuất danh sách khách hàng ra Excel
      */
     static async exportUsersToExcel(options: ExportOptions = {}): Promise<Blob> {
         const response = await adminClient.get('/export/users/excel', {
@@ -150,7 +150,7 @@ export class ExportService {
     }
 
     /**
-     * Ti file xung
+     * Tải file xuống
      */
     static downloadFile(blob: Blob, filename: string): void {
         const url = window.URL.createObjectURL(blob);
@@ -164,7 +164,7 @@ export class ExportService {
     }
 
     /**
-     * Xut ha n PDF v ti xung (Admin only)
+     * Xuất hóa đơn PDF và tải xuống (Admin only)
      */
     static async downloadInvoicePdf(orderId: number, orderNumber: string, includeDigitalSignature: boolean = true): Promise<void> {
         try {
@@ -178,7 +178,7 @@ export class ExportService {
     }
 
     /**
-     * Xut ha n XML v ti xung (Admin only)
+     * Xuất hóa đơn XML và tải xuống (Admin only)
      */
     static async downloadInvoiceXml(orderId: number, orderNumber: string): Promise<void> {
         try {
@@ -192,7 +192,7 @@ export class ExportService {
     }
 
     /**
-     * Xut ha n PDF cho khch hng v ti xung
+     * Xuất hóa đơn PDF cho khách hàng và tải xuống
      */
     static async downloadCustomerInvoicePdf(orderId: number, orderNumber: string, includeDigitalSignature: boolean = false): Promise<void> {
         try {
@@ -206,7 +206,7 @@ export class ExportService {
     }
 
     /**
-     * Xut ha n XML cho khch hng v ti xung
+     * Xuất hóa đơn XML cho khách hàng và tải xuống
      */
     static async downloadCustomerInvoiceXml(orderId: number, orderNumber: string): Promise<void> {
         try {
@@ -220,7 +220,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch n hng Excel v ti xung
+     * Xuất danh sách đơn hàng Excel và tải xuống
      */
     static async downloadOrdersExcel(options: ExportOptions = {}): Promise<void> {
         try {
@@ -234,7 +234,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch sn phm Excel v ti xung
+     * Xuất danh sách sản phẩm Excel và tải xuống
      */
     static async downloadProductsExcel(options: ExportOptions = {}): Promise<void> {
         try {
@@ -248,7 +248,7 @@ export class ExportService {
     }
 
     /**
-     * Xut bo co doanh thu Excel v ti xung
+     * Xuất báo cáo doanh thu Excel và tải xuống
      */
     static async downloadRevenueReportExcel(startDate: string, endDate: string): Promise<void> {
         try {
@@ -262,7 +262,7 @@ export class ExportService {
     }
 
     /**
-     * Xut bo co tn kho Excel v ti xung
+     * Xuất báo cáo tồn kho Excel và tải xuống
      */
     static async downloadInventoryReportExcel(): Promise<void> {
         try {
@@ -276,7 +276,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch khch hng Excel v ti xung
+     * Xuất danh sách khách hàng Excel và tải xuống
      */
     static async downloadUsersExcel(options: ExportOptions = {}): Promise<void> {
         try {
@@ -290,7 +290,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch s kin bo mt ra Excel
+     * Xuất danh sách sự kiện bảo mật ra Excel
      */
     static async exportSecurityEventsToExcel(options: ExportOptions = {}): Promise<Blob> {
         const response = await adminClient.get('/export/security-events/excel', {
@@ -301,7 +301,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch IP Block Rules ra Excel
+     * Xuất danh sách IP Block Rules ra Excel
      */
     static async exportIPBlockRulesToExcel(options: ExportOptions = {}): Promise<Blob> {
         const response = await adminClient.get('/export/ip-block-rules/excel', {
@@ -312,7 +312,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch Rate Limit Rules ra Excel
+     * Xuất danh sách Rate Limit Rules ra Excel
      */
     static async exportRateLimitRulesToExcel(options: ExportOptions = {}): Promise<Blob> {
         const response = await adminClient.get('/export/rate-limit-rules/excel', {
@@ -323,7 +323,7 @@ export class ExportService {
     }
 
     /**
-     * Xut bo co bo mt tng hp ra Excel
+     * Xuất báo cáo bảo mật tổng hợp ra Excel
      */
     static async exportSecurityReportToExcel(startDate?: string, endDate?: string): Promise<Blob> {
         const response = await adminClient.get('/export/security-report/excel', {
@@ -334,7 +334,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch s kin bo mt Excel v ti xung
+     * Xuất danh sách sự kiện bảo mật Excel và tải xuống
      */
     static async downloadSecurityEventsExcel(options: ExportOptions = {}): Promise<void> {
         try {
@@ -348,7 +348,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch IP Block Rules Excel v ti xung
+     * Xuất danh sách IP Block Rules Excel và tải xuống
      */
     static async downloadIPBlockRulesExcel(options: ExportOptions = {}): Promise<void> {
         try {
@@ -362,7 +362,7 @@ export class ExportService {
     }
 
     /**
-     * Xut danh sch Rate Limit Rules Excel v ti xung
+     * Xuất danh sách Rate Limit Rules Excel và tải xuống
      */
     static async downloadRateLimitRulesExcel(options: ExportOptions = {}): Promise<void> {
         try {
@@ -376,7 +376,7 @@ export class ExportService {
     }
 
     /**
-     * Xut bo co bo mt tng hp Excel v ti xung
+     * Xuất báo cáo bảo mật tổng hợp Excel và tải xuống
      */
     static async downloadSecurityReportExcel(startDate?: string, endDate?: string): Promise<void> {
         try {

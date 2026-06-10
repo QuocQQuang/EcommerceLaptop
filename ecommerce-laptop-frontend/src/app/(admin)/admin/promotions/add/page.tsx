@@ -55,21 +55,21 @@ import * as z from 'zod';
 
 // Validation schema
 const promotionSchema = z.object({
-  name: z.string().min(1, 'Tn khuyn mi l bt buc').max(100, 'Tn khng c vt qu 100 k t'),
+  name: z.string().min(1, 'Tên khuyến mãi là bắt buộc').max(100, 'Tên không được vượt quá 100 ký tự'),
   code: z.string()
-    .min(3, 'M khuyn mi phi c t nht 3 k t')
-    .max(20, 'M khng c vt qu 20 k t')
-    .regex(/^[A-Z0-9]+$/, 'M ch c cha ch hoa v s'),
-  description: z.string().max(500, 'M t khng c vt qu 500 k t').optional(),
+    .min(3, 'Mã khuyến mãi phải có ít nhất 3 ký tự')
+    .max(20, 'Mã không được vượt quá 20 ký tự')
+    .regex(/^[A-Z0-9]+$/, 'Mã chỉ được chứa chữ hoa và số'),
+  description: z.string().max(500, 'Mô tả không được vượt quá 500 ký tự').optional(),
   type: z.enum(['percentage', 'fixed_amount', 'free_shipping'], {
-    required_error: 'Vui lng chn loi khuyn mi'
+    required_error: 'Vui lòng chọn loại khuyến mãi'
   }),
-  value: z.number().min(0, 'Gi tr phi ln hn 0'),
-  minimumOrderAmount: z.number().min(0, 'Gi tr n hng ti thiu khng hp l').optional(),
-  maxDiscount: z.number().min(0, 'Gim gi ti a khng hp l').optional(),
-  usageLimit: z.number().min(1, 'Gii hn s dng phi ln hn 0').optional(),
-  startDate: z.string().min(1, 'Ngy bt u l bt buc'),
-  endDate: z.string().min(1, 'Ngy kt thc l bt buc'),
+  value: z.number().min(0, 'Giá trị phải lớn hơn 0'),
+  minimumOrderAmount: z.number().min(0, 'Giá trị đơn hàng tối thiểu không hợp lệ').optional(),
+  maxDiscount: z.number().min(0, 'Giảm giá tối đa không hợp lệ').optional(),
+  usageLimit: z.number().min(1, 'Giới hạn sử dụng phải lớn hơn 0').optional(),
+  startDate: z.string().min(1, 'Ngày bắt đầu là bắt buộc'),
+  endDate: z.string().min(1, 'Ngày kết thúc là bắt buộc'),
   isActive: z.boolean()
 }).refine((data) => {
   // Validate value based on type
@@ -81,7 +81,7 @@ const promotionSchema = z.object({
   }
   return true;
 }, {
-  message: 'Gi tr khuyn mi khng hp l',
+  message: 'Giá trị khuyến mãi không hợp lệ',
   path: ['value']
 }).refine((data) => {
   // Validate dates
@@ -89,7 +89,7 @@ const promotionSchema = z.object({
   const endDate = new Date(data.endDate);
   return startDate < endDate;
 }, {
-  message: 'Ngy kt thc phi sau ngy bt u',
+  message: 'Ngày kết thúc phải sau ngày bắt đầu',
   path: ['endDate']
 });
 
@@ -184,16 +184,16 @@ export default function AddPromotionPage() {
     let valueText = '';
     switch (values.type) {
       case 'percentage':
-        valueText = `Gim ${values.value}%`;
+        valueText = `Giảm ${values.value}%`;
         if (values.maxDiscount && values.maxDiscount > 0) {
-          valueText += ` (ti a ${formatCurrency(values.maxDiscount)})`;
+          valueText += ` (tối đa ${formatCurrency(values.maxDiscount)})`;
         }
         break;
       case 'fixed_amount':
-        valueText = `Gim ${formatCurrency(values.value)}`;
+        valueText = `Giảm ${formatCurrency(values.value)}`;
         break;
       case 'free_shipping':
-        valueText = 'Min ph vn chuyn';
+        valueText = 'Miễn phí vận chuyển';
         break;
     }
 
@@ -218,13 +218,13 @@ export default function AddPromotionPage() {
             <Link href="/promotions">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Quay li
+                Quay lại
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold">Thm khuyn mi mi</h1>
+              <h1 className="text-3xl font-bold">Thêm khuyến mãi mới</h1>
               <p className="text-muted-foreground">
-                To chng trnh khuyn mi hoc m gim gi mi
+                Tạo chương trình khuyến mãi hoặc mã giảm giá mới
               </p>
             </div>
           </div>
@@ -238,9 +238,9 @@ export default function AddPromotionPage() {
                 {/* Basic Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Thng tin c bn</CardTitle>
+                    <CardTitle>Thông tin cơ bản</CardTitle>
                     <CardDescription>
-                      Nhp thng tin chung v chng trnh khuyn mi
+                      Nhập thông tin chung về chương trình khuyến mãi
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -249,10 +249,10 @@ export default function AddPromotionPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Tn khuyn mi *</FormLabel>
+                          <FormLabel>Tên khuyến mãi *</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="VD: Khuyn mi Tt 2025"
+                              placeholder="VD: Khuyến mãi Tết 2025"
                               {...field}
                             />
                           </FormControl>
@@ -266,7 +266,7 @@ export default function AddPromotionPage() {
                       name="code"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>M khuyn mi *</FormLabel>
+                          <FormLabel>Mã khuyến mãi *</FormLabel>
                           <div className="flex gap-2">
                             <FormControl>
                               <Input
@@ -281,11 +281,11 @@ export default function AddPromotionPage() {
                               variant="outline"
                               onClick={generatePromotionCode}
                             >
-                              T ng to
+                              Tự động tạo
                             </Button>
                           </div>
                           <FormDescription>
-                            M ch c cha ch hoa v s, khng c du cch
+                            Mã chỉ được chứa chữ hoa và số, không có dấu cách
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -297,10 +297,10 @@ export default function AddPromotionPage() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>M t</FormLabel>
+                          <FormLabel>Mô tả</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="M t chi tit v chng trnh khuyn mi..."
+                              placeholder="Mô tả chi tiết về chương trình khuyến mãi..."
                               rows={3}
                               {...field}
                             />
@@ -315,9 +315,9 @@ export default function AddPromotionPage() {
                 {/* Promotion Details */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Chi tit khuyn mi</CardTitle>
+                    <CardTitle>Chi tiết khuyến mãi</CardTitle>
                     <CardDescription>
-                      Cu hnh loi v gi tr khuyn mi
+                      Cấu hình loại và giá trị khuyến mãi
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -326,30 +326,30 @@ export default function AddPromotionPage() {
                       name="type"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Loi khuyn mi *</FormLabel>
+                          <FormLabel>Loại khuyến mãi *</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Chn loi khuyn mi" />
+                                <SelectValue placeholder="Chọn loại khuyến mãi" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="percentage">
                                 <div className="flex items-center gap-2">
                                   <Percent className="h-4 w-4" />
-                                  Gim theo phn trm
+                                  Giảm theo phần trăm
                                 </div>
                               </SelectItem>
                               <SelectItem value="fixed_amount">
                                 <div className="flex items-center gap-2">
                                   <DollarSign className="h-4 w-4" />
-                                  Gim c nh
+                                  Giảm cố định
                                 </div>
                               </SelectItem>
                               <SelectItem value="free_shipping">
                                 <div className="flex items-center gap-2">
                                   <Truck className="h-4 w-4" />
-                                  Min ph vn chuyn
+                                  Miễn phí vận chuyển
                                 </div>
                               </SelectItem>
                             </SelectContent>
@@ -366,7 +366,7 @@ export default function AddPromotionPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              Gi tr {promotionType === 'percentage' ? '(%)' : '(VND)'} *
+                              Giá trị {promotionType === 'percentage' ? '(%)' : '(VND)'} *
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -378,8 +378,8 @@ export default function AddPromotionPage() {
                             </FormControl>
                             <FormDescription>
                               {promotionType === 'percentage'
-                                ? 'Nhp phn trm gim gi (1-100)'
-                                : 'Nhp s tin gim gi tnh bng VND'
+                                ? 'Nhập phần trăm giảm giá (1-100)'
+                                : 'Nhập số tiền giảm giá tính bằng VND'
                               }
                             </FormDescription>
                             <FormMessage />
@@ -393,7 +393,7 @@ export default function AddPromotionPage() {
                       name="minimumOrderAmount"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Gi tr n hng ti thiu (VND)</FormLabel>
+                          <FormLabel>Giá trị đơn hàng tối thiểu (VND)</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -403,7 +403,7 @@ export default function AddPromotionPage() {
                             />
                           </FormControl>
                           <FormDescription>
-                             trng hoc nhp 0 nu khng c yu cu ti thiu
+                            Để trống hoặc nhập 0 nếu không có yêu cầu tối thiểu
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -416,7 +416,7 @@ export default function AddPromotionPage() {
                         name="maxDiscount"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Gim gi ti a (VND)</FormLabel>
+                            <FormLabel>Giảm giá tối đa (VND)</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -426,7 +426,7 @@ export default function AddPromotionPage() {
                               />
                             </FormControl>
                             <FormDescription>
-                              Gii hn s tin gim ti a cho khuyn mi phn trm
+                              Giới hạn số tiền giảm tối đa cho khuyến mãi phần trăm
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -439,17 +439,17 @@ export default function AddPromotionPage() {
                       name="usageLimit"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Gii hn s lng s dng</FormLabel>
+                          <FormLabel>Giới hạn số lượng sử dụng</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
-                              placeholder="Khng gii hn"
+                              placeholder="Không giới hạn"
                               {...field}
                               onChange={(e) => field.onChange(Number(e.target.value) || undefined)}
                             />
                           </FormControl>
                           <FormDescription>
-                             trng nu khng gii hn s ln s dng
+                            Để trống nếu không giới hạn số lần sử dụng
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -463,10 +463,10 @@ export default function AddPromotionPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Calendar className="h-5 w-5" />
-                      Thi gian p dng
+                      Thời gian áp dụng
                     </CardTitle>
                     <CardDescription>
-                      Thit lp thi gian hiu lc ca khuyn mi
+                      Thiết lập thời gian hiệu lực của khuyến mãi
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -476,7 +476,7 @@ export default function AddPromotionPage() {
                         name="startDate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Ngy bt u *</FormLabel>
+                            <FormLabel>Ngày bắt đầu *</FormLabel>
                             <FormControl>
                               <Input
                                 type="date"
@@ -493,7 +493,7 @@ export default function AddPromotionPage() {
                         name="endDate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Ngy kt thc *</FormLabel>
+                            <FormLabel>Ngày kết thúc *</FormLabel>
                             <FormControl>
                               <Input
                                 type="date"
@@ -511,9 +511,9 @@ export default function AddPromotionPage() {
                 {/* Status */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Trng thi</CardTitle>
+                    <CardTitle>Trạng thái</CardTitle>
                     <CardDescription>
-                      Thit lp trng thi ban u ca khuyn mi
+                      Thiết lập trạng thái ban đầu của khuyến mãi
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -524,10 +524,10 @@ export default function AddPromotionPage() {
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
                             <FormLabel className="text-base">
-                              Kch hot ngay
+                              Kích hoạt ngay
                             </FormLabel>
                             <FormDescription>
-                              Khuyn mi s c kch hot ngay sau khi to
+                              Khuyến mãi sẽ được kích hoạt ngay sau khi tạo
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -545,18 +545,18 @@ export default function AddPromotionPage() {
                 {/* Submit Buttons */}
                 <div className="flex justify-end gap-4">
                   <Link href="/promotions">
-                    <Button variant="outline">Hy b</Button>
+                    <Button variant="outline">Hủy bỏ</Button>
                   </Link>
                   <Button
                     type="submit"
                     disabled={createPromotionMutation.isPending}
                   >
                     {createPromotionMutation.isPending ? (
-                      'ang to...'
+                      'Đang tạo...'
                     ) : (
                       <>
                         <Save className="h-4 w-4 mr-2" />
-                        To khuyn mi
+                        Tạo khuyến mãi
                       </>
                     )}
                   </Button>
@@ -572,10 +572,10 @@ export default function AddPromotionPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Tag className="h-5 w-5" />
-                  Xem trc
+                  Xem trước
                 </CardTitle>
                 <CardDescription>
-                  Khuyn mi s hin th nh th ny
+                  Khuyến mãi sẽ hiển thị như thế này
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -586,14 +586,14 @@ export default function AddPromotionPage() {
                         {preview.name}
                       </div>
                       <div className="text-sm text-blue-700 mb-2">
-                        M: <code className="bg-white px-1 rounded">{preview.code}</code>
+                        Mã: <code className="bg-white px-1 rounded">{preview.code}</code>
                       </div>
                       <div className="text-2xl font-bold text-purple-600 mb-2">
                         {preview.valueText}
                       </div>
                       {preview.minimumOrder > 0 && (
                         <div className="text-sm text-gray-600">
-                          Cho n hng t {formatCurrency(preview.minimumOrder)}
+                          Cho đơn hàng từ {formatCurrency(preview.minimumOrder)}
                         </div>
                       )}
                       <div className="text-xs text-gray-500 mt-2">
@@ -605,7 +605,7 @@ export default function AddPromotionPage() {
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <Info className="h-8 w-8 mx-auto mb-2" />
-                    <p>Nhp thng tin  xem trc khuyn mi</p>
+                    <p>Nhập thông tin để xem trước khuyến mãi</p>
                   </div>
                 )}
               </CardContent>
@@ -616,21 +616,21 @@ export default function AddPromotionPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5" />
-                  Gi 
+                  Gợi ý
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div>
-                  <strong>M khuyn mi:</strong> Nn ngn gn, d nh v lin quan n chng trnh
+                  <strong>Mã khuyến mãi:</strong> Nên ngắn gọn, dễ nhớ và liên quan đến chương trình
                 </div>
                 <div>
-                  <strong>Gi tr:</strong> Cn nhc k  m bo li nhun v sc hp dn
+                  <strong>Giá trị:</strong> Cân nhắc kỹ để đảm bảo lợi nhuận và sức hấp dẫn
                 </div>
                 <div>
-                  <strong>Thi gian:</strong> Khng nn qu di  to cm gic cp bch
+                  <strong>Thời gian:</strong> Không nên quá dài để tạo cảm giác cấp bách
                 </div>
                 <div>
-                  <strong>Gii hn:</strong> t gii hn s dng  kim sot ngn sch
+                  <strong>Giới hạn:</strong> Đặt giới hạn sử dụng để kiểm soát ngân sách
                 </div>
               </CardContent>
             </Card>

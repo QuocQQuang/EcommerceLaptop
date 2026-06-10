@@ -62,7 +62,7 @@ export function useOrderGuard(options: OrderGuardOptions): OrderGuardResult {
                 // Check if user is authenticated
                 if (!isAuthenticated || !user) {
                     logger.warn('Order Guard: User not authenticated', { orderId });
-                    setError('Bn cn ng nhp  truy cp trang ny.');
+                    setError('Bạn cần đăng nhập để truy cập trang này.');
                     router.push('/auth/login');
                     return;
                 }
@@ -76,7 +76,7 @@ export function useOrderGuard(options: OrderGuardOptions): OrderGuardResult {
                             userRole,
                             allowedRoles
                         });
-                        setError('Bn khng c quyn truy cp trang ny.');
+                        setError('Bạn không có quyền truy cập trang này.');
                         router.push(redirectOnUnauthorized);
                         return;
                     }
@@ -98,8 +98,8 @@ export function useOrderGuard(options: OrderGuardOptions): OrderGuardResult {
                             orderUserId: orderData.userId,
                             hasAccess: false
                         });
-                        setError('Bn khng c quyn truy cp n hng ny.');
-                        toast.error('Bn khng c quyn truy cp n hng ny.');
+                        setError('Bạn không có quyền truy cập đơn hàng này.');
+                        toast.error('Bạn không có quyền truy cập đơn hàng này.');
                         router.push(redirectOnUnauthorized);
                         return;
                     }
@@ -113,8 +113,8 @@ export function useOrderGuard(options: OrderGuardOptions): OrderGuardResult {
                             currentStatus: orderData.status,
                             allowedStatuses
                         });
-                        setError(`Trng thi n hng khng ph hp: ${orderData.status}`);
-                        toast.warning(`n hng  ${orderData.status.toLowerCase()}.`);
+                        setError(`Trạng thái đơn hàng không phù hợp: ${orderData.status}`);
+                        toast.warning(`Đơn hàng đã ${orderData.status.toLowerCase()}.`);
                         router.push(redirectOnInvalidStatus);
                         return;
                     }
@@ -128,8 +128,8 @@ export function useOrderGuard(options: OrderGuardOptions): OrderGuardResult {
                             currentPaymentStatus: orderData.paymentStatus,
                             allowedPaymentStatuses
                         });
-                        setError(`Trng thi thanh ton khng ph hp: ${orderData.paymentStatus}`);
-                        toast.warning(`Thanh ton  ${orderData.paymentStatus.toLowerCase()}.`);
+                        setError(`Trạng thái thanh toán không phù hợp: ${orderData.paymentStatus}`);
+                        toast.warning(`Thanh toán đã ${orderData.paymentStatus.toLowerCase()}.`);
                         router.push(redirectOnInvalidStatus);
                         return;
                     }
@@ -150,8 +150,8 @@ export function useOrderGuard(options: OrderGuardOptions): OrderGuardResult {
                     error: err.message,
                     status: err.response?.status
                 });
-                setError('C li xy ra khi kim tra quyn truy cp.');
-                toast.error('Khng th kim tra quyn truy cp n hng.');
+                setError('Có lỗi xảy ra khi kiểm tra quyền truy cập.');
+                toast.error('Không thể kiểm tra quyền truy cập đơn hàng.');
                 router.push(redirectOnUnauthorized);
             } finally {
                 setIsLoading(false);
@@ -198,7 +198,7 @@ export function withOrderGuard<T extends Record<string, any>>(
                     ),
                     React.createElement('p',
                         { className: 'mt-2 text-gray-600' },
-                        'ang kim tra quyn truy cp...'
+                        'Đang kiểm tra quyền truy cập...'
                     )
                 )
             );
@@ -211,11 +211,11 @@ export function withOrderGuard<T extends Record<string, any>>(
                     { className: 'text-center' },
                     React.createElement('h2',
                         { className: 'text-xl font-semibold text-red-600 mb-2' },
-                        'Truy cp b t chi'
+                        'Truy cập bị từ chối'
                     ),
                     React.createElement('p',
                         { className: 'text-gray-600' },
-                        error || 'Bn khng c quyn truy cp trang ny.'
+                        error || 'Bạn không có quyền truy cập trang này.'
                     )
                 )
             );

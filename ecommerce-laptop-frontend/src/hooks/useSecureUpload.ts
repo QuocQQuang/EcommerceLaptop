@@ -103,7 +103,7 @@ export function useSecureUpload(uploadEndpoint: string, options: UploadOptions =
 
         // Check file count limit
         if (fileArray.length > maxFiles) {
-            const error = `Ch c upload ti a ${maxFiles} file`;
+            const error = `Chỉ có thể upload tối đa ${maxFiles} file`;
             setState(prev => ({ ...prev, status: 'error', errors: [error] }));
             onError?.([error]);
             return [];
@@ -118,7 +118,7 @@ export function useSecureUpload(uploadEndpoint: string, options: UploadOptions =
                 console.error('File validation error:', error);
                 validationResults.push({
                     isValid: false,
-                    errors: ['Li khi kim tra file'],
+                    errors: ['Lỗi khi kiểm tra file'],
                     warnings: [],
                     securityScore: 0
                 });
@@ -164,7 +164,7 @@ export function useSecureUpload(uploadEndpoint: string, options: UploadOptions =
         }
 
         if (filesToUpload.length === 0) {
-            const error = 'Khng c file hp l  upload';
+            const error = 'Không có file hợp lệ để upload';
             setState(prev => ({ ...prev, status: 'error', errors: [error] }));
             onError?.([error]);
             return [];
@@ -233,7 +233,7 @@ export function useSecureUpload(uploadEndpoint: string, options: UploadOptions =
                 return [];
             }
 
-            const errorMessage = error?.message || 'Upload tht bi';
+            const errorMessage = error?.message || 'Upload thất bại';
             setState(prev => ({ ...prev, status: 'error', errors: [errorMessage] }));
             onError?.([errorMessage]);
             return [];
@@ -363,12 +363,12 @@ export function useSecureDragDrop(onFiles: (files: FileList) => void, securityCo
 
             // Basic checks
             if (file.size > securityConfig.maxFileSize) {
-                errors.push(`${file.name}: File qu ln`);
+                errors.push(`${file.name}: File quá lớn`);
                 continue;
             }
 
             if (!securityConfig.allowedMimeTypes.includes(file.type)) {
-                errors.push(`${file.name}: Loi file khng c php`);
+                errors.push(`${file.name}: Loại file không được phép`);
                 continue;
             }
 

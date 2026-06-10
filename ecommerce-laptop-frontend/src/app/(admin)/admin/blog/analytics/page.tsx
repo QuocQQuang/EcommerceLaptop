@@ -72,7 +72,7 @@ function StatsCard({ title, value, change, icon, color }: StatsCardProps) {
                                     }`}>
                                     {change > 0 ? '+' : ''}{change}%
                                 </span>
-                                <span className="text-sm text-gray-500">t k trc</span>
+                                <span className="text-sm text-gray-500">so với kỳ trước</span>
                             </div>
                         )}
                     </div>
@@ -197,8 +197,8 @@ export default function AnalyticsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Thng k Blog</h1>
-                    <p className="text-gray-500">Phn tch hiu sut v tng tc blog</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Thống kê Blog</h1>
+                    <p className="text-gray-500">Phân tích hiệu suất và tương tác blog</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Select
@@ -211,21 +211,21 @@ export default function AnalyticsPage() {
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="week">7 ngy qua</SelectItem>
-                            <SelectItem value="month">30 ngy qua</SelectItem>
-                            <SelectItem value="quarter">3 thng qua</SelectItem>
-                            <SelectItem value="year">1 nm qua</SelectItem>
+                            <SelectItem value="week">7 ngày qua</SelectItem>
+                            <SelectItem value="month">30 ngày qua</SelectItem>
+                            <SelectItem value="quarter">3 tháng qua</SelectItem>
+                            <SelectItem value="year">1 năm qua</SelectItem>
                         </SelectContent>
                     </Select>
 
                     <Button variant="outline" onClick={refreshAnalytics} disabled={state.refreshing}>
                         <RefreshCw className={`w-4 h-4 mr-2 ${state.refreshing ? 'animate-spin' : ''}`} />
-                        Lm mi
+                        Làm mới
                     </Button>
 
                     <Button variant="outline" onClick={exportReport}>
                         <Download className="w-4 h-4 mr-2" />
-                        Xut bo co
+                        Xuất báo cáo
                     </Button>
                 </div>
             </div>
@@ -233,25 +233,25 @@ export default function AnalyticsPage() {
             {/* Overview Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatsCard
-                    title="Tng lt xem"
+                    title="Tổng lượt xem"
                     value={formatNumber(analytics?.totalViews || 0)}
                     icon={<Eye className="w-6 h-6 text-white" />}
                     color="bg-blue-500"
                 />
                 <StatsCard
-                    title="Tng bi vit"
+                    title="Tổng bài viết"
                     value={formatNumber(analytics?.totalBlogs || 0)}
                     icon={<BarChart3 className="w-6 h-6 text-white" />}
                     color="bg-green-500"
                 />
                 <StatsCard
-                    title="Bnh lun"
+                    title="Bình luận"
                     value={formatNumber(analytics?.totalComments || 0)}
                     icon={<MessageCircle className="w-6 h-6 text-white" />}
                     color="bg-purple-500"
                 />
                 <StatsCard
-                    title=" xut bn"
+                    title="Đã xuất bản"
                     value={formatNumber(analytics?.publishedBlogs || 0)}
                     icon={<Users className="w-6 h-6 text-white" />}
                     color="bg-orange-500"
@@ -262,9 +262,9 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Lt xem theo thi gian</CardTitle>
+                        <CardTitle>Lượt xem theo thời gian</CardTitle>
                         <CardDescription>
-                            Biu  lt xem trong {getPeriodDisplay(state.period)}
+                            Biểu đồ lượt xem trong {getPeriodDisplay(state.period)}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -272,8 +272,8 @@ export default function AnalyticsPage() {
                         <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
                             <div className="text-center">
                                 <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                                <p className="text-gray-500">Biu  lt xem</p>
-                                <p className="text-sm text-gray-400">Tch hp th vin biu </p>
+                                <p className="text-gray-500">Biểu đồ lượt xem</p>
+                                <p className="text-sm text-gray-400">Tích hợp thư viện biểu đồ</p>
                             </div>
                         </div>
                     </CardContent>
@@ -281,9 +281,9 @@ export default function AnalyticsPage() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Ngun truy cp</CardTitle>
+                        <CardTitle>Nguồn truy cập</CardTitle>
                         <CardDescription>
-                            T u ngi c n vi blog
+                            Từ đâu người đọc đến với blog
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -292,16 +292,16 @@ export default function AnalyticsPage() {
                                 <div key={index} className="flex items-center justify-between">
                                     <div>
                                         <div className="font-medium">{stat.month}</div>
-                                        <div className="text-sm text-gray-500">{stat.views} lt xem</div>
+                                        <div className="text-sm text-gray-500">{stat.views} lượt xem</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="font-medium">{stat.posts} bi</div>
-                                        <div className="text-sm text-gray-500">{stat.comments} bnh lun</div>
+                                        <div className="font-medium">{stat.posts} bài</div>
+                                        <div className="text-sm text-gray-500">{stat.comments} bình luận</div>
                                     </div>
                                 </div>
                             )) || (
                                     <div className="text-center text-gray-500 py-8">
-                                        Khng c d liu thng k thng
+                                        Không có dữ liệu thống kê tháng
                                     </div>
                                 )}
                         </div>
@@ -312,20 +312,20 @@ export default function AnalyticsPage() {
             {/* Popular Posts */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Bi vit ph bin</CardTitle>
+                    <CardTitle>Bài viết phổ biến</CardTitle>
                     <CardDescription>
-                        Top bi vit c lt xem cao nht trong {getPeriodDisplay(state.period)}
+                        Top bài viết có lượt xem cao nhất trong {getPeriodDisplay(state.period)}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Tiu  bi vit</TableHead>
-                                <TableHead>Lt xem</TableHead>
-                                <TableHead>Bnh lun</TableHead>
-                                <TableHead>Ngy xut bn</TableHead>
-                                <TableHead>Trng thi</TableHead>
+                                <TableHead>Tiêu đề bài viết</TableHead>
+                                <TableHead>Lượt xem</TableHead>
+                                <TableHead>Bình luận</TableHead>
+                                <TableHead>Ngày xuất bản</TableHead>
+                                <TableHead>Trạng thái</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -356,14 +356,14 @@ export default function AnalyticsPage() {
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant="default">
-                                             xut bn
+                                            Đã xuất bản
                                         </Badge>
                                     </TableCell>
                                 </TableRow>
                             )) || (
                                     <TableRow>
                                         <TableCell colSpan={5} className="text-center text-gray-500 py-8">
-                                            Khng c d liu bi vit ph bin
+                                            Không có dữ liệu bài viết phổ biến
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -376,9 +376,9 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Bnh lun gn y</CardTitle>
+                        <CardTitle>Bình luận gần đây</CardTitle>
                         <CardDescription>
-                            Hot ng bnh lun mi nht
+                            Hoạt động bình luận mới nhất
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -397,9 +397,9 @@ export default function AnalyticsPage() {
                                                 </span>
                                             </div>
                                             <p className="text-sm text-gray-700">
-                                                {activity.type === 'blog_created' && 'To bi vit:'}
-                                                {activity.type === 'blog_published' && 'Xut bn bi vit:'}
-                                                {activity.type === 'comment_added' && 'Bnh lun mi:'}
+                                                {activity.type === 'blog_created' && 'Tạo bài viết:'}
+                                                {activity.type === 'blog_published' && 'Xuất bản bài viết:'}
+                                                {activity.type === 'comment_added' && 'Bình luận mới:'}
                                                 <span className="font-medium ml-1">{activity.title}</span>
                                             </p>
                                         </div>
@@ -407,7 +407,7 @@ export default function AnalyticsPage() {
                                 </div>
                             )) || (
                                     <div className="text-center text-gray-500 py-8">
-                                        Khng c hot ng gn y
+                                        Không có hoạt động gần đây
                                     </div>
                                 )}
                         </div>
@@ -416,15 +416,15 @@ export default function AnalyticsPage() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Top t kha tm kim</CardTitle>
+                        <CardTitle>Top từ khóa tìm kiếm</CardTitle>
                         <CardDescription>
-                            T kha c tm kim nhiu nht
+                            Từ khóa được tìm kiếm nhiều nhất
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
                             <div className="text-center text-gray-500 py-8">
-                                Tnh nng thng k t kha tm kim s c pht trin
+                                Tính năng thống kê từ khóa tìm kiếm sẽ được phát triển
                             </div>
                         </div>
                     </CardContent>

@@ -16,10 +16,10 @@ export default function UnauthorizedPage() {
                     <div className="mx-auto mb-4 w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
                         <Shield className="w-8 h-8 text-red-600 dark:text-red-400" />
                     </div>
-                    <CardTitle className="text-2xl">Khng c quyn truy cp</CardTitle>
+                    <CardTitle className="text-2xl">Không có quyền truy cập</CardTitle>
                     <CardDescription className="text-base">
-                        Bn khng c quyn truy cp vo trang ny. 
-                        Vui lng lin h qun tr vin nu bn cho rng y l li.
+                        Bạn không có quyền truy cập vào trang này. 
+                        Vui lòng liên hệ quản trị viên nếu bạn cho rằng đây là lỗi.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -30,7 +30,7 @@ export default function UnauthorizedPage() {
                             className="w-full"
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" />
-                            Quay li
+                            Quay lại
                         </Button>
                         <Button 
                             asChild
@@ -38,7 +38,7 @@ export default function UnauthorizedPage() {
                         >
                             <Link href="/">
                                 <Home className="w-4 h-4 mr-2" />
-                                V trang ch
+                                Về trang chủ
                             </Link>
                         </Button>
                     </div>

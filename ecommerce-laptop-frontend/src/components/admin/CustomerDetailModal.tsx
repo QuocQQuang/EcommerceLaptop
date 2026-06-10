@@ -87,7 +87,7 @@ const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
       }
     } catch (err: any) {
       console.error('Error loading customer data:', err);
-      setError(err?.response?.data?.message || 'Khng th ti thng tin khch hng');
+      setError(err?.response?.data?.message || 'Không thể tải thông tin khách hàng');
     } finally {
       setLoading(false);
     }
@@ -116,15 +116,15 @@ const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Chi tit khch hng</DialogTitle>
+          <DialogTitle>Chi tiết khách hàng</DialogTitle>
           <DialogDescription>
-            Thng tin chi tit ca khch hng
+            Thông tin chi tiết của khách hàng
           </DialogDescription>
         </DialogHeader>
 
         {loading && (
           <div className="flex items-center justify-center h-48">
-            <div>ang ti thng tin khch hng...</div>
+            <div>Đang tải thông tin khách hàng...</div>
           </div>
         )}
 
@@ -132,7 +132,7 @@ const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
           <div className="text-center p-8">
             <div className="text-red-600 mb-4">{error}</div>
             <Button onClick={loadCustomerData} variant="outline">
-              Th li
+              Thử lại
             </Button>
           </div>
         )}
@@ -140,19 +140,19 @@ const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
         {customer && !loading && (
           <Tabs defaultValue="info" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="info">Thng tin c nhn</TabsTrigger>
-              <TabsTrigger value="orders">n hng</TabsTrigger>
+              <TabsTrigger value="info">Thông tin cá nhân</TabsTrigger>
+              <TabsTrigger value="orders">Đơn hàng</TabsTrigger>
             </TabsList>
 
             <TabsContent value="info" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Thng tin khch hng</CardTitle>
+                  <CardTitle>Thông tin khách hàng</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">H v tn</label>
+                      <label className="text-sm font-medium text-gray-500">Họ và tên</label>
                       <p className="text-lg font-semibold">
                         {customer.firstName} {customer.lastName}
                       </p>
@@ -162,17 +162,17 @@ const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
                       <p>{customer.email || customer.maskedEmail}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">S in thoi</label>
+                      <label className="text-sm font-medium text-gray-500">Số điện thoại</label>
                       <p>{customer.phoneNumber || customer.maskedPhoneNumber}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Trng thi</label>
+                      <label className="text-sm font-medium text-gray-500">Trạng thái</label>
                       <div className="flex gap-2 mt-1">
                         <Badge variant={customer.isActive ? "default" : "secondary"}>
-                          {customer.isActive ? "ang hot ng" : "Ngng hot ng"}
+                          {customer.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
                         </Badge>
                         <Badge variant={customer.emailConfirmed ? "default" : "destructive"}>
-                          {customer.emailConfirmed ? " xc minh" : "Cha xc minh"}
+                          {customer.emailConfirmed ? "Đã xác minh" : "Chưa xác minh"}
                         </Badge>
                       </div>
                     </div>
@@ -180,7 +180,7 @@ const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
 
                   {customer.vipTierName && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Hng khch hng</label>
+                      <label className="text-sm font-medium text-gray-500">Hạng khách hàng</label>
                       <Badge variant="outline" className="mt-1">
                         {customer.vipTierName}
                       </Badge>
@@ -189,12 +189,12 @@ const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Ngy tham gia</label>
+                      <label className="text-sm font-medium text-gray-500">Ngày tham gia</label>
                       <p>{formatDate(customer.createdAt)}</p>
                     </div>
                     {customer.lastLoginAt && (
                       <div>
-                        <label className="text-sm font-medium text-gray-500">ng nhp gn nht</label>
+                        <label className="text-sm font-medium text-gray-500">Đăng nhập gần nhất</label>
                         <p>{formatDate(customer.lastLoginAt)}</p>
                       </div>
                     )}
@@ -206,37 +206,37 @@ const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
             <TabsContent value="orders" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Thng k n hng</CardTitle>
+                  <CardTitle>Thống kê đơn hàng</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {orders ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-blue-600">{orders.totalOrders}</div>
-                        <div className="text-sm text-gray-500">Tng n hng</div>
+                        <div className="text-sm text-gray-500">Tổng đơn hàng</div>
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-green-600">
                           {formatCurrency(orders.totalSpent)}
                         </div>
-                        <div className="text-sm text-gray-500">Tng chi tiu</div>
+                        <div className="text-sm text-gray-500">Tổng chi tiêu</div>
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-purple-600">
                           {formatCurrency(orders.averageOrderValue)}
                         </div>
-                        <div className="text-sm text-gray-500">n hng trung bnh</div>
+                        <div className="text-sm text-gray-500">Đơn hàng trung bình</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-sm text-gray-500">n hng gn nht</div>
+                        <div className="text-sm text-gray-500">Đơn hàng gần nhất</div>
                         <div className="font-medium">
-                          {orders.lastOrderDate ? formatDate(orders.lastOrderDate) : 'Cha c'}
+                          {orders.lastOrderDate ? formatDate(orders.lastOrderDate) : 'Chưa có'}
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-gray-500">Khng th ti thng tin n hng</p>
+                      <p className="text-gray-500">Không thể tải thông tin đơn hàng</p>
                     </div>
                   )}
                 </CardContent>
@@ -245,7 +245,7 @@ const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
               {orders && orders.recentOrders.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>n hng gn y</CardTitle>
+                    <CardTitle>Đơn hàng gần đây</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
@@ -274,7 +274,7 @@ const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({
 
         <div className="flex justify-end gap-2 pt-4">
           <Button variant="outline" onClick={onClose}>
-            ng
+            Đóng
           </Button>
         </div>
       </DialogContent>

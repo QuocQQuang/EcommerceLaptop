@@ -97,7 +97,7 @@ export default function ReviewsPage() {
             setTotalPages(Math.ceil((response.totalCount || 0) / 10));
         } catch (error) {
             console.error('Error loading reviews:', error);
-            toast.error('Khng th ti danh sch nh gi');
+            toast.error('Không thể tải danh sách đánh giá');
             setReviews([]);
         } finally {
             setIsLoading(false);
@@ -154,7 +154,7 @@ export default function ReviewsPage() {
         e.preventDefault();
 
         if (!reviewForm.title.trim() || !reviewForm.content.trim()) {
-            toast.error('Vui lng in y  thng tin');
+            toast.error('Vui lòng điền đầy đủ thông tin');
             return;
         }
 
@@ -168,7 +168,7 @@ export default function ReviewsPage() {
                     title: reviewForm.title,
                     comment: reviewForm.content // Map 'content' to 'comment' for backend
                 });
-                toast.success('Cp nht nh gi thnh cng');
+                toast.success('Cập nhật đánh giá thành công');
                 await loadReviews(); // Reload reviews
             }
 
@@ -176,7 +176,7 @@ export default function ReviewsPage() {
             resetForm();
         } catch (error) {
             console.error('Error saving review:', error);
-            toast.error('C li xy ra, vui lng th li');
+            toast.error('Có lỗi xảy ra, vui lòng thử lại');
         } finally {
             setIsSaving(false);
         }
@@ -185,11 +185,11 @@ export default function ReviewsPage() {
     const handleDelete = async (reviewId: number) => {
         try {
             await reviewService.deleteReview(reviewId);
-            toast.success('Xa nh gi thnh cng');
+            toast.success('Xóa đánh giá thành công');
             await loadReviews(); // Reload reviews
         } catch (error) {
             console.error('Error deleting review:', error);
-            toast.error('C li xy ra, vui lng th li');
+            toast.error('Có lỗi xảy ra, vui lòng thử lại');
         }
     };
 
@@ -201,7 +201,7 @@ export default function ReviewsPage() {
         for (let i = 0; i < Math.min(files.length, 5 - reviewForm.images.length); i++) {
             const file = files[i];
             if (file.size > 5 * 1024 * 1024) {
-                toast.error(`File ${file.name} qu ln. Vui lng chn file nh hn 5MB`);
+                toast.error(`File ${file.name} quá lớn. Vui lòng chọn file nhỏ hơn 5MB`);
                 continue;
             }
             // In real app, upload to server and get URL
@@ -265,11 +265,11 @@ export default function ReviewsPage() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'approved':
-                return <Badge variant="default" className="bg-green-100 text-green-800"> duyt</Badge>;
+                return <Badge variant="default" className="bg-green-100 text-green-800">Đã duyệt</Badge>;
             case 'pending':
-                return <Badge variant="default" className="bg-yellow-100 text-yellow-800">Ch duyt</Badge>;
+                return <Badge variant="default" className="bg-yellow-100 text-yellow-800">Chờ duyệt</Badge>;
             case 'rejected':
-                return <Badge variant="default" className="bg-red-100 text-red-800">B t chi</Badge>;
+                return <Badge variant="default" className="bg-red-100 text-red-800">Bị từ chối</Badge>;
             default:
                 return null;
         }
@@ -301,10 +301,10 @@ export default function ReviewsPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                         <MessageSquare className="h-6 w-6" />
-                        <span>nh gi ca ti</span>
+                        <span>Đánh giá của tôi</span>
                     </CardTitle>
                     <CardDescription>
-                        Qun l cc nh gi sn phm bn  vit
+                        Quản lý các đánh giá sản phẩm bạn đã viết
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -313,7 +313,7 @@ export default function ReviewsPage() {
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                             <Input
-                                placeholder="Tm kim theo tn sn phm, tiu ..."
+                                placeholder="Tìm kiếm theo tên sản phẩm, tiêu đề..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-10"
@@ -321,21 +321,21 @@ export default function ReviewsPage() {
                         </div>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
                             <SelectTrigger className="w-full md:w-48">
-                                <SelectValue placeholder="Trng thi" />
+                                <SelectValue placeholder="Trạng thái" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Tt c trng thi</SelectItem>
-                                <SelectItem value="pending">Ch duyt</SelectItem>
-                                <SelectItem value="approved"> duyt</SelectItem>
-                                <SelectItem value="rejected">B t chi</SelectItem>
+                                <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                                <SelectItem value="pending">Chờ duyệt</SelectItem>
+                                <SelectItem value="approved">Đã duyệt</SelectItem>
+                                <SelectItem value="rejected">Bị từ chối</SelectItem>
                             </SelectContent>
                         </Select>
                         <Select value={ratingFilter} onValueChange={setRatingFilter}>
                             <SelectTrigger className="w-full md:w-48">
-                                <SelectValue placeholder="nh gi" />
+                                <SelectValue placeholder="Đánh giá" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Tt c nh gi</SelectItem>
+                                <SelectItem value="all">Tất cả đánh giá</SelectItem>
                                 <SelectItem value="5">5 sao</SelectItem>
                                 <SelectItem value="4">4 sao</SelectItem>
                                 <SelectItem value="3">3 sao</SelectItem>
@@ -351,14 +351,14 @@ export default function ReviewsPage() {
                             <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
                                 {searchTerm || statusFilter !== 'all' || ratingFilter !== 'all'
-                                    ? 'Khng tm thy nh gi'
-                                    : 'Cha c nh gi no'
+                                    ? 'Không tìm thấy đánh giá'
+                                    : 'Chưa có đánh giá nào'
                                 }
                             </h3>
                             <p className="text-gray-500">
                                 {searchTerm || statusFilter !== 'all' || ratingFilter !== 'all'
-                                    ? 'Th thay i b lc hoc t kha tm kim'
-                                    : 'nh gi sn phm sau khi mua hng  chia s tri nghim'
+                                    ? 'Hãy thay đổi bộ lọc hoặc từ khóa tìm kiếm'
+                                    : 'Đánh giá sản phẩm sau khi mua hàng để chia sẻ trải nghiệm'
                                 }
                             </p>
                         </div>
@@ -375,11 +375,11 @@ export default function ReviewsPage() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <h3 className="font-medium text-gray-900 truncate">
-                                                        Sn phm ID: {review.productId}
+                                                        Sản phẩm ID: {review.productId}
                                                     </h3>
                                                     {review.isVerifiedPurchase && (
                                                         <p className="text-sm text-green-600 font-medium">
-                                                              xc thc mua hng
+                                                             Đã xác thực mua hàng
                                                         </p>
                                                     )}
                                                 </div>
@@ -392,7 +392,7 @@ export default function ReviewsPage() {
                                                         {renderStars(review.rating)}
                                                         {review.isVerifiedPurchase && (
                                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                                 xc thc
+                                                                Đã xác thực
                                                             </span>
                                                         )}
                                                     </div>
@@ -410,7 +410,7 @@ export default function ReviewsPage() {
 
                                                 {/* Review Date */}
                                                 <p className="text-sm text-gray-500 mb-3">
-                                                    Ngy nh gi: {new Date(review.createdAt).toLocaleDateString('vi-VN')}
+                                                    Ngày đánh giá: {new Date(review.createdAt).toLocaleDateString('vi-VN')}
                                                 </p>
 
                                                 {/* Review Actions */}
@@ -419,7 +419,7 @@ export default function ReviewsPage() {
                                                         {review.isVerifiedPurchase && (
                                                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                                 <Package className="w-3 h-3 mr-1" />
-                                                                Mua hng  xc thc
+                                                                Mua hàng đã xác thực
                                                             </span>
                                                         )}
                                                     </div>
@@ -442,44 +442,44 @@ export default function ReviewsPage() {
                                                             </DialogTrigger>
                                                             <DialogContent className="sm:max-w-[600px]">
                                                                 <DialogHeader>
-                                                                    <DialogTitle>Chnh sa nh gi</DialogTitle>
+                                                                    <DialogTitle>Chỉnh sửa đánh giá</DialogTitle>
                                                                     <DialogDescription>
-                                                                        Cp nht nh gi ca bn v sn phm
+                                                                        Cập nhật đánh giá của bạn về sản phẩm
                                                                     </DialogDescription>
                                                                 </DialogHeader>
                                                                 <form onSubmit={handleSave} className="space-y-4">
                                                                     <div className="space-y-2">
-                                                                        <Label>nh gi sao</Label>
+                                                                        <Label>Đánh giá sao</Label>
                                                                         {renderInteractiveStars(reviewForm.rating, (rating) =>
                                                                             setReviewForm(prev => ({ ...prev, rating }))
                                                                         )}
                                                                     </div>
 
                                                                     <div className="space-y-2">
-                                                                        <Label htmlFor="title">Tiu  nh gi</Label>
+                                                                        <Label htmlFor="title">Tiêu đề đánh giá</Label>
                                                                         <Input
                                                                             id="title"
                                                                             value={reviewForm.title}
                                                                             onChange={(e) => setReviewForm(prev => ({ ...prev, title: e.target.value }))}
-                                                                            placeholder="Nhp tiu  nh gi"
+                                                                            placeholder="Nhập tiêu đề đánh giá"
                                                                             required
                                                                         />
                                                                     </div>
 
                                                                     <div className="space-y-2">
-                                                                        <Label htmlFor="content">Ni dung nh gi</Label>
+                                                                        <Label htmlFor="content">Nội dung đánh giá</Label>
                                                                         <Textarea
                                                                             id="content"
                                                                             value={reviewForm.content}
                                                                             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewForm(prev => ({ ...prev, content: e.target.value }))}
-                                                                            placeholder="Chia s tri nghim ca bn v sn phm..."
+                                                                            placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
                                                                             rows={4}
                                                                             required
                                                                         />
                                                                     </div>
 
                                                                     <div className="space-y-2">
-                                                                        <Label>Hnh nh (ti a 5 nh)</Label>
+                                                                        <Label>Hình ảnh (tối đa 5 ảnh)</Label>
                                                                         <div className="flex flex-wrap gap-2">
                                                                             {reviewForm.images.map((image, index) => (
                                                                                 <div key={index} className="relative">
@@ -515,7 +515,7 @@ export default function ReviewsPage() {
                                                                             )}
                                                                         </div>
                                                                         <p className="text-xs text-gray-500">
-                                                                            JPG, PNG. Ti a 5MB mi nh
+                                                                            JPG, PNG. Tối đa 5MB mỗi ảnh
                                                                         </p>
                                                                     </div>
 
@@ -525,10 +525,10 @@ export default function ReviewsPage() {
                                                                             variant="outline"
                                                                             onClick={() => setIsDialogOpen(false)}
                                                                         >
-                                                                            Hy
-                                                                        </Button>
-                                                                        <Button type="submit" disabled={isSaving}>
-                                                                            {isSaving ? 'ang lu...' : 'Cp nht nh gi'}
+                                                                        Hủy
+                                                                    </Button>
+                                                                    <Button type="submit" disabled={isSaving}>
+                                                                        {isSaving ? 'đang lưu...' : 'Cập nhật đánh giá'}
                                                                         </Button>
                                                                     </DialogFooter>
                                                                 </form>
@@ -542,18 +542,18 @@ export default function ReviewsPage() {
                                                             </AlertDialogTrigger>
                                                             <AlertDialogContent>
                                                                 <AlertDialogHeader>
-                                                                    <AlertDialogTitle>Xa nh gi</AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        Bn c chc chn mun xa nh gi ny? Hnh ng ny khng th hon tc.
+                                                                <AlertDialogTitle>Xóa đánh giá</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Bạn có chắc chắn muốn xóa đánh giá này? Hành động này không thể hoàn tác.
                                                                     </AlertDialogDescription>
                                                                 </AlertDialogHeader>
                                                                 <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Hy</AlertDialogCancel>
+                                                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
                                                                     <AlertDialogAction
                                                                         onClick={() => handleDelete(review.id)}
                                                                         className="bg-red-600 hover:bg-red-700"
                                                                     >
-                                                                        Xa
+                                                                        Xóa
                                                                     </AlertDialogAction>
                                                                 </AlertDialogFooter>
                                                             </AlertDialogContent>
