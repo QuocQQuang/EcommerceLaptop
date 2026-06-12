@@ -55,7 +55,7 @@ public class PasswordResetService : IPasswordResetService
                 return new PasswordResetResult
                 {
                     Success = false,
-                    Message = "Qu nhiu yu cu t li mt khu. Vui lng th li sau.",
+                    Message = "Quá nhiều yêu cầu đặt lại mật khẩu. Vui lòng thử lại sau.",
                     ErrorCode = "RATE_LIMIT_EXCEEDED",
                     RemainingAttempts = rateLimitResult.RemainingAttempts,
                     CooldownPeriod = rateLimitResult.CooldownPeriod
@@ -75,7 +75,7 @@ public class PasswordResetService : IPasswordResetService
                 return new PasswordResetResult
                 {
                     Success = true,
-                    Message = "Nu ti khon tn ti, chng ti  gi email t li mt khu.",
+                    Message = "Nếu tài khoản tồn tại, chúng tôi đã gửi email đặt lại mật khẩu.",
                     EmailSent = false
                 };
             }
@@ -88,7 +88,7 @@ public class PasswordResetService : IPasswordResetService
                 return new PasswordResetResult
                 {
                     Success = true,
-                    Message = "Nu ti khon tn ti, chng ti  gi email t li mt khu.",
+                    Message = "Nếu tài khoản tồn tại, chúng tôi đã gửi email đặt lại mật khẩu.",
                     EmailSent = false
                 };
             }
@@ -143,7 +143,7 @@ public class PasswordResetService : IPasswordResetService
             return new PasswordResetResult
             {
                 Success = true,
-                Message = "Nu ti khon tn ti, chng ti  gi email t li mt khu.",
+                Message = "Nếu tài khoản tồn tại, chúng tôi đã gửi email đặt lại mật khẩu.",
                 EmailSent = emailSent,
                 ExpiresAt = expiresAt,
                 RemainingAttempts = rateLimitResult.RemainingAttempts - 1
@@ -155,7 +155,7 @@ public class PasswordResetService : IPasswordResetService
             return new PasswordResetResult
             {
                 Success = false,
-                Message = " xy ra li khi x l yu cu. Vui lng th li sau.",
+                Message = "Đã xảy ra lỗi khi xử lý yêu cầu. Vui lòng thử lại sau.",
                 ErrorCode = "INTERNAL_ERROR"
             };
         }
@@ -181,7 +181,7 @@ public class PasswordResetService : IPasswordResetService
                 return new TokenValidationResult
                 {
                     IsValid = false,
-                    Message = "Token khng hp l hoc  ht hn.",
+Message = "Token không hợp lệ hoặc đã hết hạn.",
                     ErrorCode = "INVALID_TOKEN"
                 };
             }
@@ -191,7 +191,7 @@ public class PasswordResetService : IPasswordResetService
             return new TokenValidationResult
             {
                 IsValid = true,
-                Message = "Token hp l.",
+                Message = "Token hợp lệ.",
                 ExpiresAt = passwordReset.ExpiresAt,
                 MinutesRemaining = minutesRemaining,
                 User = passwordReset.User
@@ -203,7 +203,7 @@ public class PasswordResetService : IPasswordResetService
             return new TokenValidationResult
             {
                 IsValid = false,
-                Message = " xy ra li khi xc thc token.",
+                Message = "Đã xảy ra lỗi khi xác thực token.",
                 ErrorCode = "VALIDATION_ERROR"
             };
         }
@@ -233,7 +233,7 @@ public class PasswordResetService : IPasswordResetService
                 return new PasswordResetConfirmationResult
                 {
                     Success = false,
-                    Message = "Mt khu khng  mnh. Vui lng chn mt khu cha t nht 8 k t, bao gm ch hoa, ch thng, s v k t c bit.",
+                    Message = "Mật khẩu không đủ mạnh. Vui lòng chọn mật khẩu chứa ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.",
                     ErrorCode = "WEAK_PASSWORD"
                 };
             }
@@ -246,7 +246,7 @@ public class PasswordResetService : IPasswordResetService
                 return new PasswordResetConfirmationResult
                 {
                     Success = false,
-                    Message = "Mt khu mi phi khc vi mt khu hin ti.",
+                    Message = "Mật khẩu mới phải khác với mật khẩu hiện tại.",
                     ErrorCode = "SAME_PASSWORD"
                 };
             }
@@ -300,7 +300,7 @@ public class PasswordResetService : IPasswordResetService
             return new PasswordResetConfirmationResult
             {
                 Success = true,
-                Message = "Mt khu  c t li thnh cng. Vui lng ng nhp li.",
+                Message = "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại.",
                 ResetAt = DateTime.UtcNow,
                 NotificationSent = notificationSent
             };
@@ -311,7 +311,7 @@ public class PasswordResetService : IPasswordResetService
             return new PasswordResetConfirmationResult
             {
                 Success = false,
-                Message = " xy ra li khi t li mt khu. Vui lng th li.",
+                Message = "Đã xảy ra lỗi khi đặt lại mật khẩu. Vui lòng thử lại.",
                 ErrorCode = "RESET_ERROR"
             };
         }
@@ -387,7 +387,7 @@ public class PasswordResetService : IPasswordResetService
                 return new RateLimitResult
                 {
                     IsAllowed = false,
-                    Message = $"Qu nhiu yu cu. Vui lng th li sau {cooldownMinutes} pht.",
+                    Message = $"Quá nhiều yêu cầu. Vui lòng thử lại sau {cooldownMinutes} phút.",
                     RemainingAttempts = 0,
                     CooldownPeriod = cooldownPeriod,
                     NextAllowedAt = nextAllowedAt
@@ -401,7 +401,7 @@ public class PasswordResetService : IPasswordResetService
             return new RateLimitResult
             {
                 IsAllowed = true,
-                Message = "Yu cu c php.",
+                Message = "Yêu cầu được phép.",
                 RemainingAttempts = remainingAttempts
             };
         }
@@ -413,7 +413,7 @@ public class PasswordResetService : IPasswordResetService
             return new RateLimitResult
             {
                 IsAllowed = true,
-                Message = "Khng th kim tra gii hn tc .",
+                Message = "Không thể kiểm tra giới hạn tốc độ.",
                 RemainingAttempts = 1
             };
         }

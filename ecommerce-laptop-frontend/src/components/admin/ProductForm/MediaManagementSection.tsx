@@ -4,7 +4,7 @@ import ImageUpload, { ProductImage } from '@/components/admin/ImageUpload';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
-import { ProductFormData } from '@/lib/admin-api';
+import { ProductFormData } from '@/features/admin/products/types';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface MediaManagementSectionProps {

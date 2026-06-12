@@ -46,30 +46,30 @@ public class PdfExportService : IPdfExportService
             using var pdf = new PdfDocument(writer);
             using var document = new Document(pdf, PageSize.A4);
 
-            // To font h tr Unicode (ting Vit). u tin dng TTF h thng nu c
+            // Tạo font hỗ trợ Unicode (tiếng Việt). Ưu tiên dùng TTF hệ thống nếu có
             var (font, boldFont) = CreateUnicodeFonts();
 
             // Header
-            var header = new Paragraph("HA N BN HNG")
+            var header = new Paragraph("HÓA ĐƠN BÁN HÀNG")
                 .SetFont(boldFont)
                 .SetFontSize(20)
                 .SetTextAlignment(TextAlignment.CENTER)
                 .SetMarginBottom(20);
             document.Add(header);
 
-            // Thng tin cng ty
+            // Thông tin công ty
             var companyInfo = new Table(2)
                 .SetWidth(UnitValue.CreatePercentValue(100))
                 .SetMarginBottom(20);
 
             companyInfo.AddCell(new Cell()
-                .Add(new Paragraph("CNG TY TNHH LAPTOP STORE")
+                .Add(new Paragraph("CÔNG TY TNHH LAPTOP STORE")
                     .SetFont(boldFont)
                     .SetFontSize(14))
-                .Add(new Paragraph("a ch: 123 ng ABC, Qun XYZ, TP.HCM")
+                .Add(new Paragraph("Địa chỉ: 123 đường ABC, Quận XYZ, TP.HCM")
                     .SetFont(font)
                     .SetFontSize(10))
-                .Add(new Paragraph("in thoi: 0123-456-789")
+                .Add(new Paragraph("Điện thoại: 0123-456-789")
                     .SetFont(font)
                     .SetFontSize(10))
                 .Add(new Paragraph("Email: info@laptopstore.com")
@@ -78,13 +78,13 @@ public class PdfExportService : IPdfExportService
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER));
 
             companyInfo.AddCell(new Cell()
-                .Add(new Paragraph($"S ha n: {order.OrderNumber}")
+                .Add(new Paragraph($"Số hóa đơn: {order.OrderNumber}")
                     .SetFont(boldFont)
                     .SetFontSize(12))
-                .Add(new Paragraph($"Ngy: {order.OrderDate:dd/MM/yyyy HH:mm}")
+                .Add(new Paragraph($"Ngày: {order.OrderDate:dd/MM/yyyy HH:mm}")
                     .SetFont(font)
                     .SetFontSize(10))
-                .Add(new Paragraph($"Trng thi: {GetOrderStatusText(order.Status)}")
+                .Add(new Paragraph($"Trạng thái: {GetOrderStatusText(order.Status)}")
                     .SetFont(font)
                     .SetFontSize(10))
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER)
@@ -92,8 +92,8 @@ public class PdfExportService : IPdfExportService
 
             document.Add(companyInfo);
 
-            // Thng tin khch hng
-            var customerInfo = new Paragraph("THNG TIN KHCH HNG")
+            // Thông tin khách hàng
+            var customerInfo = new Paragraph("THÔNG TIN KHÁCH HÀNG")
                 .SetFont(boldFont)
                 .SetFontSize(12)
                 .SetMarginTop(20)
@@ -106,7 +106,7 @@ public class PdfExportService : IPdfExportService
                 .SetMarginBottom(20);
 
             customerTable.AddCell(new Cell()
-                .Add(new Paragraph($"Tn: {order.User.FirstName} {order.User.LastName}")
+                .Add(new Paragraph($"Tên: {order.User.FirstName} {order.User.LastName}")
                     .SetFont(font)
                     .SetFontSize(10))
                 .Add(new Paragraph($"Email: {order.User.Email}")
@@ -115,7 +115,7 @@ public class PdfExportService : IPdfExportService
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER));
 
             customerTable.AddCell(new Cell()
-                .Add(new Paragraph($"a ch giao hng:")
+                .Add(new Paragraph($"Địa chỉ giao hàng:")
                     .SetFont(font)
                     .SetFontSize(10))
                 .Add(new Paragraph($"{order.ShippingAddress.Street}")
@@ -128,8 +128,8 @@ public class PdfExportService : IPdfExportService
 
             document.Add(customerTable);
 
-            // Chi tit sn phm
-            var productHeader = new Paragraph("CHI TIT SN PHM")
+            // Chi tiết sản phẩm
+            var productHeader = new Paragraph("CHI TIẾT SẢN PHẨM")
                 .SetFont(boldFont)
                 .SetFontSize(12)
                 .SetMarginTop(20)
@@ -146,16 +146,16 @@ public class PdfExportService : IPdfExportService
                 .Add(new Paragraph("STT").SetFont(boldFont).SetFontSize(10))
                 .SetTextAlignment(TextAlignment.CENTER));
             productTable.AddHeaderCell(new Cell()
-                .Add(new Paragraph("Tn sn phm").SetFont(boldFont).SetFontSize(10))
+                .Add(new Paragraph("Tên sản phẩm").SetFont(boldFont).SetFontSize(10))
                 .SetTextAlignment(TextAlignment.CENTER));
             productTable.AddHeaderCell(new Cell()
-                .Add(new Paragraph("S lng").SetFont(boldFont).SetFontSize(10))
+                .Add(new Paragraph("Số lượng").SetFont(boldFont).SetFontSize(10))
                 .SetTextAlignment(TextAlignment.CENTER));
             productTable.AddHeaderCell(new Cell()
-                .Add(new Paragraph("n gi").SetFont(boldFont).SetFontSize(10))
+                .Add(new Paragraph("Đơn giá").SetFont(boldFont).SetFontSize(10))
                 .SetTextAlignment(TextAlignment.CENTER));
             productTable.AddHeaderCell(new Cell()
-                .Add(new Paragraph("Thnh tin").SetFont(boldFont).SetFontSize(10))
+                .Add(new Paragraph("Thành tiền").SetFont(boldFont).SetFontSize(10))
                 .SetTextAlignment(TextAlignment.CENTER));
 
             // Product rows
@@ -181,14 +181,14 @@ public class PdfExportService : IPdfExportService
 
             document.Add(productTable);
 
-            // Tng tin
+            // Tổng tiền
             var totalTable = new Table(2)
                 .SetWidth(UnitValue.CreatePercentValue(50))
                 .SetHorizontalAlignment(HorizontalAlignment.RIGHT)
                 .SetMarginBottom(20);
 
             totalTable.AddCell(new Cell()
-                .Add(new Paragraph("Tm tnh:").SetFont(font).SetFontSize(10))
+                .Add(new Paragraph("Tạm tính:").SetFont(font).SetFontSize(10))
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER));
             totalTable.AddCell(new Cell()
                 .Add(new Paragraph($"${order.SubTotal:N2}").SetFont(font).SetFontSize(10))
@@ -198,7 +198,7 @@ public class PdfExportService : IPdfExportService
             if (order.DiscountAmount > 0)
             {
                 totalTable.AddCell(new Cell()
-                    .Add(new Paragraph("Gim gi:").SetFont(font).SetFontSize(10))
+                    .Add(new Paragraph("Giảm giá:").SetFont(font).SetFontSize(10))
                     .SetBorder(iText.Layout.Borders.Border.NO_BORDER));
                 totalTable.AddCell(new Cell()
                     .Add(new Paragraph($"-${order.DiscountAmount:N2}").SetFont(font).SetFontSize(10))
@@ -207,7 +207,7 @@ public class PdfExportService : IPdfExportService
             }
 
             totalTable.AddCell(new Cell()
-                .Add(new Paragraph("Ph vn chuyn:").SetFont(font).SetFontSize(10))
+                .Add(new Paragraph("Phí vận chuyển:").SetFont(font).SetFontSize(10))
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER));
             totalTable.AddCell(new Cell()
                 .Add(new Paragraph($"${order.ShippingAmount:N2}").SetFont(font).SetFontSize(10))
@@ -215,7 +215,7 @@ public class PdfExportService : IPdfExportService
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER));
 
             totalTable.AddCell(new Cell()
-                .Add(new Paragraph("Thu:").SetFont(font).SetFontSize(10))
+                .Add(new Paragraph("Thuế:").SetFont(font).SetFontSize(10))
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER));
             totalTable.AddCell(new Cell()
                 .Add(new Paragraph($"${order.TaxAmount:N2}").SetFont(font).SetFontSize(10))
@@ -223,7 +223,7 @@ public class PdfExportService : IPdfExportService
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER));
 
             totalTable.AddCell(new Cell()
-                .Add(new Paragraph("TNG CNG:").SetFont(boldFont).SetFontSize(12))
+                .Add(new Paragraph("TỔNG CỘNG:").SetFont(boldFont).SetFontSize(12))
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER));
             totalTable.AddCell(new Cell()
                 .Add(new Paragraph($"${order.TotalAmount:N2}").SetFont(boldFont).SetFontSize(12))
@@ -232,21 +232,21 @@ public class PdfExportService : IPdfExportService
 
             document.Add(totalTable);
 
-            // Ch k
+            // Chữ ký
             var signatureTable = new Table(2)
                 .SetWidth(UnitValue.CreatePercentValue(100))
                 .SetMarginTop(40);
 
             signatureTable.AddCell(new Cell()
-                .Add(new Paragraph("Ngi mua").SetFont(font).SetFontSize(10))
-                .Add(new Paragraph("(K tn)").SetFont(font).SetFontSize(8))
+                .Add(new Paragraph("Người mua").SetFont(font).SetFontSize(10))
+                .Add(new Paragraph("(Ký tên)").SetFont(font).SetFontSize(8))
                 .SetTextAlignment(TextAlignment.CENTER)
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER)
                 .SetHeight(60));
 
             signatureTable.AddCell(new Cell()
-                .Add(new Paragraph("Ngi bn").SetFont(font).SetFontSize(10))
-                .Add(new Paragraph("(K tn)").SetFont(font).SetFontSize(8))
+                .Add(new Paragraph("Người bán").SetFont(font).SetFontSize(10))
+                .Add(new Paragraph("(Ký tên)").SetFont(font).SetFontSize(8))
                 .SetTextAlignment(TextAlignment.CENTER)
                 .SetBorder(iText.Layout.Borders.Border.NO_BORDER)
                 .SetHeight(60));
@@ -257,16 +257,16 @@ public class PdfExportService : IPdfExportService
 
             var pdfBytes = memoryStream.ToArray();
 
-            // Thm ch k s nu c yu cu
+            // Thêm chữ ký số nếu có yêu cầu
             if (includeDigitalSignature)
             {
                 var signatureInfo = new DigitalSignatureInfo
                 {
                     SignerName = "Laptop Store Admin",
-                    SignerPosition = "Gim c",
-                    CompanyName = "CNG TY TNHH LAPTOP STORE",
-                    Reason = "Ha n in t",
-                    Location = "TP.HCM, Vit Nam",
+                    SignerPosition = "Giám đốc",
+                    CompanyName = "CÔNG TY TNHH LAPTOP STORE",
+                    Reason = "Hóa đơn điện tử",
+                    Location = "TP.HCM, Việt Nam",
                     SigningTime = DateTime.UtcNow
                 };
 
@@ -372,8 +372,8 @@ public class PdfExportService : IPdfExportService
     {
         try
         {
-            // n gin ha: ch thm thng tin ch k vo PDF m khng thc s k s
-            // Trong thc t, cn c chng ch s hp l t CA
+            // Đơn giản hóa: chỉ thêm thông tin chữ ký vào PDF mà không thực sự ký số
+            // Trong thực tế, cần có chứng chỉ số hợp lệ từ CA
             using var inputStream = new MemoryStream(pdfBytes);
             using var outputStream = new MemoryStream();
 
@@ -383,13 +383,13 @@ public class PdfExportService : IPdfExportService
 
             // Thm thng tin ch k vo metadata
             var info = pdfDoc.GetDocumentInfo();
-            info.SetTitle($"Ha n - {signatureInfo.CompanyName}");
+            info.SetTitle($"Hóa đơn - {signatureInfo.CompanyName}");
             info.SetAuthor(signatureInfo.SignerName);
             info.SetSubject(signatureInfo.Reason);
             info.SetCreator("EcommerceLaptop System");
             info.SetKeywords($"Invoice, {signatureInfo.CompanyName}, {signatureInfo.SigningTime:yyyy-MM-dd}");
 
-            // Thm thng tin ch k vo trang cui
+            // Thêm thông tin chữ ký vào trang cuối
             var lastPage = pdfDoc.GetLastPage();
             var canvas = new PdfCanvas(lastPage);
             var (font, _) = CreateUnicodeFonts();
@@ -397,13 +397,13 @@ public class PdfExportService : IPdfExportService
             canvas.BeginText()
                 .SetFontAndSize(font, 8)
                 .MoveText(50, 50)
-                .ShowText($"K bi: {signatureInfo.SignerName} - {signatureInfo.SignerPosition}")
+                .ShowText($"Ký bởi: {signatureInfo.SignerName} - {signatureInfo.SignerPosition}")
                 .MoveText(0, -10)
-                .ShowText($"Cng ty: {signatureInfo.CompanyName}")
+                .ShowText($"Công ty: {signatureInfo.CompanyName}")
                 .MoveText(0, -10)
-                .ShowText($"Ngy k: {signatureInfo.SigningTime:dd/MM/yyyy HH:mm}")
+                .ShowText($"Ngày ký: {signatureInfo.SigningTime:dd/MM/yyyy HH:mm}")
                 .MoveText(0, -10)
-                .ShowText($"L do: {signatureInfo.Reason}")
+                .ShowText($"Lý do: {signatureInfo.Reason}")
                 .EndText();
 
             pdfDoc.Close();
@@ -413,7 +413,7 @@ public class PdfExportService : IPdfExportService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error signing PDF");
-            // Tr v PDF gc nu c li
+            // Trả về PDF gốc nếu có lỗi
             return pdfBytes;
         }
     }
@@ -466,14 +466,14 @@ public class PdfExportService : IPdfExportService
     {
         return status switch
         {
-            OrderStatus.Pending => "Ch x l",
-            OrderStatus.Confirmed => " xc nhn",
-            OrderStatus.Processing => "ang x l",
-            OrderStatus.Shipped => " giao hng",
-            OrderStatus.Delivered => " nhn hng",
-            OrderStatus.Cancelled => " hy",
-            OrderStatus.Returned => " tr hng",
-            _ => "Khng xc nh"
+            OrderStatus.Pending => "Chờ xử lý",
+            OrderStatus.Confirmed => "Đã xác nhận",
+            OrderStatus.Processing => "Đang xử lý",
+            OrderStatus.Shipped => "Đã giao hàng",
+            OrderStatus.Delivered => "Đã nhận hàng",
+            OrderStatus.Cancelled => "Đã hủy",
+            OrderStatus.Returned => "Đã trả hàng",
+            _ => "Không xác định"
         };
     }
 }

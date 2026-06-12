@@ -40,10 +40,10 @@ public class ReportingService : IReportingService
             .FirstOrDefaultAsync(o => o.Id == orderId);
 
         if (order == null)
-            throw new KeyNotFoundException("Khng tm thy n hng");
+            throw new KeyNotFoundException("Không tìm thấy đơn hàng");
 
         if (order.Status == OrderStatus.Pending || order.Status == OrderStatus.Cancelled)
-            throw new ValidationException("Ch c th xut ha n cho n hng  xc nhn tr ln");
+            throw new ValidationException("Chỉ có thể xuất hóa đơn cho đơn hàng đã xác nhận trở lên");
 
         var pdfBytes = await _pdfExportService.ExportInvoicePdfAsync(order, includeDigitalSignature);
         var fileName = $"HoaDon_{order.OrderNumber}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
@@ -65,10 +65,10 @@ public class ReportingService : IReportingService
             .FirstOrDefaultAsync(o => o.Id == orderId);
 
         if (order == null)
-            throw new KeyNotFoundException("Khng tm thy n hng");
+            throw new KeyNotFoundException("Không tìm thấy đơn hàng");
 
         if (order.Status == OrderStatus.Pending || order.Status == OrderStatus.Cancelled)
-            throw new ValidationException("Ch c th xut ha n cho n hng  xc nhn tr ln");
+            throw new ValidationException("Chỉ có thể xuất hóa đơn cho đơn hàng đã xác nhận trở lên");
 
         var xmlBytes = await _pdfExportService.ExportInvoiceXmlAsync(order);
         var fileName = $"HoaDon_{order.OrderNumber}_{DateTime.Now:yyyyMMddHHmmss}.xml";
@@ -172,7 +172,7 @@ public class ReportingService : IReportingService
     public async Task<ExportResultDto> ExportRevenueReportToExcelAsync(DateTime startDate, DateTime endDate)
     {
         if (startDate > endDate)
-            throw new ValidationException("Ngy bt u khng c ln hn ngy kt thc");
+            throw new ValidationException("Ngày bắt đầu không được lớn hơn ngày kết thúc");
 
         var excelBytes = await _excelExportService.ExportRevenueReportToExcelAsync(startDate, endDate);
         var fileName = $"BaoCaoDoanhThu_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.xlsx";
@@ -245,10 +245,10 @@ public class ReportingService : IReportingService
             .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
 
         if (order == null)
-            throw new KeyNotFoundException("Khng tm thy n hng hoc bn khng c quyn truy cp");
+            throw new KeyNotFoundException("Không tìm thấy đơn hàng hoặc bạn không có quyền truy cập");
 
         if (order.Status == OrderStatus.Pending || order.Status == OrderStatus.Cancelled)
-            throw new ValidationException("Ch c th xut ha n cho n hng  xc nhn tr ln");
+            throw new ValidationException("Chỉ có thể xuất hóa đơn cho đơn hàng đã xác nhận trở lên");
 
         var pdfBytes = await _pdfExportService.ExportInvoicePdfAsync(order, includeDigitalSignature);
         var fileName = $"HoaDon_{order.OrderNumber}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
@@ -270,10 +270,10 @@ public class ReportingService : IReportingService
             .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
 
         if (order == null)
-            throw new KeyNotFoundException("Khng tm thy n hng hoc bn khng c quyn truy cp");
+            throw new KeyNotFoundException("Không tìm thấy đơn hàng hoặc bạn không có quyền truy cập");
 
         if (order.Status == OrderStatus.Pending || order.Status == OrderStatus.Cancelled)
-            throw new ValidationException("Ch c th xut ha n cho n hng  xc nhn tr ln");
+            throw new ValidationException("Chỉ có thể xuất hóa đơn cho đơn hàng đã xác nhận trở lên");
 
         var xmlBytes = await _pdfExportService.ExportInvoiceXmlAsync(order);
         var fileName = $"HoaDon_{order.OrderNumber}_{DateTime.Now:yyyyMMddHHmmss}.xml";

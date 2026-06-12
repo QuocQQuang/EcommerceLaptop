@@ -7,12 +7,12 @@ namespace EcommerceLaptop.Core.DTOs.Admin;
 /// </summary>
 public class AdminLoginRequestDto
 {
-    [Required(ErrorMessage = "Email l bt buc")]
-    [EmailAddress(ErrorMessage = "Email khng hp l")]
+    [Required(ErrorMessage = "Email là bắt buộc")]
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Mt khu l bt buc")]
-    [MinLength(6, ErrorMessage = "Mt khu phi c t nht 6 k t")]
+    [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
+    [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự")]
     public string Password { get; set; } = string.Empty;
 
     public bool RememberMe { get; set; } = false;
@@ -77,7 +77,7 @@ public class AdminPermissionDto
 /// </summary>
 public class AdminRefreshTokenRequestDto
 {
-    [Required(ErrorMessage = "Refresh token l bt buc")]
+    [Required(ErrorMessage = "Refresh token là bắt buộc")]
     public string RefreshToken { get; set; } = string.Empty;
 }
 
@@ -97,15 +97,15 @@ public class AdminRefreshTokenResponseDto
 /// </summary>
 public class UpdateAdminProfileRequestDto
 {
-    [Required(ErrorMessage = "Tn l bt buc")]
-    [StringLength(50, ErrorMessage = "Tn khng c qu 50 k t")]
+    [Required(ErrorMessage = "Tên là bắt buộc")]
+    [StringLength(50, ErrorMessage = "Tên không được quá 50 ký tự")]
     public string FirstName { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "H l bt buc")]
-    [StringLength(50, ErrorMessage = "H khng c qu 50 k t")]
+    [Required(ErrorMessage = "Họ là bắt buộc")]
+    [StringLength(50, ErrorMessage = "Họ không được quá 50 ký tự")]
     public string LastName { get; set; } = string.Empty;
 
-    [EmailAddress(ErrorMessage = "Email khng hp l")]
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
     public string? Email { get; set; }
 
     public string? Avatar { get; set; }
@@ -116,16 +116,16 @@ public class UpdateAdminProfileRequestDto
 /// </summary>
 public class ChangeAdminPasswordRequestDto
 {
-    [Required(ErrorMessage = "Mt khu hin ti l bt buc")]
+    [Required(ErrorMessage = "Mật khẩu hiện tại là bắt buộc")]
     public string CurrentPassword { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Mt khu mi l bt buc")]
-    [MinLength(8, ErrorMessage = "Mt khu mi phi c t nht 8 k t")]
+    [Required(ErrorMessage = "Mật khẩu mới là bắt buộc")]
+    [MinLength(8, ErrorMessage = "Mật khẩu mới phải có ít nhất 8 ký tự")]
     [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]", 
-        ErrorMessage = "Mt khu phi cha t nht 1 ch thng, 1 ch hoa, 1 s v 1 k t c bit")]
+        ErrorMessage = "Mật khẩu phải chứa ít nhất 1 chữ thường, 1 chữ hoa, 1 số và 1 ký tự đặc biệt")]
     public string NewPassword { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Xc nhn mt khu l bt buc")]
-    [Compare(nameof(NewPassword), ErrorMessage = "Mt khu xc nhn khng khp")]
+    [Required(ErrorMessage = "Xác nhận mật khẩu là bắt buộc")]
+    [Compare(nameof(NewPassword), ErrorMessage = "Mật khẩu xác nhận không khớp")]
     public string ConfirmPassword { get; set; } = string.Empty;
 }

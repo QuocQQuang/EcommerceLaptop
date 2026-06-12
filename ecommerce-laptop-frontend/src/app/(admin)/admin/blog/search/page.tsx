@@ -768,7 +768,7 @@ export default function BlogSearchPage() {
                                                         size="sm"
                                                         onClick={() => {
                                                             setSavedSearches(prev => prev.filter((_, i) => i !== index));
-                                                            toast.success('đã xóa tìm kiếm đã lưu');
+                                                            toast.success('Đã xóa tìm kiếm đã lưu');
                                                         }}
                                                     >
                                                         <X className="w-4 h-4" />

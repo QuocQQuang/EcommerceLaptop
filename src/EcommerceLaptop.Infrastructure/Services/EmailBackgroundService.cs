@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace EcommerceLaptop.Infrastructure.Services
 {
     /// <summary>
-    /// Background service  x l email queue
+    /// Background service để xử lý email queue
     /// </summary>
     public class EmailBackgroundService : BackgroundService
     {
@@ -34,7 +34,7 @@ namespace EcommerceLaptop.Infrastructure.Services
                     var emailQueueService = scope.ServiceProvider.GetRequiredService<IEmailQueueService>();
                     var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
-                    // Ly email t queue v gi i
+                    // Lấy email từ queue và gửi đi
                     await ProcessEmailQueueAsync(emailQueueService, emailService);
                 }
                 catch (Exception ex)
@@ -42,7 +42,7 @@ namespace EcommerceLaptop.Infrastructure.Services
                     _logger.LogError(ex, "Error processing email queue");
                 }
 
-                // Ch 30 giy trc khi check li
+                // Chờ 30 giây trước khi check lại
                 await Task.Delay(30000, stoppingToken);
             }
 
@@ -53,7 +53,7 @@ namespace EcommerceLaptop.Infrastructure.Services
         {
             try
             {
-                // X l email priority cao trc
+                // Xử lý email priority cao trước
                 var highPriorityEmails = await emailQueueService.GetPendingEmailsAsync(EmailPriority.High, 5);
                 if (highPriorityEmails.Any())
                 {
@@ -64,7 +64,7 @@ namespace EcommerceLaptop.Infrastructure.Services
                     return;
                 }
 
-                // X l email priority trung bnh
+                // Xử lý email priority trung bình
                 var mediumPriorityEmails = await emailQueueService.GetPendingEmailsAsync(EmailPriority.Normal, 5);
                 if (mediumPriorityEmails.Any())
                 {
@@ -75,7 +75,7 @@ namespace EcommerceLaptop.Infrastructure.Services
                     return;
                 }
 
-                // X l email priority thp
+                // Xử lý email priority thấp
                 var lowPriorityEmails = await emailQueueService.GetPendingEmailsAsync(EmailPriority.Low, 5);
                 if (lowPriorityEmails.Any())
                 {
@@ -97,7 +97,7 @@ namespace EcommerceLaptop.Infrastructure.Services
             {
                 _logger.LogInformation("Processing email from queue: {EmailId}", emailItem.Id);
 
-                // Gi email - dng method SendCustomEmailAsync c sn
+                // Gửi email - dùng method SendCustomEmailAsync có sẵn
                 var success = await emailService.SendCustomEmailAsync(
                     emailItem.ToEmail,
                     emailItem.ToName,

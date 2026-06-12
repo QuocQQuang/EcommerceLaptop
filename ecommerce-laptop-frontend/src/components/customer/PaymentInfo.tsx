@@ -43,7 +43,7 @@ export function PaymentInfo({
                 icon: <Clock className="h-4 w-4" />
             },
             'paid': {
-                label: 'đã thanh toán',
+                label: 'Đã thanh toán',
                 color: 'bg-green-100 text-green-800',
                 icon: <CheckCircle className="h-4 w-4" />
             },
@@ -53,7 +53,7 @@ export function PaymentInfo({
                 icon: <XCircle className="h-4 w-4" />
             },
             'refunded': {
-                label: 'đã hoàn tiền',
+                label: 'Đã hoàn tiền',
                 color: 'bg-blue-100 text-blue-800',
                 icon: <CheckCircle className="h-4 w-4" />
             }

@@ -139,7 +139,7 @@ function PromotionContent() {
                   pageType="static"
                   className="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
                 >
-                  Xc thc ngay
+                  Xác thực ngay
                 </AppLink>
               </div>
             </div>
@@ -215,7 +215,7 @@ function PromotionContent() {
               </div>
               <div className="text-center p-4 border border-orange-200 rounded-lg">
                 <h5 className="font-semibold text-orange-900 mb-2">Laptop văn phòng</h5>
-                <div className="text-lg font-bold text-orange-600">2-12 triu</div>
+                <div className="text-lg font-bold text-orange-600">2-12 triệu</div>
                 <p className="text-sm text-orange-700">Dell, HP, Lenovo, Asus</p>
               </div>
             </div>
@@ -277,7 +277,7 @@ function PromotionContent() {
                   <span className="font-semibold text-purple-900">50+ máy</span>
                   <Badge className="bg-purple-100 text-purple-800">Giảm 20%</Badge>
                   </div>
-                  <p className="text-sm text-purple-700 mt-1">+ Dedicated support team</p>
+                  <p className="text-sm text-purple-700 mt-1">+ Đội ngũ hỗ trợ riêng</p>
                 </div>
               </div>
             </div>

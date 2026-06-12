@@ -64,7 +64,7 @@ public class WishlistService : IWishlistService
             var productExists = await _context.Products.AnyAsync(p => p.Id == productId);
             if (!productExists)
             {
-                throw new KeyNotFoundException("Khng tm thy sn phm");
+                throw new KeyNotFoundException("Không tìm thấy sản phẩm");
             }
 
             var exists = await _context.WishlistItems
@@ -102,7 +102,7 @@ public class WishlistService : IWishlistService
 
             if (wishlistItem == null)
             {
-                throw new KeyNotFoundException("Sn phm khng c trong danh sch yu thch");
+                throw new KeyNotFoundException("Sản phẩm không có trong danh sách yêu thích");
             }
 
             _context.WishlistItems.Remove(wishlistItem);

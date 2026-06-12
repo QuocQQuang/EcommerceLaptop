@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AdminAuthProvider, ProtectedAdminRoute } from '@/contexts/AdminAuthContext';
 import { Sidebar } from '@/components/admin/Sidebar';
 import { Header } from '@/components/admin/Header';
-import { Toaster } from 'sonner';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -56,14 +55,6 @@ export default function AdminLayout({
               </main>
             </div>
           </div>
-          
-          {/* Toast notifications */}
-          <Toaster 
-            position="top-right" 
-            expand={true} 
-            richColors 
-            closeButton
-          />
         </ProtectedAdminRoute>
       </AdminAuthProvider>
     </QueryClientProvider>

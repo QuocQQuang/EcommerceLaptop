@@ -5,75 +5,75 @@ namespace EcommerceLaptop.Core.Services;
 public interface IExcelExportService
 {
     /// <summary>
-    /// Xut danh sch n hng ra Excel
+    /// Xuất danh sách đơn hàng ra Excel
     /// </summary>
-    /// <param name="orders">Danh sch n hng</param>
-    /// <param name="fileName">Tn file</param>
-    /// <returns>Byte array ca file Excel</returns>
+    /// <param name="orders">Danh sách đơn hàng</param>
+    /// <param name="fileName">Tên file</param>
+    /// <returns>Byte array của file Excel</returns>
     Task<byte[]> ExportOrdersToExcelAsync(IEnumerable<Order> orders, string fileName = "orders");
 
     /// <summary>
-    /// Xut danh sch sn phm ra Excel
+    /// Xuất danh sách sản phẩm ra Excel
     /// </summary>
-    /// <param name="products">Danh sch sn phm</param>
-    /// <param name="fileName">Tn file</param>
-    /// <returns>Byte array ca file Excel</returns>
+    /// <param name="products">Danh sách sản phẩm</param>
+    /// <param name="fileName">Tên file</param>
+    /// <returns>Byte array của file Excel</returns>
     Task<byte[]> ExportProductsToExcelAsync(IEnumerable<Product> products, string fileName = "products");
 
     /// <summary>
-    /// Xut bo co doanh thu ra Excel
+    /// Xuất báo cáo doanh thu ra Excel
     /// </summary>
-    /// <param name="startDate">Ngy bt u</param>
-    /// <param name="endDate">Ngy kt thc</param>
-    /// <param name="fileName">Tn file</param>
-    /// <returns>Byte array ca file Excel</returns>
+    /// <param name="startDate">Ngày bắt đầu</param>
+    /// <param name="endDate">Ngày kết thúc</param>
+    /// <param name="fileName">Tên file</param>
+    /// <returns>Byte array của file Excel</returns>
     Task<byte[]> ExportRevenueReportToExcelAsync(DateTime startDate, DateTime endDate, string fileName = "revenue_report");
 
     /// <summary>
-    /// Xut bo co tn kho ra Excel
+    /// Xuất báo cáo tồn kho ra Excel
     /// </summary>
-    /// <param name="fileName">Tn file</param>
-    /// <returns>Byte array ca file Excel</returns>
+    /// <param name="fileName">Tên file</param>
+    /// <returns>Byte array của file Excel</returns>
     Task<byte[]> ExportInventoryReportToExcelAsync(string fileName = "inventory_report");
 
     /// <summary>
-    /// Xut danh sch khch hng ra Excel
+    /// Xuất danh sách khách hàng ra Excel
     /// </summary>
-    /// <param name="users">Danh sch khch hng</param>
-    /// <param name="fileName">Tn file</param>
-    /// <returns>Byte array ca file Excel</returns>
+    /// <param name="users">Danh sách khách hàng</param>
+    /// <param name="fileName">Tên file</param>
+    /// <returns>Byte array của file Excel</returns>
     Task<byte[]> ExportUsersToExcelAsync(IEnumerable<User> users, string fileName = "users");
 
     /// <summary>
-    /// Xut danh sch s kin bo mt ra Excel
+    /// Xuất danh sách sự kiện bảo mật ra Excel
     /// </summary>
-    /// <param name="securityEvents">Danh sch s kin bo mt</param>
-    /// <param name="fileName">Tn file</param>
-    /// <returns>Byte array ca file Excel</returns>
+    /// <param name="securityEvents">Danh sách sự kiện bảo mật</param>
+    /// <param name="fileName">Tên file</param>
+    /// <returns>Byte array của file Excel</returns>
     Task<byte[]> ExportSecurityEventsToExcelAsync(IEnumerable<SecurityEvent> securityEvents, string fileName = "security_events");
 
     /// <summary>
-    /// Xut danh sch IP Block Rules ra Excel
+    /// Xuất danh sách IP Block Rules ra Excel
     /// </summary>
-    /// <param name="ipBlockRules">Danh sch IP Block Rules</param>
-    /// <param name="fileName">Tn file</param>
-    /// <returns>Byte array ca file Excel</returns>
+    /// <param name="ipBlockRules">Danh sách IP Block Rules</param>
+    /// <param name="fileName">Tên file</param>
+    /// <returns>Byte array của file Excel</returns>
     Task<byte[]> ExportIPBlockRulesToExcelAsync(IEnumerable<IPBlockRule> ipBlockRules, string fileName = "ip_block_rules");
 
     /// <summary>
-    /// Xut danh sch Rate Limit Rules ra Excel
+    /// Xuất danh sách Rate Limit Rules ra Excel
     /// </summary>
-    /// <param name="rateLimitRules">Danh sch Rate Limit Rules</param>
-    /// <param name="fileName">Tn file</param>
-    /// <returns>Byte array ca file Excel</returns>
+    /// <param name="rateLimitRules">Danh sách Rate Limit Rules</param>
+    /// <param name="fileName">Tên file</param>
+    /// <returns>Byte array của file Excel</returns>
     Task<byte[]> ExportRateLimitRulesToExcelAsync(IEnumerable<RateLimitRule> rateLimitRules, string fileName = "rate_limit_rules");
 
     /// <summary>
-    /// Xut bo co bo mt tng hp ra Excel
+    /// Xuất báo cáo bảo mật tổng hợp ra Excel
     /// </summary>
-    /// <param name="startDate">Ngy bt u (nullable)</param>
-    /// <param name="endDate">Ngy kt thc (nullable)</param>
-    /// <param name="fileName">Tn file</param>
-    /// <returns>Byte array ca file Excel</returns>
+    /// <param name="startDate">Ngày bắt đầu (nullable)</param>
+    /// <param name="endDate">Ngày kết thúc (nullable)</param>
+    /// <param name="fileName">Tên file</param>
+    /// <returns>Byte array của file Excel</returns>
     Task<byte[]> ExportSecurityReportToExcelAsync(DateTime? startDate = null, DateTime? endDate = null, string fileName = "security_report");
 }

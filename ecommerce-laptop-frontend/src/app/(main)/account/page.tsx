@@ -140,10 +140,10 @@ export default function AccountPage() {
         const statusMap: { [key: string]: string } = {
             pending: 'Chờ xác nhận',
             confirmed: 'Đã xác nhận',
-            processing: 'đang xử lý',
-            shipped: 'đang giao hàng',
+            processing: 'Đang xử lý',
+            shipped: 'Đang giao hàng',
             delivered: 'Đã nhận hàng',
-            cancelled: 'đã hủy'
+            cancelled: 'Đã hủy'
         };
         const key = (status || '').toLowerCase();
         return statusMap[key] || status;

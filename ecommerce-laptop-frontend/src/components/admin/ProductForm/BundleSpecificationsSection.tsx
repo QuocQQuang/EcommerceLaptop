@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ProductFormData } from '@/lib/admin-api';
+import { ProductFormData } from '@/features/admin/products/types';
 import { ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
 
 interface BundleSpecificationsSectionProps {

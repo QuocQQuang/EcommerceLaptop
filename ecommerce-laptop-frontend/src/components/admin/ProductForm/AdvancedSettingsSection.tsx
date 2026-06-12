@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ProductFormData } from '@/lib/admin-api';
+import { ProductFormData } from '@/features/admin/products/types';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface AdvancedSettingsSectionProps {

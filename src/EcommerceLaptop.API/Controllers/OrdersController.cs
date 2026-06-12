@@ -50,12 +50,12 @@ public class OrdersController(
             var profile = await authService.GetUserProfileAsync(request.CustomerId);
             if (profile == null || profile.IsEmailVerified == false)
             {
-                return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
+                return BadRequest("Tài khoản của bạn chưa xác thực email. Vui lòng xác thực email trước khi mua hàng.");
             }
         }
         else if (!bool.TryParse(isEmailConfirmed, out var confirmed) || !confirmed)
         {
-            return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
+            return BadRequest("Tài khoản của bạn chưa xác thực email. Vui lòng xác thực email trước khi mua hàng.");
         }
         */
         var result = await _orderService.CreateOrderAndInitializePaymentAsync(request);
@@ -100,12 +100,12 @@ public class OrdersController(
             var profile = await authService.GetUserProfileAsync(int.Parse(customerId));
             if (profile == null || profile.IsEmailVerified == false)
             {
-                return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
+                return BadRequest("Tài khoản của bạn chưa xác thực email. Vui lòng xác thực email trước khi mua hàng.");
             }
         }
         else if (!bool.TryParse(isEmailConfirmed2, out var confirmed2) || !confirmed2)
         {
-            return BadRequest("Ti khon ca bn cha xc thc email. Vui lng xc thc email trc khi mua hng.");
+            return BadRequest("Tài khoản của bạn chưa xác thực email. Vui lòng xác thực email trước khi mua hàng.");
         }
         */
 
@@ -187,7 +187,7 @@ public class OrdersController(
             }
 
             // If order exists but cancellation failed, it's likely because it's already paid
-            return BadRequest("Khng th hy n hng  thanh ton. Vui lng lin h h tr  c hon tin.");
+            return BadRequest("Không thể hủy đơn hàng đã thanh toán. Vui lòng liên hệ hỗ trợ để được hoàn tiền.");
         }
 
         return Ok();

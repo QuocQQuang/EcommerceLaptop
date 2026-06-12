@@ -12,9 +12,9 @@ public record ForgotPasswordRequest
     /// <summary>
     /// User email address
     /// </summary>
-    [Required(ErrorMessage = "Email l bt buc")]
-    [EmailAddress(ErrorMessage = "nh dng email khng hp l")]
-    [StringLength(255, ErrorMessage = "Email khng c vt qu 255 k t")]
+    [Required(ErrorMessage = "Email là bắt buộc")]
+    [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
+    [StringLength(255, ErrorMessage = "Email không được vượt quá 255 ký tự")]
     public string Email { get; init; } = string.Empty;
 }
 
@@ -36,31 +36,31 @@ public record ResetPasswordRequest
     /// <summary>
     /// User email address
     /// </summary>
-    [Required(ErrorMessage = "Email l bt buc")]
-    [EmailAddress(ErrorMessage = "nh dng email khng hp l")]
+    [Required(ErrorMessage = "Email là bắt buộc")]
+    [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
     public string Email { get; init; } = string.Empty;
 
     /// <summary>
     /// Password reset token from email
     /// </summary>
-    [Required(ErrorMessage = "Token l bt buc")]
-    [StringLength(128, MinimumLength = 10, ErrorMessage = "Token khng hp l")]
+    [Required(ErrorMessage = "Token là bắt buộc")]
+    [StringLength(128, MinimumLength = 10, ErrorMessage = "Token không hợp lệ")]
     public string Token { get; init; } = string.Empty;
 
     /// <summary>
     /// New password
     /// </summary>
-    [Required(ErrorMessage = "Mt khu mi l bt buc")]
-    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu phi c t nht 8 k t v khng qu 100 k t")]
+    [Required(ErrorMessage = "Mật khẩu mới là bắt buộc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự và không quá 100 ký tự")]
     [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$",
-        ErrorMessage = "Mt khu phi cha t nht 1 ch hoa, 1 ch thng, 1 s v 1 k t c bit")]
+        ErrorMessage = "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt")]
     public string NewPassword { get; init; } = string.Empty;
 
     /// <summary>
     /// Confirm new password
     /// </summary>
-    [Required(ErrorMessage = "Xc nhn mt khu l bt buc")]
-    [Compare("NewPassword", ErrorMessage = "Mt khu xc nhn khng khp")]
+    [Required(ErrorMessage = "Xác nhận mật khẩu là bắt buộc")]
+    [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
     public string ConfirmPassword { get; init; } = string.Empty;
 }
 
@@ -83,15 +83,15 @@ public record ValidateResetTokenRequest
     /// <summary>
     /// User email address
     /// </summary>
-    [Required(ErrorMessage = "Email l bt buc")]
-    [EmailAddress(ErrorMessage = "nh dng email khng hp l")]
+    [Required(ErrorMessage = "Email là bắt buộc")]
+    [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
     public string Email { get; init; } = string.Empty;
 
     /// <summary>
     /// Password reset token to validate
     /// </summary>
-    [Required(ErrorMessage = "Token l bt buc")]
-    [StringLength(128, MinimumLength = 10, ErrorMessage = "Token khng hp l")]
+    [Required(ErrorMessage = "Token là bắt buộc")]
+    [StringLength(128, MinimumLength = 10, ErrorMessage = "Token không hợp lệ")]
     public string Token { get; init; } = string.Empty;
 }
 
@@ -115,12 +115,12 @@ public record ValidateResetTokenResponse
 /// </summary>
 public record LoginRequest
 {
-    [Required(ErrorMessage = "Email l bt buc")]
-    [EmailAddress(ErrorMessage = "nh dng email khng hp l")]
+    [Required(ErrorMessage = "Email là bắt buộc")]
+    [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
     public string Email { get; init; } = string.Empty;
 
-    [Required(ErrorMessage = "Mt khu l bt buc")]
-    [StringLength(100, MinimumLength = 1, ErrorMessage = "Mt khu khng hp l")]
+    [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
+    [StringLength(100, MinimumLength = 1, ErrorMessage = "Mật khẩu không hợp lệ")]
     public string Password { get; init; } = string.Empty;
 
     /// <summary>
@@ -139,37 +139,37 @@ public record LoginRequest
 /// </summary>
 public record RegisterRequest
 {
-    [Required(ErrorMessage = "Email l bt buc")]
-    [EmailAddress(ErrorMessage = "nh dng email khng hp l")]
-    [StringLength(255, ErrorMessage = "Email khng c vt qu 255 k t")]
+    [Required(ErrorMessage = "Email là bắt buộc")]
+    [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
+    [StringLength(255, ErrorMessage = "Email không được vượt quá 255 ký tự")]
     public string Email { get; init; } = string.Empty;
 
-    [Required(ErrorMessage = "Mt khu l bt buc")]
-    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu phi c t nht 8 k t v khng qu 100 k t")]
+    [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự và không quá 100 ký tự")]
     [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$",
-        ErrorMessage = "Mt khu phi cha t nht 1 ch hoa, 1 ch thng, 1 s v 1 k t c bit")]
+        ErrorMessage = "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt")]
     public string Password { get; init; } = string.Empty;
 
-    [Required(ErrorMessage = "Xc nhn mt khu l bt buc")]
-    [Compare("Password", ErrorMessage = "Mt khu xc nhn khng khp")]
+    [Required(ErrorMessage = "Xác nhận mật khẩu là bắt buộc")]
+    [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp")]
     public string ConfirmPassword { get; init; } = string.Empty;
 
-    [Required(ErrorMessage = "Tn l bt buc")]
-    [StringLength(100, ErrorMessage = "Tn khng c vt qu 100 k t")]
+    [Required(ErrorMessage = "Tên là bắt buộc")]
+    [StringLength(100, ErrorMessage = "Tên không được vượt quá 100 ký tự")]
     public string FirstName { get; init; } = string.Empty;
 
-    [Required(ErrorMessage = "H l bt buc")]
-    [StringLength(100, ErrorMessage = "H khng c vt qu 100 k t")]
+    [Required(ErrorMessage = "Họ là bắt buộc")]
+    [StringLength(100, ErrorMessage = "Họ không được vượt quá 100 ký tự")]
     public string LastName { get; init; } = string.Empty;
 
-    [Phone(ErrorMessage = "S in thoi khng hp l")]
-    [StringLength(20, ErrorMessage = "S in thoi khng c vt qu 20 k t")]
+    [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+    [StringLength(20, ErrorMessage = "Số điện thoại không được vượt quá 20 ký tự")]
     public string? PhoneNumber { get; init; }
 
     /// <summary>
     /// Accept terms and conditions
     /// </summary>
-    [Range(typeof(bool), "true", "true", ErrorMessage = "Bn phi ng  vi iu khon v iu kin")]
+    [Range(typeof(bool), "true", "true", ErrorMessage = "Bạn phải đồng ý với điều khoản và điều kiện")]
     public bool AcceptTerms { get; init; } = false;
 }
 
@@ -179,7 +179,7 @@ public record RegisterRequest
 /// </summary>
 public record RefreshTokenRequest
 {
-    [Required(ErrorMessage = "Refresh token l bt buc")]
+    [Required(ErrorMessage = "Refresh token là bắt buộc")]
     public string RefreshToken { get; init; } = string.Empty;
 }
 

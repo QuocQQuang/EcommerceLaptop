@@ -30,7 +30,8 @@ import {
   PermissionGuard,
   useAdminAuth
 } from '@/contexts/AdminAuthContext';
-import { deleteProduct, getAdminProducts, PERMISSIONS } from '@/lib/admin-api';
+import { deleteProduct, getAdminProducts } from '@/features/admin/products/api';
+import { PERMISSIONS } from '@/lib/admin-api';
 import { Product as ApiProduct } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {

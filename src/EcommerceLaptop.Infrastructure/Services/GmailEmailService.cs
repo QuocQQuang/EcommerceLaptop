@@ -68,8 +68,8 @@ namespace EcommerceLaptop.Infrastructure.Services
                     ["Email"] = user.Email,
                     ["ResetUrl"] = callbackUrl,
                     ["RequestTime"] = DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss (UTC)"),
-                    ["IpAddress"] = "***.***.***.***.** (n v bo mt)", // IP will be masked in email for security
-                    ["DeviceInfo"] = "Trnh duyt web", // Generic device info for security
+                    ["IpAddress"] = "***.***.***.***.** (ẩn vì bảo mật)", // IP will be masked in email for security
+                    ["DeviceInfo"] = "Trình duyệt web", // Generic device info for security
                     ["ExpirationMinutes"] = "15", // Default expiration time
                     ["CompanyName"] = _emailSettings.DefaultFromName
                 };
@@ -80,7 +80,7 @@ namespace EcommerceLaptop.Infrastructure.Services
                 return await SendTemplatedEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    " Yu cu t li mt khu - " + _emailSettings.DefaultFromName,
+                    " Yêu cầu đặt lại mật khẩu - " + _emailSettings.DefaultFromName,
                     "PasswordReset",
                     templateData
                 );
@@ -112,7 +112,7 @@ namespace EcommerceLaptop.Infrastructure.Services
                 return await SendTemplatedEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    "Xc thc email - " + _emailSettings.DefaultFromName,
+                    "Xác thực email - " + _emailSettings.DefaultFromName,
                     "EmailConfirmation",
                     templateData
                 );
@@ -144,7 +144,7 @@ namespace EcommerceLaptop.Infrastructure.Services
                 return await SendTemplatedEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    "Cho mng bn n vi " + _emailSettings.DefaultFromName,
+                    "Chào mừng bạn đến với " + _emailSettings.DefaultFromName,
                     "Welcome",
                     templateData
                 );
@@ -166,16 +166,16 @@ namespace EcommerceLaptop.Infrastructure.Services
                     return true;
                 }
                 var htmlContent = $@"
-                    <h2>Mt khu  c thay i</h2>
-                    <p>Xin cho {user.FirstName} {user.LastName}!</p>
-                    <p>Mt khu ti khon ca bn  c thay i thnh cng vo lc {DateTime.Now:dd/MM/yyyy HH:mm}.</p>
-                    <p>Nu khng phi bn thc hin, vui lng lin h ngay vi chng ti.</p>
-                    <p>Trn trng,<br>i ng {_emailSettings.DefaultFromName}</p>";
+                    <h2>Mật khẩu đã được thay đổi</h2>
+                    <p>Xin chào {user.FirstName} {user.LastName}!</p>
+                    <p>Mật khẩu tài khoản của bạn đã được thay đổi thành công vào lúc {DateTime.Now:dd/MM/yyyy HH:mm}.</p>
+                    <p>Nếu không phải bạn thực hiện, vui lòng liên hệ ngay với chúng tôi.</p>
+                    <p>Trân trọng,<br>Đội ngũ {_emailSettings.DefaultFromName}</p>";
 
                 return await SendEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    "Thng bo thay i mt khu",
+                    "Thông báo thay đổi mật khẩu",
                     htmlContent
                 );
             }
@@ -207,7 +207,7 @@ namespace EcommerceLaptop.Infrastructure.Services
                 return await SendTemplatedEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    $"M xc thc OTP - {_emailSettings.DefaultFromName}",
+                    $"Mã xác thực OTP - {_emailSettings.DefaultFromName}",
                     "OtpVerification",
                     templateData
                 );
@@ -221,7 +221,7 @@ namespace EcommerceLaptop.Infrastructure.Services
 
         public async Task<bool> SendTwoFactorTokenEmailAsync(User user, string token)
         {
-            return await SendOtpEmailAsync(user, token, "xc thc hai bc");
+            return await SendOtpEmailAsync(user, token, "xác thực hai bước");
         }
 
         #endregion
@@ -238,17 +238,17 @@ namespace EcommerceLaptop.Infrastructure.Services
                     return true;
                 }
                 var htmlContent = $@"
-                    <h2>Xc nhn n hng #{orderId}</h2>
-                    <p>Xin cho {user.FirstName} {user.LastName}!</p>
-                    <p>Cm n bn  t hng ti {_emailSettings.DefaultFromName}.</p>
-                    <p>n hng #{orderId} ca bn  c tip nhn v ang c x l.</p>
-                    <p>Chng ti s gi thng bo cp nht trng thi n hng sm nht.</p>
-                    <p>Trn trng,<br>i ng {_emailSettings.DefaultFromName}</p>";
+                    <h2>Xác nhận đơn hàng #{orderId}</h2>
+                    <p>Xin chào {user.FirstName} {user.LastName}!</p>
+                    <p>Cảm ơn bạn đã đặt hàng tại {_emailSettings.DefaultFromName}.</p>
+                    <p>Đơn hàng #{orderId} của bạn đã được tiếp nhận và đang được xử lý.</p>
+                    <p>Chúng tôi sẽ gửi thông báo cập nhật trạng thái đơn hàng sớm nhất.</p>
+                    <p>Trân trọng,<br>Đội ngũ {_emailSettings.DefaultFromName}</p>";
 
                 return await SendEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    $"Xc nhn n hng #{orderId}",
+                    $"Xác nhận đơn hàng #{orderId}",
                     htmlContent
                 );
             }
@@ -273,16 +273,16 @@ namespace EcommerceLaptop.Infrastructure.Services
                 }
                 var statusInVietnamese = GetStatusInVietnamese(newStatus);
                 var htmlContent = $@"
-                    <h2>Cp nht trng thi n hng #{orderId}</h2>
-                    <p>Xin cho {user.FirstName} {user.LastName}!</p>
-                    <p>n hng #{orderId} ca bn  c cp nht trng thi:</p>
-                    <p><strong>Trng thi mi: {statusInVietnamese}</strong></p>
-                    <p>Trn trng,<br>i ng {_emailSettings.DefaultFromName}</p>";
+                    <h2>Cập nhật trạng thái đơn hàng #{orderId}</h2>
+                    <p>Xin chào {user.FirstName} {user.LastName}!</p>
+                    <p>Đơn hàng #{orderId} của bạn đã được cập nhật trạng thái:</p>
+                    <p><strong>Trạng thái mới: {statusInVietnamese}</strong></p>
+                    <p>Trân trọng,<br>Đội ngũ {_emailSettings.DefaultFromName}</p>";
 
                 return await SendEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    $"Cp nht n hng #{orderId} - {statusInVietnamese}",
+                    $"Cập nhật đơn hàng #{orderId} - {statusInVietnamese}",
                     htmlContent
                 );
             }
@@ -303,17 +303,17 @@ namespace EcommerceLaptop.Infrastructure.Services
                     return true;
                 }
                 var htmlContent = $@"
-                    <h2>n hng #{orderId}  c giao cho n v vn chuyn</h2>
-                    <p>Xin cho {user.FirstName} {user.LastName}!</p>
-                    <p>n hng #{orderId} ca bn  c giao cho n v vn chuyn.</p>
-                    <p><strong>M vn n: {trackingNumber}</strong></p>
-                    <p>Bn c th theo di trng thi giao hng qua m vn n ny.</p>
-                    <p>Trn trng,<br>i ng {_emailSettings.DefaultFromName}</p>";
+                    <h2>Đơn hàng #{orderId} đã được giao cho đơn vị vận chuyển</h2>
+                    <p>Xin chào {user.FirstName} {user.LastName}!</p>
+                    <p>Đơn hàng #{orderId} của bạn đã được giao cho đơn vị vận chuyển.</p>
+                    <p><strong>Mã vận đơn: {trackingNumber}</strong></p>
+                    <p>Bạn có thể theo dõi trạng thái giao hàng qua mã vận đơn này.</p>
+                    <p>Trân trọng,<br>Đội ngũ {_emailSettings.DefaultFromName}</p>";
 
                 return await SendEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    $"n hng #{orderId} ang c vn chuyn",
+                    $"Đơn hàng #{orderId} đang được vận chuyển",
                     htmlContent
                 );
             }
@@ -334,17 +334,17 @@ namespace EcommerceLaptop.Infrastructure.Services
                     return true;
                 }
                 var htmlContent = $@"
-                    <h2>n hng #{orderId}  b hy</h2>
-                    <p>Xin cho {user.FirstName} {user.LastName}!</p>
-                    <p>n hng #{orderId} ca bn  b hy.</p>
-                    <p><strong>L do: {reason}</strong></p>
-                    <p>Nu c bt k thc mc no, vui lng lin h vi chng ti.</p>
-                    <p>Trn trng,<br>i ng {_emailSettings.DefaultFromName}</p>";
+                    <h2>Đơn hàng #{orderId} đã bị hủy</h2>
+                    <p>Xin chào {user.FirstName} {user.LastName}!</p>
+                    <p>Đơn hàng #{orderId} của bạn đã bị hủy.</p>
+                    <p><strong>Lý do: {reason}</strong></p>
+                    <p>Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ với chúng tôi.</p>
+                    <p>Trân trọng,<br>Đội ngũ {_emailSettings.DefaultFromName}</p>";
 
                 return await SendEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    $"Hy n hng #{orderId}",
+                    $"Hủy đơn hàng #{orderId}",
                     htmlContent
                 );
             }
@@ -365,17 +365,17 @@ namespace EcommerceLaptop.Infrastructure.Services
                     return true;
                 }
                 var htmlContent = $@"
-                    <h2>Thng bo hon tin n hng #{orderId}</h2>
-                    <p>Xin cho {user.FirstName} {user.LastName}!</p>
-                    <p>Chng ti  x l hon tin cho n hng #{orderId}.</p>
-                    <p><strong>S tin hon: {refundAmount:N0} VND</strong></p>
-                    <p>S tin s c hon vo ti khon ca bn trong 3-5 ngy lm vic.</p>
-                    <p>Trn trng,<br>i ng {_emailSettings.DefaultFromName}</p>";
+                    <h2>Thông báo hoàn tiền đơn hàng #{orderId}</h2>
+                    <p>Xin chào {user.FirstName} {user.LastName}!</p>
+                    <p>Chúng tôi đã xử lý hoàn tiền cho đơn hàng #{orderId}.</p>
+                    <p><strong>Số tiền hoàn: {refundAmount:N0} VND</strong></p>
+                    <p>Số tiền sẽ được hoàn vào tài khoản của bạn trong 3-5 ngày làm việc.</p>
+                    <p>Trân trọng,<br>Đội ngũ {_emailSettings.DefaultFromName}</p>";
 
                 return await SendEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    $"Hon tin n hng #{orderId}",
+                    $"Hoàn tiền đơn hàng #{orderId}",
                     htmlContent
                 );
             }
@@ -400,17 +400,17 @@ namespace EcommerceLaptop.Infrastructure.Services
                     return true;
                 }
                 var htmlContent = $@"
-                    <h2>Ti khon ca bn  b kha</h2>
-                    <p>Xin cho {user.FirstName} {user.LastName}!</p>
-                    <p>Ti khon ca bn  b kha vo lc {DateTime.Now:dd/MM/yyyy HH:mm}.</p>
-                    <p><strong>L do: {reason}</strong></p>
-                    <p>Vui lng lin h vi chng ti  c h tr m kha ti khon.</p>
-                    <p>Trn trng,<br>i ng {_emailSettings.DefaultFromName}</p>";
+                    <h2>Tài khoản của bạn đã bị khóa</h2>
+                    <p>Xin chào {user.FirstName} {user.LastName}!</p>
+                    <p>Tài khoản của bạn đã bị khóa vào lúc {DateTime.Now:dd/MM/yyyy HH:mm}.</p>
+                    <p><strong>Lý do: {reason}</strong></p>
+                    <p>Vui lòng liên hệ với chúng tôi để được hỗ trợ mở khóa tài khoản.</p>
+                    <p>Trân trọng,<br>Đội ngũ {_emailSettings.DefaultFromName}</p>";
 
                 return await SendEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    "Thng bo kha ti khon",
+                    "Thông báo khóa tài khoản",
                     htmlContent
                 );
             }
@@ -431,19 +431,19 @@ namespace EcommerceLaptop.Infrastructure.Services
                     return true;
                 }
                 var htmlContent = $@"
-                    <h2>Cnh bo bo mt ti khon</h2>
-                    <p>Xin cho {user.FirstName} {user.LastName}!</p>
-                    <p>Chng ti pht hin hot ng bt thng trn ti khon ca bn:</p>
-                    <p><strong>Loi cnh bo: {alertType}</strong></p>
-                    <p><strong>Chi tit: {details}</strong></p>
-                    <p><strong>Thi gian: {DateTime.Now:dd/MM/yyyy HH:mm}</strong></p>
-                    <p>Nu khng phi bn thc hin, vui lng i mt khu ngay lp tc v lin h vi chng ti.</p>
-                    <p>Trn trng,<br>i ng {_emailSettings.DefaultFromName}</p>";
+                    <h2>Cảnh báo bảo mật tài khoản</h2>
+                    <p>Xin chào {user.FirstName} {user.LastName}!</p>
+                    <p>Chúng tôi phát hiện hoạt động bất thường trên tài khoản của bạn:</p>
+                    <p><strong>Loại cảnh báo: {alertType}</strong></p>
+                    <p><strong>Chi tiết: {details}</strong></p>
+                    <p><strong>Thời gian: {DateTime.Now:dd/MM/yyyy HH:mm}</strong></p>
+                    <p>Nếu không phải bạn thực hiện, vui lòng đổi mật khẩu ngay lập tức và liên hệ với chúng tôi.</p>
+                    <p>Trân trọng,<br>Đội ngũ {_emailSettings.DefaultFromName}</p>";
 
                 return await SendEmailAsync(
                     user.Email,
                     $"{user.FirstName} {user.LastName}",
-                    $"Cnh bo bo mt - {alertType}",
+                    $"Cảnh báo bảo mật - {alertType}",
                     htmlContent
                 );
             }
@@ -743,13 +743,13 @@ namespace EcommerceLaptop.Infrastructure.Services
         {
             return status.ToLower() switch
             {
-                "pending" => "Ch x l",
-                "confirmed" => " xc nhn",
-                "processing" => "ang x l",
-                "shipped" => " gi hng",
-                "delivered" => " giao hng",
-                "cancelled" => " hy",
-                "returned" => " tr hng",
+                "pending" => "Chờ xử lý",
+                "confirmed" => "Đã xác nhận",
+                "processing" => "Đang xử lý",
+                "shipped" => "Đã gửi hàng",
+                "delivered" => "Đã giao hàng",
+                "cancelled" => "Đã hủy",
+                "returned" => "Đã trả hàng",
                 _ => status
             };
         }
@@ -801,7 +801,7 @@ namespace EcommerceLaptop.Infrastructure.Services
                 var message = new MimeMessage();
                 message.From.Add(new MailboxAddress(_emailSettings.DefaultFromName, _emailSettings.DefaultFromEmail));
                 message.To.Add(new MailboxAddress($"{user.FirstName} {user.LastName}", user.Email));
-                message.Subject = $"Thanh ton n hng #{order.OrderNumber} thnh cng - {_emailSettings.DefaultFromName}";
+                message.Subject = $"Thanh toán đơn hàng #{order.OrderNumber} thành công - {_emailSettings.DefaultFromName}";
 
                 var bodyBuilder = new BodyBuilder();
                 bodyBuilder.HtmlBody = htmlContent;
@@ -863,53 +863,53 @@ namespace EcommerceLaptop.Infrastructure.Services
 
             var htmlContent = $@"
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                    <h2 style='color: #28a745;'> Thanh ton thnh cng!</h2>
-                    <p>Xin cho <strong>{user.FirstName} {user.LastName}</strong>,</p>
-                    <p>Cm n bn  mua sm ti <strong>{_emailSettings.DefaultFromName}</strong>!</p>
-                    <p>n hng <strong>#{order.OrderNumber}</strong> ca bn  c thanh ton thnh cng.</p>
+                    <h2 style='color: #28a745;'> Thanh toán thành công!</h2>
+                    <p>Xin chào <strong>{user.FirstName} {user.LastName}</strong>,</p>
+                    <p>Cảm ơn bạn đã mua sắm tại <strong>{_emailSettings.DefaultFromName}</strong>!</p>
+                    <p>Đơn hàng <strong>#{order.OrderNumber}</strong> của bạn đã được thanh toán thành công.</p>
 
                     <div style='background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
-                        <h3>Thng tin n hng</h3>
-                        <p><strong>M n hng:</strong> {order.OrderNumber}</p>
-                        <p><strong>Ngy t hng:</strong> {order.CreatedAt:dd/MM/yyyy HH:mm}</p>
-                        <p><strong>Trng thi:</strong>  xc nhn v thanh ton</p>
-                        <p><strong>Phng thc thanh ton:</strong> Th tn dng/Chuyn khon</p>
+                        <h3>Thông tin đơn hàng</h3>
+                        <p><strong>Mã đơn hàng:</strong> {order.OrderNumber}</p>
+                        <p><strong>Ngày đặt hàng:</strong> {order.CreatedAt:dd/MM/yyyy HH:mm}</p>
+                        <p><strong>Trạng thái:</strong> Đã xác nhận và thanh toán</p>
+                        <p><strong>Phương thức thanh toán:</strong> Thẻ tín dụng/Chuyển khoản</p>
 
-                        <h4>Chi tit sn phm:</h4>
+                        <h4>Chi tiết sản phẩm:</h4>
                         <ul>";
             foreach (var item in order.OrderItems)
             {
                 htmlContent += $@"
                             <li>
-                                <strong>{item.Product?.Name}</strong> - S lng: {item.Quantity} x {item.UnitPrice:N0} USD = {item.TotalPrice:N0} USD
+                                <strong>{item.Product?.Name}</strong> - Số lượng: {item.Quantity} x {item.UnitPrice:N0} USD = {item.TotalPrice:N0} USD
                             </li>";
             }
             htmlContent += $@"
                         </ul>
 
                         <div style='border-top: 1px solid #dee2e6; padding-top: 15px; margin-top: 15px;'>
-                            <p><strong>Tm tnh:</strong> {subtotal} USD</p>
-                            <p><strong>Ph vn chuyn:</strong> {shipping} USD</p>
-                            <p><strong>Thu VAT:</strong> {tax} USD</p>
+                            <p><strong>Tạm tính:</strong> {subtotal} USD</p>
+                            <p><strong>Phí vận chuyển:</strong> {shipping} USD</p>
+                            <p><strong>Thuế VAT:</strong> {tax} USD</p>
                             <p style='font-size: 18px; color: #28a745; font-weight: bold;'>
-                                <strong>Tng cng: {totalAmount} USD</strong>
+                                <strong>Tổng cộng: {totalAmount} USD</strong>
                             </p>
                         </div>
                     </div>
 
-                    <p>Chng ti  nh km ha n PDF trong email ny. Bn c th s dng  lu tr hoc in n.</p>
-                    <p>n hng ca bn s c x l v giao trong thi gian sm nht. Bn c th theo di trng thi n hng trong <a href='https://yourdomain.com/account/orders'>ti khon c nhn</a>.</p>
+                    <p>Chúng tôi đã đính kèm hóa đơn PDF trong email này. Bạn có thể sử dụng để lưu trữ hoặc in ấn.</p>
+                    <p>Đơn hàng của bạn sẽ được xử lý và giao trong thời gian sớm nhất. Bạn có thể theo dõi trạng thái đơn hàng trong <a href='https://yourdomain.com/account/orders'>tài khoản cá nhân</a>.</p>
 
-                    <p>Nu c bt k cu hi no, vui lng lin h vi chng ti qua email <a href='mailto:support@yourdomain.com'>support@yourdomain.com</a> hoc hotline 0123-456-789.</p>
+                    <p>Nếu có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua email <a href='mailto:support@yourdomain.com'>support@yourdomain.com</a> hoặc hotline 0123-456-789.</p>
 
-                    <p>Trn trng,<br><strong>i ng {_emailSettings.DefaultFromName}</strong></p>
+                    <p>Trân trọng,<br><strong>Đội ngũ {_emailSettings.DefaultFromName}</strong></p>
 
                     <hr style='border: none; border-top: 1px solid #dee2e6; margin: 30px 0;'>
 
                     <p style='font-size: 12px; color: #6c757d;'>
-                        <strong>Thng tin lin h:</strong><br>
+                        <strong>Thông tin liên hệ:</strong><br>
                         {_emailSettings.DefaultFromName}<br>
-                        a ch: 123 ng ABC, Qun 1, TP. H Ch Minh<br>
+                        Địa chỉ: 123 đường ABC, Quận 1, TP. Hồ Chí Minh<br>
                         Email: {_emailSettings.DefaultFromEmail}<br>
                         Hotline: 0123-456-789
                     </p>

@@ -207,16 +207,16 @@ public record UpdateAddressRequest
 /// </summary>
 public record ChangePasswordRequest
 {
-    [Required(ErrorMessage = "Mt khu hin ti l bt buc")]
+    [Required(ErrorMessage = "Mật khẩu hiện tại là bắt buộc")]
     public string CurrentPassword { get; init; } = string.Empty;
 
-    [Required(ErrorMessage = "Mt khu mi l bt buc")]
-    [MinLength(8, ErrorMessage = "Mt khu mi phi c t nht 8 k t")]
-    [MaxLength(128, ErrorMessage = "Mt khu mi khng c vt qu 128 k t")]
+    [Required(ErrorMessage = "Mật khẩu mới là bắt buộc")]
+    [MinLength(8, ErrorMessage = "Mật khẩu mới phải có ít nhất 8 ký tự")]
+    [MaxLength(128, ErrorMessage = "Mật khẩu mới không được vượt quá 128 ký tự")]
     public string NewPassword { get; init; } = string.Empty;
 
-    [Required(ErrorMessage = "Xc nhn mt khu l bt buc")]
-    [Compare(nameof(NewPassword), ErrorMessage = "Mt khu xc nhn khng khp")]
+    [Required(ErrorMessage = "Xác nhận mật khẩu là bắt buộc")]
+    [Compare(nameof(NewPassword), ErrorMessage = "Mật khẩu xác nhận không khớp")]
     public string ConfirmPassword { get; init; } = string.Empty;
 }
 

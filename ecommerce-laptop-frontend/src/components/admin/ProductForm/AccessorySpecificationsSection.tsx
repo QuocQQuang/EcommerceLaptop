@@ -6,7 +6,7 @@ import { Combobox, createOptions } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ProductFormData } from '@/lib/admin-api';
+import { ProductFormData } from '@/features/admin/products/types';
 import { PRODUCT_SPECS_OPTIONS } from '@/lib/product-specs-options';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 

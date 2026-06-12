@@ -56,7 +56,7 @@ export function PaymentProgress({
     const steps: PaymentStep[] = [
         {
             id: 'init',
-            title: 'Khi to',
+            title: 'Khởi tạo',
             description: 'Tạo giao dịch thanh toán',
             status: currentStep === 'init' ? 'current' :
                 ['processing', 'redirect', 'complete'].includes(currentStep) ? 'completed' : 'pending',
@@ -65,7 +65,7 @@ export function PaymentProgress({
         {
             id: 'processing',
             title: 'Xử lý',
-            description: isProcessing ? 'đang xử lý thanh toán...' : 'Chờ xử lý',
+            description: isProcessing ? 'Đang xử lý thanh toán...' : 'Chờ xử lý',
             status: currentStep === 'processing' ? 'current' :
                 currentStep === 'complete' ? 'completed' : 'pending',
             icon: isProcessing ? Loader2 : Clock
@@ -158,7 +158,7 @@ export function PaymentProgress({
                                     <Badge variant={getStepBadgeVariant(step)} className="text-xs">
                                         {getStepStatus(step) === 'completed' ? 'Hoàn thành' :
                                             getStepStatus(step) === 'current' ? 'Đang xử lý' :
-                                                getStepStatus(step) === 'failed' ? 'Tht bi' : 'Chờ xử lý'}
+                                                getStepStatus(step) === 'failed' ? 'Thất bại' : 'Chờ xử lý'}
                                     </Badge>
                                 </div>
                                 <p className="text-sm text-muted-foreground">

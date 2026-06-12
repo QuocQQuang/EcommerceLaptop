@@ -131,10 +131,10 @@ export default function OrdersPage() {
         const statusConfig = {
             pending: { label: 'Chờ xử lý', variant: 'outline' as const, icon: Clock },
             confirmed: { label: 'Đã xác nhận', variant: 'secondary' as const, icon: CheckCircle },
-            processing: { label: 'đang xử lý', variant: 'default' as const, icon: Package },
-            shipped: { label: 'đang giao', variant: 'default' as const, icon: Truck },
+            processing: { label: 'Đang xử lý', variant: 'default' as const, icon: Package },
+            shipped: { label: 'Đang giao', variant: 'default' as const, icon: Truck },
             delivered: { label: 'Đã nhận hàng', variant: 'default' as const, icon: CheckCircle },
-            cancelled: { label: 'đã hủy', variant: 'destructive' as const, icon: XCircle },
+            cancelled: { label: 'Đã hủy', variant: 'destructive' as const, icon: XCircle },
         } as const;
 
         const config = statusConfig[status as keyof typeof statusConfig];
@@ -195,10 +195,10 @@ export default function OrdersPage() {
                                 <SelectItem value="all">Tất cả</SelectItem>
                                 <SelectItem value="pending">Chờ xử lý</SelectItem>
                                 <SelectItem value="confirmed">Đã xác nhận</SelectItem>
-                                <SelectItem value="processing">đang xử lý</SelectItem>
-                                <SelectItem value="shipped">đang giao</SelectItem>
+                                <SelectItem value="processing">Đang xử lý</SelectItem>
+                                <SelectItem value="shipped">Đang giao</SelectItem>
                                 <SelectItem value="delivered">Đã nhận hàng</SelectItem>
-                                <SelectItem value="cancelled">đã hủy</SelectItem>
+                                <SelectItem value="cancelled">Đã hủy</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

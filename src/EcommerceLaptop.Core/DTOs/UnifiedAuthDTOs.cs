@@ -216,13 +216,13 @@ public record RoleDto(
 /// Unified login request that supports context-aware authentication
 /// </summary>
 public record UnifiedLoginRequest(
-    [Required(ErrorMessage = "Email l bt buc")]
-    [EmailAddress(ErrorMessage = "nh dng email khng hp l")]
-    [StringLength(255, ErrorMessage = "Email khng c vt qu 255 k t")]
+    [Required(ErrorMessage = "Email là bắt buộc")]
+    [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
+    [StringLength(255, ErrorMessage = "Email không được vượt quá 255 ký tự")]
     string Email,
 
-    [Required(ErrorMessage = "Mt khu l bt buc")]
-    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu phi c t nht 8 k t v khng qu 100 k t")]
+    [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự và không quá 100 ký tự")]
     string Password,
 
     AuthContext? Context = null,
@@ -235,35 +235,35 @@ public record UnifiedLoginRequest(
 /// </summary>
 public record UnifiedRegisterRequest
 {
-    [Required(ErrorMessage = "Email l bt buc")]
-    [EmailAddress(ErrorMessage = "nh dng email khng hp l")]
-    [StringLength(255, ErrorMessage = "Email khng c vt qu 255 k t")]
+    [Required(ErrorMessage = "Email là bắt buộc")]
+    [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
+    [StringLength(255, ErrorMessage = "Email không được vượt quá 255 ký tự")]
     public string Email { get; init; } = default!;
 
-    [Required(ErrorMessage = "Mt khu l bt buc")]
-    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu phi c t nht 8 k t v khng qu 100 k t")]
-    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", ErrorMessage = "Mt khu phi cha t nht 1 ch hoa, 1 ch thng, 1 s v 1 k t c bit")]
+    [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự và không quá 100 ký tự")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", ErrorMessage = "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt")]
     public string Password { get; init; } = default!;
 
-    [Required(ErrorMessage = "Xc nhn mt khu l bt buc")]
-    [Compare("Password", ErrorMessage = "Mt khu xc nhn khng khp")]
+    [Required(ErrorMessage = "Xác nhận mật khẩu là bắt buộc")]
+    [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp")]
     public string ConfirmPassword { get; init; } = default!;
 
-    [Required(ErrorMessage = "Tn l bt buc")]
-    [StringLength(100, MinimumLength = 3, ErrorMessage = "Tn phi c t nht 3 k t v khng qu 100 k t")]
-    [RegularExpression(@"^[a-zA-Z-\s]+$", ErrorMessage = "Tn ch c cha ch ci v khong trng")]
+    [Required(ErrorMessage = "Tên là bắt buộc")]
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "Tên phải có ít nhất 3 ký tự và không quá 100 ký tự")]
+    [RegularExpression(@"^[a-zA-Z-\s]+$", ErrorMessage = "Tên chỉ được chứa chữ cái và khoảng trắng")]
     public string FirstName { get; init; } = default!;
 
-    [Required(ErrorMessage = "H l bt buc")]
-    [StringLength(100, MinimumLength = 3, ErrorMessage = "H phi c t nht 3 k t v khng qu 100 k t")]
-    [RegularExpression(@"^[a-zA-Z-\s]+$", ErrorMessage = "H ch c cha ch ci v khong trng")]
+    [Required(ErrorMessage = "Họ là bắt buộc")]
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "Họ phải có ít nhất 3 ký tự và không quá 100 ký tự")]
+    [RegularExpression(@"^[a-zA-Z-\s]+$", ErrorMessage = "Họ chỉ được chứa chữ cái và khoảng trắng")]
     public string LastName { get; init; } = default!;
 
-    [Phone(ErrorMessage = "S in thoi khng hp l")]
-    [StringLength(20, ErrorMessage = "S in thoi khng c vt qu 20 k t")]
+    [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+    [StringLength(20, ErrorMessage = "Số điện thoại không được vượt quá 20 ký tự")]
     public string? PhoneNumber { get; init; }
 
-    [Required(ErrorMessage = "Bn phi ng  vi iu khon")]
+    [Required(ErrorMessage = "Bạn phải đồng ý với điều khoản")]
     public bool AcceptTerms { get; init; } = false;
 
     public AuthContext? Context { get; init; }
@@ -276,17 +276,17 @@ public record UnifiedRegisterRequest
 /// </summary>
 public record UnifiedChangePasswordRequest
 {
-    [Required(ErrorMessage = "Mt khu hin ti l bt buc")]
-    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu hin ti phi c t nht 8 k t v khng qu 100 k t")]
+    [Required(ErrorMessage = "Mật khẩu hiện tại là bắt buộc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mật khẩu hiện tại phải có ít nhất 8 ký tự và không quá 100 ký tự")]
     public string CurrentPassword { get; init; } = default!;
 
-    [Required(ErrorMessage = "Mt khu mi l bt buc")]
-    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mt khu mi phi c t nht 8 k t v khng qu 100 k t")]
-    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", ErrorMessage = "Mt khu mi phi cha t nht 1 ch hoa, 1 ch thng, 1 s v 1 k t c bit")]
+    [Required(ErrorMessage = "Mật khẩu mới là bắt buộc")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mật khẩu mới phải có ít nhất 8 ký tự và không quá 100 ký tự")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", ErrorMessage = "Mật khẩu mới phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt")]
     public string NewPassword { get; init; } = default!;
 
-    [Required(ErrorMessage = "Xc nhn mt khu mi l bt buc")]
-    [Compare("NewPassword", ErrorMessage = "Mt khu xc nhn khng khp")]
+    [Required(ErrorMessage = "Xác nhận mật khẩu mới là bắt buộc")]
+    [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
     public string ConfirmPassword { get; init; } = default!;
 
     public AuthContext? Context { get; init; }

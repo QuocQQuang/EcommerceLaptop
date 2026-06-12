@@ -92,7 +92,7 @@ export default function LlmConfigPage() {
                 setSelectedProvider(null);
                 setSelectedProfile(null);
             }
-            toast.success("đã xóa nhà cung cấp");
+            toast.success("Đã xóa nhà cung cấp");
         } catch (e) {
             console.error(e);
             toast.error("Xóa thất bại");
@@ -162,7 +162,7 @@ export default function LlmConfigPage() {
                 setProviders([...providers, created]);
                 setSelectedProvider(created);
                 setIsEditingProvider(false);
-                toast.success("đã tạo nhà cung cấp mới");
+                toast.success("Đã tạo nhà cung cấp mới");
             } else if (selectedProvider) {
                 // Update implementation would go here
             }

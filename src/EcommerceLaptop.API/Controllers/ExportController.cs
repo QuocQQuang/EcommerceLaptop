@@ -121,7 +121,7 @@ public class ExportController(
         var userId = GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return Unauthorized(new { message = "Vui lng ng nhp  xut ha n" });
+            return Unauthorized(new { message = "Vui lòng đăng nhập để xuất hóa đơn" });
         }
 
         var result = await _reportingService.ExportCustomerInvoicePdfAsync(orderId, userId.Value, includeDigitalSignature);
@@ -138,7 +138,7 @@ public class ExportController(
         var userId = GetCurrentUserId();
         if (!userId.HasValue)
         {
-            return Unauthorized(new { message = "Vui lng ng nhp  xut ha n" });
+            return Unauthorized(new { message = "Vui lòng đăng nhập để xuất hóa đơn" });
         }
 
         var result = await _reportingService.ExportCustomerInvoiceXmlAsync(orderId, userId.Value);

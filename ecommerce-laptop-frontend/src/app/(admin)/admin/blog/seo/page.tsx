@@ -211,7 +211,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
             twitterDescription: prev.twitterDescription || prev.description,
             twitterImage: prev.twitterImage || prev.ogImage
         }));
-        toast.success('đã tự động điền thông tin mạng xã hội');
+        toast.success('Đã tự động điền thông tin mạng xã hội');
     };
 
     // Generate slug from title
@@ -226,7 +226,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
             .replace(/-+/g, '-'); // Replace multiple hyphens with single hyphen
 
         setSeoData(prev => ({ ...prev, slug }));
-        toast.success('đã tạo URL slug tự động');
+        toast.success('Đã tạo URL slug tự động');
     };
 
     // Save SEO data
@@ -235,7 +235,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
             setSaving(true);
             // Mock API call
             console.log('Saving SEO data:', seoData);
-            toast.success('đã lưu thông tin SEO');
+            toast.success('Đã lưu thông tin SEO');
         } catch (error) {
             console.error('Failed to save SEO data:', error);
             toast.error('Không thể lưu thông tin SEO');

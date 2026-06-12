@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ProductFormData } from '@/lib/admin-api';
+import { ProductFormData } from '@/features/admin/products/types';
 import { AlertCircle, CheckCircle, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import AccessorySpecificationsSection from './AccessorySpecificationsSection';

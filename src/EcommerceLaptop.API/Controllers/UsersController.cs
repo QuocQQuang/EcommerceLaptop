@@ -87,7 +87,7 @@ public class UsersController(
                 null,
                 HttpContext.TraceIdentifier);
 
-            return ErrorResponse("Mt khu hin ti khng ng", 400);
+            return ErrorResponse("Mật khẩu hiện tại không đúng", 400);
         }
 
         // Validate new password strength
@@ -100,7 +100,7 @@ public class UsersController(
         // Check if new password is different from current
         if (await _userService.VerifyPasswordAsync(user, changePasswordRequest.NewPassword))
         {
-            return ErrorResponse("Mt khu mi phi khc vi mt khu hin ti", 400);
+            return ErrorResponse("Mật khẩu mới phải khác với mật khẩu hiện tại", 400);
         }
 
         // Update password
@@ -120,7 +120,7 @@ public class UsersController(
             null,
             HttpContext.TraceIdentifier);
 
-        return SuccessResponse(new { success = true }, "Mt khu  c thay i thnh cng");
+        return SuccessResponse(new { success = true }, "Mật khẩu đã được thay đổi thành công");
     }
 
     /// <summary>
@@ -617,21 +617,21 @@ public class UsersController(
     private (bool IsValid, string ErrorMessage) ValidatePasswordStrength(string password)
     {
         if (string.IsNullOrEmpty(password))
-            return (false, "Mt khu khng c  trng");
+            return (false, "Mật khẩu không được để trống");
 
         if (password.Length < 8)
-            return (false, "Mt khu phi c t nht 8 k t");
+            return (false, "Mật khẩu phải có ít nhất 8 ký tự");
 
         if (password.Length > 128)
-            return (false, "Mt khu khng c vt qu 128 k t");
+            return (false, "Mật khẩu không được vượt quá 128 ký tự");
 
         // Check for common weak patterns
         if (password.All(c => c == password[0]))
-            return (false, "Mt khu khng c cha tt c k t ging nhau");
+            return (false, "Mật khẩu không được chứa tất cả ký tự giống nhau");
 
         // Check for sequential characters
         if (IsSequential(password))
-            return (false, "Mt khu khng c cha chui k t lin tip");
+            return (false, "Mật khẩu không được chứa chuỗi ký tự liên tiếp");
 
         // Check for common passwords
         var commonPasswords = new[]
@@ -642,7 +642,7 @@ public class UsersController(
         };
 
         if (commonPasswords.Any(common => password.Equals(common, StringComparison.OrdinalIgnoreCase)))
-            return (false, "Mt khu qu ph bin, vui lng chn mt khu mnh hn");
+            return (false, "Mật khẩu quá phổ biến, vui lòng chọn mật khẩu mạnh hơn");
 
         // Check for at least one character from each category
         var hasLower = password.Any(c => char.IsLower(c));
@@ -653,7 +653,7 @@ public class UsersController(
         var categoryCount = new[] { hasLower, hasUpper, hasDigit, hasSpecial }.Count(x => x);
 
         if (categoryCount < 3)
-            return (false, "Mt khu phi cha t nht 3 trong 4 loi: ch thng, ch hoa, s, k t c bit");
+            return (false, "Mật khẩu phải chứa ít nhất 3 trong 4 loại: chữ thường, chữ hoa, số, ký tự đặc biệt");
 
         return (true, string.Empty);
     }

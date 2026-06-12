@@ -37,23 +37,23 @@ public class UsersResponseDto
 /// </summary>
 public class CreateUserRequestDto
 {
-    [Required(ErrorMessage = "Email l bt buc")]
-    [EmailAddress(ErrorMessage = "Email khng hp l")]
+    [Required(ErrorMessage = "Email là bắt buộc")]
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Tn l bt buc")]
-    [StringLength(50, ErrorMessage = "Tn khng c qu 50 k t")]
+    [Required(ErrorMessage = "Tên là bắt buộc")]
+    [StringLength(50, ErrorMessage = "Tên không được quá 50 ký tự")]
     public string FirstName { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "H l bt buc")]
-    [StringLength(50, ErrorMessage = "H khng c qu 50 k t")]
+    [Required(ErrorMessage = "Họ là bắt buộc")]
+    [StringLength(50, ErrorMessage = "Họ không được quá 50 ký tự")]
     public string LastName { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Mt khu l bt buc")]
-    [MinLength(8, ErrorMessage = "Mt khu phi c t nht 8 k t")]
+    [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
+    [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự")]
     public string Password { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Role ID l bt buc")]
+    [Required(ErrorMessage = "Role ID là bắt buộc")]
     public int RoleId { get; set; }
 }
 
@@ -62,16 +62,16 @@ public class CreateUserRequestDto
 /// </summary>
 public class UpdateUserRequestDto
 {
-    [EmailAddress(ErrorMessage = "Email khng hp l")]
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
     public string? Email { get; set; }
 
-    [StringLength(50, ErrorMessage = "Tn khng c qu 50 k t")]
+    [StringLength(50, ErrorMessage = "Tên không được quá 50 ký tự")]
     public string? FirstName { get; set; }
 
-    [StringLength(50, ErrorMessage = "H khng c qu 50 k t")]
+    [StringLength(50, ErrorMessage = "Họ không được quá 50 ký tự")]
     public string? LastName { get; set; }
 
-    [MinLength(8, ErrorMessage = "Mt khu phi c t nht 8 k t")]
+    [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự")]
     public string? Password { get; set; }
 
     public int? RoleId { get; set; }
@@ -82,11 +82,11 @@ public class UpdateUserRequestDto
 /// </summary>
 public class CreateRoleRequestDto
 {
-    [Required(ErrorMessage = "Tn role l bt buc")]
-    [StringLength(100, ErrorMessage = "Tn role khng c qu 100 k t")]
+    [Required(ErrorMessage = "Tên role là bắt buộc")]
+    [StringLength(100, ErrorMessage = "Tên role không được quá 100 ký tự")]
     public string Name { get; set; } = string.Empty;
 
-    [StringLength(500, ErrorMessage = "M t khng c qu 500 k t")]
+    [StringLength(500, ErrorMessage = "Mô tả không được quá 500 ký tự")]
     public string Description { get; set; } = string.Empty;
 
     public List<int> PermissionIds { get; set; } = new();
@@ -97,10 +97,10 @@ public class CreateRoleRequestDto
 /// </summary>
 public class UpdateRoleRequestDto
 {
-    [StringLength(100, ErrorMessage = "Tn role khng c qu 100 k t")]
+    [StringLength(100, ErrorMessage = "Tên role không được quá 100 ký tự")]
     public string? Name { get; set; }
 
-    [StringLength(500, ErrorMessage = "M t khng c qu 500 k t")]
+    [StringLength(500, ErrorMessage = "Mô tả không được quá 500 ký tự")]
     public string? Description { get; set; }
 
     public List<int>? PermissionIds { get; set; }

@@ -15,18 +15,18 @@ import {
 } from '@/contexts/AdminAuthContext';
 import {
   PERMISSIONS,
-  ProductFormData,
+} from '@/lib/admin-api';
+import { getBrands, getCategories } from '@/features/admin/catalog/api';
+import {
   deleteProductImage,
   getAdminProduct,
-  getBrands,
-  getCategories,
   getProductVariants,
-  mapFormToUpdatePayload,
-  mapProductToForm,
   updateProduct,
   updateVariant,
   uploadProductImages
-} from '@/lib/admin-api';
+} from '@/features/admin/products/api';
+import { mapFormToUpdatePayload, mapProductToForm } from '@/features/admin/products/mappers';
+import type { ProductFormData } from '@/features/admin/products/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,

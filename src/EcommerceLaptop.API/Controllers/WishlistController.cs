@@ -19,7 +19,7 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
         var userId = GetCurrentUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Khng th xc thc ngi dng" });
+            return Unauthorized(new { message = "Không thể xác thực người dùng" });
         }
 
         var result = await _wishlistService.GetWishlistAsync(userId.Value);
@@ -51,11 +51,11 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
         var userId = GetCurrentUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Khng th xc thc ngi dng" });
+            return Unauthorized(new { message = "Không thể xác thực người dùng" });
         }
 
         await _wishlistService.AddToWishlistAsync(userId.Value, productId);
-        return Ok(new { message = " thm vo danh sch yu thch" });
+        return Ok(new { message = "Đã thêm vào danh sách yêu thích" });
     }
 
     [HttpDelete("{productId}")]
@@ -64,11 +64,11 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
         var userId = GetCurrentUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Khng th xc thc ngi dng" });
+            return Unauthorized(new { message = "Không thể xác thực người dùng" });
         }
 
         await _wishlistService.RemoveFromWishlistAsync(userId.Value, productId);
-        return Ok(new { message = " xa khi danh sch yu thch" });
+        return Ok(new { message = "Đã xóa khỏi danh sách yêu thích" });
     }
 
     [HttpPost("clear")]
@@ -77,11 +77,11 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
         var userId = GetCurrentUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Khng th xc thc ngi dng" });
+            return Unauthorized(new { message = "Không thể xác thực người dùng" });
         }
 
         await _wishlistService.ClearWishlistAsync(userId.Value);
-        return Ok(new { message = " xa ton b danh sch yu thch" });
+        return Ok(new { message = "Đã xóa toàn bộ danh sách yêu thích" });
     }
 
     [HttpGet("check/{productId}")]
@@ -90,7 +90,7 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
         var userId = GetCurrentUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Khng th xc thc ngi dng" });
+            return Unauthorized(new { message = "Không thể xác thực người dùng" });
         }
 
         var isInWishlist = await _wishlistService.CheckInWishlistAsync(userId.Value, productId);
@@ -103,7 +103,7 @@ public class WishlistController(IWishlistService wishlistService, ILogger<Wishli
         var userId = GetCurrentUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Khng th xc thc ngi dng" });
+            return Unauthorized(new { message = "Không thể xác thực người dùng" });
         }
 
         var count = await _wishlistService.GetWishlistCountAsync(userId.Value);

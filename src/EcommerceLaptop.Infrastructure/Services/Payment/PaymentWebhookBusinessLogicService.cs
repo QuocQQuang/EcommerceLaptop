@@ -441,7 +441,7 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
             // Queue high-priority email to customer
             await _emailQueueService.QueueEmailAsync(
                 to: order.CustomerEmail,
-                subject: $"Thanh ton thnh cng - n hng #{order.Id}",
+                subject: $"Thanh toán thành công - Đơn hàng #{order.Id}",
                 body: GeneratePaymentConfirmationEmailBody(order, webhookResult),
                 isHtml: true,
                 priority: EmailPriority.High);
@@ -472,7 +472,7 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
         {
             await _emailQueueService.QueueEmailAsync(
                 to: order.CustomerEmail,
-                subject: $"Thanh ton khng thnh cng - n hng #{order.Id}",
+                subject: $"Thanh toán không thành công - Đơn hàng #{order.Id}",
                 body: GeneratePaymentFailureEmailBody(order, webhookResult),
                 isHtml: true,
                 priority: EmailPriority.High);
@@ -494,8 +494,8 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
         {
             var isPartialRefund = refundAmount.HasValue && refundAmount.Value < order.TotalAmount;
             var subject = isPartialRefund 
-                ? $"Hon tin mt phn - n hng #{order.Id}"
-                : $"Hon tin - n hng #{order.Id}";
+                ? $"Hoàn tiền một phần - Đơn hàng #{order.Id}"
+                : $"Hoàn tiền - Đơn hàng #{order.Id}";
 
             await _emailQueueService.QueueEmailAsync(
                 to: order.CustomerEmail,
@@ -542,14 +542,14 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
     private string GeneratePaymentConfirmationEmailBody(OrderDetailsDto order, PaymentWebhookResult webhookResult)
     {
         return $@"
-            <h2>Cm n bn  thanh ton!</h2>
-            <p>n hng #{order.Id} ca bn  c thanh ton thnh cng.</p>
+            <h2>Cảm ơn bạn đã thanh toán!</h2>
+            <p>Đơn hàng #{order.Id} của bạn đã được thanh toán thành công.</p>
             <ul>
-                <li><strong>S tin:</strong> {order.TotalAmount:C}</li>
-                <li><strong>Phng thc:</strong> {webhookResult.Gateway}</li>
-                <li><strong>M giao dch:</strong> {webhookResult.TransactionId}</li>
+                <li><strong>Số tiền:</strong> {order.TotalAmount:C}</li>
+                <li><strong>Phương thức:</strong> {webhookResult.Gateway}</li>
+                <li><strong>Mã giao dịch:</strong> {webhookResult.TransactionId}</li>
             </ul>
-            <p>Chng ti s x l n hng v giao hng trong thi gian sm nht.</p>";
+            <p>Chúng tôi sẽ xử lý đơn hàng và giao hàng trong thời gian sớm nhất.</p>";
     }
 
     /// <summary>
@@ -558,14 +558,14 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
     private string GeneratePaymentFailureEmailBody(OrderDetailsDto order, PaymentWebhookResult webhookResult)
     {
         return $@"
-            <h2>Thanh ton khng thnh cng</h2>
-            <p>Rt tic, thanh ton cho n hng #{order.Id} khng thnh cng.</p>
+            <h2>Thanh toán không thành công</h2>
+            <p>Rất tiếc, thanh toán cho đơn hàng #{order.Id} không thành công.</p>
             <ul>
-                <li><strong>S tin:</strong> {order.TotalAmount:C}</li>
-                <li><strong>Phng thc:</strong> {webhookResult.Gateway}</li>
-                <li><strong>L do:</strong> {webhookResult.ErrorMessage ?? "Khng xc nh"}</li>
+                <li><strong>Số tiền:</strong> {order.TotalAmount:C}</li>
+                <li><strong>Phương thức:</strong> {webhookResult.Gateway}</li>
+                <li><strong>Lý do:</strong> {webhookResult.ErrorMessage ?? "Không xác định"}</li>
             </ul>
-            <p>Vui lng th li hoc lin h vi chng ti  c h tr.</p>";
+            <p>Vui lòng thử lại hoặc liên hệ với chúng tôi để được hỗ trợ.</p>";
     }
 
     /// <summary>
@@ -577,14 +577,14 @@ public class PaymentWebhookBusinessLogicService : IPaymentWebhookBusinessLogicSe
         var amountText = refundAmount?.ToString("C") ?? order.TotalAmount.ToString("C");
 
         return $@"
-            <h2>Thng bo hon tin</h2>
-            <p>Chng ti  x l hon tin cho n hng #{order.Id}.</p>
+            <h2>Thông báo hoàn tiền</h2>
+            <p>Chúng tôi đã xử lý hoàn tiền cho đơn hàng #{order.Id}.</p>
             <ul>
-                <li><strong>S tin hon:</strong> {amountText}</li>
-                <li><strong>Loi hon tin:</strong> {(isPartialRefund ? "Hon tin mt phn" : "Hon tin ton b")}</li>
-                <li><strong>Phng thc:</strong> {webhookResult.Gateway}</li>
-                <li><strong>M giao dch:</strong> {webhookResult.TransactionId}</li>
+                <li><strong>Số tiền hoàn:</strong> {amountText}</li>
+                <li><strong>Loại hoàn tiền:</strong> {(isPartialRefund ? "Hoàn tiền một phần" : "Hoàn tiền toàn bộ")}</li>
+                <li><strong>Phương thức:</strong> {webhookResult.Gateway}</li>
+                <li><strong>Mã giao dịch:</strong> {webhookResult.TransactionId}</li>
             </ul>
-            <p>Tin hon s c chuyn v ti khon ca bn trong 3-5 ngy lm vic.</p>";
+            <p>Tiền hoàn sẽ được chuyển về tài khoản của bạn trong 3-5 ngày làm việc.</p>";
     }
 }

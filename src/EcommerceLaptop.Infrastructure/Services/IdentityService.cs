@@ -68,7 +68,7 @@ public class IdentityService : IIdentityService
                     _logger.LogWarning(" AUTH BLOCKED - IP blocked: {IP}", ipAddress);
                     return new UnifiedAuthResult(
                     false,
-                    "a ch IP ca bn ang b kha tm thi do ng nhp sai qu nhiu. Vui lng th li sau.",
+                    "Địa chỉ IP của bạn đang bị khóa tạm thời do đăng nhập sai quá nhiều. Vui lòng thử lại sau.",
                     null, null, default, 0, null, context
                 );
                 }
@@ -223,7 +223,7 @@ public class IdentityService : IIdentityService
 
             if (!request.AcceptTerms)
             {
-                return new UnifiedAuthResult(false, "Bn phi ng  vi iu khon v iu kin", null, null, default, 0, null, context);
+                return new UnifiedAuthResult(false, "Bạn phải đồng ý với điều khoản và điều kiện", null, null, default, 0, null, context);
             }
 
             var passwordValidation = ValidatePasswordStrength(request.Password);
@@ -352,7 +352,7 @@ public class IdentityService : IIdentityService
         {
             if (request.NewPassword != request.ConfirmPassword)
             {
-                return (false, "Mt khu xc nhn khng khp");
+                return (false, "Mật khẩu xác nhận không khớp");
             }
 
             _logger.LogInformation(" Password reset attempt with token: {Token}", request.Token);
@@ -367,7 +367,7 @@ public class IdentityService : IIdentityService
             if (result.Success)
             {
                 _logger.LogInformation(" Password reset successful for email: {Email}", request.Email);
-                return (true, "Mt khu  c t li thnh cng. Bn c th ng nhp vi mt khu mi.");
+                return (true, "Mật khẩu đã được đặt lại thành công. Bạn có thể đăng nhập với mật khẩu mới.");
             }
             else
             {
@@ -378,7 +378,7 @@ public class IdentityService : IIdentityService
         catch (Exception ex)
         {
             _logger.LogError(ex, " Password reset failed for token {Token}", request.Token);
-            return (false, " xy ra li khi t li mt khu. Vui lng th li sau.");
+            return (false, "Đã xảy ra lỗi khi đặt lại mật khẩu. Vui lòng thử lại sau.");
         }
     }
 
@@ -490,7 +490,7 @@ public class IdentityService : IIdentityService
                 _ = _emailService.SendEmailConfirmationEmailAsync(user, confirmUrl);
 
                 _logger.LogInformation(" Email confirmation resent for user {UserId}", user.Id);
-                return (true, " gi m mi.");
+                return (true, "Đã gửi email mới.");
             }
             else
             {
@@ -671,14 +671,14 @@ public class IdentityService : IIdentityService
 
     private (bool IsValid, string ErrorMessage) ValidatePasswordStrength(string password)
     {
-        if (string.IsNullOrEmpty(password)) return (false, "Mt khu khng c  trng");
-        if (password.Length < 8) return (false, "Mt khu phi c t nht 8 k t");
-        if (password.Length > 128) return (false, "Mt khu khng c vt qu 128 k t");
-        if (password.All(c => c == password[0])) return (false, "Mt khu khng c cha tt c k t ging nhau");
-        if (IsSequential(password)) return (false, "Mt khu khng c cha chui k t lin tip");
+        if (string.IsNullOrEmpty(password)) return (false, "Mật khẩu không được để trống");
+        if (password.Length < 8) return (false, "Mật khẩu phải có ít nhất 8 ký tự");
+        if (password.Length > 128) return (false, "Mật khẩu không được vượt quá 128 ký tự");
+        if (password.All(c => c == password[0])) return (false, "Mật khẩu không được chứa tất cả ký tự giống nhau");
+        if (IsSequential(password)) return (false, "Mật khẩu không được chứa chuỗi ký tự liên tiếp");
 
         var commonPasswords = new[] { "password", "123456", "123456789", "qwerty", "abc123", "password123", "admin", "letmein", "welcome" };
-        if (commonPasswords.Any(common => password.Equals(common, StringComparison.OrdinalIgnoreCase))) return (false, "Mt khu qu ph bin");
+        if (commonPasswords.Any(common => password.Equals(common, StringComparison.OrdinalIgnoreCase))) return (false, "Mật khẩu quá phổ biến");
 
         var hasLower = password.Any(c => char.IsLower(c));
         var hasUpper = password.Any(c => char.IsUpper(c));
@@ -686,7 +686,7 @@ public class IdentityService : IIdentityService
         var hasSpecial = password.Any(c => "!@#$%^&*()_+-=[]{}|;:,.<>?".Contains(c));
 
         if (new[] { hasLower, hasUpper, hasDigit, hasSpecial }.Count(x => x) < 3)
-            return (false, "Mt khu phi cha t nht 3 trong 4 loi: ch thng, ch hoa, s, k t c bit");
+            return (false, "Mật khẩu phải chứa ít nhất 3 trong 4 loại: chữ thường, chữ hoa, số, ký tự đặc biệt");
 
         return (true, string.Empty);
     }

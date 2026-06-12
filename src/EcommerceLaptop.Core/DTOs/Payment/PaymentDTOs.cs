@@ -459,14 +459,14 @@ public class SePayQrCodeResponse
 public class SePayWebhookPayload
 {
     /// <summary>
-    /// ID giao dch trn SePay
+    /// ID giao dịch trên SePay
     /// </summary>
     [Required]
     [JsonPropertyName("id")]
     public int Id { get; set; }
 
     /// <summary>
-    /// Brand name ca ngn hng
+    /// Brand name của ngân hàng
     /// </summary>
     [Required]
     [StringLength(50)]
@@ -474,7 +474,7 @@ public class SePayWebhookPayload
     public string Gateway { get; set; } = string.Empty;
 
     /// <summary>
-    /// Thi gian xy ra giao dch pha ngn hng
+    /// Thời gian xảy ra giao dịch phía ngân hàng
     /// Format: "2023-03-25 14:02:37"
     /// </summary>
     [Required]
@@ -482,7 +482,7 @@ public class SePayWebhookPayload
     public string TransactionDate { get; set; } = string.Empty;
 
     /// <summary>
-    /// S ti khon ngn hng
+    /// Số tài khoản ngân hàng
     /// </summary>
     [Required]
     [StringLength(50)]
@@ -490,13 +490,13 @@ public class SePayWebhookPayload
     public string AccountNumber { get; set; } = string.Empty;
 
     /// <summary>
-    /// M code thanh ton (sepay t nhn din da vo cu hnh)
+    /// Mã code thanh toán (sepay tự nhận diện dựa vào cấu hình)
     /// </summary>
     [JsonPropertyName("code")]
     public string? Code { get; set; }
 
     /// <summary>
-    /// Ni dung chuyn khon
+    /// Nội dung chuyển khoản
     /// </summary>
     [Required]
     [StringLength(500)]
@@ -504,7 +504,7 @@ public class SePayWebhookPayload
     public string Content { get; set; } = string.Empty;
 
     /// <summary>
-    /// Loi giao dch. "in" l tin vo, "out" l tin ra
+    /// Loại giao dịch. "in" là tiền vào, "out" là tiền ra
     /// </summary>
     [Required]
     [StringLength(10)]
@@ -512,26 +512,26 @@ public class SePayWebhookPayload
     public string TransferType { get; set; } = string.Empty;
 
     /// <summary>
-    /// S tin giao dch
+    /// Số tiền giao dịch
     /// </summary>
     [Required]
     [JsonPropertyName("transferAmount")]
     public decimal TransferAmount { get; set; }
 
     /// <summary>
-    /// S d ti khon (ly k)
+    /// Số dư tài khoản (lũy kế)
     /// </summary>
     [JsonPropertyName("accumulated")]
     public decimal Accumulated { get; set; }
 
     /// <summary>
-    /// Ti khon ngn hng ph (ti khon nh danh)
+    /// Tài khoản ngân hàng phụ (tài khoản nhận danh)
     /// </summary>
     [JsonPropertyName("subAccount")]
     public string? SubAccount { get; set; }
 
     /// <summary>
-    /// M tham chiu ca tin nhn SMS
+    /// Mã tham chiếu của tin nhắn SMS
     /// </summary>
     [Required]
     [StringLength(100)]
@@ -539,7 +539,7 @@ public class SePayWebhookPayload
     public string ReferenceCode { get; set; } = string.Empty;
 
     /// <summary>
-    /// Ton b ni dung tin nhn SMS
+    /// Toàn bộ nội dung tin nhắn SMS
     /// </summary>
     [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;

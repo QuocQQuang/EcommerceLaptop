@@ -178,7 +178,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Ward).IsRequired().HasMaxLength(100);
             entity.Property(e => e.District).IsRequired().HasMaxLength(100);
             entity.Property(e => e.City).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.Country).HasMaxLength(100).HasDefaultValue("Vit Nam");
+            entity.Property(e => e.Country).HasMaxLength(100).HasDefaultValue("Việt Nam");
 
             entity.HasOne(e => e.User)
                 .WithMany(e => e.Addresses)

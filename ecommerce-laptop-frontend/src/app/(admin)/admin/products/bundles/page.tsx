@@ -74,7 +74,7 @@ const mockBundles: Bundle[] = [
     {
         id: 1,
         name: 'Gaming Laptop Bundle',
-        description: 'Complete gaming setup with laptop, mouse, and keyboard',
+        description: 'Bộ gaming hoàn chỉnh với laptop, chuột và bàn phím',
         basePrice: 25000000,
         discountPercentage: 10,
         finalPrice: 22500000,

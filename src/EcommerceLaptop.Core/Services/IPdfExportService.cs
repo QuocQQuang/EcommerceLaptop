@@ -33,7 +33,7 @@ public class DigitalSignatureInfo
     public string SignerName { get; set; } = string.Empty;
     public string SignerPosition { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
-    public string Reason { get; set; } = "Ha n in t";
-    public string Location { get; set; } = "Vit Nam";
+    public string Reason { get; set; } = "Hóa đơn điện tử";
+    public string Location { get; set; } = "Việt Nam";
     public DateTime SigningTime { get; set; } = DateTime.UtcNow;
 }

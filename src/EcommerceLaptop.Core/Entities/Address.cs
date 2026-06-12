@@ -42,7 +42,7 @@ public class Address
     public string Province { get; set; } = string.Empty;
     
     [MaxLength(100)]
-    public string Country { get; set; } = "Vit Nam";
+    public string Country { get; set; } = "Việt Nam";
 
     [MaxLength(20)]
     public string PostalCode { get; set; } = string.Empty;

@@ -167,7 +167,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
         private string GenerateSemanticProfile(Product product)
         {
-            var profile = $"Sn phm: {product.Name}\n";
+            var profile = $"Sản phẩm: {product.Name}\n";
             
             // 1. Identify Use Cases
             var useCases = new List<string>();
@@ -192,73 +192,73 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
                 if (isPowerfulGpu)
                 {
-                    useCases.Add("Gaming (Chi game)");
-                    useCases.Add("Thit k  ha (Graphic Design)");
-                    useCases.Add("K thut (Engineering)");
-                    useCases.Add("Dng phim (Video Editing)");
+                    useCases.Add("Gaming (Chơi game)");
+                    useCases.Add("Thiết kế đồ họa (Graphic Design)");
+                    useCases.Add("Kỹ thuật (Engineering)");
+                    useCases.Add("Dựng phim (Video Editing)");
                 }
 
                 if (product.Brand == "Apple" || (isHighRam && isCreativeScreen))
                 {
-                    useCases.Add("Sng to ni dung (Content Creator)");
-                    useCases.Add(" ha 2D");
-                    useCases.Add("Gii tr cao cp");
+                    useCases.Add("Sáng tạo nội dung (Content Creator)");
+                    useCases.Add("Đồ họa 2D");
+                    useCases.Add("Giải trí cao cấp");
                 }
 
                 if (product.Price < 15000000 && !isPowerfulGpu)
                 {
-                    useCases.Add("Hc tp (Student)");
-                    useCases.Add("Vn phng c bn (Office)");
-                    useCases.Add("Lt web, xem phim");
+                    useCases.Add("Học tập (Student)");
+                    useCases.Add("Văn phòng cơ bản (Office)");
+                    useCases.Add("Lướt web, xem phim");
                 }
                 
                 if (product.Price >= 15000000 && product.Price < 30000000 && laptop.RamCapacityGB >= 16)
                 {
-                    useCases.Add("Lp trnh vin (Coder/Programmer)");
-                    useCases.Add("Vn phng a nhim");
-                    useCases.Add("Sinh vin CNTT");
+                    useCases.Add("Lập trình viên (Coder/Programmer)");
+                    useCases.Add("Văn phòng đa nhiệm");
+                    useCases.Add("Sinh viên CNTT");
                 }
 
                 // -- Mobility Heuristics --
                 if (laptop.WeightKg < 1.5m)
                 {
-                    mobility.Add("Mng nh (Thin & Light)");
-                    mobility.Add("Di ng cao (High Mobility)");
-                    mobility.Add("D mang i hc/lm");
+                    mobility.Add("Mỏng nhẹ (Thin & Light)");
+                    mobility.Add("Di động cao (High Mobility)");
+                    mobility.Add("Dễ mang đi học/làm");
                 }
                 else if (laptop.WeightKg > 2.3m)
                 {
-                    mobility.Add("My trm (Workstation)");
-                    mobility.Add("Thay th my bn (Desktop Replacement)");
+                    mobility.Add("Máy trạm (Workstation)");
+                    mobility.Add("Thay thế máy bàn (Desktop Replacement)");
                 }
                 else
                 {
-                     mobility.Add("Cn bng hiu nng/trng lng");
+                     mobility.Add("Cân bằng hiệu năng/trọng lượng");
                 }
             }
             else if (product is Accessory acc)
             {
-                useCases.Add("Ph kin");
+                useCases.Add("Phụ kiện");
                 useCases.Add(acc.AccessoryType);
             }
 
             // -- Price Segment --
-            if (product.Price < 10000000) priceSegment = "Gi r, bnh dn (Di 10 triu)";
-            else if (product.Price < 15000000) priceSegment = "Ph thng (10 - 15 triu)";
-            else if (product.Price < 25000000) priceSegment = "Tm trung (15 - 25 triu)";
-            else if (product.Price < 40000000) priceSegment = "Cn cao cp (25 - 40 triu)";
-            else priceSegment = "Cao cp, sang trng (Trn 40 triu)";
+            if (product.Price < 10000000) priceSegment = "Giá rẻ, bình dân (Dưới 10 triệu)";
+            else if (product.Price < 15000000) priceSegment = "Phổ thông (10 - 15 triệu)";
+            else if (product.Price < 25000000) priceSegment = "Tầm trung (15 - 25 triệu)";
+            else if (product.Price < 40000000) priceSegment = "Cận cao cấp (25 - 40 triệu)";
+            else priceSegment = "Cao cấp, sang trọng (Trên 40 triệu)";
 
             // -- Assemble Profile --
-            if (useCases.Any()) profile += $"Ph hp cho: {string.Join(", ", useCases)}.\n";
-            if (mobility.Any()) profile += $"Tnh di ng: {string.Join(", ", mobility)}.\n";
-            profile += $"Phn khc gi: {priceSegment}.\n";
+            if (useCases.Any()) profile += $"Phù hợp cho: {string.Join(", ", useCases)}.\n";
+            if (mobility.Any()) profile += $"Tính di động: {string.Join(", ", mobility)}.\n";
+            profile += $"Phân khúc giá: {priceSegment}.\n";
             
             // Add key specs in natural language for reinforcement
             if (product is Laptop l)
             {
-                profile += $"Cu hnh: CPU {l.CpuBrand} {l.CpuModel}, RAM {l.RamCapacityGB}GB, SSD {l.StorageCapacityGB}GB, {l.GpuBrand} {l.GpuModel}, Mn hnh {l.DisplaySizeInches} inch.\n";
-                if (!string.IsNullOrEmpty(l.Color)) profile += $"Mu sc: {l.Color}.\n";
+                profile += $"Cấu hình: CPU {l.CpuBrand} {l.CpuModel}, RAM {l.RamCapacityGB}GB, SSD {l.StorageCapacityGB}GB, {l.GpuBrand} {l.GpuModel}, Màn hình {l.DisplaySizeInches} inch.\n";
+                if (!string.IsNullOrEmpty(l.Color)) profile += $"Màu sắc: {l.Color}.\n";
                 // Add soft filters helper including Storage
                 profile += $"[FilterTags]: Price:{product.Price}, Weight:{l.WeightKg}kg, RAM:{l.RamCapacityGB}GB, Storage:{l.StorageCapacityGB}GB\n";
             }

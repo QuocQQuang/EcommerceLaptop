@@ -6,7 +6,12 @@ import { Button } from '@/components/ui/button';
 import {
   useAdminAuth
 } from '@/contexts/AdminAuthContext';
-import { PERMISSIONS, createProduct, getBrands, getCategories, mapFormToCreatePayload, ProductFormData, uploadProductImages, type Brand } from '@/lib/admin-api';
+import { getBrands, getCategories } from '@/features/admin/catalog/api';
+import type { Brand } from '@/features/admin/catalog/types';
+import { createProduct, uploadProductImages } from '@/features/admin/products/api';
+import { mapFormToCreatePayload } from '@/features/admin/products/mappers';
+import type { ProductFormData } from '@/features/admin/products/types';
+import { PERMISSIONS } from '@/lib/admin-api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';

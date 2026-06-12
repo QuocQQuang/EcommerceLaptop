@@ -65,7 +65,7 @@ export function PaymentStatus({
             case 'cancelled':
                 return {
                     icon: XCircle,
-                    label: 'Tht bi',
+                    label: 'Thất bại',
                     variant: 'destructive' as const,
                     color: 'text-red-600',
                     bgColor: 'bg-red-50',
@@ -204,7 +204,7 @@ export function PaymentStatus({
                     )}
                     {status === 'processing' && (
                         <p className="text-yellow-600">
-                            đang xử lý thanh toán, vui lòng đợi...
+                            Đang xử lý thanh toán, vui lòng đợi...
                         </p>
                     )}
                     {status === 'failed' && (

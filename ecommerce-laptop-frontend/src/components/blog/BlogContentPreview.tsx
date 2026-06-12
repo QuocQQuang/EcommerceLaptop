@@ -1,6 +1,5 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
 import { ExternalLink, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 
@@ -13,48 +12,46 @@ interface ProductLinkProps {
 
 function ProductLink({ productId, productName, productPrice, productImage }: ProductLinkProps) {
     return (
-        <Card className="my-6 border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-            <CardContent className="p-6">
-                <div className="flex items-center gap-6">
-                    {productImage && (
-                        <div className="flex-shrink-0">
-                            <img
-                                src={productImage}
-                                alt={productName}
-                                className="w-20 h-20 object-cover rounded-lg shadow-sm"
-                            />
+        <div className="my-8 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group">
+            <div className="flex flex-col sm:flex-row">
+                {productImage && (
+                    <div className="relative w-full sm:w-56 h-56 sm:h-auto bg-gradient-to-br from-blue-50 via-white to-purple-50 flex-shrink-0 overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent z-10" />
+                        <img
+                            src={productImage}
+                            alt={productName}
+                            className="w-full h-full object-contain p-6 group-hover:scale-105 transition-transform duration-500"
+                        />
+                    </div>
+                )}
+                <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center">
+                    {productPrice && (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full mb-3 w-fit">
+                            <ShoppingCart className="w-3.5 h-3.5" />
+                            Sản phẩm đề xuất
                         </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-900 mb-2 text-lg leading-tight">{productName}</h4>
-                        {productPrice && (
-                            <p className="text-xl font-bold text-gray-900 mb-3">
-                                {new Intl.NumberFormat('vi-VN', {
-                                    style: 'currency',
-                                    currency: 'VND'
-                                }).format(productPrice)}
-                            </p>
-                        )}
-                        <div className="flex items-center gap-3">
-                            <Link
-                                href={`/products/${productId}`}
-                                className="inline-flex items-center px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors duration-200"
-                            >
-                                <ExternalLink className="w-4 h-4 mr-2" />
-                                Xem sản phẩm
-                            </Link>
-                            <Link
-                                href={`/products/${productId}`}
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                            >
-                                <ShoppingCart className="w-4 h-4 mr-2" />
-                                Thêm vào giỏ
-                            </Link>
-                        </div>
-                    </div>
+                    <h4 className="font-bold text-gray-900 text-lg sm:text-xl mb-2 line-clamp-2 leading-snug">
+                        {productName}
+                    </h4>
+                    {productPrice && (
+                        <p className="text-2xl sm:text-3xl font-extrabold text-blue-600 mb-5 tracking-tight">
+                            {new Intl.NumberFormat('vi-VN', {
+                                style: 'currency',
+                                currency: 'VND'
+                            }).format(productPrice)}
+                        </p>
+                    )}
+                    <Link
+                        href={`/products/${productId}`}
+                        className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-md hover:shadow-lg w-fit gap-2"
+                    >
+                        <ExternalLink className="w-4 h-4" />
+                        Xem chi tiết sản phẩm
+                    </Link>
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }
 

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ProductFormData } from '@/lib/admin-api';
+import { ProductFormData } from '@/features/admin/products/types';
 import { PRODUCT_SPECS_OPTIONS } from '@/lib/product-specs-options';
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { useState } from 'react';
