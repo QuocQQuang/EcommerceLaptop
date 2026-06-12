@@ -592,7 +592,7 @@ function BlogRowItem({
                     <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
                         <div className="flex items-center gap-1">
                             <User className="w-4 h-4" />
-                            {blog.author?.displayName || `${blog.author?.firstName} ${blog.author?.lastName}`}
+                            {blog.author?.displayName || [blog.author?.firstName, blog.author?.lastName].filter(Boolean).join(' ') || 'Tác giả'}
                         </div>
 
                         <div className="flex items-center gap-1">

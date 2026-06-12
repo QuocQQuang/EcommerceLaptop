@@ -31,28 +31,33 @@ import {
 } from '@/types/api';
 
 // Helper functions for mapping
-const mapBlogAuthor = (author: any): BlogAuthor => ({
-    id: author?.id ?? '',
-    name: author?.name ?? ((`${author?.firstName ?? ''} ${author?.lastName ?? ''}`.trim()) || 'Unknown'),
-    email: author?.email ?? '',
-    firstName: author?.firstName ?? '',
-    lastName: author?.lastName ?? '',
-    displayName: author?.displayName ?? author?.name ?? '',
-    avatarUrl: author?.profilePictureUrl ?? author?.avatarUrl ?? '',
-    bio: author?.bio ?? '',
-    profilePictureUrl: author?.profilePictureUrl ?? '',
-    socialLinks: author?.socialLinks ?? {},
-    isActive: author?.isActive ?? true,
-    role: author?.role ?? '',
-    postCount: author?.postCount ?? 0,
-    totalViews: author?.totalViews ?? 0,
-    totalComments: author?.totalComments ?? 0,
-    followerCount: author?.followerCount ?? 0,
-    averageRating: author?.averageRating ?? 0,
-    createdAt: author?.createdAt ?? new Date().toISOString(),
-    updatedAt: author?.updatedAt ?? author?.createdAt ?? new Date().toISOString(),
-    lastActiveAt: author?.lastActiveAt ?? ''
-});
+const mapBlogAuthor = (author: any): BlogAuthor => {
+    const fullName = `${author?.firstName ?? ''} ${author?.lastName ?? ''}`.trim();
+    const displayName = author?.displayName || author?.name || fullName || author?.email || 'Tác giả';
+
+    return {
+        id: author?.id ?? '',
+        name: author?.name ?? displayName,
+        email: author?.email ?? '',
+        firstName: author?.firstName ?? '',
+        lastName: author?.lastName ?? '',
+        displayName,
+        avatarUrl: author?.profilePictureUrl ?? author?.avatarUrl ?? '',
+        bio: author?.bio ?? '',
+        profilePictureUrl: author?.profilePictureUrl ?? '',
+        socialLinks: author?.socialLinks ?? {},
+        isActive: author?.isActive ?? true,
+        role: author?.role ?? '',
+        postCount: author?.postCount ?? 0,
+        totalViews: author?.totalViews ?? 0,
+        totalComments: author?.totalComments ?? 0,
+        followerCount: author?.followerCount ?? 0,
+        averageRating: author?.averageRating ?? 0,
+        createdAt: author?.createdAt ?? new Date().toISOString(),
+        updatedAt: author?.updatedAt ?? author?.createdAt ?? new Date().toISOString(),
+        lastActiveAt: author?.lastActiveAt ?? ''
+    };
+};
 
 const toStringId = (value: unknown): string => {
     if (typeof value === 'string') return value;

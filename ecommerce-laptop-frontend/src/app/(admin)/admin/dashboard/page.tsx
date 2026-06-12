@@ -804,36 +804,6 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* System Alerts (Super Admin Only) */}
-      <PermissionGuard permission={PERMISSIONS.SECURITY_MANAGE}>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-orange-600">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              Cảnh báo hệ thống
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                <div>
-                  <p className="text-sm font-medium">Dung lượng đĩa cứng</p>
-                  <p className="text-xs text-muted-foreground">Còn 15% dung lượng trống</p>
-                </div>
-                <Badge variant="outline" className="text-yellow-600">Cảnh báo</Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                <div>
-                  <p className="text-sm font-medium">Backup tự động</p>
-                  <p className="text-xs text-muted-foreground">Hoàn thành lúc 2:00 AM</p>
-                </div>
-                <Badge variant="outline" className="text-green-600">Hoàn thành</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </PermissionGuard>
     </div>
   );
 }

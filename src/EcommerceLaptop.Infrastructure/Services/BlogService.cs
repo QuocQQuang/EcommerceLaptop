@@ -36,6 +36,7 @@ public class BlogService : IBlogService
         {
             var query = _context.BlogPosts
                 .Include(p => p.Category)
+                .Include(p => p.Author)
                 .Include(p => p.BlogPostTags)
                     .ThenInclude(bpt => bpt.BlogTag)
                 .AsQueryable();
@@ -85,6 +86,7 @@ public class BlogService : IBlogService
         {
             var post = await _context.BlogPosts
                 .Include(p => p.Category)
+                .Include(p => p.Author)
                 .Include(p => p.BlogPostTags)
                     .ThenInclude(bpt => bpt.BlogTag)
                 .FirstOrDefaultAsync(p => p.Id == id);
@@ -104,6 +106,7 @@ public class BlogService : IBlogService
         {
             var post = await _context.BlogPosts
                 .Include(p => p.Category)
+                .Include(p => p.Author)
                 .Include(p => p.BlogPostTags)
                     .ThenInclude(bpt => bpt.BlogTag)
                 .FirstOrDefaultAsync(p => p.Slug == slug);
@@ -149,8 +152,12 @@ public class BlogService : IBlogService
                 await AssociateTagsWithPostAsync(blogPost.Id, tagIds);
             }
 
-            // Reload to include tags
-            await _context.Entry(blogPost).ReloadAsync();
+            blogPost = await _context.BlogPosts
+                .Include(p => p.Category)
+                .Include(p => p.Author)
+                .Include(p => p.BlogPostTags)
+                    .ThenInclude(bpt => bpt.BlogTag)
+                .FirstAsync(p => p.Id == blogPost.Id);
 
             return ServiceResult<BlogPost>.Success(blogPost);
         }
@@ -226,6 +233,8 @@ public class BlogService : IBlogService
 
             // N+1 Fix: reload tags with Include in one query instead of N explicit-load calls
             existingPost = await _context.BlogPosts
+                .Include(p => p.Category)
+                .Include(p => p.Author)
                 .Include(p => p.BlogPostTags)
                     .ThenInclude(bpt => bpt.BlogTag)
                 .FirstOrDefaultAsync(p => p.Id == id) ?? existingPost;

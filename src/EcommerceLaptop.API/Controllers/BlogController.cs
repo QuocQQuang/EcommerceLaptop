@@ -42,7 +42,7 @@ public class BlogController(IBlogService blogService, ILogger<BlogController> lo
         if (!result.IsSuccess)
             return BadRequest(new { error = result.ErrorMessage });
 
-        return Ok(result.Data);
+        return Ok(MapBlogPostsPage(result.Data));
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class BlogController(IBlogService blogService, ILogger<BlogController> lo
             await _blogService.IncrementViewCountAsync(id);
         }
 
-        return Ok(result.Data);
+        return Ok(MapBlogPost(result.Data));
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class BlogController(IBlogService blogService, ILogger<BlogController> lo
             await _blogService.IncrementViewCountAsync(result.Data.Id);
         }
 
-        return Ok(result.Data);
+        return Ok(MapBlogPost(result.Data));
     }
 
     /// <summary>
@@ -162,7 +162,7 @@ public class BlogController(IBlogService blogService, ILogger<BlogController> lo
         if (!result.IsSuccess)
             return BadRequest(new { error = result.ErrorMessage });
 
-        return CreatedAtAction(nameof(GetBlogPostById), new { id = result.Data!.Id }, result.Data);
+        return CreatedAtAction(nameof(GetBlogPostById), new { id = result.Data!.Id }, MapBlogPost(result.Data));
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public class BlogController(IBlogService blogService, ILogger<BlogController> lo
             return BadRequest(new { error = result.ErrorMessage });
         }
 
-        return Ok(result.Data);
+        return Ok(MapBlogPost(result.Data));
     }
 
     /// <summary>
@@ -225,6 +225,74 @@ public class BlogController(IBlogService blogService, ILogger<BlogController> lo
     }
 
     #endregion
+
+    private static object MapBlogPostsPage(EcommerceLaptop.Core.ValueObjects.PaginatedList<BlogPost>? page)
+    {
+        if (page is null)
+        {
+            return new
+            {
+                items = Array.Empty<object>(),
+                pageNumber = 1,
+                totalPages = 0,
+                totalCount = 0,
+                hasPreviousPage = false,
+                hasNextPage = false
+            };
+        }
+
+        return new
+        {
+            items = page.Items.Select(MapBlogPost),
+            pageNumber = page.PageNumber,
+            totalPages = page.TotalPages,
+            totalCount = page.TotalCount,
+            hasPreviousPage = page.HasPreviousPage,
+            hasNextPage = page.HasNextPage
+        };
+    }
+
+    private static object? MapBlogPost(BlogPost? post)
+    {
+        if (post is null) return null;
+
+        return new
+        {
+            post.Id,
+            post.Title,
+            post.Slug,
+            post.Excerpt,
+            post.Content,
+            post.FeaturedImageUrl,
+            post.MetaTitle,
+            post.MetaDescription,
+            post.Status,
+            post.IsFeatured,
+            post.PublishedAt,
+            post.CreatedAt,
+            post.UpdatedAt,
+            post.ViewCount,
+            post.LikeCount,
+            post.CategoryId,
+            post.AuthorId,
+            category = post.Category,
+            author = post.Author is null ? null : new
+            {
+                post.Author.Id,
+                post.Author.Email,
+                post.Author.FirstName,
+                post.Author.LastName,
+                displayName = $"{post.Author.FirstName} {post.Author.LastName}".Trim(),
+                post.Author.ProfilePictureUrl,
+                post.Author.IsActive,
+                post.Author.CreatedAt,
+                post.Author.UpdatedAt
+            },
+            tags = post.BlogPostTags
+                .Select(postTag => postTag.BlogTag)
+                .Where(tag => tag is not null)
+        };
+    }
 
     #region Blog Categories
 
