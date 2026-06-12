@@ -91,19 +91,9 @@ export default function EditProductPage() {
   const { data: brands, isLoading: brandsLoading, error: brandsError } = useBrandsQuery();
   const productQuery = useProductQuery(productId);
   const { data: product, isLoading: productLoading, error } = productQuery;
-
-  console.log(' Data loading status:', {
-    productLoading,
-    categoriesLoading,
-    brandsLoading,
-    hasProduct: !!product,
-    hasCategories: !!categories,
-    hasBrands: !!brands,
-    productId,
-    error: error?.message,
-    categoriesError: categoriesError?.message,
-    brandsError: brandsError?.message
-  });
+  const parentProductId = product?.parentProductId ? product.parentProductId.toString() : '';
+  const parentProductQuery = useProductQuery(parentProductId);
+  const { data: parentProduct, isLoading: parentProductLoading } = parentProductQuery;
   const updateProductMutation = useUpdateProductMutation(productId);
 
   // Callback functions for refreshing data
@@ -227,49 +217,25 @@ export default function EditProductPage() {
   });
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
 
-  //  FIXED: Directly update form data when product data is loaded
+  // Map product data as soon as the product is available. For variants, merge
+  // base product specs so edit controls can prefill inherited laptop fields.
   useEffect(() => {
-    console.log(' useEffect triggered:', {
-      hasProduct: !!product,
-      hasBrands: !!brands,
-      hasCategories: !!categories,
-      productId: product?.id,
-      brandsCount: brands?.length,
-      categoriesCount: categories?.length
-    });
+    if (!product) return;
+    if (parentProductId && parentProductLoading) return;
 
-    if (product && brands && categories) {
-      console.log(' Mapping product to form data:', {
-        product: product,
-        brands: brands,
-        categories: categories,
-        productType: product.productType || product.type
-      });
+    const mappedData = mapProductToForm(product, brands || [], parentProduct);
+    setFormData(mappedData);
 
-      const mappedData = mapProductToForm(product, brands);
-      console.log(' Mapped form data:', mappedData);
-      setFormData(mappedData);
-
-      if (product.images) {
-        const images: ProductImage[] = product.images.map((img: any, index: number) => ({
-          imageId: img.imageId || img.id, // Use ImageId if available, fallback to Id
-          imageUrl: img.imageUrl,
-          altText: img.altText || `Product image ${index + 1}`,
-          displayOrder: img.displayOrder || img.sortOrder || index + 1
-        }));
-        setProductImages(images);
-      }
-    } else {
-      console.log(' Missing data:', {
-        product: !!product,
-        brands: !!brands,
-        categories: !!categories,
-        productData: product,
-        brandsData: brands,
-        categoriesData: categories
-      });
+    if (product.images) {
+      const images: ProductImage[] = product.images.map((img: any, index: number) => ({
+        imageId: img.imageId || img.id, // Use ImageId if available, fallback to Id
+        imageUrl: img.imageUrl,
+        altText: img.altText || `Product image ${index + 1}`,
+        displayOrder: img.displayOrder || img.sortOrder || index + 1
+      }));
+      setProductImages(images);
     }
-  }, [product, brands, categories]);
+  }, [product, brands, parentProduct, parentProductId, parentProductLoading]);
 
   const [currentTag, setCurrentTag] = useState('');
   const [currentSpecKey, setCurrentSpecKey] = useState('');
@@ -292,20 +258,6 @@ export default function EditProductPage() {
       setVariants([]);
     }
   }, [product, productId]);
-
-  // Debug form data after state updates
-  useEffect(() => {
-    console.log(' Current form data state:', {
-      name: formData.name,
-      price: formData.price,
-      stock: formData.stock,
-      cpu: formData.cpu,
-      ram: formData.ram,
-      display: formData.display,
-      categoryId: formData.categoryId,
-      brandId: formData.brandId
-    });
-  }, [formData]);
 
   const handleInputChange = (field: keyof ProductFormData, value: any) => {
     setFormData(prev => ({
@@ -435,7 +387,7 @@ export default function EditProductPage() {
       parseInt(stockValue) >= 0;
   }, [formData.name, formData.sku, formData.productType, formData.categoryId, formData.brandId, formData.price, formData.stock, formData.inventory?.quantityInStock]);
 
-  if (productLoading || categoriesLoading || brandsLoading) {
+  if (productLoading || parentProductLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -448,8 +400,7 @@ export default function EditProductPage() {
             <div className="text-sm text-muted-foreground">
               Product ID: {productId} |
               Product Loading: {productLoading ? 'YES' : 'NO'} |
-              Categories Loading: {categoriesLoading ? 'YES' : 'NO'} |
-              Brands Loading: {brandsLoading ? 'YES' : 'NO'}
+              Parent Product Loading: {parentProductLoading ? 'YES' : 'NO'}
             </div>
           </div>
         </div>
@@ -482,7 +433,7 @@ export default function EditProductPage() {
     );
   }
 
-  if (error || categoriesError || brandsError) {
+  if (error) {
     const isNotFound = (error as any)?.status === 404;
 
     if (isNotFound) {
@@ -511,10 +462,13 @@ export default function EditProductPage() {
               <span>
                 Không thể tải dữ liệu:
                 {error && `Product: ${(error as any)?.message || 'Có lỗi xảy ra'}`}
-                {categoriesError && ` | Categories: ${(categoriesError as any)?.message || 'Có lỗi xảy ra'}`}
-                {brandsError && ` | Brands: ${(brandsError as any)?.message || 'Có lỗi xảy ra'}`}
               </span>
             </div>
+            {(categoriesError || brandsError) && (
+              <div className="mt-4 text-sm text-amber-600">
+                Không thể tải đầy đủ danh sách danh mục/thương hiệu. Form vẫn sử dụng giá trị đã lưu của sản phẩm.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

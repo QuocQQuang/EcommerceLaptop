@@ -317,7 +317,7 @@ export default function LlmConfigPage() {
                     <CardHeader className="pb-3 border-b bg-muted/20">
                         <div className="flex justify-between items-center">
                             <CardTitle className="text-lg flex items-center gap-2">
-                                <Server className="h-5 w-5" /> Nh Cung Cp
+                                <Server className="h-5 w-5" /> Provider
                             </CardTitle>
                             <Button size="sm" onClick={handleNewProvider}>
                                 <Plus className="h-4 w-4 mr-1" /> Thêm

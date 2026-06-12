@@ -26,10 +26,40 @@ const bool = (value: unknown, fallback = false): boolean => {
   return fallback;
 };
 
+const normalizeSpecName = (value: unknown): string => {
+  return text(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+};
+
+const readSpec = (source: any, ...names: string[]): unknown => {
+  const specs = read<any[]>(source, 'specifications', 'Specifications') || [];
+  const wanted = new Set(names.map(normalizeSpecName));
+  const spec = specs.find(item => wanted.has(normalizeSpecName(read(item, 'name', 'Name'))));
+  return read(spec, 'value', 'Value');
+};
+
+const readProductValue = (product: any, baseProduct: any, keys: string[], specNames: string[] = keys): unknown => {
+  return read(product, ...keys) ??
+    read(baseProduct, ...keys) ??
+    readSpec(product, ...specNames) ??
+    readSpec(baseProduct, ...specNames);
+};
+
 const withUnit = (value: unknown, unit: string): string => {
   if (value === null || value === undefined || value === '') return '';
   const text = value.toString().trim();
   return text.toLowerCase().includes(unit.trim().toLowerCase()) ? text : `${text}${unit}`;
+};
+
+const compactUnit = (value: unknown, unit: string): string => {
+  if (value === null || value === undefined || value === '') return '';
+  const match = value.toString().match(/(\d+(?:\.\d+)?)/);
+  return match ? `${match[1]}${unit}` : value.toString().trim();
+};
+
+const spacedUnit = (value: unknown, unit: string): string => {
+  if (value === null || value === undefined || value === '') return '';
+  const match = value.toString().match(/(\d+(?:\.\d+)?)/);
+  return match ? `${match[1]} ${unit}` : value.toString().trim();
 };
 
 const cpuCoresLabel = (value: unknown): string => {
@@ -42,6 +72,27 @@ const displaySizeLabel = (value: unknown): string => {
   if (value === null || value === undefined || value === '') return '';
   const text = value.toString().trim();
   return text.includes('"') ? text : `${text}"`;
+};
+
+const numericText = (value: unknown): string => {
+  if (value === null || value === undefined || value === '') return '';
+  const match = value.toString().match(/-?\d+(?:\.\d+)?/);
+  return match?.[0] ?? '';
+};
+
+const storageCapacityLabel = (value: unknown): string => {
+  if (value === null || value === undefined || value === '') return '';
+  const raw = value.toString().trim();
+  const match = raw.match(/(\d+(?:\.\d+)?)\s*(TB|GB)?/i);
+  if (!match) return raw;
+
+  const amount = Number(match[1]);
+  const unit = match[2]?.toUpperCase();
+  if (unit === 'TB') return `${amount}TB`;
+  if (unit === 'GB') {
+    return amount >= 1024 && amount % 1024 === 0 ? `${amount / 1024}TB` : `${amount}GB`;
+  }
+  return amount >= 1024 && amount % 1024 === 0 ? `${amount / 1024}TB` : `${amount}GB`;
 };
 
 const normalizeDisplayResolution = (value?: string): string => {
@@ -60,16 +111,17 @@ const normalizeDisplayResolution = (value?: string): string => {
   return known[value] || value;
 };
 
-export const mapProductToForm = (product: Product, brands: Brand[] = []): ProductFormData => {
+export const mapProductToForm = (product: Product, brands: Brand[] = [], baseProduct?: Product | null): ProductFormData => {
   const raw = product as any;
-  const category = read<any>(raw, 'category', 'Category');
-  const categories = read<any[]>(raw, 'categories', 'Categories') || [];
-  const brandName = text(read(raw, 'brand', 'Brand'));
+  const base = baseProduct as any;
+  const category = read<any>(raw, 'category', 'Category') ?? read<any>(base, 'category', 'Category');
+  const categories = read<any[]>(raw, 'categories', 'Categories') || read<any[]>(base, 'categories', 'Categories') || [];
+  const brandName = text(read(raw, 'brand', 'Brand') ?? read(base, 'brand', 'Brand'));
   const inventory = read<any>(raw, 'inventory', 'Inventory') || {};
   const stockQuantity = read(raw, 'stockQuantity', 'StockQuantity');
   const images = read<any[]>(raw, 'images', 'Images') || [];
   const isActive = read(raw, 'isActive', 'IsActive');
-  const productType = text(read(raw, 'productType', 'ProductType', 'type', 'Type') || 'Laptop');
+  const productType = text(read(raw, 'productType', 'ProductType', 'type', 'Type') ?? read(base, 'productType', 'ProductType', 'type', 'Type') ?? 'Laptop');
 
   return {
   name: text(read(raw, 'name', 'Name')),
@@ -77,14 +129,15 @@ export const mapProductToForm = (product: Product, brands: Brand[] = []): Produc
   description: text(read(raw, 'description', 'Description')),
   categoryId: text(
     read(raw, 'categoryId', 'CategoryId') ??
+    read(base, 'categoryId', 'CategoryId') ??
     read(category, 'id', 'Id') ??
     read(categories[0], 'id', 'Id')
   ),
-  brandId: text(read(raw, 'brandId', 'BrandId')) || findBrandIdByName(brands, brandName),
+  brandId: text(read(raw, 'brandId', 'BrandId') ?? read(base, 'brandId', 'BrandId')) || findBrandIdByName(brands, brandName),
   price: text(read(raw, 'price', 'Price')),
   stock: text(stockQuantity),
-  weight: text(read(raw, 'weightKg', 'WeightKg') ?? read(raw, 'weight', 'Weight')),
-  dimensions: text(read(raw, 'dimensions', 'Dimensions')),
+  weight: text(readProductValue(raw, base, ['weightKg', 'WeightKg', 'weight', 'Weight'], ['Weight', 'Weight Kg', 'WeightKg'])),
+  dimensions: text(readProductValue(raw, base, ['dimensions', 'Dimensions'])),
   status: (isActive === false ? 'inactive' : 'active') as 'active' | 'inactive',
   images: images.map(i => read<string>(i, 'imageUrl', 'ImageUrl')).filter(Boolean) as string[],
   productType: productType as 'Laptop' | 'Accessory' | 'Bundle',
@@ -97,46 +150,42 @@ export const mapProductToForm = (product: Product, brands: Brand[] = []): Produc
     warehouseLocation: text(read(inventory, 'warehouseLocation', 'WarehouseLocation'))
   },
 
-  series: text(read(raw, 'series', 'Series')),
-  model: text(read(raw, 'model', 'Model')),
-  cpuBrand: text(read(raw, 'cpuBrand', 'CpuBrand')),
-  cpuModel: text(read(raw, 'cpuModel', 'CpuModel')),
-  cpuGeneration: text(read(raw, 'cpuGeneration', 'CpuGeneration')),
-  cpuCores: cpuCoresLabel(read(raw, 'cpuCores', 'CpuCores')),
-  cpuBaseClockGHz: text(read(raw, 'cpuBaseClockGHz', 'CpuBaseClockGHz')),
-  cpuBoostClockGHz: text(read(raw, 'cpuBoostClockGHz', 'CpuBoostClockGHz')),
-  cpuCache: text(read(raw, 'cpuCache', 'CpuCache')),
-  ramType: text(read(raw, 'ramType', 'RamType')),
-  ramCapacityGB: withUnit(read(raw, 'ramCapacityGB', 'RamCapacityGB'), 'GB'),
-  ramSlots: text(read(raw, 'ramSlots', 'RamSlots')),
-  ramSpeed: withUnit(read(raw, 'ramSpeed', 'RamSpeed'), ' MHz'),
-  ramUpgradeable: bool(read(raw, 'ramUpgradeable', 'RamUpgradeable')),
-  storageType: text(read(raw, 'storageType', 'StorageType')),
-  storageCapacityGB: read(raw, 'storageCapacityGB', 'StorageCapacityGB')
-    ? Number(read(raw, 'storageCapacityGB', 'StorageCapacityGB')) >= 1024 && Number(read(raw, 'storageCapacityGB', 'StorageCapacityGB')) % 1024 === 0
-      ? `${Number(read(raw, 'storageCapacityGB', 'StorageCapacityGB')) / 1024}TB`
-      : `${read(raw, 'storageCapacityGB', 'StorageCapacityGB')}GB`
-    : '',
-  storageInterface: text(read(raw, 'storageInterface', 'StorageInterface')),
-  nvMeSupport: bool(read(raw, 'nvMeSupport', 'NvMeSupport', 'NVMeSupport')),
-  gpuType: text(read(raw, 'gpuType', 'GpuType')),
-  gpuBrand: text(read(raw, 'gpuBrand', 'GpuBrand')),
-  gpuModel: text(read(raw, 'gpuModel', 'GpuModel')),
-  gpuVramGB: withUnit(read(raw, 'gpuVramGB', 'GpuVramGB'), 'GB'),
-  displaySizeInches: displaySizeLabel(read(raw, 'displaySizeInches', 'DisplaySizeInches')),
-  displayResolution: normalizeDisplayResolution(text(read(raw, 'displayResolution', 'DisplayResolution'))),
-  displayPanelType: text(read(raw, 'displayPanelType', 'DisplayPanelType')),
-  displayRefreshRateHz: withUnit(read(raw, 'displayRefreshRateHz', 'DisplayRefreshRateHz'), 'Hz'),
-  displayTouchscreen: bool(read(raw, 'displayTouchscreen', 'DisplayTouchscreen')),
-  batteryCapacityWh: withUnit(read(raw, 'batteryCapacityWh', 'BatteryCapacityWh'), 'Wh'),
-  weightKg: text(read(raw, 'weightKg', 'WeightKg')),
-  color: text(read(raw, 'color', 'Color')),
-  ports: text(read(raw, 'ports', 'Ports')),
-  wiFi6Support: bool(read(raw, 'wiFi6Support', 'WiFi6Support')),
-  bluetoothSupport: bool(read(raw, 'bluetoothSupport', 'BluetoothSupport')),
-  bluetoothVersion: text(read(raw, 'bluetoothVersion', 'BluetoothVersion')),
-  warrantyPeriod: text(read(raw, 'warrantyPeriod', 'WarrantyPeriod')),
-  targetAudience: text(read(raw, 'targetAudience', 'TargetAudience')),
+  series: text(readProductValue(raw, base, ['series', 'Series'])),
+  model: text(readProductValue(raw, base, ['model', 'Model'])),
+  cpuBrand: text(readProductValue(raw, base, ['cpuBrand', 'CpuBrand'], ['CPU Brand', 'Cpu Brand'])),
+  cpuModel: text(readProductValue(raw, base, ['cpuModel', 'CpuModel'], ['CPU Model', 'Cpu Model'])),
+  cpuGeneration: text(readProductValue(raw, base, ['cpuGeneration', 'CpuGeneration'], ['CPU Generation', 'Cpu Generation'])),
+  cpuCores: cpuCoresLabel(readProductValue(raw, base, ['cpuCores', 'CpuCores'], ['CPU Cores', 'Cpu Cores'])),
+  cpuBaseClockGHz: numericText(readProductValue(raw, base, ['cpuBaseClockGHz', 'CpuBaseClockGHz'], ['Base Clock', 'CPU Base Clock'])),
+  cpuBoostClockGHz: numericText(readProductValue(raw, base, ['cpuBoostClockGHz', 'CpuBoostClockGHz'], ['Boost Clock', 'CPU Boost Clock'])),
+  cpuCache: text(readProductValue(raw, base, ['cpuCache', 'CpuCache'], ['CPU Cache', 'Cache'])),
+  ramType: text(readProductValue(raw, base, ['ramType', 'RamType'], ['RAM Type', 'Ram Type'])),
+  ramCapacityGB: compactUnit(readProductValue(raw, base, ['ramCapacityGB', 'RamCapacityGB'], ['RAM Capacity', 'Ram Capacity']), 'GB'),
+  ramSlots: text(readProductValue(raw, base, ['ramSlots', 'RamSlots'], ['RAM Slots', 'Ram Slots'])),
+  ramSpeed: spacedUnit(readProductValue(raw, base, ['ramSpeed', 'RamSpeed'], ['RAM Speed', 'Ram Speed']), 'MHz'),
+  ramUpgradeable: bool(readProductValue(raw, base, ['ramUpgradeable', 'RamUpgradeable'])),
+  storageType: text(readProductValue(raw, base, ['storageType', 'StorageType'], ['Storage Type'])),
+  storageCapacityGB: storageCapacityLabel(readProductValue(raw, base, ['storageCapacityGB', 'StorageCapacityGB'], ['Storage Capacity'])),
+  storageInterface: text(readProductValue(raw, base, ['storageInterface', 'StorageInterface'], ['Storage Interface'])),
+  nvMeSupport: bool(readProductValue(raw, base, ['nvMeSupport', 'NvMeSupport', 'NVMeSupport'])),
+  gpuType: text(readProductValue(raw, base, ['gpuType', 'GpuType'], ['GPU Type'])),
+  gpuBrand: text(readProductValue(raw, base, ['gpuBrand', 'GpuBrand'], ['GPU Brand'])),
+  gpuModel: text(readProductValue(raw, base, ['gpuModel', 'GpuModel'], ['GPU Model'])),
+  gpuVramGB: compactUnit(readProductValue(raw, base, ['gpuVramGB', 'GpuVramGB'], ['VRAM', 'GPU VRAM']), 'GB'),
+  displaySizeInches: displaySizeLabel(readProductValue(raw, base, ['displaySizeInches', 'DisplaySizeInches'], ['Display Size'])),
+  displayResolution: normalizeDisplayResolution(text(readProductValue(raw, base, ['displayResolution', 'DisplayResolution'], ['Resolution', 'Display Resolution']))),
+  displayPanelType: text(readProductValue(raw, base, ['displayPanelType', 'DisplayPanelType'], ['Display Panel', 'Panel Type'])),
+  displayRefreshRateHz: compactUnit(readProductValue(raw, base, ['displayRefreshRateHz', 'DisplayRefreshRateHz'], ['Refresh Rate', 'Display Refresh Rate']), 'Hz'),
+  displayTouchscreen: bool(readProductValue(raw, base, ['displayTouchscreen', 'DisplayTouchscreen'], ['Touchscreen'])),
+  batteryCapacityWh: compactUnit(readProductValue(raw, base, ['batteryCapacityWh', 'BatteryCapacityWh'], ['Battery', 'Battery Capacity']), 'Wh'),
+  weightKg: text(readProductValue(raw, base, ['weightKg', 'WeightKg', 'weight', 'Weight'], ['Weight'])),
+  color: text(readProductValue(raw, base, ['color', 'Color'])),
+  ports: text(readProductValue(raw, base, ['ports', 'Ports'])),
+  wiFi6Support: bool(readProductValue(raw, base, ['wiFi6Support', 'WiFi6Support'])),
+  bluetoothSupport: bool(readProductValue(raw, base, ['bluetoothSupport', 'BluetoothSupport'])),
+  bluetoothVersion: text(readProductValue(raw, base, ['bluetoothVersion', 'BluetoothVersion'])),
+  warrantyPeriod: text(readProductValue(raw, base, ['warrantyPeriod', 'WarrantyPeriod'], ['Warranty Period'])),
+  targetAudience: text(readProductValue(raw, base, ['targetAudience', 'TargetAudience'])),
 
   accessoryType: text(read(raw, 'accessoryType', 'AccessoryType')),
   compatibility: text(read(raw, 'compatibility', 'Compatibility')),
