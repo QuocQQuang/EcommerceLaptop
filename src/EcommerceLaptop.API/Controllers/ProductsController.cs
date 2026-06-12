@@ -614,17 +614,17 @@ public class ProductsController(
         if (variant == null || variant.ParentProductId != id)
             return ErrorResponse("Variant not found", 404);
 
-        var updatedVariant = new Product().AsVariant();
-        updatedVariant.VariantName = request.VariantName;
-        updatedVariant.VariantSku = request.VariantSku;
-        if (request.Price.HasValue) updatedVariant.Price = request.Price.Value;
-        if (request.Description != null) updatedVariant.Description = request.Description;
-        if (request.IsActive.HasValue) updatedVariant.IsActive = request.IsActive.Value;
-        if (request.StockQuantity.HasValue) updatedVariant.StockQuantity = request.StockQuantity.Value;
+        // Update variant properties directly on the loaded entity
+        if (request.VariantName != null) variant.VariantName = request.VariantName;
+        if (request.VariantSku != null) variant.VariantSku = request.VariantSku;
+        if (request.Price.HasValue) variant.Price = request.Price.Value;
+        if (request.Description != null) variant.Description = request.Description;
+        if (request.IsActive.HasValue) variant.IsActive = request.IsActive.Value;
+        variant.UpdatedAt = DateTime.UtcNow;
 
-        var result = await _productService.UpdateVariantAsync(variantId, updatedVariant);
+        var result = await _productService.UpdateProductAsync(variant);
         if (result == null)
-            return ErrorResponse("Variant not found", 404);
+            return ErrorResponse("Variant update failed", 500);
 
         // Sync inventory if StockQuantity provided
         if (request.StockQuantity.HasValue)
@@ -777,7 +777,7 @@ public class ProductsController(
             logger.LogWarning(ex, "Failed to delete image from hosting service: {ImageId}", imageId);
         }
 
-        await _productService.RemoveProductImageAsync(id, image.Id);
+        await _productService.DeleteProductImageAsync(image.Id);
 
         return SuccessResponse(new { deleted = true }, "Image deleted successfully");
     }

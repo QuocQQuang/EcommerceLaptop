@@ -43,7 +43,9 @@ public class AutoMapperProfile : Profile
                 : null))
             .ForMember(d => d.Specifications, opt => opt.MapFrom((src, dest) => GenerateProductSpecifications(src)))
             .ForMember(d => d.Images, opt => opt.MapFrom(s => s.Images ?? new List<ProductImage>()))
-            .ForMember(d => d.Variants, opt => opt.MapFrom(s => s.Variants ?? new List<Product>()));
+            .ForMember(d => d.Variants, opt => opt.MapFrom(s => s.Variants ?? new List<Product>()))
+            .ForMember(d => d.BrandId, opt => opt.MapFrom(s => s.BrandId))
+            .ForMember(d => d.CategoryId, opt => opt.MapFrom(s => s.CategoryId));
 
         // Laptop Mapping
         CreateMap<Laptop, LaptopDto>()

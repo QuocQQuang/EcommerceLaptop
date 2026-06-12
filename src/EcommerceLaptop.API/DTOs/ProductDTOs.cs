@@ -23,6 +23,8 @@ public record ProductDto
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public string Brand { get; init; } = string.Empty;
+    public int? BrandId { get; init; }
+    public int? CategoryId { get; init; }
     public string Model { get; init; } = string.Empty;
     public decimal Price { get; init; }
     public string SKU { get; init; } = string.Empty;
@@ -435,6 +437,11 @@ public record UpdateProductRequest
 
     // Add ProductType to help differentiate update requests
     public string? ProductType { get; init; }
+
+    // Fields that were missing from update
+    public string? SKU { get; init; }
+    public int? CategoryId { get; init; }
+    public int? BrandId { get; init; }
 }
 
 /// <summary>
