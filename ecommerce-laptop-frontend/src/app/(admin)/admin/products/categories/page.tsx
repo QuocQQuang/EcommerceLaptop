@@ -290,7 +290,7 @@ export default function CategoriesPage() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold">Lỗi tải dữ liệu</h3>
           <p className="text-muted-foreground mb-4">
-            Khng th ti Danh sách danh mục. Vui lòng thử lại.
+            Không thể tải Danh sách danh mục. Vui lòng thử lại.
           </p>
           <Button onClick={() => refetch()}>Thử lại</Button>
         </div>

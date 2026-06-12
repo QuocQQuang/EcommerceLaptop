@@ -137,7 +137,7 @@ export default function ProductViewPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-red-600">
               <AlertCircle className="h-5 w-5" />
-              <span>Khng th ti Thường tin sản phẩm: {(error as any)?.message || 'Có lỗi xảy ra'}</span>
+              <span>Không thể tải Thông tin sản phẩm: {(error as any)?.message || 'Có lỗi xảy ra'}</span>
             </div>
           </CardContent>
         </Card>
@@ -207,7 +207,7 @@ export default function ProductViewPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Tag className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Loi sản phẩm:</span>
+                      <span className="font-medium">Loại sản phẩm:</span>
                     </div>
                     <p>{product?.type}</p>
                   </div>
@@ -248,7 +248,7 @@ export default function ProductViewPage() {
             {/* Product Images */}
             <Card>
               <CardHeader>
-                <CardTitle>Hnh nh sản phẩm</CardTitle>
+                <CardTitle>Hình ảnh sản phẩm</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -298,7 +298,7 @@ export default function ProductViewPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <span className="font-medium">Hot ng:</span>
+                  <span className="font-medium">Hoạt động:</span>
                   {product?.isActive ? (
                     <Badge variant="default">đang bán</Badge>
                   ) : (

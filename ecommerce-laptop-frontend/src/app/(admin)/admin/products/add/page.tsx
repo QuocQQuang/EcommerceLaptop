@@ -228,7 +228,7 @@ export default function AddProductPage() {
         <Link href="/admin/products">
           <Button variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay li
+            Quay lại
           </Button>
         </Link>
         <div>

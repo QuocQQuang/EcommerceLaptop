@@ -34,7 +34,11 @@ public class BlogService : IBlogService
     {
         try
         {
-            var query = _context.BlogPosts.AsQueryable();
+            var query = _context.BlogPosts
+                .Include(p => p.Category)
+                .Include(p => p.BlogPostTags)
+                    .ThenInclude(bpt => bpt.BlogTag)
+                .AsQueryable();
 
             // Apply filters
             if (categoryId.HasValue)
@@ -80,6 +84,9 @@ public class BlogService : IBlogService
         try
         {
             var post = await _context.BlogPosts
+                .Include(p => p.Category)
+                .Include(p => p.BlogPostTags)
+                    .ThenInclude(bpt => bpt.BlogTag)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             return ServiceResult<BlogPost?>.Success(post);
@@ -96,6 +103,9 @@ public class BlogService : IBlogService
         try
         {
             var post = await _context.BlogPosts
+                .Include(p => p.Category)
+                .Include(p => p.BlogPostTags)
+                    .ThenInclude(bpt => bpt.BlogTag)
                 .FirstOrDefaultAsync(p => p.Slug == slug);
 
             return ServiceResult<BlogPost?>.Success(post);

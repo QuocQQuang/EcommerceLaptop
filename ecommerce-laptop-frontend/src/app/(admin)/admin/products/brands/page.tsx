@@ -488,7 +488,7 @@ export default function BrandsPage() {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
-              {editingBrand ? 'Chỉnh sửa thương hiệu' : 'Thêm thương hiệu mới'
+              {editingBrand ? 'Chỉnh sửa thương hiệu' : 'Thêm thương hiệu mới'}
             </DialogTitle>
             <DialogDescription>
               {editingBrand

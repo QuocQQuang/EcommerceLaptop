@@ -71,13 +71,13 @@ const useUpdateProductMutation = (productId: string) => {
       return await updateProduct(parseInt(productId), backendData);
     },
     onSuccess: () => {
-      toast.success('Sn phm  c cp nht thnh cng!');
+      toast.success('Sản phẩm đã được cập nhật thành công!');
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'product', productId] });
     },
     onError: (error: any) => {
-      toast.error(`Li cp nht sn phm: ${error.message || 'C li xy ra'}`);
+      toast.error(`Lỗi cập nhật sản phẩm: ${error.message || 'Có lỗi xảy ra'}`);
     }
   });
 };
@@ -357,12 +357,12 @@ export default function EditProductPage() {
   const handleImageUpload = async (files: FileList) => {
     try {
       await uploadProductImages(parseInt(productId), files);
-      toast.success('Upload nh thnh cng!');
+      toast.success('Upload ảnh thành công!');
       // Refresh product data to get updated images
       await productQuery.refetch();
     } catch (error) {
       console.error('Error uploading images:', error);
-      toast.error('Upload nh tht bi');
+      toast.error('Upload ảnh thất bại');
       throw error;
     }
   };
@@ -370,13 +370,13 @@ export default function EditProductPage() {
   const handleImageDelete = async (imageId: string) => {
     try {
       await deleteProductImage(parseInt(productId), imageId);
-      toast.success('Xa nh thnh cng!');
+      toast.success('Xóa ảnh thành công!');
 
       // Update local state
       setProductImages(prev => prev.filter(img => img.imageId !== imageId));
     } catch (error) {
       console.error('Error deleting image:', error);
-      toast.error('Xa nh tht bi');
+      toast.error('Xóa ảnh thất bại');
       throw error;
     }
   };
@@ -385,7 +385,7 @@ export default function EditProductPage() {
     console.log(' handleSubmit called with data:', data);
 
     if (!isFormValid) {
-      toast.error('Vui lng in y  thng tin bt buc v kim tra nh dng s');
+      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc và kiểm tra định dạng số');
       return;
     }
 
@@ -406,7 +406,7 @@ export default function EditProductPage() {
         if (data.description) variantPayload.Description = data.description;
 
         await updateVariant(parseInt(product.parentProductId as any), parseInt(product.id as any), variantPayload);
-        toast.success('Cp nht bin th thnh cng!');
+        toast.success('Cập nhật biến thể thành công!');
         await productQuery.refetch();
       } else {
         // Base product update handled entirely by backend (also updates inventory if StockQuantity provided)
@@ -436,10 +436,10 @@ export default function EditProductPage() {
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" disabled>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay li
+            Quay lại
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">ang ti d liu...</h1>
+            <h1 className="text-3xl font-bold">đang tải dữ liệu...</h1>
             <div className="text-sm text-muted-foreground">
               Product ID: {productId} |
               Product Loading: {productLoading ? 'YES' : 'NO'} |
@@ -481,7 +481,7 @@ export default function EditProductPage() {
     const isNotFound = (error as any)?.status === 404;
 
     if (isNotFound) {
-      toast.error('Sn phm khng tn ti');
+      toast.error('Sản phẩm không tồn tại');
       router.push('/admin/products');
       return null;
     }
@@ -492,11 +492,11 @@ export default function EditProductPage() {
           <Link href="/admin/products">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay li
+              Quay lại
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Li</h1>
+            <h1 className="text-3xl font-bold">Lỗi</h1>
           </div>
         </div>
         <Card>
@@ -504,10 +504,10 @@ export default function EditProductPage() {
             <div className="flex items-center gap-2 text-red-600">
               <AlertCircle className="h-5 w-5" />
               <span>
-                Khng th ti d liu:
-                {error && `Product: ${(error as any)?.message || 'C li xy ra'}`}
-                {categoriesError && ` | Categories: ${(categoriesError as any)?.message || 'C li xy ra'}`}
-                {brandsError && ` | Brands: ${(brandsError as any)?.message || 'C li xy ra'}`}
+                Không thể tải dữ liệu:
+                {error && `Product: ${(error as any)?.message || 'Có lỗi xảy ra'}`}
+                {categoriesError && ` | Categories: ${(categoriesError as any)?.message || 'Có lỗi xảy ra'}`}
+                {brandsError && ` | Brands: ${(brandsError as any)?.message || 'Có lỗi xảy ra'}`}
               </span>
             </div>
           </CardContent>
@@ -524,13 +524,13 @@ export default function EditProductPage() {
           <Link href="/admin/products">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay li
+              Quay lại
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Chnh sa sn phm</h1>
+            <h1 className="text-3xl font-bold">Chỉnh sửa sản phẩm</h1>
             <p className="text-muted-foreground">
-              Cp nht thng tin sn phm #{productId}
+              Cập nhật thông tin sản phẩm #{productId}
             </p>
           </div>
         </div>

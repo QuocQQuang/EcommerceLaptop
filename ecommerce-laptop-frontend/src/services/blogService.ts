@@ -133,7 +133,14 @@ const mapPaginatedComments = (payload: any): PaginatedResponse<BlogComment> => {
 };
 
 const mapBlog = (blog: any): Blog => {
-    const tags = Array.isArray(blog?.tags) ? blog.tags.map((tag: any) => mapBlogTag(tag)) : [];
+    const tags = Array.isArray(blog?.tags)
+        ? blog.tags.map((tag: any) => mapBlogTag(tag))
+        : Array.isArray(blog?.blogPostTags)
+            ? blog.blogPostTags
+                .map((postTag: any) => postTag?.blogTag ?? postTag?.tag)
+                .filter(Boolean)
+                .map((tag: any) => mapBlogTag(tag))
+            : [];
     const tagIds = Array.isArray(blog?.tagIds) ? blog.tagIds.map(Number) : tags.map((tag: BlogTag) => tag.id);
 
     return {

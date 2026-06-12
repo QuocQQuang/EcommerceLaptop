@@ -48,6 +48,9 @@ public static class DataInitializer
         SafeExecuteSeeder(() => VariantDataSeeder.SeedIfMissing(context, logger),
             "VariantDataSeeder", logger);
 
+        SafeExecuteSeeder(() => BlogDataSeeder.SeedIfMissing(context, logger),
+            "BlogDataSeeder", logger);
+
         SafeExecuteSeeder(() => BundleDataSeeder.SeedIfEmpty(context, logger),
             "BundleDataSeeder", logger);
 

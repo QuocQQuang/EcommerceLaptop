@@ -81,11 +81,11 @@ const useCreateVariantMutation = (productId: string) => {
             return await createVariant(parseInt(productId), variantData);
         },
         onSuccess: () => {
-            toast.success('To bin th thnh cng!');
+            toast.success('Tạo biến thể thành công!');
             queryClient.invalidateQueries({ queryKey: ['admin', 'variants', productId] });
         },
         onError: (error: any) => {
-            toast.error(`Li khi to bin th: ${error.message}`);
+            toast.error(`Lỗi khi tạo biến thể: ${error.message}`);
         }
     });
 };
@@ -98,11 +98,11 @@ const useDeleteVariantMutation = (productId: string) => {
             return await deleteVariant(parseInt(productId), variantId);
         },
         onSuccess: () => {
-            toast.success('Xa bin th thnh cng!');
+            toast.success('Xóa biến thể thành công!');
             queryClient.invalidateQueries({ queryKey: ['admin', 'variants', productId] });
         },
         onError: (error: any) => {
-            toast.error(`Li khi xa bin th: ${error.message}`);
+            toast.error(`Lỗi khi xóa biến thể: ${error.message}`);
         }
     });
 };
@@ -114,11 +114,11 @@ const useUpdateVariantMutation = (productId: string) => {
             return await updateVariant(parseInt(productId), variantId, variantData);
         },
         onSuccess: () => {
-            toast.success('Cp nht bin th thnh cng!');
+            toast.success('Cập nhật biến thể thành công!');
             queryClient.invalidateQueries({ queryKey: ['admin', 'variants', productId] });
         },
         onError: (error: any) => {
-            toast.error(`Li khi cp nht bin th: ${error.message}`);
+            toast.error(`Lỗi khi cập nhật biến thể: ${error.message}`);
         }
     });
 };
@@ -139,9 +139,9 @@ const getStockBadge = (stock: number) => {
 
 const getStatusBadge = (isActive: boolean) => {
     return isActive ? (
-        <Badge variant="default">Hot ng</Badge>
+        <Badge variant="default">Hoạt động</Badge>
     ) : (
-        <Badge variant="secondary">Khng hot ng</Badge>
+        <Badge variant="secondary">Không hoạt động</Badge>
     );
 };
 
@@ -174,7 +174,7 @@ export default function VariantManagementPage() {
         stock: '',
         description: '',
 
-        // Laptop-specific fields - M RNG TT C THNG S
+        // Laptop-specific fields - MỜ RỘNG TẤT CẢ THÔNG SỐ
         series: '',
 
         // CPU Specifications
@@ -237,7 +237,7 @@ export default function VariantManagementPage() {
         stock: '',
         description: '',
 
-        // Laptop-specific fields - M RNG TT C THNG S
+        // Laptop-specific fields - MỜ RỘNG TẤT CẢ THÔNG SỐ
         series: '',
 
         // CPU Specifications
@@ -499,7 +499,7 @@ export default function VariantManagementPage() {
     // Handle create variant - 2-step process like regular products
     const handleCreateVariant = async () => {
         if (!createFormData.variantName || !createFormData.variantSku || !createFormData.price) {
-            toast.error('Vui lng in y  cc trng bt buc');
+            toast.error('Vui lòng điền đầy đủ các trường bắt buộc');
             return;
         }
 
@@ -512,7 +512,7 @@ export default function VariantManagementPage() {
             description: createFormData.description,
             isActive: true,
 
-            // Laptop-specific fields - M RNG TT C THNG S
+            // Laptop-specific fields - MỜ RỘNG TẤT CẢ THÔNG SỐ
             series: createFormData.series || undefined,
 
             // CPU Specifications
@@ -578,13 +578,13 @@ export default function VariantManagementPage() {
                         createImages.forEach(file => dt.items.add(file));
 
                         await uploadVariantImages(parseInt(productId), newVariant.id, dt.files);
-                        toast.success('To bin th v ti ln hnh nh thnh cng!');
+                        toast.success('Tạo biến thể và tải lên hình ảnh thành công!');
                     } catch (error) {
                         console.error('Error uploading variant images:', error);
-                        toast.error('To bin th thnh cng nhng ti ln hnh nh tht bi');
+                        toast.error('Tạo biến thể thành công nhưng tải lên hình ảnh thất bại');
                     }
                 } else {
-                    toast.success('To bin th thnh cng!');
+                    toast.success('Tạo biến thể thành công!');
                 }
 
                 setShowCreateDialog(false);
@@ -760,7 +760,7 @@ export default function VariantManagementPage() {
     // Handle update variant - 2-step process like regular products
     const handleUpdateVariant = () => {
         if (!editFormData.variantName || !editFormData.variantSku || !editFormData.price) {
-            toast.error('Vui lng in y  cc trng bt buc');
+            toast.error('Vui lòng điền đầy đủ các trường bắt buộc');
             return;
         }
 
@@ -775,7 +775,7 @@ export default function VariantManagementPage() {
             description: editFormData.description,
             isActive: true,
 
-            // Laptop-specific fields - M RNG TT C THNG S
+            // Laptop-specific fields - MỜ RỘNG TẤT CẢ THÔNG SỐ
             series: editFormData.series || undefined,
 
             // CPU Specifications
@@ -844,13 +844,13 @@ export default function VariantManagementPage() {
                         editImages.forEach(file => dt.items.add(file));
 
                         await uploadVariantImages(parseInt(productId), selectedVariant.id, dt.files);
-                        toast.success('Cp nht bin th v ti ln hnh nh thnh cng!');
+                        toast.success('Cập nhật biến thể và tải lên hình ảnh thành công!');
                     } catch (error) {
                         console.error('Error uploading variant images:', error);
-                        toast.error('Cp nht bin th thnh cng nhng ti ln hnh nh tht bi');
+                        toast.error('Cập nhật biến thể thành công nhưng tải lên hình ảnh thất bại');
                     }
                 } else {
-                    toast.success('Cp nht bin th thnh cng!');
+                    toast.success('Cập nhật biến thể thành công!');
                 }
 
                 setShowEditDialog(false);
@@ -907,11 +907,11 @@ export default function VariantManagementPage() {
                     <Link href="/admin/products">
                         <Button variant="outline" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
-                            Quay li Sn phm
+                            Quay lại Sản phẩm
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold">Khng tm thy sn phm</h1>
+                        <h1 className="text-3xl font-bold">Không tìm thấy sản phẩm</h1>
                     </div>
                 </div>
             </div>
@@ -926,11 +926,11 @@ export default function VariantManagementPage() {
                     <Link href="/admin/products">
                         <Button variant="outline" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
-                            Quay li Sn phm
+                            Quay lại Sản phẩm
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold">Qun l Bin th</h1>
+                        <h1 className="text-3xl font-bold">Quản lý Biến thể</h1>
                         <p className="text-muted-foreground">
                             {product.name} - {product.sku}
                         </p>
@@ -940,7 +940,7 @@ export default function VariantManagementPage() {
                 <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
                     <Button type="button" onClick={() => setShowCreateDialog(true)}>
                         <Plus className="h-4 w-4 mr-2" />
-                        Thm Bin th
+                        Thêm Biến thể
                     </Button>
                 </PermissionGuard>
             </div>
@@ -950,7 +950,7 @@ export default function VariantManagementPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Package className="h-5 w-5" />
-                        Thng tin Sn phm Gc
+                        Thông tin Sản phẩm Gốc
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -974,7 +974,7 @@ export default function VariantManagementPage() {
             {/* Search and Filters */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Tm kim Bin th</CardTitle>
+                    <CardTitle>Tìm kiếm Biến thể</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex gap-4">
@@ -982,7 +982,7 @@ export default function VariantManagementPage() {
                             <div className="relative">
                                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Tm kim bin th theo tn, SKU, hoc tn bin th..."
+                                    placeholder="Tìm kiếm biến thể theo tên, SKU, hoặc tên biến thể..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="pl-9"
@@ -1001,7 +1001,7 @@ export default function VariantManagementPage() {
                             Bin th ({filteredVariants.length})
                         </CardTitle>
                         <Button type="button" variant="outline" onClick={() => window.location.reload()}>
-                            Lm mi
+                            Làm mới
                         </Button>
                     </div>
                 </CardHeader>
@@ -1015,15 +1015,15 @@ export default function VariantManagementPage() {
                     ) : filteredVariants.length === 0 ? (
                         <div className="text-center py-8">
                             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                            <h3 className="text-lg font-semibold mb-2">Khng tm thy bin th</h3>
+                            <h3 className="text-lg font-semibold mb-2">Không tìm thấy biến thể</h3>
                             <p className="text-muted-foreground mb-4">
-                                {searchTerm ? 'Khng c bin th no ph hp vi tiu ch tm kim ca bn.' : 'Sn phm ny cha c bin th no.'}
+                                {searchTerm ? 'Không có biến thể nào phùhợp với tiêu chí tìm kiếm của bạn.' : 'Sản phẩm này chưa có biến thể nào.'}
                             </p>
                             {!searchTerm && (
                                 <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
                                     <Button type="button" onClick={() => setShowCreateDialog(true)}>
                                         <Plus className="h-4 w-4 mr-2" />
-                                        To Bin th u tin
+                                        Tạo Biến thể đầu tiên
                                     </Button>
                                 </PermissionGuard>
                             )}
@@ -1036,7 +1036,7 @@ export default function VariantManagementPage() {
                                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                                     <div className="flex-1">
                                         <h3 className="font-semibold text-blue-900">{product.name}</h3>
-                                        <p className="text-sm text-blue-700">Sn phm Gc - {product.sku}</p>
+                                        <p className="text-sm text-blue-700">Sản phẩm Gốc - {product.sku}</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="font-medium text-blue-900">{formatCurrency(product.price)}</p>
@@ -1048,7 +1048,7 @@ export default function VariantManagementPage() {
                             {/* Variants List */}
                             {filteredVariants.length > 0 && (
                                 <div className="space-y-2">
-                                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Bin th:</h4>
+                                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Biến thể:</h4>
                                     {filteredVariants.map((variant: any) => (
                                         <div key={variant.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 ml-6">
                                             <div className="flex items-start justify-between">
@@ -1117,27 +1117,27 @@ export default function VariantManagementPage() {
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>To Bin th Mi</DialogTitle>
+                        <DialogTitle>Tạo Biến thể Mới</DialogTitle>
                         <DialogDescription>
-                            To bin th mi cho {product.name}
+                            Tạo biến thể mới cho {product.name}
                         </DialogDescription>
                     </DialogHeader>
                     <Tabs defaultValue="basic" className="w-full">
                         <TabsList className="grid w-full grid-cols-7">
-                            <TabsTrigger value="basic">Thng tin C bn</TabsTrigger>
+                            <TabsTrigger value="basic">Thông tin Cơ bản</TabsTrigger>
                             <TabsTrigger value="cpu">CPU</TabsTrigger>
                             <TabsTrigger value="ram">RAM</TabsTrigger>
-                            <TabsTrigger value="storage">Lu tr</TabsTrigger>
-                            <TabsTrigger value="display">Mn hnh</TabsTrigger>
-                            <TabsTrigger value="other">Khc</TabsTrigger>
-                            <TabsTrigger value="images">Hnh nh</TabsTrigger>
+                            <TabsTrigger value="storage">Lưu trữ</TabsTrigger>
+                            <TabsTrigger value="display">Màn hình</TabsTrigger>
+                            <TabsTrigger value="other">Khác</TabsTrigger>
+                            <TabsTrigger value="images">Hình ảnh</TabsTrigger>
                         </TabsList>
 
                         {/* Basic Information Tab */}
                         <TabsContent value="basic" className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="variantName">Tn Bin th *</Label>
+                                    <Label htmlFor="variantName">Tên Biến thể *</Label>
                                     <Input
                                         id="variantName"
                                         placeholder="VD: 16GB RAM, 512GB SSD"
@@ -1146,7 +1146,7 @@ export default function VariantManagementPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="variantSku">SKU Bin th *</Label>
+                                    <Label htmlFor="variantSku">SKU Biến thể *</Label>
                                     <Input
                                         id="variantSku"
                                         placeholder="VD: VAR-1-001"
@@ -1167,7 +1167,7 @@ export default function VariantManagementPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="stock">S lng Tn kho</Label>
+                                    <Label htmlFor="stock">Số lượng Tồn kho</Label>
                                     <Input
                                         id="stock"
                                         type="number"
@@ -1192,7 +1192,7 @@ export default function VariantManagementPage() {
                         <TabsContent value="cpu" className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="cpuBrand">Thng hiu CPU</Label>
+                                    <Label htmlFor="cpuBrand">Thương hiệu CPU</Label>
                                     <Input
                                         id="cpuBrand"
                                         placeholder="VD: Intel, AMD"
@@ -1212,7 +1212,7 @@ export default function VariantManagementPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="cpuGeneration">Th h</Label>
+                                    <Label htmlFor="cpuGeneration">Thế hệ</Label>
                                     <Input
                                         id="cpuGeneration"
                                         placeholder="VD: 12th Gen"
@@ -1221,7 +1221,7 @@ export default function VariantManagementPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="cpuCores">S nhn</Label>
+                                    <Label htmlFor="cpuCores">Số nhân</Label>
                                     <Input
                                         id="cpuCores"
                                         type="number"
@@ -1233,7 +1233,7 @@ export default function VariantManagementPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="cpuBaseClockGHz">Tn s C bn (GHz)</Label>
+                                    <Label htmlFor="cpuBaseClockGHz">Tần số Cơ bản (GHz)</Label>
                                     <Input
                                         id="cpuBaseClockGHz"
                                         type="number"
@@ -1244,7 +1244,7 @@ export default function VariantManagementPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="cpuBoostClockGHz">Tn s Tng tc (GHz)</Label>
+                                    <Label htmlFor="cpuBoostClockGHz">Tần số Tăng tốc (GHz)</Label>
                                     <Input
                                         id="cpuBoostClockGHz"
                                         type="number"
@@ -1256,7 +1256,7 @@ export default function VariantManagementPage() {
                                 </div>
                             </div>
                             <div>
-                                <Label htmlFor="cpuCache">B nh m</Label>
+                                <Label htmlFor="cpuCache">Bộ nhớ đệm</Label>
                                 <Input
                                     id="cpuCache"
                                     placeholder="VD: 24MB L3"
@@ -1270,7 +1270,7 @@ export default function VariantManagementPage() {
                         <TabsContent value="ram" className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="ramType">Loi RAM</Label>
+                                    <Label htmlFor="ramType">Loại RAM</Label>
                                     <Input
                                         id="ramType"
                                         placeholder="VD: DDR4, DDR5"
@@ -1279,7 +1279,7 @@ export default function VariantManagementPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="ramCapacityGB">Dung lng (GB)</Label>
+                                    <Label htmlFor="ramCapacityGB">Dung lượng (GB)</Label>
                                     <Input
                                         id="ramCapacityGB"
                                         type="number"
@@ -1291,7 +1291,7 @@ export default function VariantManagementPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="ramSlots">Khe cm RAM</Label>
+                                    <Label htmlFor="ramSlots">Khe cắm RAM</Label>
                                     <Input
                                         id="ramSlots"
                                         type="number"
@@ -1301,7 +1301,7 @@ export default function VariantManagementPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="ramSpeed">Tc  (MHz)</Label>
+                                    <Label htmlFor="ramSpeed">Tốc độ (MHz)</Label>
                                     <Input
                                         id="ramSpeed"
                                         type="number"
@@ -1317,7 +1317,7 @@ export default function VariantManagementPage() {
                                     checked={createFormData.ramUpgradeable}
                                     onCheckedChange={(checked) => setCreateFormData(prev => ({ ...prev, ramUpgradeable: !!checked }))}
                                 />
-                                <Label htmlFor="ramUpgradeable">RAM c th nng cp</Label>
+                                <Label htmlFor="ramUpgradeable">RAM có thể nâng cấp</Label>
                             </div>
                         </TabsContent>
 
@@ -1325,7 +1325,7 @@ export default function VariantManagementPage() {
                         <TabsContent value="storage" className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="storageType">Loi lu tr</Label>
+                                    <Label htmlFor="storageType">Loại lưu trữ</Label>
                                     <Input
                                         id="storageType"
                                         placeholder="VD: SSD, HDD"
@@ -1334,7 +1334,7 @@ export default function VariantManagementPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="storageCapacityGB">Dung lng (GB)</Label>
+                                    <Label htmlFor="storageCapacityGB">Dung lượng (GB)</Label>
                                     <Input
                                         id="storageCapacityGB"
                                         type="number"
@@ -1346,7 +1346,7 @@ export default function VariantManagementPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="storageInterface">Giao din</Label>
+                                    <Label htmlFor="storageInterface">Giao diện</Label>
                                     <Input
                                         id="storageInterface"
                                         placeholder="VD: NVMe, SATA"
@@ -1360,7 +1360,7 @@ export default function VariantManagementPage() {
                                         checked={createFormData.nvMeSupport}
                                         onCheckedChange={(checked) => setCreateFormData(prev => ({ ...prev, nvMeSupport: !!checked }))}
                                     />
-                                    <Label htmlFor="nvMeSupport">H tr NVMe</Label>
+                                    <Label htmlFor="nvMeSupport">Hỗ trợ NVMe</Label>
                                 </div>
                             </div>
                         </TabsContent>
@@ -1369,7 +1369,7 @@ export default function VariantManagementPage() {
                         <TabsContent value="display" className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="displaySizeInches">Kch thc (inch)</Label>
+                                    <Label htmlFor="displaySizeInches">Kích thước (inch)</Label>
                                     <Input
                                         id="displaySizeInches"
                                         type="number"
@@ -1380,7 +1380,7 @@ export default function VariantManagementPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="displayResolution"> phn gii</Label>
+                                    <Label htmlFor="displayResolution"> độ phân giải</Label>
                                     <Input
                                         id="displayResolution"
                                         placeholder="VD: 1920x1080"
@@ -1391,7 +1391,7 @@ export default function VariantManagementPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="displayPanelType">Loi mn hnh</Label>
+                                    <Label htmlFor="displayPanelType">Loại màn hình</Label>
                                     <Input
                                         id="displayPanelType"
                                         placeholder="VD: IPS, OLED"
@@ -1400,7 +1400,7 @@ export default function VariantManagementPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="displayRefreshRateHz">Tn s qut (Hz)</Label>
+                                    <Label htmlFor="displayRefreshRateHz">Tần số quét (Hz)</Label>
                                     <Input
                                         id="displayRefreshRateHz"
                                         type="number"
@@ -1416,7 +1416,7 @@ export default function VariantManagementPage() {
                                     checked={createFormData.displayTouchscreen}
                                     onCheckedChange={(checked) => setCreateFormData(prev => ({ ...prev, displayTouchscreen: !!checked }))}
                                 />
-                                <Label htmlFor="displayTouchscreen">Cm ng</Label>
+                                <Label htmlFor="displayTouchscreen">Cảm ứng</Label>
                             </div>
                         </TabsContent>
 
@@ -1433,7 +1433,7 @@ export default function VariantManagementPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="color">Mu sc</Label>
+                                    <Label htmlFor="color">Màu sắc</Label>
                                     <Input
                                         id="color"
                                         placeholder="VD: Silver, Space Gray"
@@ -1444,7 +1444,7 @@ export default function VariantManagementPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="weightKg">Trng lng (kg)</Label>
+                                    <Label htmlFor="weightKg">Trọng lượng (kg)</Label>
                                     <Input
                                         id="weightKg"
                                         type="number"
@@ -1512,13 +1512,13 @@ export default function VariantManagementPage() {
                     </Tabs>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
-                            Hy
+                            Hủy
                         </Button>
                         <Button
                             onClick={handleCreateVariant}
                             disabled={createVariantMutation.isPending}
                         >
-                            {createVariantMutation.isPending ? 'ang to...' : 'To Bin th'}
+                            {createVariantMutation.isPending ? 'đang tạo...' : 'Tạo Biến thể'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1528,20 +1528,20 @@ export default function VariantManagementPage() {
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>Chnh sa Bin th</DialogTitle>
+                        <DialogTitle>Chỉnh sửa Biến thể</DialogTitle>
                         <DialogDescription>
-                            Chnh sa bin th cho {product?.name}
+                            Chỉnh sửa biến thể cho {product?.name}
                         </DialogDescription>
                     </DialogHeader>
                     <Tabs defaultValue="basic" className="w-full">
                         <TabsList className="grid w-full grid-cols-7">
-                            <TabsTrigger value="basic">Thng tin C bn</TabsTrigger>
+                            <TabsTrigger value="basic">Thông tin Cơ bản</TabsTrigger>
                             <TabsTrigger value="cpu">CPU</TabsTrigger>
                             <TabsTrigger value="ram">RAM</TabsTrigger>
-                            <TabsTrigger value="storage">Lu tr</TabsTrigger>
-                            <TabsTrigger value="display">Mn hnh</TabsTrigger>
-                            <TabsTrigger value="other">Khc</TabsTrigger>
-                            <TabsTrigger value="images">Hnh nh</TabsTrigger>
+                            <TabsTrigger value="storage">Lưu trữ</TabsTrigger>
+                            <TabsTrigger value="display">Màn hình</TabsTrigger>
+                            <TabsTrigger value="other">Khác</TabsTrigger>
+                            <TabsTrigger value="images">Hình ảnh</TabsTrigger>
                         </TabsList>
 
                         {/* Basic Information Tab */}
@@ -2008,13 +2008,13 @@ export default function VariantManagementPage() {
                             });
                             setEditImageUrls([]);
                         }}>
-                            Hy
+                            Hủy
                         </Button>
                         <Button
                             onClick={handleUpdateVariant}
                             disabled={updateVariantMutation.isPending}
                         >
-                            {updateVariantMutation.isPending ? 'ang cp nht...' : 'Cp nht Bin th'}
+                            {updateVariantMutation.isPending ? 'đang cập nhật...' : 'Cập nhật Biến thể'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
