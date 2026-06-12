@@ -43,6 +43,13 @@ export default function BasicInformationSection({
 
     // Get parent categories for the modal
     const parentCategories = categories?.filter(cat => !cat.parentId) || [];
+    const hasSelectedCategory = Boolean(
+        formData.categoryId && categories?.some(category => category.id?.toString() === formData.categoryId)
+    );
+    const hasSelectedBrand = Boolean(
+        formData.brandId && brands?.some(brand => brand.id?.toString() === formData.brandId)
+    );
+
     return (
         <Card>
             <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -191,6 +198,11 @@ export default function BasicInformationSection({
                                             <SelectValue placeholder="Chọn danh mục" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            {formData.categoryId && !hasSelectedCategory && (
+                                                <SelectItem value={formData.categoryId}>
+                                                    Danh mục #{formData.categoryId}
+                                                </SelectItem>
+                                            )}
                                             {categories?.map((category) => (
                                                 <SelectItem key={category.id} value={category.id.toString()}>
                                                     {category.name}
@@ -224,6 +236,11 @@ export default function BasicInformationSection({
                                             <SelectValue placeholder="Chọn thương hiệu" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            {formData.brandId && !hasSelectedBrand && (
+                                                <SelectItem value={formData.brandId}>
+                                                    Thương hiệu #{formData.brandId}
+                                                </SelectItem>
+                                            )}
                                             {brands?.map((brand) => (
                                                 <SelectItem key={brand.id} value={brand.id.toString()}>
                                                     {brand.name}

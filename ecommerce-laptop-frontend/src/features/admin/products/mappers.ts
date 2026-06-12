@@ -7,6 +7,25 @@ const findBrandIdByName = (brands: Brand[], brandName: string): string => {
   return brand?.id?.toString() || '';
 };
 
+const read = <T = any>(source: any, ...keys: string[]): T | undefined => {
+  for (const key of keys) {
+    const value = source?.[key];
+    if (value !== undefined && value !== null) return value as T;
+  }
+  return undefined;
+};
+
+const text = (value: unknown): string => {
+  if (value === null || value === undefined) return '';
+  return value.toString();
+};
+
+const bool = (value: unknown, fallback = false): boolean => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.toLowerCase() === 'true';
+  return fallback;
+};
+
 const withUnit = (value: unknown, unit: string): string => {
   if (value === null || value === undefined || value === '') return '';
   const text = value.toString().trim();
@@ -41,104 +60,120 @@ const normalizeDisplayResolution = (value?: string): string => {
   return known[value] || value;
 };
 
-export const mapProductToForm = (product: Product, brands: Brand[] = []): ProductFormData => ({
-  name: product.name || '',
-  sku: product.sku || '',
-  description: product.description || '',
-  categoryId: product.categoryId?.toString() || product.categories?.[0]?.id?.toString() || '',
-  brandId: product.brandId?.toString() || findBrandIdByName(brands, product.brand || ''),
-  price: product.price?.toString() || '',
-  stock: product.stockQuantity?.toString() || '',
-  weight: product.weightKg?.toString() || product.weight?.toString() || '',
-  dimensions: product.dimensions || '',
-  status: (product.isActive ? 'active' : 'inactive') as 'active' | 'inactive',
-  images: product.images?.map(i => i.imageUrl) || [],
-  productType: (product.productType || product.type || 'Laptop') as 'Laptop' | 'Accessory' | 'Bundle',
+export const mapProductToForm = (product: Product, brands: Brand[] = []): ProductFormData => {
+  const raw = product as any;
+  const category = read<any>(raw, 'category', 'Category');
+  const categories = read<any[]>(raw, 'categories', 'Categories') || [];
+  const brandName = text(read(raw, 'brand', 'Brand'));
+  const inventory = read<any>(raw, 'inventory', 'Inventory') || {};
+  const stockQuantity = read(raw, 'stockQuantity', 'StockQuantity');
+  const images = read<any[]>(raw, 'images', 'Images') || [];
+  const isActive = read(raw, 'isActive', 'IsActive');
+  const productType = text(read(raw, 'productType', 'ProductType', 'type', 'Type') || 'Laptop');
+
+  return {
+  name: text(read(raw, 'name', 'Name')),
+  sku: text(read(raw, 'sku', 'SKU')),
+  description: text(read(raw, 'description', 'Description')),
+  categoryId: text(
+    read(raw, 'categoryId', 'CategoryId') ??
+    read(category, 'id', 'Id') ??
+    read(categories[0], 'id', 'Id')
+  ),
+  brandId: text(read(raw, 'brandId', 'BrandId')) || findBrandIdByName(brands, brandName),
+  price: text(read(raw, 'price', 'Price')),
+  stock: text(stockQuantity),
+  weight: text(read(raw, 'weightKg', 'WeightKg') ?? read(raw, 'weight', 'Weight')),
+  dimensions: text(read(raw, 'dimensions', 'Dimensions')),
+  status: (isActive === false ? 'inactive' : 'active') as 'active' | 'inactive',
+  images: images.map(i => read<string>(i, 'imageUrl', 'ImageUrl')).filter(Boolean) as string[],
+  productType: productType as 'Laptop' | 'Accessory' | 'Bundle',
 
   inventory: {
-    quantityInStock: product.inventory?.quantityInStock?.toString() || product.stockQuantity?.toString() || '',
-    reservedQuantity: product.inventory?.reservedQuantity?.toString() || '0',
-    reorderLevel: product.inventory?.reorderLevel?.toString() || '5',
-    maxStockLevel: product.inventory?.maxStockLevel?.toString() || '100',
-    warehouseLocation: product.inventory?.warehouseLocation || ''
+    quantityInStock: text(read(inventory, 'quantityInStock', 'QuantityInStock', 'availableQuantity', 'AvailableQuantity') ?? stockQuantity),
+    reservedQuantity: text(read(inventory, 'reservedQuantity', 'ReservedQuantity') ?? '0'),
+    reorderLevel: text(read(inventory, 'reorderLevel', 'ReorderLevel') ?? '5'),
+    maxStockLevel: text(read(inventory, 'maxStockLevel', 'MaxStockLevel') ?? '100'),
+    warehouseLocation: text(read(inventory, 'warehouseLocation', 'WarehouseLocation'))
   },
 
-  series: product.series || '',
-  model: product.model || '',
-  cpuBrand: product.cpuBrand || '',
-  cpuModel: product.cpuModel || '',
-  cpuGeneration: product.cpuGeneration || '',
-  cpuCores: cpuCoresLabel(product.cpuCores),
-  cpuBaseClockGHz: product.cpuBaseClockGHz?.toString() || '',
-  cpuBoostClockGHz: product.cpuBoostClockGHz?.toString() || '',
-  cpuCache: product.cpuCache || '',
-  ramType: product.ramType || '',
-  ramCapacityGB: withUnit(product.ramCapacityGB, 'GB'),
-  ramSlots: product.ramSlots?.toString() || '',
-  ramSpeed: withUnit(product.ramSpeed, ' MHz'),
-  ramUpgradeable: product.ramUpgradeable || false,
-  storageType: product.storageType || '',
-  storageCapacityGB: product.storageCapacityGB
-    ? Number(product.storageCapacityGB) >= 1024 && Number(product.storageCapacityGB) % 1024 === 0
-      ? `${Number(product.storageCapacityGB) / 1024}TB`
-      : `${product.storageCapacityGB}GB`
+  series: text(read(raw, 'series', 'Series')),
+  model: text(read(raw, 'model', 'Model')),
+  cpuBrand: text(read(raw, 'cpuBrand', 'CpuBrand')),
+  cpuModel: text(read(raw, 'cpuModel', 'CpuModel')),
+  cpuGeneration: text(read(raw, 'cpuGeneration', 'CpuGeneration')),
+  cpuCores: cpuCoresLabel(read(raw, 'cpuCores', 'CpuCores')),
+  cpuBaseClockGHz: text(read(raw, 'cpuBaseClockGHz', 'CpuBaseClockGHz')),
+  cpuBoostClockGHz: text(read(raw, 'cpuBoostClockGHz', 'CpuBoostClockGHz')),
+  cpuCache: text(read(raw, 'cpuCache', 'CpuCache')),
+  ramType: text(read(raw, 'ramType', 'RamType')),
+  ramCapacityGB: withUnit(read(raw, 'ramCapacityGB', 'RamCapacityGB'), 'GB'),
+  ramSlots: text(read(raw, 'ramSlots', 'RamSlots')),
+  ramSpeed: withUnit(read(raw, 'ramSpeed', 'RamSpeed'), ' MHz'),
+  ramUpgradeable: bool(read(raw, 'ramUpgradeable', 'RamUpgradeable')),
+  storageType: text(read(raw, 'storageType', 'StorageType')),
+  storageCapacityGB: read(raw, 'storageCapacityGB', 'StorageCapacityGB')
+    ? Number(read(raw, 'storageCapacityGB', 'StorageCapacityGB')) >= 1024 && Number(read(raw, 'storageCapacityGB', 'StorageCapacityGB')) % 1024 === 0
+      ? `${Number(read(raw, 'storageCapacityGB', 'StorageCapacityGB')) / 1024}TB`
+      : `${read(raw, 'storageCapacityGB', 'StorageCapacityGB')}GB`
     : '',
-  storageInterface: product.storageInterface || '',
-  nvMeSupport: product.nvMeSupport || false,
-  gpuType: product.gpuType || '',
-  gpuBrand: product.gpuBrand || '',
-  gpuModel: product.gpuModel || '',
-  gpuVramGB: withUnit(product.gpuVramGB, 'GB'),
-  displaySizeInches: displaySizeLabel(product.displaySizeInches),
-  displayResolution: normalizeDisplayResolution(product.displayResolution),
-  displayPanelType: product.displayPanelType || '',
-  displayRefreshRateHz: withUnit(product.displayRefreshRateHz, 'Hz'),
-  displayTouchscreen: product.displayTouchscreen || false,
-  batteryCapacityWh: withUnit(product.batteryCapacityWh, 'Wh'),
-  weightKg: product.weightKg?.toString() || '',
-  color: product.color || '',
-  ports: product.ports || '',
-  wiFi6Support: product.wiFi6Support || false,
-  bluetoothSupport: product.bluetoothSupport || false,
-  bluetoothVersion: product.bluetoothVersion || '',
-  warrantyPeriod: product.warrantyPeriod || '',
-  targetAudience: product.targetAudience || '',
+  storageInterface: text(read(raw, 'storageInterface', 'StorageInterface')),
+  nvMeSupport: bool(read(raw, 'nvMeSupport', 'NvMeSupport', 'NVMeSupport')),
+  gpuType: text(read(raw, 'gpuType', 'GpuType')),
+  gpuBrand: text(read(raw, 'gpuBrand', 'GpuBrand')),
+  gpuModel: text(read(raw, 'gpuModel', 'GpuModel')),
+  gpuVramGB: withUnit(read(raw, 'gpuVramGB', 'GpuVramGB'), 'GB'),
+  displaySizeInches: displaySizeLabel(read(raw, 'displaySizeInches', 'DisplaySizeInches')),
+  displayResolution: normalizeDisplayResolution(text(read(raw, 'displayResolution', 'DisplayResolution'))),
+  displayPanelType: text(read(raw, 'displayPanelType', 'DisplayPanelType')),
+  displayRefreshRateHz: withUnit(read(raw, 'displayRefreshRateHz', 'DisplayRefreshRateHz'), 'Hz'),
+  displayTouchscreen: bool(read(raw, 'displayTouchscreen', 'DisplayTouchscreen')),
+  batteryCapacityWh: withUnit(read(raw, 'batteryCapacityWh', 'BatteryCapacityWh'), 'Wh'),
+  weightKg: text(read(raw, 'weightKg', 'WeightKg')),
+  color: text(read(raw, 'color', 'Color')),
+  ports: text(read(raw, 'ports', 'Ports')),
+  wiFi6Support: bool(read(raw, 'wiFi6Support', 'WiFi6Support')),
+  bluetoothSupport: bool(read(raw, 'bluetoothSupport', 'BluetoothSupport')),
+  bluetoothVersion: text(read(raw, 'bluetoothVersion', 'BluetoothVersion')),
+  warrantyPeriod: text(read(raw, 'warrantyPeriod', 'WarrantyPeriod')),
+  targetAudience: text(read(raw, 'targetAudience', 'TargetAudience')),
 
-  accessoryType: product.accessoryType || '',
-  compatibility: product.compatibility || '',
-  specificationDetails: product.specifications_json || '',
-  connectivity: product.connectivity || '',
+  accessoryType: text(read(raw, 'accessoryType', 'AccessoryType')),
+  compatibility: text(read(raw, 'compatibility', 'Compatibility')),
+  specificationDetails: text(read(raw, 'specifications_json', 'SpecificationsJson')),
+  connectivity: text(read(raw, 'connectivity', 'Connectivity')),
 
-  bundleType: product.bundleType || '',
-  discountPercentage: product.discountPercentage?.toString() || '',
-  validFrom: product.validFrom || '',
-  validTo: product.validTo || '',
-  bundleItems: product.bundleItems?.map(item => ({
-    productId: item.productId.toString(),
-    quantity: item.quantity.toString(),
-    discountPercentage: item.discountPercentage.toString()
+  bundleType: text(read(raw, 'bundleType', 'BundleType')),
+  discountPercentage: text(read(raw, 'discountPercentage', 'DiscountPercentage')),
+  validFrom: text(read(raw, 'validFrom', 'ValidFrom')),
+  validTo: text(read(raw, 'validTo', 'ValidTo')),
+  bundleItems: (read<any[]>(raw, 'bundleItems', 'BundleItems') || []).map(item => ({
+    productId: text(read(item, 'productId', 'ProductId')),
+    quantity: text(read(item, 'quantity', 'Quantity')),
+    discountPercentage: text(read(item, 'discountPercentage', 'DiscountPercentage'))
   })) || [],
 
-  cpu: product.cpuBrand && product.cpuModel
-    ? `${product.cpuBrand} ${product.cpuModel} ${product.cpuGeneration || ''}`.trim()
-    : product.cpuBrand || '',
-  ram: product.ramCapacityGB && product.ramType
-    ? `${product.ramCapacityGB}GB ${product.ramType} ${product.ramSpeed ? `${product.ramSpeed}MHz` : ''}`.trim()
-    : product.ramCapacityGB ? `${product.ramCapacityGB}GB` : '',
-  storage: product.storageCapacityGB && product.storageType
-    ? `${product.storageCapacityGB}GB ${product.storageType} ${product.storageInterface || ''}`.trim()
-    : product.storageCapacityGB ? `${product.storageCapacityGB}GB SSD` : '',
-  gpu: product.gpuBrand && product.gpuModel
-    ? `${product.gpuBrand} ${product.gpuModel} ${product.gpuVramGB ? `${product.gpuVramGB}GB` : ''}`.trim()
-    : product.gpuBrand || '',
-  display: product.displaySizeInches && product.displayResolution
-    ? `${product.displaySizeInches}" ${product.displayResolution} ${product.displayPanelType || ''} ${product.displayRefreshRateHz ? `${product.displayRefreshRateHz}Hz` : ''}`.trim()
-    : product.displaySizeInches ? `${product.displaySizeInches}" Display` : '',
-  battery: product.batteryCapacityWh
-    ? `${product.batteryCapacityWh}Wh`
-    : product.battery?.toString() || '',
-  weight_kg: product.weightKg?.toString() || product.weight?.toString() || ''
-});
+  cpu: read(raw, 'cpuBrand', 'CpuBrand') && read(raw, 'cpuModel', 'CpuModel')
+    ? `${read(raw, 'cpuBrand', 'CpuBrand')} ${read(raw, 'cpuModel', 'CpuModel')} ${read(raw, 'cpuGeneration', 'CpuGeneration') || ''}`.trim()
+    : text(read(raw, 'cpuBrand', 'CpuBrand')),
+  ram: read(raw, 'ramCapacityGB', 'RamCapacityGB') && read(raw, 'ramType', 'RamType')
+    ? `${read(raw, 'ramCapacityGB', 'RamCapacityGB')}GB ${read(raw, 'ramType', 'RamType')} ${read(raw, 'ramSpeed', 'RamSpeed') ? `${read(raw, 'ramSpeed', 'RamSpeed')}MHz` : ''}`.trim()
+    : read(raw, 'ramCapacityGB', 'RamCapacityGB') ? `${read(raw, 'ramCapacityGB', 'RamCapacityGB')}GB` : '',
+  storage: read(raw, 'storageCapacityGB', 'StorageCapacityGB') && read(raw, 'storageType', 'StorageType')
+    ? `${read(raw, 'storageCapacityGB', 'StorageCapacityGB')}GB ${read(raw, 'storageType', 'StorageType')} ${read(raw, 'storageInterface', 'StorageInterface') || ''}`.trim()
+    : read(raw, 'storageCapacityGB', 'StorageCapacityGB') ? `${read(raw, 'storageCapacityGB', 'StorageCapacityGB')}GB SSD` : '',
+  gpu: read(raw, 'gpuBrand', 'GpuBrand') && read(raw, 'gpuModel', 'GpuModel')
+    ? `${read(raw, 'gpuBrand', 'GpuBrand')} ${read(raw, 'gpuModel', 'GpuModel')} ${read(raw, 'gpuVramGB', 'GpuVramGB') ? `${read(raw, 'gpuVramGB', 'GpuVramGB')}GB` : ''}`.trim()
+    : text(read(raw, 'gpuBrand', 'GpuBrand')),
+  display: read(raw, 'displaySizeInches', 'DisplaySizeInches') && read(raw, 'displayResolution', 'DisplayResolution')
+    ? `${read(raw, 'displaySizeInches', 'DisplaySizeInches')}" ${read(raw, 'displayResolution', 'DisplayResolution')} ${read(raw, 'displayPanelType', 'DisplayPanelType') || ''} ${read(raw, 'displayRefreshRateHz', 'DisplayRefreshRateHz') ? `${read(raw, 'displayRefreshRateHz', 'DisplayRefreshRateHz')}Hz` : ''}`.trim()
+    : read(raw, 'displaySizeInches', 'DisplaySizeInches') ? `${read(raw, 'displaySizeInches', 'DisplaySizeInches')}" Display` : '',
+  battery: read(raw, 'batteryCapacityWh', 'BatteryCapacityWh')
+    ? `${read(raw, 'batteryCapacityWh', 'BatteryCapacityWh')}Wh`
+    : text(read(raw, 'battery', 'Battery')),
+  weight_kg: text(read(raw, 'weightKg', 'WeightKg') ?? read(raw, 'weight', 'Weight'))
+  };
+};
 
 export const mapFormToUpdatePayload = (formData: ProductFormData): ProductUpdateDto => {
   const parseCpu = (cpu?: string): { brand?: string; model?: string; generation?: string } => {
