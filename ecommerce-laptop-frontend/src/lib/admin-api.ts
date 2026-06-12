@@ -1386,6 +1386,40 @@ const findBrandIdByName = (brands: Brand[], brandName: string): string => {
   return brand?.id?.toString() || '';
 };
 
+const withUnit = (value: unknown, unit: string): string => {
+  if (value === null || value === undefined || value === '') return '';
+  const text = value.toString().trim();
+  return text.toLowerCase().includes(unit.trim().toLowerCase()) ? text : `${text}${unit}`;
+};
+
+const cpuCoresLabel = (value: unknown): string => {
+  if (value === null || value === undefined || value === '') return '';
+  const text = value.toString().trim();
+  return /cores?/i.test(text) ? text : `${text} cores`;
+};
+
+const displaySizeLabel = (value: unknown): string => {
+  if (value === null || value === undefined || value === '') return '';
+  const text = value.toString().trim();
+  return text.includes('"') ? text : `${text}"`;
+};
+
+const normalizeDisplayResolution = (value?: string): string => {
+  if (!value) return '';
+  const known: Record<string, string> = {
+    '1366x768': '1366x768 (HD)',
+    '1920x1080': '1920x1080 (FHD)',
+    '2560x1440': '2560x1440 (QHD)',
+    '2560x1600': '2560x1600 (WQXGA)',
+    '2880x1800': '2880x1800 (Retina)',
+    '3200x2000': '3200x2000 (3.2K)',
+    '3840x2160': '3840x2160 (4K UHD)',
+    '5120x2880': '5120x2880 (5K)',
+    '6016x3384': '6016x3384 (6K)'
+  };
+  return known[value] || value;
+};
+
 // Map Product to form data - COMPREHENSIVE VERSION
 export const mapProductToForm = (product: Product, brands: Brand[] = []): ProductFormData => {
   console.log(' mapProductToForm input:', {
@@ -1428,21 +1462,25 @@ export const mapProductToForm = (product: Product, brands: Brand[] = []): Produc
     cpuBrand: product.cpuBrand || '',
     cpuModel: product.cpuModel || '',
     cpuGeneration: product.cpuGeneration || '',
-    cpuCores: product.cpuCores?.toString() || '',
+    cpuCores: cpuCoresLabel(product.cpuCores),
     cpuBaseClockGHz: product.cpuBaseClockGHz?.toString() || '',
     cpuBoostClockGHz: product.cpuBoostClockGHz?.toString() || '',
     cpuCache: product.cpuCache || '',
 
     // RAM Specifications - DETAILED
     ramType: product.ramType || '',
-    ramCapacityGB: product.ramCapacityGB?.toString() || '',
+    ramCapacityGB: withUnit(product.ramCapacityGB, 'GB'),
     ramSlots: product.ramSlots?.toString() || '',
-    ramSpeed: product.ramSpeed?.toString() || '',
+    ramSpeed: withUnit(product.ramSpeed, ' MHz'),
     ramUpgradeable: product.ramUpgradeable || false,
 
     // Storage Specifications - DETAILED
     storageType: product.storageType || '',
-    storageCapacityGB: product.storageCapacityGB?.toString() || '',
+    storageCapacityGB: product.storageCapacityGB
+      ? Number(product.storageCapacityGB) >= 1024 && Number(product.storageCapacityGB) % 1024 === 0
+        ? `${Number(product.storageCapacityGB) / 1024}TB`
+        : `${product.storageCapacityGB}GB`
+      : '',
     storageInterface: product.storageInterface || '',
     nvMeSupport: product.nvMeSupport || false,
 
@@ -1450,17 +1488,17 @@ export const mapProductToForm = (product: Product, brands: Brand[] = []): Produc
     gpuType: product.gpuType || '',
     gpuBrand: product.gpuBrand || '',
     gpuModel: product.gpuModel || '',
-    gpuVramGB: product.gpuVramGB?.toString() || '',
+    gpuVramGB: withUnit(product.gpuVramGB, 'GB'),
 
     // Display Specifications - DETAILED
-    displaySizeInches: product.displaySizeInches?.toString() || '',
-    displayResolution: product.displayResolution || '',
+    displaySizeInches: displaySizeLabel(product.displaySizeInches),
+    displayResolution: normalizeDisplayResolution(product.displayResolution),
     displayPanelType: product.displayPanelType || '',
-    displayRefreshRateHz: product.displayRefreshRateHz?.toString() || '',
+    displayRefreshRateHz: withUnit(product.displayRefreshRateHz, 'Hz'),
     displayTouchscreen: product.displayTouchscreen || false,
 
     // Physical Specifications - DETAILED
-    batteryCapacityWh: product.batteryCapacityWh?.toString() || '',
+    batteryCapacityWh: withUnit(product.batteryCapacityWh, 'Wh'),
     weightKg: product.weightKg?.toString() || '',
     color: product.color || '',
     ports: product.ports || '',
@@ -1590,6 +1628,14 @@ export const mapFormToUpdatePayload = (formData: ProductFormData): ProductUpdate
     return just ? Number(just[1]) : undefined;
   };
 
+  const parseCapacityGB = (value?: string): number | undefined => {
+    if (!value) return undefined;
+    const match = value.match(/(\d+(?:\.\d+)?)\s*(TB|GB)?/i);
+    if (!match) return undefined;
+    const amount = Number(match[1]);
+    return match[2]?.toUpperCase() === 'TB' ? Math.round(amount * 1024) : Math.round(amount);
+  };
+
   const parseGpu = (gpu?: string): { brand?: string; model?: string; vramGB?: number } => {
     if (!gpu) return {};
     const vram = gpu.match(/(\d+)\s*GB/i);
@@ -1641,7 +1687,10 @@ export const mapFormToUpdatePayload = (formData: ProductFormData): ProductUpdate
 
     // Storage Specifications - DETAILED
     if (formData.storageType) (payload as any).StorageType = formData.storageType;
-    if (formData.storageCapacityGB) (payload as any).StorageCapacityGB = parseInt(formData.storageCapacityGB);
+    if (formData.storageCapacityGB) {
+      const storageCapacityGB = parseCapacityGB(formData.storageCapacityGB);
+      if (typeof storageCapacityGB === 'number') (payload as any).StorageCapacityGB = storageCapacityGB;
+    }
     if (formData.storageInterface) (payload as any).StorageInterface = formData.storageInterface;
     if (formData.nvMeSupport !== undefined) (payload as any).NvMeSupport = formData.nvMeSupport;
 

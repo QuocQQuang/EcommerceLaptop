@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ProductFormData } from '@/lib/admin-api';
 import { PRODUCT_SPECS_OPTIONS, getCpuModels, getGpuModels } from '@/lib/product-specs-options';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface LaptopSpecificationsSectionProps {
     formData: ProductFormData;
@@ -31,6 +31,14 @@ export default function LaptopSpecificationsSection({
     // State for dependent dropdowns
     const [selectedCpuBrand, setSelectedCpuBrand] = useState(formData.cpuBrand || '');
     const [selectedGpuBrand, setSelectedGpuBrand] = useState(formData.gpuBrand || '');
+
+    useEffect(() => {
+        setSelectedCpuBrand(formData.cpuBrand || '');
+    }, [formData.cpuBrand]);
+
+    useEffect(() => {
+        setSelectedGpuBrand(formData.gpuBrand || '');
+    }, [formData.gpuBrand]);
 
     // Get available options based on selections
     const cpuModelOptions = selectedCpuBrand ? getCpuModels(selectedCpuBrand) : [];

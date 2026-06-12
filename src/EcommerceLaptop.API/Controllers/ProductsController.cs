@@ -805,13 +805,16 @@ public class ProductsController(
         if (product == null)
             return ErrorResponse("Product not found", 404);
 
-        var image = product.Images.FirstOrDefault(i => i.ImageId == imageId);
+        var image = product.Images.FirstOrDefault(i =>
+            string.Equals(i.ImageId, imageId, StringComparison.OrdinalIgnoreCase) ||
+            i.Id.ToString() == imageId);
         if (image == null)
             return ErrorResponse("Image not found", 404);
 
         try
         {
-            await _imageHostingService.DeleteImageAsync(image.ImageId!);
+            if (!string.IsNullOrWhiteSpace(image.ImageId))
+                await _imageHostingService.DeleteImageAsync(image.ImageId);
         }
         catch (Exception ex)
         {
@@ -1417,13 +1420,16 @@ public class ProductsController(
         if (variant == null || variant.ParentProductId != id)
             return ErrorResponse("Variant not found", 404);
 
-        var image = variant.Images.FirstOrDefault(i => i.ImageId == imageId);
+        var image = variant.Images.FirstOrDefault(i =>
+            string.Equals(i.ImageId, imageId, StringComparison.OrdinalIgnoreCase) ||
+            i.Id.ToString() == imageId);
         if (image == null)
             return ErrorResponse("Image not found", 404);
 
         try
         {
-            await _imageHostingService.DeleteImageAsync(image.ImageId!);
+            if (!string.IsNullOrWhiteSpace(image.ImageId))
+                await _imageHostingService.DeleteImageAsync(image.ImageId);
         }
         catch (Exception ex)
         {
