@@ -14,13 +14,13 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        // To configuration
+        // Tạo configuration
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
 
-        // To service collection cho console app
+        // Tạo service collection cho console app
         var services = new ServiceCollection();
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
@@ -34,96 +34,96 @@ class Program
         // Build service provider
         var serviceProvider = services.BuildServiceProvider();
 
-        // Ly DbContext v logger
+        // Lấy DbContext và logger
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-        // Kim tra tham s clear data
+        // Kiểm tra tham số clear data
         var clearData = args.Length > 0 && args[0].ToLower() == "--clear";
 
-        // Chy seeding
+        // Chạy seeding
         await BlogSeeder.SeedBlogDataAsync(context, logger, clearData);
 
-        Console.WriteLine("Seeding hon tt! Nhn phm bt k  thot...");
+        Console.WriteLine("Seeding hoàn tất! Nhấn phím bất kỳ để thoát...");
         Console.ReadKey();
     }
 }
 
 /// <summary>
-/// Class cha logic seed d liu blog
+/// Class chứa logic seed dữ liệu blog
 /// </summary>
 public static class BlogSeeder
 {
     /// <summary>
-    /// Hm seed d liu blog - c th export  s dng trong cc project khc
+    /// Hàm seed dữ liệu blog - có thể export để sử dụng trong các project khác
     /// </summary>
     public static async Task SeedBlogDataAsync(ApplicationDbContext context, ILogger logger, bool clearData = false)
     {
         try
         {
-            // Kt ni database
+            // Kết nối database
             await context.Database.EnsureCreatedAsync();
-            logger.LogInformation("Kt ni database thnh cng.");
+            logger.LogInformation("Kết nối database thành công.");
 
             if (clearData)
             {
-                // Xa d liu c nu c yu cu
-                logger.LogInformation("Xa d liu blog c...");
+                // Xóa dữ liệu cũ nếu có yêu cầu
+                logger.LogInformation("Xóa dữ liệu blog cũ...");
                 await context.Database.ExecuteSqlRawAsync("DELETE FROM BlogPostTags");
                 await context.Database.ExecuteSqlRawAsync("DELETE FROM BlogComments");
                 await context.Database.ExecuteSqlRawAsync("DELETE FROM BlogPosts");
                 await context.Database.ExecuteSqlRawAsync("DELETE FROM BlogTags");
                 await context.Database.ExecuteSqlRawAsync("DELETE FROM BlogCategories");
-                logger.LogInformation(" xa d liu c.");
+                logger.LogInformation("Đã xóa dữ liệu cũ.");
             }
 
-            // Seed categories (Danh mc blog)
+            // Seed categories (Danh mục blog)
             var categories = new[]
             {
                 new BlogCategory
                 {
-                    Name = "nh gi Laptop",
+                    Name = "Đánh giá Laptop",
                     Slug = "danh-gia-laptop",
-                    Description = "Cc bi nh gi chi tit v laptop mi nht",
-                    MetaTitle = "nh gi Laptop",
-                    MetaDescription = "c nh gi chuyn su v cc mu laptop tt nht",
+                    Description = "Các bài đánh giá chi tiết về laptop mới nhất",
+                    MetaTitle = "Đánh giá Laptop",
+                    MetaDescription = "Đọc đánh giá chuyên sâu về các mẫu laptop tốt nhất",
                     IsActive = true,
                     SortOrder = 1
                 },
                 new BlogCategory
                 {
-                    Name = "Cng ngh CPU/GPU",
+                    Name = "Công nghệ CPU/GPU",
                     Slug = "cpu-gpu",
-                    Description = "Tin tc v phn tch v CPU, GPU mi nht",
-                    MetaTitle = "CPU v GPU",
-                    MetaDescription = "Cp nht cng ngh x l v  ha hin i",
+                    Description = "Tin tức và phân tích về CPU, GPU mới nhất",
+                    MetaTitle = "CPU và GPU",
+                    MetaDescription = "Cập nhật công nghệ xử lý và đồ họa hiện đại",
                     IsActive = true,
                     SortOrder = 2
                 },
                 new BlogCategory
                 {
-                    Name = "Ph kin Laptop",
+                    Name = "Phụ kiện Laptop",
                     Slug = "phu-kien-laptop",
-                    Description = "Hng dn chn ph kin cho laptop",
-                    MetaTitle = "Ph kin Laptop",
-                    MetaDescription = "Review chut, bn phm, dock v ph kin khc",
+                    Description = "Hướng dẫn chọn phụ kiện cho laptop",
+                    MetaTitle = "Phụ kiện Laptop",
+                    MetaDescription = "Review chuột, bàn phím, dock và phụ kiện khác",
                     IsActive = true,
                     SortOrder = 3
                 },
                 new BlogCategory
                 {
-                    Name = "Tin tc Cng ngh",
+                    Name = "Tin tức Công nghệ",
                     Slug = "tin-tuc-cong-nghe",
-                    Description = "Tin mi nht v cng ngh laptop v phn cng",
-                    MetaTitle = "Tin tc Cng ngh",
-                    MetaDescription = "Cp nht xu hng cng ngh laptop mi nht",
+                    Description = "Tin mới nhất về công nghệ laptop và phần cứng",
+                    MetaTitle = "Tin tức Công nghệ",
+                    MetaDescription = "Cập nhật xu hướng công nghệ laptop mới nhất",
                     IsActive = true,
                     SortOrder = 4
                 }
             };
 
-            // Kim tra v thm categories nu cha tn ti
+            // Kiểm tra và thêm categories nếu chưa tồn tại
             var existingCategorySlugs = await context.BlogCategories
                 .Select(c => c.Slug)
                 .ToListAsync();
@@ -137,35 +137,35 @@ public static class BlogSeeder
                     category.UpdatedAt = DateTime.UtcNow;
                     context.BlogCategories.Add(category);
                     await context.SaveChangesAsync();
-                    logger.LogInformation($"Thm category: {category.Name} (ID: {category.Id})");
+                    logger.LogInformation($"Thêm category: {category.Name} (ID: {category.Id})");
                     categoryIds[category.Slug] = category.Id;
                 }
                 else
                 {
                     var existing = await context.BlogCategories.FirstAsync(c => c.Slug == category.Slug);
                     categoryIds[category.Slug] = existing.Id;
-                    logger.LogInformation($"Category  tn ti: {category.Name} (ID: {existing.Id})");
+                    logger.LogInformation($"Category đã tồn tại: {category.Name} (ID: {existing.Id})");
                 }
             }
 
-            // Ly ID ca categories
+            // Lấy ID của categories
             var laptopReviewId = categoryIds["danh-gia-laptop"];
             var cpuGpuId = categoryIds["cpu-gpu"];
             var accessoryId = categoryIds["phu-kien-laptop"];
             var newsId = categoryIds["tin-tuc-cong-nghe"];
 
-            // Seed blog posts (v d vi bi vit)
+            // Seed blog posts (ví dụ với bài viết)
             var posts = new[]
             {
                 new BlogPost
                 {
-                    Title = "nh gi Dell XPS 13 Plus 2025: Laptop cao cp hon ho",
+                    Title = "Đánh giá Dell XPS 13 Plus 2025: Laptop cao cấp hoàn hảo",
                     Slug = "danh-gia-dell-xps-13-plus-2025",
-                    Excerpt = "Dell XPS 13 Plus 2025 mang n thit k sang trng v hiu nng mnh m, ph hp cho doanh nhn v sng to ni dung.",
-                    Content = "Dell XPS 13 Plus 2025 l mt trong nhng ultrabook cao cp nht hin nay. Vi thit k unibody nhm nguyn khi, my c trng lng ch 1.26kg v  mng 15.28mm. Mn hnh OLED 13.4 inch vi  phn gii 3.2K v tn s qut 120Hz mang n tri nghim hnh nh tuyt vi.\n\nCPU Intel Core Ultra 7 155H vi 16 li v GPU tch hp Intel Arc Graphics x l mt m cc tc v vn phng v chnh sa nh/video c bn. RAM 32GB LPDDR5X v SSD 1TB NVMe m bo tc  nhanh chng.\n\nPin 55Wh cho thi lng s dng ln n 12 gi. Cng kt ni bao gm 2 Thunderbolt 4 v jack tai nghe. Gi bn khong 40 triu VND, ph hp cho ngi dng chuyn nghip.",
+                    Excerpt = "Dell XPS 13 Plus 2025 mang đến thiết kế sang trọng và hiệu năng mạnh mẽ, phù hợp cho doanh nhân và sáng tạo nội dung.",
+                    Content = "Dell XPS 13 Plus 2025 là một trong những ultrabook cao cấp nhất hiện nay. Với thiết kế unibody nhôm nguyên khối, máy có trọng lượng chỉ 1.26kg và độ mỏng 15.28mm. Màn hình OLED 13.4 inch với độ phân giải 3.2K và tần số quét 120Hz mang đến trải nghiệm hình ảnh tuyệt vời.\n\nCPU Intel Core Ultra 7 155H với 16 lõi và GPU tích hợp Intel Arc Graphics xử lý mượt mà các tác vụ văn phòng và chỉnh sửa ảnh/video cơ bản. RAM 32GB LPDDR5X và SSD 1TB NVMe đảm bảo tốc độ nhanh chóng.\n\nPin 55Wh cho thời lượng sử dụng lên đến 12 giờ. Cổng kết nối bao gồm 2 Thunderbolt 4 và jack tai nghe. Giá bán khoảng 40 triệu VND, phù hợp cho người dùng chuyên nghiệp.",
                     FeaturedImageUrl = "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1600&auto=format&fit=crop&q=80",
-                    MetaTitle = "nh gi Dell XPS 13 Plus 2025",
-                    MetaDescription = "Review chi tit Dell XPS 13 Plus 2025: Thit k, hiu nng v gi bn",
+                    MetaTitle = "Đánh giá Dell XPS 13 Plus 2025",
+                    MetaDescription = "Review chi tiết Dell XPS 13 Plus 2025: Thiết kế, hiệu năng và giá bán",
                     Status = "published",
                     IsFeatured = true,
                     CategoryId = laptopReviewId,
@@ -177,13 +177,13 @@ public static class BlogSeeder
                 },
                 new BlogPost
                 {
-                    Title = "So snh Intel Core Ultra vs AMD Ryzen 7000: CPU no tt hn cho laptop?",
+                    Title = "So sánh Intel Core Ultra vs AMD Ryzen 7000: CPU nào tốt hơn cho laptop?",
                     Slug = "so-sanh-intel-core-ultra-vs-amd-ryzen-7000",
-                    Excerpt = "Intel Core Ultra series mi vi NPU AI so vi AMD Ryzen 7000 vi hiu nng a li vt tri.",
-                    Content = "Nm 2025 chng kin cuc chin CPU laptop gay gt gia Intel v AMD. Intel Core Ultra (Meteor Lake) gii thiu NPU chuyn dng cho AI, trong khi AMD Ryzen 7000 (Zen 4) tp trung vo hiu nng th.\n\nIntel Core Ultra 7 155H c 16 li (6P+8E+2LP-E), xung nhp turbo 4.8GHz, cache 24MB. NPU Intel AI Boost cho php x l machine learning nhanh hn 3 ln so vi th h trc.\n\nAMD Ryzen 7 7840HS c 8 li Zen 4, xung nhp cao, hiu nng a lung n tng v iGPU RDNA3 mnh m.",
+                    Excerpt = "Intel Core Ultra series mới với NPU AI so với AMD Ryzen 7000 với hiệu năng đa lõi vượt trội.",
+                    Content = "Năm 2025 chứng kiến cuộc chiến CPU laptop gay gắt giữa Intel và AMD. Intel Core Ultra (Meteor Lake) giới thiệu NPU chuyên dụng cho AI, trong khi AMD Ryzen 7000 (Zen 4) tập trung vào hiệu năng thô.\n\nIntel Core Ultra 7 155H có 16 lõi (6P+8E+2LP-E), xung nhịp turbo 4.8GHz, cache 24MB. NPU Intel AI Boost cho phép xử lý machine learning nhanh hơn 3 lần so với thế hệ trước.\n\nAMD Ryzen 7 7840HS có 8 lõi Zen 4, xung nhịp cao, hiệu năng đa luồng ấn tượng và iGPU RDNA3 mạnh mẽ.",
                     FeaturedImageUrl = "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?w=1600&auto=format&fit=crop&q=80",
-                    MetaTitle = "So snh Intel Core Ultra vs AMD Ryzen 7000",
-                    MetaDescription = "So snh hiu nng v tnh nng AI gia Intel Core Ultra v AMD Ryzen 7000",
+                    MetaTitle = "So sánh Intel Core Ultra vs AMD Ryzen 7000",
+                    MetaDescription = "So sánh hiệu năng và tính năng AI giữa Intel Core Ultra và AMD Ryzen 7000",
                     Status = "published",
                     IsFeatured = false,
                     CategoryId = cpuGpuId,
@@ -195,7 +195,7 @@ public static class BlogSeeder
                 }
             };
 
-            // Kim tra v thm posts nu cha tn ti
+            // Kiểm tra và thêm posts nếu chưa tồn tại
             var existingPostSlugs = await context.BlogPosts
                 .Select(p => p.Slug)
                 .ToListAsync();
@@ -208,27 +208,27 @@ public static class BlogSeeder
                     post.UpdatedAt = DateTime.UtcNow;
                     context.BlogPosts.Add(post);
                     await context.SaveChangesAsync();
-                    logger.LogInformation($"Thm post: {post.Title} (ID: {post.Id})");
+                    logger.LogInformation($"Thêm post: {post.Title} (ID: {post.Id})");
                 }
                 else
                 {
                     var existing = await context.BlogPosts.FirstAsync(p => p.Slug == post.Slug);
-                    post.Id = existing.Id; // Update existing post's ID
+                    post.Id = existing.Id;
                     post.CreatedAt = existing.CreatedAt;
                     post.UpdatedAt = DateTime.UtcNow;
                     context.BlogPosts.Update(post);
                     await context.SaveChangesAsync();
-                    logger.LogInformation($"Post  tn ti: {post.Title} (ID: {existing.Id})");
+                    logger.LogInformation($"Post đã tồn tại: {post.Title} (ID: {existing.Id})");
                 }
             }
 
-            // Seed tags v gn qua BlogPostTags
+            // Seed tags và gán qua BlogPostTags
             var tagSeeds = new[]
             {
-                new BlogTag { Name = "laptop", Slug = "laptop", Description = "Bi vit v laptop" },
-                new BlogTag { Name = "ultrabook", Slug = "ultrabook", Description = "Mng nh, cao cp" },
-                new BlogTag { Name = "intel", Slug = "intel", Description = "Bi vit v Intel" },
-                new BlogTag { Name = "amd", Slug = "amd", Description = "Bi vit v AMD" }
+                new BlogTag { Name = "laptop", Slug = "laptop", Description = "Bài viết về laptop" },
+                new BlogTag { Name = "ultrabook", Slug = "ultrabook", Description = "Mỏng nhẹ, cao cấp" },
+                new BlogTag { Name = "intel", Slug = "intel", Description = "Bài viết về Intel" },
+                new BlogTag { Name = "amd", Slug = "amd", Description = "Bài viết về AMD" }
             };
 
             foreach (var t in tagSeeds)
@@ -263,21 +263,21 @@ public static class BlogSeeder
             Link("so-sanh-intel-core-ultra-vs-amd-ryzen-7000", "intel", "amd", "laptop");
             await context.SaveChangesAsync();
 
-            // Seed vi bnh lun mu
+            // Seed vài bình luận mẫu
             var samplePost = await context.BlogPosts.FirstOrDefaultAsync(p => p.Slug == "danh-gia-dell-xps-13-plus-2025");
             if (samplePost != null && !await context.BlogComments.AnyAsync(c => c.BlogPostId == samplePost.Id))
             {
                 context.BlogComments.AddRange(new[]
                 {
-                    new BlogComment { BlogPostId = samplePost.Id, Content = "Bi vit rt chi tit, cm n bn!", AuthorName = "Minh Nguyen", AuthorEmail = "minh@example.com", IsApproved = true, CreatedAt = DateTime.UtcNow.AddDays(-6) },
-                    new BlogComment { BlogPostId = samplePost.Id, Content = "ang phn vn gia XPS 13 v MacBook Air.", AuthorName = "Lan Pham", AuthorEmail = "lan@example.com", IsApproved = true, CreatedAt = DateTime.UtcNow.AddDays(-5) }
+                    new BlogComment { BlogPostId = samplePost.Id, Content = "Bài viết rất chi tiết, cảm ơn bạn!", AuthorName = "Minh Nguyen", AuthorEmail = "minh@example.com", IsApproved = true, CreatedAt = DateTime.UtcNow.AddDays(-6) },
+                    new BlogComment { BlogPostId = samplePost.Id, Content = "Đang phân vân giữa XPS 13 và MacBook Air.", AuthorName = "Lan Pham", AuthorEmail = "lan@example.com", IsApproved = true, CreatedAt = DateTime.UtcNow.AddDays(-5) }
                 });
                 await context.SaveChangesAsync();
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Li khi seed d liu blog.");
+            logger.LogError(ex, "Lỗi khi seed dữ liệu blog.");
         }
     }
 }

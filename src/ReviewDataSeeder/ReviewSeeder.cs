@@ -15,97 +15,97 @@ public class ReviewSeeder
 
     public async Task SeedReviewsAsync()
     {
-        // Kim tra xem  c reviews cha
+        // Kiểm tra xem đã có reviews chưa
         if (await _context.Reviews.AnyAsync())
         {
-            Console.WriteLine("Reviews  tn ti. B qua seeding.");
+            Console.WriteLine("Reviews đã tồn tại. Bỏ qua seeding.");
             return;
         }
 
-        // Ly tt c users v products
+        // Lấy tất cả users và products
         var users = await _context.Users.ToListAsync();
         var products = await _context.Products.ToListAsync();
 
         if (!users.Any() || !products.Any())
         {
-            Console.WriteLine("Khng c users hoc products. Vui lng seed users v products trc.");
+            Console.WriteLine("Không có users hoặc products. Vui lòng seed users và products trước.");
             return;
         }
 
         var reviews = new List<Review>();
         var random = new Random();
 
-        // Danh sch tiu  reviews ting Vit
+        // Danh sách tiêu đề reviews tiếng Việt
         var reviewTitles = new[]
         {
-            "Sn phm tuyt vi!",
-            "Rt hi lng vi cht lng",
-            "ng ng tin bt go",
-            "Cht lng vt mong i",
-            "Giao hng nhanh, ng gi cn thn",
-            "S dng mt m, hiu nng tt",
-            "Thit k p, cht lng cao",
-            "Gi c hp l, cht lng tt",
-            "Laptop chy rt nhanh",
-            "Pin bn, mn hnh p",
-            "Cu hnh mnh, ph hp gaming",
-            "Ph hp cho cng vic vn phng",
-            "Bn phm m, trackpad nhy",
-            "Thit k gn nh, d mang theo",
-            "m thanh hay, mn hnh sc nt",
-            "Khi ng nhanh, khng lag",
-            "Tn nhit tt, khng nng my",
-            "Cng kt ni a dng",
-            "Webcam cht lng tt",
-            "Ph hp cho hc sinh, sinh vin",
-            "Chi game mt m",
-            "Render video nhanh chng",
-            "Mn hnh sng, mu sc chn thc",
-            "Build quality tt",
-            "Gi tr tt so vi tin b ra",
-            "Sn phm chnh hng, uy tn",
-            "H tr khch hng tt",
-            "ng gi chuyn nghip",
-            "Giao hng ng hn",
-            "Sn phm nh m t"
+            "Sản phẩm tuyệt vời!",
+            "Rất hài lòng với chất lượng",
+            "Đáng đồng tiền bát gạo",
+            "Chất lượng vượt mong đợi",
+            "Giao hàng nhanh, đóng gói cẩn thận",
+            "Sử dụng mượt mà, hiệu năng tốt",
+            "Thiết kế đẹp, chất lượng cao",
+            "Giá cả hợp lý, chất lượng tốt",
+            "Laptop chạy rất nhanh",
+            "Pin bền, màn hình đẹp",
+            "Cấu hình mạnh, phù hợp gaming",
+            "Phù hợp cho công việc văn phòng",
+            "Bàn phím êm, trackpad nhạy",
+            "Thiết kế gọn nhẹ, dễ mang theo",
+            "Âm thanh hay, màn hình sắc nét",
+            "Khởi động nhanh, không lag",
+            "Tản nhiệt tốt, không nóng máy",
+            "Cổng kết nối đa dạng",
+            "Webcam chất lượng tốt",
+            "Phù hợp cho học sinh, sinh viên",
+            "Chơi game mượt mà",
+            "Render video nhanh chóng",
+            "Màn hình sáng, màu sắc chân thực",
+            "Build quality tốt",
+            "Giá trị tốt so với tiền bỏ ra",
+            "Sản phẩm chính hãng, uy tín",
+            "Hỗ trợ khách hàng tốt",
+            "Đóng gói chuyên nghiệp",
+            "Giao hàng đúng hẹn",
+            "Sản phẩm như mô tả"
         };
 
-        // Danh sch comment ting Vit theo rating
+        // Danh sách comment tiếng Việt theo rating
         var positiveComments = new[]
         {
-            "Mnh rt hi lng vi sn phm ny. Cht lng tt, hiu nng mnh m. c bit l mn hnh rt p v sc nt. Giao hng nhanh chng, ng gi cn thn. S tip tc ng h shop!",
-            "Laptop ny vt xa mong i ca mnh. Cu hnh mnh, chy cc phn mm nng rt mt. Thit k p, sang trng. Pin cng kh bn, dng c c ngy. Rt ng tin!",
-            "S dng c 2 thng ri, laptop vn hot ng rt tt. Khi ng nhanh, khng b lag. Bn phm g rt m, trackpad nhy. Mn hnh sng, mu sc chn thc. Recomment!",
-            "Cht lng build rt tt, khng c ting ku l. Tn nhit hiu qu, my khng b nng khi s dng lu. Cng kt ni a dng, tin li. Webcam HD cht lng tt cho hp online.",
-            "Mua  lm vic v chi game, u rt hi lng. Render video nhanh, chi game khng b git. m thanh trong tro. Thit k gn nh, d mang theo. Service h tr nhit tnh.",
-            "Laptop tuyt vi cho sinh vin nh mnh. a nhim tt, m nhiu tab Chrome khng lag. Office chy mt m. Pin ko di 6-7 ting s dng. Gi c phi chng, cht lng tt.",
-            " s dng 6 thng, laptop vn nh mi. Khng c li g, hot ng n nh. Bn phm c n nn tin li. Mn hnh IPS gc nhn rng. Cm n shop  t vn sn phm ph hp!",
-            "Gaming laptop tuyt vi! Chi cc game AAA u mt m  setting cao. Card  ha mnh, khng b drop fps. Tn nhit tt, nhit  n nh. Bn phm c hc typing experience tuyt vi.",
-            "Laptop dnh cho designer nh mnh th qu tuyt. Mn hnh 4K sc nt, mu sc chun xc. Render Photoshop, Premiere Pro rt nhanh. RAM 32GB a nhim khng gii hn. ng u t!",
-            "Business laptop hon ho. Thit k professional, cht liu cao cp. Bo mt tt vi fingerprint v face unlock. Webcam IR cht lng. Battery life c ngy lm vic. Rt hi lng!"
+            "Mình rất hài lòng với sản phẩm này. Chất lượng tốt, hiệu năng mạnh mẽ. Đặc biệt là màn hình rất đẹp và sắc nét. Giao hàng nhanh chóng, đóng gói cẩn thận. Sẽ tiếp tục ủng hộ shop!",
+            "Laptop này vượt xa mong đợi của mình. Cấu hình mạnh, chạy các phần mềm nặng rất mượt. Thiết kế đẹp, sang trọng. Pin cũng khá bền, dùng được cả ngày. Rất đáng tiền!",
+            "Sử dụng được 2 tháng rồi, laptop vẫn hoạt động rất tốt. Khởi động nhanh, không bị lag. Bàn phím gõ rất êm, trackpad nhạy. Màn hình sáng, màu sắc chân thực. Recommend!",
+            "Chất lượng build rất tốt, không có tiếng kêu lạ. Tản nhiệt hiệu quả, máy không bị nóng khi sử dụng lâu. Cổng kết nối đa dạng, tiện lợi. Webcam HD chất lượng tốt cho họp online.",
+            "Mua để làm việc và chơi game, đều rất hài lòng. Render video nhanh, chơi game không bị giật. Âm thanh trong trẻo. Thiết kế gọn nhẹ, dễ mang theo. Service hỗ trợ nhiệt tình.",
+            "Laptop tuyệt vời cho sinh viên như mình. Đa nhiệm tốt, mở nhiều tab Chrome không lag. Office chạy mượt mà. Pin kéo dài 6-7 tiếng sử dụng. Giá cả phải chăng, chất lượng tốt.",
+            "Đã sử dụng 6 tháng, laptop vẫn như mới. Không có lỗi gì, hoạt động ổn định. Bàn phím có đèn nền tiện lợi. Màn hình IPS góc nhìn rộng. Cảm ơn shop đã tư vấn sản phẩm phù hợp!",
+            "Gaming laptop tuyệt vời! Chơi các game AAA đều mượt mà ở setting cao. Card đồ họa mạnh, không bị drop fps. Tản nhiệt tốt, nhiệt độ ổn định. Bàn phím có học typing experience tuyệt vời.",
+            "Laptop dành cho designer như mình thật quá tuyệt. Màn hình 4K sắc nét, màu sắc chuẩn xác. Render Photoshop, Premiere Pro rất nhanh. RAM 32GB đa nhiệm không giới hạn. Đáng đầu tư!",
+            "Business laptop hoàn hảo. Thiết kế professional, chất liệu cao cấp. Bảo mật tốt với fingerprint và face unlock. Webcam IR chất lượng. Battery life cả ngày làm việc. Rất hài lòng!"
         };
 
         var neutralComments = new[]
         {
-            "Sn phm tm n, p ng c nhu cu c bn. C mt s im cha hon ho nhng chp nhn c vi mc gi ny. Giao hng ng hn, ng gi cn thn.",
-            "Laptop chy tt cc tc v thng thng. Mn hnh tm n,  sng va phi. Pin ko di khong 4-5 ting. C th ci thin thm v m thanh v webcam.",
-            "Cht lng tng xng vi gi tin. C mt vi im cn ci thin nh tn nhit v  n qut. Nhn chung l okay cho nhu cu s dng c bn ca mnh.",
-            "S dng c vi tun, cm nhn chung l bnh thng. Hiu nng n cho vn phng nhng cha mnh lm. Thit k trung bnh, cha c g c bit.",
-            "Laptop ny tm c, p ng 70% nhu cu ca mnh. Mt s phn mm chy hi chm. Build quality tm n, c th tt hn  mc gi ny.",
-            "Sn phm nh m t, khng c g bt ng. Chy mt cc tc v c bn. C im tr v thi lng pin v  sng mn hnh. Nhn chung l acceptable.",
-            "Dng tm c cho cng vic hng ngy. Khi ng hi chm, cn upgrade SSD. Mn hnh mu sc tm n. Bn phm hi cng, cn thi gian lm quen."
+            "Sản phẩm tàm tạm, đáp ứng được nhu cầu cơ bản. Có một số điểm chưa hoàn hảo nhưng chấp nhận được với mức giá này. Giao hàng đúng hẹn, đóng gói cẩn thận.",
+            "Laptop chạy tốt các tác vụ thông thường. Màn hình tàm tạm, độ sáng vừa phải. Pin kéo dài khoảng 4-5 tiếng. Có thể cải thiện thêm về âm thanh và webcam.",
+            "Chất lượng tương xứng với giá tiền. Có một vài điểm cần cải thiện như tản nhiệt và độ ồn quạt. Nhìn chung là okay cho nhu cầu sử dụng cơ bản của mình.",
+            "Sử dụng được vài tuần, cảm nhận chung là bình thường. Hiệu năng ổn cho văn phòng nhưng chưa mạnh lắm. Thiết kế trung bình, chưa có gì đặc biệt.",
+            "Laptop này tạm được, đáp ứng 70% nhu cầu của mình. Một số phần mềm chạy hơi chậm. Build quality tàm tạm, có thể tốt hơn ở mức giá này.",
+            "Sản phẩm như mô tả, không có gì bất ngờ. Chạy mượt các tác vụ cơ bản. Có điểm trừ về thời lượng pin và độ sáng màn hình. Nhìn chung là acceptable.",
+            "Dùng tạm được cho công việc hàng ngày. Khởi động hơi chậm, cần upgrade SSD. Màn hình màu sắc tàm tạm. Bàn phím hơi cứng, cần thời gian làm quen."
         };
 
         var negativeComments = new[]
         {
-            "Laptop c vn  v tn nhit, my nng khi s dng lu. Qut ku n kh nhiu. Pin yu, ch ko di c 2-3 ting. Cha hi lng lm vi sn phm ny.",
-            "Cht lng build cha tt, c ting ku khi m my. Mn hnh hi ti, phi chnh  sng cao. Bn phm mt s phm b dnh. Cn shop h tr bo hnh.",
-            "Hiu nng khng nh qung co, chy chm hn mong i. Mt s phn mm b crash thng xuyn. Trackpad khng nhy lm. Cn ci thin driver v firmware.",
-            "Giao hng chm, sn phm c mt vi xc nh. Setup kh khn, phi t ci t nhiu th. Webcam cht lng km, hnh nh m. Cha tht s hi lng.",
-            "Laptop b lag khi m nhiu ng dng. RAM nh khng  d  8GB. Storage ht ch nhanh. Cn upgrade  s dng tt hn. Gi hi cao so vi hiu nng."
+            "Laptop có vấn đề về tản nhiệt, máy nóng khi sử dụng lâu. Quạt kêu ồn khá nhiều. Pin yếu, chỉ kéo dài được 2-3 tiếng. Chưa hài lòng lắm với sản phẩm này.",
+            "Chất lượng build chưa tốt, có tiếng kêu khi mở máy. Màn hình hơi tối, phải chỉnh độ sáng cao. Bàn phím một số phím bị dính. Cần shop hỗ trợ bảo hành.",
+            "Hiệu năng không như quảng cáo, chạy chậm hơn mong đợi. Một số phần mềm bị crash thường xuyên. Trackpad không nhạy lắm. Cần cải thiện driver và firmware.",
+            "Giao hàng chậm, sản phẩm có một vài vết xước nhỏ. Setup khó khăn, phải tự cài đặt nhiều thứ. Webcam chất lượng kém, hình ảnh mờ. Chưa thật sự hài lòng.",
+            "Laptop bị lag khi mở nhiều ứng dụng. RAM nhỏ không đủ dùng 8GB. Storage hết chỗ nhanh. Cần upgrade để sử dụng tốt hơn. Giá hơi cao so với hiệu năng."
         };
 
-        Console.WriteLine($"Bt u seed {100} reviews...");
+        Console.WriteLine($"Bắt đầu seed {100} reviews...");
 
         for (int i = 0; i < 100; i++)
         {
@@ -113,7 +113,7 @@ public class ReviewSeeder
             var product = products[random.Next(products.Count)];
 
 
-            // To distribution rating thc t (nhiu rating cao hn)
+            // Tạo distribution rating thực tế (nhiều rating cao hơn)
             int rating;
             var ratingRand = random.NextDouble();
             if (ratingRand < 0.4) rating = 5;      // 40%
@@ -125,7 +125,7 @@ public class ReviewSeeder
             string title = reviewTitles[random.Next(reviewTitles.Length)];
             string comment;
 
-            // Chn comment ph hp vi rating
+            // Chọn comment phù hợp với rating
             if (rating >= 4)
             {
                 comment = positiveComments[random.Next(positiveComments.Length)];
@@ -146,32 +146,32 @@ public class ReviewSeeder
                 Rating = rating,
                 Title = title,
                 Comment = comment,
-                CreatedAt = DateTime.UtcNow.AddDays(-random.Next(365)), // Reviews trong nm qua
-                IsVerifiedPurchase = random.NextDouble() > 0.3 // 70% l verified purchase
+                CreatedAt = DateTime.UtcNow.AddDays(-random.Next(365)),
+                IsVerifiedPurchase = random.NextDouble() > 0.3
             };
 
             reviews.Add(review);
 
             if ((i + 1) % 20 == 0)
             {
-                Console.WriteLine($" to {i + 1}/100 reviews...");
+                Console.WriteLine($"Đã tạo {i + 1}/100 reviews...");
             }
         }
 
         await _context.Reviews.AddRangeAsync(reviews);
         await _context.SaveChangesAsync();
 
-        Console.WriteLine($"  seed thnh cng {reviews.Count} reviews!");
+        Console.WriteLine($"=== Đã seed thành công {reviews.Count} reviews! ===");
 
-        // Thng k
+        // Thống kê
         var stats = reviews.GroupBy(r => r.Rating)
                           .Select(g => new { Rating = g.Key, Count = g.Count() })
                           .OrderByDescending(x => x.Rating);
 
-        Console.WriteLine("\n Thng k reviews  seed:");
+        Console.WriteLine("\nThống kê reviews đã seed:");
         foreach (var stat in stats)
         {
-            Console.WriteLine($" {stat.Rating} sao: {stat.Count} reviews");
+            Console.WriteLine($"  {stat.Rating} sao: {stat.Count} reviews");
         }
     }
 }

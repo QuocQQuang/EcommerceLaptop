@@ -5,27 +5,27 @@ using Microsoft.Extensions.Hosting;
 using EcommerceLaptop.Infrastructure.Data;
 using ReviewDataSeeder;
 
-// To configuration
+// Tạo configuration
 var configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .Build();
 
-// To host
+// Tạo host
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
-        // ng k DbContext
+        // Đăng ký DbContext
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-        // ng k seeder
+        // Đăng ký seeder
         services.AddScoped<ReviewSeeder>();
     })
     .Build();
 
-Console.WriteLine(" Bt u seed Review data...");
-Console.WriteLine(" S to 100 reviews ting Vit cho cc sn phm");
+Console.WriteLine("=== Bắt đầu seed Review data ===");
+Console.WriteLine("--> Sẽ tạo 100 reviews tiếng Việt cho các sản phẩm");
 
 try
 {
@@ -34,11 +34,11 @@ try
 
     await seeder.SeedReviewsAsync();
 
-    Console.WriteLine("\n Hon thnh seed review data!");
+    Console.WriteLine("\n=== Hoàn thành seed review data! ===");
 }
 catch (Exception ex)
 {
-    Console.WriteLine($" Li khi seed data: {ex.Message}");
+    Console.WriteLine($"### Lỗi khi seed data: {ex.Message}");
     Console.WriteLine($"Stack trace: {ex.StackTrace}");
 }
 
