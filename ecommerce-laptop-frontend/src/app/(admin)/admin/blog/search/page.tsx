@@ -201,7 +201,7 @@ export default function BlogSearchPage() {
             setResults(mockResults);
         } catch (error) {
             console.error('Search failed:', error);
-            toast.error('Khng th thc hin tm kim');
+            toast.error('Không thể thực hiện tìm kiếm');
         } finally {
             setLoading(false);
         }
@@ -243,10 +243,10 @@ export default function BlogSearchPage() {
 
     // Save current search
     const saveCurrentSearch = () => {
-        const name = prompt('Tn cho tm kim  lu:');
+        const name = prompt('Tên cho tìm kiếm đã lưu:');
         if (name) {
             setSavedSearches(prev => [...prev, { name, filters }]);
-            toast.success(' lu tm kim');
+            toast.success('Đã lưu tìm kiếm');
         }
     };
 
@@ -283,8 +283,8 @@ export default function BlogSearchPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Tm kim Blog</h1>
-                    <p className="text-gray-500">Tm kim nng cao v phn tch xu hng tm kim</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Tìm kiếm Blog</h1>
+                    <p className="text-gray-500">Tìm kiếm nâng cao và phân tích xu hướng tìm kiếm</p>
                 </div>
                 <Button
                     variant="outline"
@@ -292,15 +292,15 @@ export default function BlogSearchPage() {
                     className="flex items-center gap-2"
                 >
                     <SlidersHorizontal className="w-4 h-4" />
-                    B lc {showFilters ? 'n' : 'hin'}
+                    Bộ lọc {showFilters ? 'ẩn' : 'hiện'}
                 </Button>
             </div>
 
             <Tabs defaultValue="search" className="space-y-6">
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="search">Tm kim</TabsTrigger>
-                    <TabsTrigger value="analytics">Phn tch</TabsTrigger>
-                    <TabsTrigger value="saved"> lu</TabsTrigger>
+                    <TabsTrigger value="search">Tìm kiếm</TabsTrigger>
+                    <TabsTrigger value="analytics">Phân tích</TabsTrigger>
+                    <TabsTrigger value="saved">Đã lưu</TabsTrigger>
                 </TabsList>
 
                 {/* Search Tab */}
@@ -312,7 +312,7 @@ export default function BlogSearchPage() {
                                 <div className="flex-1 relative">
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                     <Input
-                                        placeholder="Tm kim bi vit, tiu , ni dung..."
+                                        placeholder="Tìm kiếm bài viết, tiêu đề, nội dung..."
                                         value={filters.query}
                                         onChange={(e) => updateFilter('query', e.target.value)}
                                         onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -335,7 +335,7 @@ export default function BlogSearchPage() {
                             {/* Search History */}
                             {searchHistory.length > 0 && (
                                 <div className="mt-4">
-                                    <Label className="text-sm font-medium mb-2 block">Tm kim gn y:</Label>
+                                    <Label className="text-sm font-medium mb-2 block">Tìm kiếm gần đây:</Label>
                                     <div className="flex flex-wrap gap-2">
                                         {searchHistory.map((query, index) => (
                                             <Button
@@ -364,15 +364,15 @@ export default function BlogSearchPage() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Filter className="w-5 h-5" />
-                                    B lc nng cao
+                                    Bộ lọc nâng cao
                                 </CardTitle>
                                 <div className="flex gap-2">
                                     <Button variant="outline" size="sm" onClick={saveCurrentSearch}>
-                                        Lu tm kim
+                                        Lưu tìm kiếm
                                     </Button>
                                     <Button variant="outline" size="sm" onClick={clearFilters}>
                                         <X className="w-4 h-4 mr-1" />
-                                        Xa b lc
+                                        Xóa bộ lọc
                                     </Button>
                                 </div>
                             </CardHeader>
@@ -401,7 +401,7 @@ export default function BlogSearchPage() {
 
                                 {/* Tags Filter */}
                                 <div>
-                                    <Label className="text-sm font-medium mb-2 block">Th</Label>
+                                    <Label className="text-sm font-medium mb-2 block">Thẻ</Label>
                                     <div className="flex flex-wrap gap-2">
                                         {tags.map((tag) => (
                                             <div key={tag.id} className="flex items-center space-x-2">
@@ -424,7 +424,7 @@ export default function BlogSearchPage() {
                                 {/* Date Range and Status */}
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     <div>
-                                        <Label htmlFor="dateFrom">T ngy</Label>
+                                        <Label htmlFor="dateFrom">Từ ngày</Label>
                                         <Input
                                             id="dateFrom"
                                             type="date"
@@ -433,7 +433,7 @@ export default function BlogSearchPage() {
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="dateTo">n ngy</Label>
+                                        <Label htmlFor="dateTo">Đến ngày</Label>
                                         <Input
                                             id="dateTo"
                                             type="date"
@@ -442,7 +442,7 @@ export default function BlogSearchPage() {
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="status">Trng thi</Label>
+                                        <Label htmlFor="status">Trạng thái</Label>
                                         <Select
                                             value={filters.status}
                                             onValueChange={(value: any) => updateFilter('status', value)}
@@ -451,15 +451,15 @@ export default function BlogSearchPage() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="all">Tt c</SelectItem>
-                                                <SelectItem value="published"> xut bn</SelectItem>
-                                                <SelectItem value="draft">Bn nhp</SelectItem>
-                                                <SelectItem value="archived">Lu tr</SelectItem>
+                                                <SelectItem value="all">Tất cả</SelectItem>
+                                                <SelectItem value="published">đã xuất bản</SelectItem>
+                                                <SelectItem value="draft">Bản nháp</SelectItem>
+                                                <SelectItem value="archived">Lưu trữ</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div>
-                                        <Label htmlFor="sortBy">Sp xp theo</Label>
+                                        <Label htmlFor="sortBy">Sắp xếp theo</Label>
                                         <Select
                                             value={filters.sortBy}
                                             onValueChange={(value: any) => updateFilter('sortBy', value)}
@@ -468,11 +468,11 @@ export default function BlogSearchPage() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="relevance"> lin quan</SelectItem>
-                                                <SelectItem value="date">Ngy to</SelectItem>
-                                                <SelectItem value="title">Tiu </SelectItem>
-                                                <SelectItem value="views">Lt xem</SelectItem>
-                                                <SelectItem value="comments">Bnh lun</SelectItem>
+                                                <SelectItem value="relevance">độ liên quan</SelectItem>
+                                                <SelectItem value="date">Ngày tạo</SelectItem>
+                                                <SelectItem value="title">Tiêu đề</SelectItem>
+                                                <SelectItem value="views">Lượt xem</SelectItem>
+                                                <SelectItem value="comments">Bình luận</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -486,12 +486,12 @@ export default function BlogSearchPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Search className="w-5 h-5" />
-                                Kt qu tm kim ({results.length})
+                                Kết quả tìm kiếm ({results.length})
                             </CardTitle>
                             {filters.query && (
                                 <CardDescription>
-                                    Kt qu cho "{filters.query}"
-                                    {results.length > 0 && ` - tm thy trong ${(performance.now() / 1000).toFixed(2)}s`}
+                                    Kết quả cho "{filters.query}"
+                                    {results.length > 0 && ` - tìm thấy trong ${(performance.now() / 1000).toFixed(2)}s`}
                                 </CardDescription>
                             )}
                         </CardHeader>
@@ -530,13 +530,13 @@ export default function BlogSearchPage() {
                                                         </span>
                                                         <span className="flex items-center gap-1">
                                                             <Eye className="w-4 h-4" />
-                                                            {result.viewCount} lt xem
+                                                            {result.viewCount} lượt xem
                                                         </span>
                                                     </div>
                                                     <div className="flex flex-wrap gap-2 mt-3">
                                                         {result.matchedFields.map((field) => (
                                                             <Badge key={field} variant="secondary" className="text-xs">
-                                                                Tm thy trong: {field}
+                                                                Tìm thấy trong: {field}
                                                             </Badge>
                                                         ))}
                                                     </div>
@@ -550,13 +550,13 @@ export default function BlogSearchPage() {
                                     <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                                     <p className="text-gray-500 mb-2">
                                         {filters.query
-                                            ? 'Khng tm thy kt qu ph hp'
-                                            : 'Nhp t kha  bt u tm kim'
+                                            ? 'Không tìm thấy kết quả phù hợp'
+                                            : 'Nhập từ khóa để bắt đầu tìm kiếm'
                                         }
                                     </p>
                                     {filters.query && (
                                         <p className="text-sm text-gray-400">
-                                            Th tm kim vi t kha khc hoc iu chnh b lc
+                                            Thử tìm kiếm với từ khóa khác hoặc điều chỉnh bộ lọc
                                         </p>
                                     )}
                                 </div>
@@ -576,7 +576,7 @@ export default function BlogSearchPage() {
                                         <div className="flex items-center gap-3">
                                             <Search className="w-8 h-8 text-blue-600" />
                                             <div>
-                                                <p className="text-sm text-gray-600">Tng tm kim</p>
+                                                <p className="text-sm text-gray-600">Tổng tìm kiếm</p>
                                                 <p className="text-2xl font-bold">{analytics.totalSearches.toLocaleString()}</p>
                                             </div>
                                         </div>
@@ -588,7 +588,7 @@ export default function BlogSearchPage() {
                                         <div className="flex items-center gap-3">
                                             <BarChart3 className="w-8 h-8 text-green-600" />
                                             <div>
-                                                <p className="text-sm text-gray-600">Kt qu TB/tm kim</p>
+                                                <p className="text-sm text-gray-600">Kết quả TB/tìm kiếm</p>
                                                 <p className="text-2xl font-bold">{analytics.averageResultsPerSearch}</p>
                                             </div>
                                         </div>
@@ -600,7 +600,7 @@ export default function BlogSearchPage() {
                                         <div className="flex items-center gap-3">
                                             <TrendingUp className="w-8 h-8 text-purple-600" />
                                             <div>
-                                                <p className="text-sm text-gray-600">T l chuyn i</p>
+                                                <p className="text-sm text-gray-600">Tỉ lệ chuyển đổi</p>
                                                 <p className="text-2xl font-bold">{analytics.searchConversionRate}%</p>
                                             </div>
                                         </div>
@@ -612,7 +612,7 @@ export default function BlogSearchPage() {
                                         <div className="flex items-center gap-3">
                                             <X className="w-8 h-8 text-red-600" />
                                             <div>
-                                                <p className="text-sm text-gray-600">Khng c KQ</p>
+                                                <p className="text-sm text-gray-600">Không có KQ</p>
                                                 <p className="text-2xl font-bold">{analytics.noResultQueries.length}</p>
                                             </div>
                                         </div>
@@ -623,19 +623,19 @@ export default function BlogSearchPage() {
                             {/* Popular Queries */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>T kha tm kim ph bin</CardTitle>
+                                    <CardTitle>Từ khóa tìm kiếm phổ biến</CardTitle>
                                     <CardDescription>
-                                        Cc truy vn tm kim c s dng nhiu nht
+                                        Các truy vấn tìm kiếm được sử dụng nhiều nhất
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>T kha</TableHead>
-                                                <TableHead>S ln</TableHead>
-                                                <TableHead>Xu hng</TableHead>
-                                                <TableHead className="text-right">Hnh ng</TableHead>
+                                                <TableHead>Từ khóa</TableHead>
+                                                <TableHead>Số lần</TableHead>
+                                                <TableHead>Xu hướng</TableHead>
+                                                <TableHead className="text-right">Hành động</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -671,18 +671,18 @@ export default function BlogSearchPage() {
                             {/* No Result Queries */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Tm kim khng c kt qu</CardTitle>
+                                    <CardTitle>Tìm kiếm không có kết quả</CardTitle>
                                     <CardDescription>
-                                        Cc t kha cn to ni dung mi
+                                        Các từ khóa cần tạo nội dung mới
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>T kha</TableHead>
-                                                <TableHead>S ln</TableHead>
-                                                <TableHead className="text-right">Hnh ng</TableHead>
+                                                <TableHead>Từ khóa</TableHead>
+                                                <TableHead>Số lần</TableHead>
+                                                <TableHead className="text-right">Hành động</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -700,7 +700,7 @@ export default function BlogSearchPage() {
                                                                     window.open(`/admin/blog/posts/new?keyword=${encodeURIComponent(query.query)}`, '_blank');
                                                                 }}
                                                             >
-                                                                To bi vit
+                                                                 Tạo bài viết
                                                             </Button>
                                                         </div>
                                                     </TableCell>
@@ -718,9 +718,9 @@ export default function BlogSearchPage() {
                 <TabsContent value="saved" className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Tm kim  lu</CardTitle>
+                            <CardTitle>Tìm kiếm đã lưu</CardTitle>
                             <CardDescription>
-                                Quản lý các bộ lọc tìm kiếm  lu
+                                Quản lý các bộ lọc tìm kiếm đã lưu
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -734,7 +734,7 @@ export default function BlogSearchPage() {
                                                     <div className="flex flex-wrap gap-2 mt-2">
                                                         {saved.filters.query && (
                                                             <Badge variant="outline">
-                                                                T kha: {saved.filters.query}
+                                                                Từ khóa: {saved.filters.query}
                                                             </Badge>
                                                         )}
                                                         {saved.filters.categories.length > 0 && (
@@ -744,12 +744,12 @@ export default function BlogSearchPage() {
                                                         )}
                                                         {saved.filters.tags.length > 0 && (
                                                             <Badge variant="outline">
-                                                                {saved.filters.tags.length} th
+                                                                {saved.filters.tags.length} thẻ
                                                             </Badge>
                                                         )}
                                                         {saved.filters.status !== 'all' && (
                                                             <Badge variant="outline">
-                                                                Trng thi: {saved.filters.status}
+                                                                Trạng thái: {saved.filters.status}
                                                             </Badge>
                                                         )}
                                                     </div>
@@ -761,14 +761,14 @@ export default function BlogSearchPage() {
                                                         onClick={() => loadSavedSearch(saved.filters)}
                                                     >
                                                         <Search className="w-4 h-4 mr-1" />
-                                                        Tm kim
+                                                        Tìm kiếm
                                                     </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => {
                                                             setSavedSearches(prev => prev.filter((_, i) => i !== index));
-                                                            toast.success(' xa tm kim  lu');
+                                                            toast.success('đã xóa tìm kiếm đã lưu');
                                                         }}
                                                     >
                                                         <X className="w-4 h-4" />
@@ -781,9 +781,9 @@ export default function BlogSearchPage() {
                             ) : (
                                 <div className="text-center py-12">
                                     <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                    <p className="text-gray-500 mb-2">Cha c tm kim no c lu</p>
+                                    <p className="text-gray-500 mb-2">Chưa có tìm kiếm nào được lưu</p>
                                     <p className="text-sm text-gray-400">
-                                        Lu cc b lc tm kim  s dng li sau
+                                        Lưu các bộ lọc tìm kiếm để sử dụng lại sau
                                     </p>
                                 </div>
                             )}

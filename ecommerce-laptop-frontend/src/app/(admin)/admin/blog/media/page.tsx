@@ -115,8 +115,8 @@ export default function MediaPage() {
             // Check file type
             if (!file.type.startsWith('image/')) {
                 toast({
-                    title: 'Li nh dng',
-                    description: `File ${file.name} khng phi l hnh nh`,
+                    title: 'Lỗi định dạng',
+                    description: `File ${file.name} không phải là hình ảnh`,
                     variant: 'destructive',
                 });
                 return false;
@@ -125,8 +125,8 @@ export default function MediaPage() {
             // Check file size (10MB limit)
             if (file.size > 10 * 1024 * 1024) {
                 toast({
-                    title: 'File qu ln',
-                    description: `File ${file.name} vt qu 10MB`,
+                    title: 'File quá lớn',
+                    description: `File ${file.name} vượt quá 10MB`,
                     variant: 'destructive',
                 });
                 return false;
@@ -180,14 +180,14 @@ export default function MediaPage() {
             await loadMedia();
 
             toast({
-                title: 'Upload thnh cng',
-                description: ` upload ${uploadFiles.length} file`,
+                title: 'Upload thành công',
+                description: `Đã upload ${uploadFiles.length} file`,
             });
         } catch (error) {
             console.error('Failed to upload files:', error);
             toast({
-                title: 'Li upload',
-                description: 'Khng th upload files',
+                title: 'Lỗi upload',
+                description: 'Không thể upload files',
                 variant: 'destructive',
             });
         } finally {
@@ -250,8 +250,8 @@ export default function MediaPage() {
         try {
             await navigator.clipboard.writeText(url);
             toast({
-                title: ' sao chp',
-                description: 'URL  c sao chp vo clipboard',
+                title: 'Đã sao chép',
+                description: 'URL đã được sao chép vào clipboard',
             });
         } catch (error) {
             console.error('Failed to copy URL:', error);
@@ -276,14 +276,14 @@ export default function MediaPage() {
             setState(prev => ({ ...prev, deletingMedia: null }));
 
             toast({
-                title: ' xa',
-                description: ` xa file ${media.filename}`,
+                title: 'Đã xóa',
+                description: `Đã xóa file ${media.filename}`,
             });
         } catch (error) {
             console.error('Failed to delete media:', error);
             toast({
-                title: 'Li xa file',
-                description: 'Khng th xa file',
+                title: 'Lỗi xóa file',
+                description: 'Không thể xóa file',
                 variant: 'destructive',
             });
         }
@@ -308,14 +308,14 @@ export default function MediaPage() {
             }));
 
             toast({
-                title: ' xa',
-                description: ` xa ${state.selectedMediaItems.size} files`,
+                title: 'Đã xóa',
+                description: `Đã xóa ${state.selectedMediaItems.size} files`,
             });
         } catch (error) {
             console.error('Failed to bulk delete media:', error);
             toast({
-                title: 'Li xa files',
-                description: 'Khng th xa files',
+                title: 'Lỗi xóa files',
+                description: 'Không thể xóa files',
                 variant: 'destructive',
             });
         } finally {
@@ -352,7 +352,7 @@ export default function MediaPage() {
 
     // Get media type display name
     const getMediaTypeDisplay = (mimeType: string) => {
-        if (mimeType.startsWith('image/')) return 'Hnh nh';
+        if (mimeType.startsWith('image/')) return 'Hình ảnh';
         if (mimeType.startsWith('video/')) return 'Video';
         if (mimeType.startsWith('audio/')) return 'Audio';
         return 'Khc';
@@ -367,14 +367,14 @@ export default function MediaPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Th vin Media</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">Thư viện Media</h1>
                     <p className="text-gray-500">Quản lý hình ảnh và files cho blog</p>
                 </div>
                 <div className="flex items-center gap-2">
                     {state.bulkSelectMode ? (
                         <>
                             <Button variant="outline" onClick={toggleBulkSelectMode}>
-                                Hy
+                                Hủy
                             </Button>
                             {state.selectedMediaItems.size > 0 && (
                                 <Button
@@ -383,7 +383,7 @@ export default function MediaPage() {
                                     disabled={state.bulkDeleting}
                                 >
                                     {state.bulkDeleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                                    Xa ({state.selectedMediaItems.size})
+                                    Xóa ({state.selectedMediaItems.size})
                                 </Button>
                             )}
                         </>
@@ -391,7 +391,7 @@ export default function MediaPage() {
                         <>
                             {filteredMedia.length > 0 && (
                                 <Button variant="outline" onClick={toggleBulkSelectMode}>
-                                    Chn nhiu
+                                    Chọn nhiều
                                 </Button>
                             )}
                             <Button onClick={() => fileInputRef.current?.click()}>
@@ -418,13 +418,13 @@ export default function MediaPage() {
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-2xl font-bold text-gray-900">{state.media.length}</div>
-                        <p className="text-sm text-gray-500">Tng files</p>
+                        <p className="text-sm text-gray-500">Tổng files</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-2xl font-bold text-blue-600">{imageCount}</div>
-                        <p className="text-sm text-gray-500">Hnh nh</p>
+                        <p className="text-sm text-gray-500">Hình ảnh</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -436,7 +436,7 @@ export default function MediaPage() {
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-2xl font-bold text-purple-600">{formatFileSize(totalSize)}</div>
-                        <p className="text-sm text-gray-500">Dung lng</p>
+                        <p className="text-sm text-gray-500">Dung lượng</p>
                     </CardContent>
                 </Card>
             </div>
@@ -450,7 +450,7 @@ export default function MediaPage() {
                             <Input
                                 value={state.searchTerm}
                                 onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.target.value }))}
-                                placeholder="Tm kim files..."
+                                placeholder="Tìm kiếm files..."
                                 className="pl-10"
                             />
                         </div>
@@ -465,8 +465,8 @@ export default function MediaPage() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Tt c loi</SelectItem>
-                                <SelectItem value="image">Hnh nh</SelectItem>
+                                <SelectItem value="all">Tất cả loại</SelectItem>
+                                <SelectItem value="image">Hình ảnh</SelectItem>
                                 <SelectItem value="video">Video</SelectItem>
                                 <SelectItem value="audio">Audio</SelectItem>
                             </SelectContent>
@@ -480,7 +480,7 @@ export default function MediaPage() {
                                     onClick={selectAllMedia}
                                     disabled={state.selectedMediaItems.size === filteredMedia.length}
                                 >
-                                    Chn tt c
+                                    Chọn tất cả
                                 </Button>
                                 <Button
                                     variant="outline"
@@ -488,7 +488,7 @@ export default function MediaPage() {
                                     onClick={deselectAllMedia}
                                     disabled={state.selectedMediaItems.size === 0}
                                 >
-                                    B chn
+                                    Bỏ chọn
                                 </Button>
                             </div>
                         )}
@@ -501,11 +501,11 @@ export default function MediaPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <FileImage className="w-5 h-5" />
-                        Th vin Media ({filteredMedia.length})
+                        Thư viện Media ({filteredMedia.length})
                     </CardTitle>
                     {state.selectedMediaItems.size > 0 && (
                         <CardDescription>
-                             chn {state.selectedMediaItems.size} files
+                            Đã chọn {state.selectedMediaItems.size} files
                         </CardDescription>
                     )}
                 </CardHeader>
@@ -519,20 +519,20 @@ export default function MediaPage() {
                             <FileImage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
                                 {state.searchTerm || state.typeFilter !== 'all'
-                                    ? 'Khng tm thy file'
-                                    : 'Th vin trng'
+                                    ? 'Không tìm thấy file'
+                                    : 'Thư viện trống'
                                 }
                             </h3>
                             <p className="text-gray-500 mb-4">
                                 {state.searchTerm || state.typeFilter !== 'all'
-                                    ? 'Th thay i b lc hoc t kha tm kim'
-                                    : 'Upload files u tin  bt u'
+                                    ? 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm'
+                                    : 'Upload files đầu tiên để bắt đầu'
                                 }
                             </p>
                             {!state.searchTerm && state.typeFilter === 'all' && (
                                 <Button onClick={() => fileInputRef.current?.click()}>
                                     <Upload className="w-4 h-4 mr-2" />
-                                    Upload files u tin
+                                    Upload files đầu tiên
                                 </Button>
                             )}
                         </div>
@@ -634,7 +634,7 @@ export default function MediaPage() {
                     <DialogHeader>
                         <DialogTitle>Upload Media Files</DialogTitle>
                         <DialogDescription>
-                            Upload hnh nh v cc files media cho blog
+                            Upload hình ảnh và các files media cho blog
                         </DialogDescription>
                     </DialogHeader>
 
@@ -675,7 +675,7 @@ export default function MediaPage() {
                         {state.uploading && (
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
-                                    <span>ang upload...</span>
+                                    <span>Đang upload...</span>
                                     <span>{Math.round(state.uploadProgress)}%</span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -697,7 +697,7 @@ export default function MediaPage() {
                             }}
                             disabled={state.uploading}
                         >
-                            Hy
+                            Hủy
                         </Button>
                         <Button
                             onClick={uploadFiles_action}
@@ -777,7 +777,7 @@ export default function MediaPage() {
                                     onClick={() => setState(prev => ({ ...prev, deletingMedia: state.selectedMedia, previewModalOpen: false }))}
                                 >
                                     <Trash2 className="w-4 h-4 mr-2" />
-                                    Xa
+                                    Xóa
                                 </Button>
                             </DialogFooter>
                         </>
@@ -792,19 +792,19 @@ export default function MediaPage() {
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Xa file media</AlertDialogTitle>
+                        <AlertDialogTitle>Xóa file media</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Bn c chc chn mun xa file "{state.deletingMedia?.filename}"?
-                            Hnh ng ny khng th hon tc.
+                            Bạn có chắc chắn muốn xóa file "{state.deletingMedia?.filename}"?
+                            Hành động này không thể hoàn tác.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Hy</AlertDialogCancel>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => state.deletingMedia && deleteMedia(state.deletingMedia)}
                             className="bg-red-600 hover:bg-red-700"
                         >
-                            Xa file
+                            Xóa file
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

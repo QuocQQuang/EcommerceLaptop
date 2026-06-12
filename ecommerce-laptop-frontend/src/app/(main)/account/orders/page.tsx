@@ -109,7 +109,7 @@ export default function OrdersPage() {
             toast.success('Đã hủy đơn hàng thành công');
             setCancelDialogOpen(false);
         } catch (error: any) {
-            const message = error?.response?.data?.message || 'Hy n khng thnh cng';
+            const message = error?.response?.data?.message || 'Hủy đơn không thành công';
             toast.error(message);
         } finally {
             setIsCancelling(false);

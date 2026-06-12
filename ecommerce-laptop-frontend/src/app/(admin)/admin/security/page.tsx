@@ -347,10 +347,10 @@ export default function SecurityPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ip-block-rules'] });
       queryClient.invalidateQueries({ queryKey: ['security-metrics'] });
-      toast.success('Quy tc IP  c cp nht');
+      toast.success('Quy tắc IP đã được cập nhật');
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht quy tắc IP');
+      toast.error('Có lỗi xảy ra khi cập nhật quy tắc IP');
     }
   });
 
@@ -372,10 +372,10 @@ export default function SecurityPage() {
       queryClient.invalidateQueries({ queryKey: ['security-metrics'] });
       setShowAddIPDialog(false);
       setNewIPRule({ type: 'blacklist', isActive: true });
-      toast.success('Quy tc IP mi  c to');
+      toast.success('Quy tắc IP mới đã được tạo');
     },
     onError: () => {
-      toast.error('C li xy ra khi to quy tắc IP');
+      toast.error('Có lỗi xảy ra khi tạo quy tắc IP');
     }
   });
 
@@ -386,10 +386,10 @@ export default function SecurityPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ip-block-rules'] });
       queryClient.invalidateQueries({ queryKey: ['security-metrics'] });
-      toast.success('Quy tc IP  c xa');
+      toast.success('Quy tắc IP đã được xóa');
     },
     onError: () => {
-      toast.error('C li xy ra khi xa quy tắc IP');
+      toast.error('Có lỗi xảy ra khi xóa quy tắc IP');
     }
   });
 
@@ -397,10 +397,10 @@ export default function SecurityPage() {
     mutationFn: updateRateLimitRule,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rate-limit-rules'] });
-      toast.success('Quy tc gii hn tc   c cp nht');
+      toast.success('Quy tắc giới hạn tốc độ đã được cập nhật');
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht quy tắc gii hn tc ');
+      toast.error('Có lỗi xảy ra khi cập nhật quy tắc giới hạn tốc độ');
     }
   });
 
@@ -415,10 +415,10 @@ export default function SecurityPage() {
         ipWhitelist: [],
         userRoleExceptions: []
       });
-      toast.success('Quy tc gii hn tc  mi  c to');
+      toast.success('Quy tắc giới hạn tốc độ mới đã được tạo');
     },
     onError: () => {
-      toast.error('C li xy ra khi to quy tắc gii hn tc ');
+      toast.error('Có lỗi xảy ra khi tạo quy tắc giới hạn tốc độ');
     }
   });
 
@@ -426,10 +426,10 @@ export default function SecurityPage() {
     mutationFn: deleteRateLimitRule,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rate-limit-rules'] });
-      toast.success('Quy tc gii hn tc   c xa');
+      toast.success('Quy tắc giới hạn tốc độ đã được xóa');
     },
     onError: () => {
-      toast.error('C li xy ra khi xa quy tắc gii hn tc ');
+      toast.error('Có lỗi xảy ra khi xóa quy tắc giới hạn tốc độ');
     }
   });
 
@@ -485,7 +485,7 @@ export default function SecurityPage() {
 
   const handleCreateIPRule = () => {
     if (!newIPRule.ipAddress || !newIPRule.reason) {
-      toast.error('Vui lng in y  thng tin');
+      toast.error('Vui lòng điền đầy đủ thông tin');
       return;
     }
 
@@ -499,7 +499,7 @@ export default function SecurityPage() {
 
   const handleCreateRateLimitRule = () => {
     if (!newRateLimitRule.name || !newRateLimitRule.endpoint) {
-      toast.error('Vui lng in y  thng tin');
+      toast.error('Vui lòng điền đầy đủ thông tin');
       return;
     }
 
@@ -520,9 +520,9 @@ export default function SecurityPage() {
           <CardContent className="flex items-center justify-center py-16">
             <div className="text-center space-y-4">
               <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Khng c quyn truy cp</h3>
+              <h3 className="text-lg font-semibold">Không có quyền truy cập</h3>
               <p className="text-muted-foreground">
-                Bn khng c quyn xem trang bo mt ny.
+                Bạn không có quyền xem trang bảo mật này.
               </p>
             </div>
           </CardContent>
@@ -536,7 +536,7 @@ export default function SecurityPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bo mt h thng</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Bảo mật hệ thống</h1>
           <p className="text-muted-foreground">
             Quản lý IP blocking, rate limiting v gim st bo mt
           </p>
@@ -575,7 +575,7 @@ export default function SecurityPage() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="space-x-2">
             <Activity className="h-4 w-4" />
-            <span>Tng quan</span>
+            <span>Tổng quan</span>
           </TabsTrigger>
           <TabsTrigger value="ip-blocking" disabled={!canManageSecurity}>
             <Ban className="h-4 w-4" />
@@ -587,7 +587,7 @@ export default function SecurityPage() {
           </TabsTrigger>
           <TabsTrigger value="monitoring">
             <Eye className="h-4 w-4" />
-            <span>Gim st</span>
+            <span>Giám sát</span>
           </TabsTrigger>
         </TabsList>
 
@@ -597,7 +597,7 @@ export default function SecurityPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tng s IP b chn</CardTitle>
+                <CardTitle className="text-sm font-medium">Tổng số IP bị chặn</CardTitle>
                 <Ban className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -623,26 +623,26 @@ export default function SecurityPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Quy tc ang hot ng</CardTitle>
+                <CardTitle className="text-sm font-medium">Quy tắc đang hoạt động</CardTitle>
                 <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{securityMetrics?.activeRules || 0}</div>
                 <p className="text-xs text-muted-foreground">
-                  Quy tc bo mt
+                  Quy tắc bảo mật
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">IP ng nghi</CardTitle>
+                <CardTitle className="text-sm font-medium">IP đáng nghi</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{securityMetrics?.suspiciousIPs || 0}</div>
                 <p className="text-xs text-muted-foreground">
-                  Cn theo di
+                  Cần theo dõi
                 </p>
               </CardContent>
             </Card>
@@ -666,7 +666,7 @@ export default function SecurityPage() {
               {securityEventsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">ang ti s kin...</span>
+                  <span className="ml-2">Đang tải sự kiện...</span>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -686,14 +686,14 @@ export default function SecurityPage() {
                           {event.severity.toUpperCase()}
                         </Badge>
                         {(event as any).wasBlocked && (
-                          <Badge variant="destructive"> chn</Badge>
+                          <Badge variant="destructive">Bị chặn</Badge>
                         )}
                       </div>
                     </div>
                   ))}
                   {filteredSecurityEvents.length === 0 && (
                     <p className="text-center py-8 text-muted-foreground">
-                      Khng c s kin bo mt no gn y
+                      Không có sự kiện bảo mật nào gần đây
                     </p>
                   )}
                 </div>
@@ -708,7 +708,7 @@ export default function SecurityPage() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <TrendingUp className="h-5 w-5" />
-                  <span>IP b chn nhiu nht</span>
+                  <span>IP bị chặn nhiều nhất</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -797,7 +797,7 @@ export default function SecurityPage() {
                           </Label>
                           <Input
                             id="ip-address"
-                            placeholder="192.168.1.100 hoc 192.168.1.0/24"
+                            placeholder="192.168.1.100 hoặc 192.168.1.0/24"
                             className="col-span-3"
                             value={newIPRule.ipAddress || ''}
                             onChange={(e) => setNewIPRule(prev => ({ ...prev, ipAddress: e.target.value }))}
@@ -817,7 +817,7 @@ export default function SecurityPage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="blacklist">Blacklist (Chn)</SelectItem>
+                              <SelectItem value="blacklist">Blacklist (Chặn)</SelectItem>
                               <SelectItem value="whitelist">Whitelist (Cho php)</SelectItem>
                             </SelectContent>
                           </Select>
@@ -873,7 +873,7 @@ export default function SecurityPage() {
                   <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Tm kim theo IP address hoc l do..."
+                      placeholder="Tìm kiếm theo IP address hoặc lý do..."
                       className="pl-8 w-64"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -886,7 +886,7 @@ export default function SecurityPage() {
                       onCheckedChange={setShowActiveOnly}
                     />
                     <Label htmlFor="ip-active-only" className="text-sm">
-                      Ch hin th rule ang hot ng
+                      Chỉ hiển thị rule đang hoạt động
                     </Label>
                   </div>
                 </div>
@@ -904,7 +904,7 @@ export default function SecurityPage() {
               {ipRulesLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">ang ti quy tắc IP...</span>
+                  <span className="ml-2">Đang tải quy tắc IP...</span>
                 </div>
               ) : (
                 <Table>
@@ -913,10 +913,10 @@ export default function SecurityPage() {
                       <TableHead>IP Address</TableHead>
                       <TableHead>Loi</TableHead>
                       <TableHead>L do</TableHead>
-                      <TableHead>Trng thi</TableHead>
+                      <TableHead>Trạng thái</TableHead>
                       <TableHead>Ht hn</TableHead>
-                      <TableHead>Hot ng cui</TableHead>
-                      <TableHead>Thao tc</TableHead>
+                      <TableHead>Hoạt động cuối</TableHead>
+                      <TableHead>Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -938,7 +938,7 @@ export default function SecurityPage() {
                           </TableCell>
                           <TableCell>
                             <Badge variant={rule.type === 'blacklist' ? 'destructive' : 'default'}>
-                              {rule.type === 'blacklist' ? 'Chn' : 'Cho php'}
+                              {rule.type === 'blacklist' ? 'Chặn' : 'Cho phép'}
                             </Badge>
                           </TableCell>
                           <TableCell className="max-w-xs truncate">
@@ -951,7 +951,7 @@ export default function SecurityPage() {
                                 onCheckedChange={() => handleToggleIPRule(rule)}
                               />
                               <span className="text-sm">
-                                {rule.isActive ? 'Hot ng' : 'Tm dng'}
+                                {rule.isActive ? 'Hoạt động' : 'Tạm dừng'}
                               </span>
                             </div>
                           </TableCell>
@@ -973,7 +973,7 @@ export default function SecurityPage() {
                                 </div>
                               </span>
                             ) : (
-                              <span className="text-muted-foreground">Cha c</span>
+                              <span className="text-muted-foreground">Chưa có</span>
                             )}
                           </TableCell>
                           <TableCell>
@@ -1026,7 +1026,7 @@ export default function SecurityPage() {
                       <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="rule-name" className="text-right">
-                            Tn quy tắc
+                            Tên quy tắc
                           </Label>
                           <Input
                             id="rule-name"
@@ -1072,7 +1072,7 @@ export default function SecurityPage() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="rule-per-minute" className="text-right">
-                            Per pht
+                            Mỗi phút
                           </Label>
                           <Input
                             id="rule-per-minute"
@@ -1143,7 +1143,7 @@ export default function SecurityPage() {
                   <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Tm kim theo tn hoc endpoint..."
+                      placeholder="Tìm kiếm theo tên hoặc endpoint..."
                       className="pl-8 w-64"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -1156,7 +1156,7 @@ export default function SecurityPage() {
                       onCheckedChange={setShowActiveOnly}
                     />
                     <Label htmlFor="active-only" className="text-sm">
-                      Ch hin th rule ang hot ng
+                      Chỉ hiển thị rule đang hoạt động
                     </Label>
                   </div>
                 </div>
@@ -1174,18 +1174,18 @@ export default function SecurityPage() {
               {rateLimitRulesLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">ang ti quy tắc Rate Limit...</span>
+                  <span className="ml-2">Đang tải quy tắc Rate Limit...</span>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Tn / Endpoint</TableHead>
+                      <TableHead>Tên / Endpoint</TableHead>
                       <TableHead>Phng thc</TableHead>
                       <TableHead>Gii hn</TableHead>
-                      <TableHead>Trng thi</TableHead>
-                      <TableHead>Cp nht</TableHead>
-                      <TableHead>Thao tc</TableHead>
+                      <TableHead>Trạng thái</TableHead>
+                      <TableHead>Cập nhật</TableHead>
+                      <TableHead>Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1217,7 +1217,7 @@ export default function SecurityPage() {
                           </TableCell>
                           <TableCell>
                             <div className="text-sm space-y-1">
-                              <div>{rule.requestsPerMinute}/pht</div>
+                              <div>{rule.requestsPerMinute}/phút</div>
                               <div className="text-muted-foreground">
                                 {rule.requestsPerHour}/gi, {rule.requestsPerDay}/ngy
                               </div>
@@ -1230,7 +1230,7 @@ export default function SecurityPage() {
                                 onCheckedChange={() => handleToggleRateLimitRule(rule)}
                               />
                               <span className="text-sm">
-                                {rule.isActive ? 'Hot ng' : 'Tm dng'}
+                                {rule.isActive ? 'Hoạt động' : 'Tạm dừng'}
                               </span>
                             </div>
                           </TableCell>
@@ -1265,7 +1265,7 @@ export default function SecurityPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center space-x-2">
                   <Eye className="h-5 w-5" />
-                  <span>Gim st bo mt theo thi gian thc</span>
+                  <span>Giám sát bảo mật theo thời gian thực</span>
                 </CardTitle>
                 <ExportButtons
                   type="security-events"
@@ -1301,7 +1301,7 @@ export default function SecurityPage() {
                   <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Tm kim theo IP, endpoint, hoc l do..."
+                      placeholder="Tìm kiếm theo IP, endpoint, hoặc lý do..."
                       className="pl-8"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -1317,9 +1317,9 @@ export default function SecurityPage() {
                     <SelectItem value="ip_access_allowed">IP c php</SelectItem>
                     <SelectItem value="ip_access_denied">IP b t chi</SelectItem>
                     <SelectItem value="rate_limit_exceeded">Vt Rate Limit</SelectItem>
-                    <SelectItem value="suspicious_activity">Hot ng ng nghi</SelectItem>
-                    <SelectItem value="login_attempt">Th ng nhp</SelectItem>
-                    <SelectItem value="authentication_failed">Xc thc tht bi</SelectItem>
+                    <SelectItem value="suspicious_activity">Hoạt động đáng nghi</SelectItem>
+                    <SelectItem value="login_attempt">Thử đăng nhập</SelectItem>
+                    <SelectItem value="authentication_failed">Xác thực thất bại</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={severityFilter} onValueChange={setSeverityFilter}>
@@ -1336,13 +1336,13 @@ export default function SecurityPage() {
                 </Select>
                 <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
                   <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Thi gian" />
+                    <SelectValue placeholder="Thời gian" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tt c</SelectItem>
                     <SelectItem value="today">Hm nay</SelectItem>
-                    <SelectItem value="week">7 ngy qua</SelectItem>
-                    <SelectItem value="month">30 ngy qua</SelectItem>
+                    <SelectItem value="week">7 ngày qua</SelectItem>
+                    <SelectItem value="month">30 ngày qua</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
@@ -1365,19 +1365,19 @@ export default function SecurityPage() {
               {securityEventsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">ang ti s kin bo mt...</span>
+                  <span className="ml-2">Đang tải sự kiện bảo mật...</span>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Thi gian</TableHead>
+                      <TableHead>Thời gian</TableHead>
                       <TableHead>Loi s kin</TableHead>
                       <TableHead>IP Address</TableHead>
                       <TableHead>Correlation ID</TableHead>
-                      <TableHead>M t</TableHead>
+                      <TableHead>Mô tả</TableHead>
                       <TableHead>Mc </TableHead>
-                      <TableHead>Trng thi</TableHead>
+                      <TableHead>Trạng thái</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1393,10 +1393,10 @@ export default function SecurityPage() {
                             <div className="flex items-center space-x-2">
                               {getEventTypeIcon(event.eventType)}
                               <span className="text-sm">
-                                {event.eventType === 'failed_login' && 'ng nhp tht bi'}
+                                {event.eventType === 'failed_login' && 'Đăng nhập thất bại'}
                                 {event.eventType === 'password_changed' && 'i mt khu'}
-                                {event.eventType === 'ip_rule_deleted' && 'Xa quy tắc IP'}
-                                {event.eventType === 'suspicious_activity' && 'Hot ng ng nghi'}
+                                {event.eventType === 'ip_rule_deleted' && 'Xóa quy tắc IP'}
+                                {event.eventType === 'suspicious_activity' && 'Hoạt động đáng nghi'}
                                 {!['failed_login', 'password_changed', 'ip_rule_deleted', 'suspicious_activity'].includes(event.eventType) && event.eventType}
                               </span>
                             </div>
@@ -1437,9 +1437,9 @@ export default function SecurityPage() {
               {filteredSecurityEvents.length === 0 && !securityEventsLoading && (
                 <div className="text-center py-8">
                   <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Khng c s kin bo mt</h3>
+                  <h3 className="text-lg font-semibold mb-2">Không có sự kiện bảo mật</h3>
                   <p className="text-muted-foreground">
-                    H thng ang hot ng bnh thng, khng c s kin bo mt no c ghi nhn.
+                    Hệ thống đang hoạt động bình thường, không có sự kiện bảo mật nào được ghi nhận.
                   </p>
                 </div>
               )}

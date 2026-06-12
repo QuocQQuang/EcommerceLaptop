@@ -486,8 +486,7 @@ export function SecurePaymentForm({
                                     className="rounded"
                                 />
                                 <Label htmlFor="agreedToTerms" className="text-sm">
-                                    Tôi đồng ý với <a href="/terms" className="text-primary hover:underline">điều khoản dịch vụ</a> và
-                                    <a href="/privacy" className="text-primary hover:underline"> chính sách bảo mật</a>
+                                    Tôi đồng ý với điều khoản dịch vụ và chính sách bảo mật của cửa hàng
                                 </Label>
                             </div>
                             {form.formState.errors.agreedToTerms && (

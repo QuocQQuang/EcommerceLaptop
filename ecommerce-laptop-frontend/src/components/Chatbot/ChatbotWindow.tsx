@@ -101,8 +101,8 @@ export function ChatbotWindow({
                                 <button
                                     onClick={onClearChat}
                                     className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors"
-                                    aria-label="Xa cuc tr chuyn"
-                                    title="Xa cuc tr chuyn"
+                                    aria-label="Xóa cuộc trò chuyện"
+                                    title="Xóa cuộc trò chuyện"
                                 >
                                     <Trash2 className="w-4 h-4 text-neutral-600" />
                                 </button>
@@ -132,7 +132,7 @@ export function ChatbotWindow({
                                     </div>
                                     <h4 className="font-semibold text-neutral-900 mb-2">Cho mng n vi Tr l Laptop</h4>
                                     <p className="text-sm text-neutral-600 mb-4">
-                                        Ti c th gip bn tm chic laptop hon ho. Hi ti bt c iu g!
+                                        Tôi có thể giúp bạn tìm chiếc laptop hoàn hảo. Hỏi tôi bất cứ điều gì!
                                     </p>
                                     <QuickActionChips onChipClick={handleQuickAction} />
                                 </div>

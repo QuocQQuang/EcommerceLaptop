@@ -381,7 +381,7 @@ function DebugLoggerContent({ session, status }: { session: any; status: string 
                 });
             }
 
-            logger.info(' Admin Dashboard test completed successfully - tt c API responses  c log chi tit');
+            logger.info('Admin Dashboard test completed successfully - tất cả API responses đã có log chi tiết');
 
         } catch (error: any) {
             logger.error(' Admin Dashboard test failed', {

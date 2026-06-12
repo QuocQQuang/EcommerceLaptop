@@ -20,7 +20,7 @@ interface LoadingButtonProps extends React.ComponentProps<typeof Button> {
 export function LoadingButton({
   children,
   loading = false,
-  loadingText = "ang ti...",
+  loadingText = "Đang tải...",
   loadingKey,
   onClick,
   disabled,
@@ -86,7 +86,7 @@ export function LoadingButton({
  */
 export function SubmitButton({
   children = "Gi",
-  loadingText = "ang gi...",
+  loadingText = "Đang gửi...",
   ...props
 }: Omit<LoadingButtonProps, 'type'>) {
   return (
@@ -109,8 +109,8 @@ interface ConfirmLoadingButtonProps extends LoadingButtonProps {
 }
 
 export function ConfirmLoadingButton({
-  confirmMessage = "Bn c chc chn mun thc hin hnh ng ny?",
-  confirmTitle = "Xc nhn",
+  confirmMessage = "Bạn có chắc chắn muốn thực hiện hành động này?",
+  confirmTitle = "Xác nhận",
   onClick,
   children,
   ...props

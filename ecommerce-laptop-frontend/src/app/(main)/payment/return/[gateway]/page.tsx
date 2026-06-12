@@ -425,9 +425,9 @@ export default function PaymentReturnPage({ params }: { params: { gateway: strin
                 <Card className="w-full max-w-md">
                     <CardHeader className="text-center">
                         <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-                        <CardTitle className="text-red-700">Cng thanh ton khng hp l</CardTitle>
+                        <CardTitle className="text-red-700">Cổng thanh toán không hợp lệ</CardTitle>
                         <CardDescription>
-                            Cng thanh ton &quot;{params.gateway}&quot; khng c h tr.
+                            Cổng thanh toán &quot;{params.gateway}&quot; không được hỗ trợ.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

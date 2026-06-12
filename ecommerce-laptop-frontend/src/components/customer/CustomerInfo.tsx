@@ -22,7 +22,7 @@ export function CustomerInfo({
             <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                     <User className="h-5 w-5" />
-                    <span>Thng tin khch hng</span>
+                    <span>Thông tin khách hàng</span>
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -30,7 +30,7 @@ export function CustomerInfo({
                     <User className="h-4 w-4 text-gray-500" />
                     <div>
                         <p className="text-sm font-medium text-gray-900">{customerName}</p>
-                        <p className="text-xs text-gray-500">H tn</p>
+                        <p className="text-xs text-gray-500">Họ tên</p>
                     </div>
                 </div>
 

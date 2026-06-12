@@ -230,56 +230,56 @@ export default function SettingsPage() {
   const settingsMutation = useMutation({
     mutationFn: updateSystemSettings,
     onSuccess: () => {
-      toast.success('Cài đặt  c cp nht thnh cng');
+      toast.success('Cài đặt đã được cập nhật thành công');
       queryClient.invalidateQueries({ queryKey: ['system-settings'] });
       setEditedSettings({});
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht cài đặt');
+      toast.error('Có lỗi xảy ra khi cập nhật cài đặt');
     }
   });
 
   const smtpMutation = useMutation({
     mutationFn: updateSMTPSettings,
     onSuccess: () => {
-      toast.success('Cài đặt SMTP  c cp nht thnh cng');
+      toast.success('Cài đặt SMTP đã được cập nhật thành công');
       queryClient.invalidateQueries({ queryKey: ['smtp-settings'] });
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht cài đặt SMTP');
+      toast.error('Có lỗi xảy ra khi cập nhật cài đặt SMTP');
     }
   });
 
   const paymentMutation = useMutation({
     mutationFn: updatePaymentGateway,
     onSuccess: () => {
-      toast.success('Cài đặt cng thanh toán  c cp nht');
+      toast.success('Cài đặt cổng thanh toán đã được cập nhật');
       queryClient.invalidateQueries({ queryKey: ['payment-gateways'] });
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht cng thanh toán');
+      toast.error('Có lỗi xảy ra khi cập nhật cổng thanh toán');
     }
   });
 
   const emailNotificationsMutation = useMutation({
     mutationFn: updateEmailNotificationSettings,
     onSuccess: () => {
-      toast.success('Cài đặt email notifications  c cp nht');
+      toast.success('Cài đặt email notifications đã được cập nhật');
       queryClient.invalidateQueries({ queryKey: ['email-notification-settings'] });
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht email notifications');
+      toast.error('Có lỗi xảy ra khi cập nhật email notifications');
     }
   });
 
   const emailRateLimitMutation = useMutation({
     mutationFn: updateEmailRateLimitSettings,
     onSuccess: () => {
-      toast.success('Cài đặt rate limit email  c cp nht');
+      toast.success('Cài đặt rate limit email đã được cập nhật');
       queryClient.invalidateQueries({ queryKey: ['email-rate-limit-settings'] });
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht rate limit email');
+      toast.error('Có lỗi xảy ra khi cập nhật rate limit email');
     }
   });
 
@@ -345,12 +345,12 @@ export default function SettingsPage() {
       }
 
       if (success) {
-        toast.success(`Kt ni ${type === 'smtp' ? 'SMTP' : type === 'email-notification' ? 'email notification' : 'cng thanh toán'} thnh cng`);
+        toast.success(`Kết nối ${type === 'smtp' ? 'SMTP' : type === 'email-notification' ? 'email notification' : 'cổng thanh toán'} thành công`);
       } else {
-        toast.error(`Kt ni ${type === 'smtp' ? 'SMTP' : type === 'email-notification' ? 'email notification' : 'cng thanh toán'} tht bi`);
+        toast.error(`Kết nối ${type === 'smtp' ? 'SMTP' : type === 'email-notification' ? 'email notification' : 'cổng thanh toán'} thất bại`);
       }
     } catch (error) {
-      toast.error('C li xy ra khi kim tra kt ni');
+      toast.error('Có lỗi xảy ra khi kiểm tra kết nối');
     } finally {
       setTestingConnection(null);
     }
@@ -432,9 +432,9 @@ export default function SettingsPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold">Khng c quyn truy cp</h3>
+          <h3 className="text-lg font-semibold">Không có quyền truy cập</h3>
           <p className="text-muted-foreground">
-            Bn khng c quyn truy cp trang cài đặt h thng
+            Bạn không có quyền truy cập trang cài đặt hệ thống
           </p>
         </div>
       </div>
@@ -458,9 +458,9 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Cài đặt h thng</h1>
+          <h1 className="text-3xl font-bold">Cài đặt hệ thống</h1>
           <p className="text-muted-foreground">
-            Quản lý cấu hình v ty chn h thng
+            Quản lý cấu hình và tùy chọn hệ thống
           </p>
         </div>
       </div>
@@ -481,11 +481,11 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="security" disabled={!canManageSecurity}>
             <Shield className="h-4 w-4" />
-            <span>Bo mt</span>
+            <span>Bảo mật</span>
           </TabsTrigger>
           <TabsTrigger value="notifications" disabled={!canManageSettings}>
             <Bell className="h-4 w-4" />
-            <span>Thng bo</span>
+            <span>Thông báo</span>
           </TabsTrigger>
         </TabsList>
 
@@ -516,7 +516,7 @@ export default function SettingsPage() {
                       {category === 'database' && <Database className="h-5 w-5" />}
                       <span>
                         {category === 'general' ? 'Cài đặt chung' :
-                          category === 'security' ? 'Bo mt' :
+                          category === 'security' ? 'Bảo mật' :
                             category === 'database' ? 'C s d liu' : category}
                       </span>
                     </CardTitle>
@@ -532,7 +532,7 @@ export default function SettingsPage() {
                             {setting.requiresRestart && (
                               <Badge variant="outline" className="text-xs">
                                 <AlertTriangle className="h-3 w-3 mr-1" />
-                                Cn khi ng li
+                                Cần khởi động lại
                               </Badge>
                             )}
                             {!setting.isEditable && (
@@ -594,11 +594,11 @@ export default function SettingsPage() {
                         <AlertTriangle className="h-5 w-5 text-orange-600" />
                         <div>
                           <p className="font-medium text-orange-800">
-                            C thay i cha lu
+                            Có thay đổi chưa lưu
                           </p>
                           {hasRestartRequired && (
                             <p className="text-sm text-orange-600">
-                              Mt s thay i yu cu khi ng li h thng
+                              Một số thay đổi yêu cầu khởi động lại hệ thống
                             </p>
                           )}
                         </div>
@@ -613,7 +613,7 @@ export default function SettingsPage() {
                         ) : (
                           <Save className="h-4 w-4 mr-2" />
                         )}
-                        Lu thay i
+                        Lưu thay đổi
                       </Button>
                     </div>
                   </CardContent>
@@ -738,7 +738,7 @@ export default function SettingsPage() {
                         ) : (
                           <Save className="h-4 w-4 mr-2" />
                         )}
-                        Lu cài đặt
+                        Lưu cài đặt
                       </Button>
                       <Button
                         variant="outline"
@@ -787,7 +787,7 @@ export default function SettingsPage() {
                         <CardTitle>{gateway.name}</CardTitle>
                         <div className="flex items-center space-x-2">
                           <Badge variant={gateway.isEnabled ? "default" : "secondary"}>
-                            {gateway.isEnabled ? 'ang hot ng' : 'Tm dng'}
+                            {gateway.isEnabled ? 'đang hoạt động' : 'Tm dng'}
                           </Badge>
                           {gateway.testMode && (
                             <Badge variant="outline">Test Mode</Badge>
@@ -863,14 +863,14 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Bell className="h-5 w-5" />
-                <span>Cài đặt thng bo email</span>
+                <span>Cài đặt thông báo email</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {emailNotificationsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">ang ti cài đặt thng bo...</span>
+                  <span className="ml-2">Đang tải cài đặt thông báo...</span>
                 </div>
               ) : (
                 <div className="space-y-8">
@@ -886,10 +886,10 @@ export default function SettingsPage() {
                             {getCategoryIcon(category)}
                           </span>
                           <span>
-                            {category === 'user' && 'Thng bo ngi dng'}
+                            {category === 'user' && 'Thông báo người dùng'}
                             {category === 'order' && 'Thông báo đơn hàng'}
-                            {category === 'system' && 'Thng bo h thng'}
-                            {category === 'marketing' && 'Thng bo marketing'}
+                            {category === 'system' && 'Thông báo hệ thống'}
+                            {category === 'marketing' && 'Thông báo marketing'}
                           </span>
                         </h3>
 
@@ -962,9 +962,9 @@ export default function SettingsPage() {
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <Label className="font-medium">Bt tt c thng bo</Label>
+                          <Label className="font-medium">Bật tất cả thông báo</Label>
                           <p className="text-sm text-muted-foreground">
-                            Bt/tt tt c thng bo email cng lc
+                            Bật/tắt tất cả thông báo email cùng lúc
                           </p>
                         </div>
                         <Switch
@@ -1009,14 +1009,14 @@ export default function SettingsPage() {
                         <span>Cài đặt Rate Limit Email</span>
                       </CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        Cấu hình gii hn s lng email gi  trnh spam v bo v h thng
+                        Cấu hình giới hạn số lượng email gửi để tránh spam và bảo vệ hệ thống
                       </p>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {emailRateLimitLoading ? (
                         <div className="flex items-center justify-center py-8">
                           <RefreshCw className="h-6 w-6 animate-spin" />
-                          <span className="ml-2">ang ti cài đặt rate limit...</span>
+                          <span className="ml-2">Đang tải cài đặt rate limit...</span>
                         </div>
                       ) : emailRateLimitSettings ? (
                         <>
@@ -1054,7 +1054,7 @@ export default function SettingsPage() {
 
                           <div className="grid grid-cols-2 gap-6">
                             <div className="space-y-2">
-                              <Label htmlFor="cooldown-minutes">Thi gian ch (pht)</Label>
+                              <Label htmlFor="cooldown-minutes">Thời gian chờ (phút)</Label>
                               <Input
                                 id="cooldown-minutes"
                                 type="number"
@@ -1064,7 +1064,7 @@ export default function SettingsPage() {
                                 onChange={(e) => handleRateLimitChange('cooldownMinutes', parseInt(e.target.value) || 60)}
                               />
                               <p className="text-xs text-muted-foreground">
-                                Thi gian ch khi vt qu rate limit (1-1440 pht)
+                                Thời gian chờ khi vượt quá rate limit (1-1440 phút)
                               </p>
                             </div>
 
@@ -1093,7 +1093,7 @@ export default function SettingsPage() {
                               ) : (
                                 <Save className="h-4 w-4 mr-2" />
                               )}
-                              Lu cài đặt Rate Limit
+                              Lưu cài đặt Rate Limit
                             </Button>
                             <Button
                               onClick={() => emailRateLimitRefetch()}
@@ -1110,11 +1110,11 @@ export default function SettingsPage() {
                             <div className="flex items-start space-x-2">
                               <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
                               <div className="space-y-1">
-                                <h4 className="text-sm font-medium text-blue-800">Thng tin Rate Limit hin ti</h4>
+                                <h4 className="text-sm font-medium text-blue-800">Thông tin Rate Limit hiện tại</h4>
                                 <div className="text-sm text-blue-700 space-y-1">
-                                  <p> Ti a <strong>{emailRateLimitSettings.maxRequests}</strong> email trong <strong>{Math.floor(emailRateLimitSettings.windowSeconds / 60)} pht</strong></p>
-                                  <p> Thi gian ch: <strong>{emailRateLimitSettings.cooldownMinutes} pht</strong> khi vt qu gii hn</p>
-                                  <p> Trng thi: <strong>{emailRateLimitSettings.enableRateLimiting ? 'ang bt' : 'ang tt'}</strong></p>
+                                  <p>Tối đa <strong>{emailRateLimitSettings.maxRequests}</strong> email trong <strong>{Math.floor(emailRateLimitSettings.windowSeconds / 60)} phút</strong></p>
+                                  <p>Thời gian chờ: <strong>{emailRateLimitSettings.cooldownMinutes} phút</strong> khi vượt quá giới hạn</p>
+                                  <p>Trạng thái: <strong>{emailRateLimitSettings.enableRateLimiting ? 'Đang bật' : 'Đang tắt'}</strong></p>
                                 </div>
                               </div>
                             </div>
@@ -1122,7 +1122,7 @@ export default function SettingsPage() {
                         </>
                       ) : (
                         <div className="text-center py-8 text-muted-foreground">
-                          Khng th ti cài đặt rate limit
+                          Không thể tải cài đặt rate limit
                         </div>
                       )}
                     </CardContent>

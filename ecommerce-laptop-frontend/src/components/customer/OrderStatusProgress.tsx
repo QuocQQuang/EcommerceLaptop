@@ -57,7 +57,7 @@ export function OrderStatusProgress({ status, className }: OrderStatusProgressPr
                 <div className="space-y-2">
                     <Progress value={progress} className="h-2" />
                     <div className="flex justify-between text-xs text-gray-500">
-                        <span>Bt u</span>
+                        <span>Bắt đầu</span>
                         <span>Hon thnh</span>
                     </div>
                 </div>

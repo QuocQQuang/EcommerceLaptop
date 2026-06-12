@@ -72,14 +72,14 @@ export default function BlogDashboardPage() {
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Blog Dashboard</h1>
                     <p className="text-gray-600 mt-1">
-                        Quản lý và theo dõi hiu sut blog ca bn
+                        Quản lý và theo dõi hiệu suất blog của bạn
                     </p>
                 </div>
                 <div className="flex gap-3">
                     <Button asChild>
                         <Link href="/admin/blog/posts/new">
                             <Plus className="w-4 h-4 mr-2" />
-                            To bi vit
+                            Tạo bài viết
                         </Link>
                     </Button>
                 </div>
@@ -88,31 +88,31 @@ export default function BlogDashboardPage() {
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatsCard
-                    title="Tng bi vit"
+                    title="Tổng bài viết"
                     value={analytics?.totalBlogs || 0}
                     icon={FileText}
-                    description={`${analytics?.publishedBlogs || 0}  xut bn`}
+                    description={`${analytics?.publishedBlogs || 0} đã xuất bản`}
                     color="blue"
                 />
                 <StatsCard
-                    title="Lt xem"
+                    title="Lượt xem"
                     value={analytics?.totalViews || 0}
                     icon={Eye}
-                    description="Trong thng ny"
+                    description="Trong tháng này"
                     color="green"
                 />
                 <StatsCard
-                    title="Bnh lun"
+                    title="Bình luận"
                     value={analytics?.totalComments || 0}
                     icon={MessageCircle}
-                    description="Tng tc t c gi"
+                    description="Tương tác từ độc giả"
                     color="purple"
                 />
                 <StatsCard
-                    title="Lt thch"
+                    title="Lượt thích"
                     value={analytics?.totalLikes || 0}
                     icon={Heart}
-                    description="Phn hi tch cc"
+                    description="Phản hồi tích cực"
                     color="red"
                 />
             </div>
@@ -123,27 +123,27 @@ export default function BlogDashboardPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Calendar className="w-5 h-5" />
-                            Trng thi bi vit
+                            Trạng thái bài viết
                         </CardTitle>
                         <CardDescription>
-                            Phn b bi vit theo trng thi
+                            Phân bổ bài viết theo trạng thái
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium"> xut bn</span>
+                            <span className="text-sm font-medium">Đã xuất bản</span>
                             <Badge variant="default">{analytics?.publishedBlogs || 0}</Badge>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">Bn nhp</span>
+                            <span className="text-sm font-medium">Bản nháp</span>
                             <Badge variant="secondary">{analytics?.draftBlogs || 0}</Badge>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium"> ln lch</span>
+                            <span className="text-sm font-medium">Đã lên lịch</span>
                             <Badge variant="outline">{analytics?.scheduledBlogs || 0}</Badge>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium"> lu tr</span>
+                            <span className="text-sm font-medium">Đã lưu trữ</span>
                             <Badge variant="destructive">{analytics?.archivedBlogs || 0}</Badge>
                         </div>
                     </CardContent>
@@ -153,10 +153,10 @@ export default function BlogDashboardPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <TrendingUp className="w-5 h-5" />
-                            Bi vit ph bin
+                            Bài viết phổ biến
                         </CardTitle>
                         <CardDescription>
-                            Top bi vit c lt xem cao nht
+                            Top bài viết có lượt xem cao nhất
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -176,7 +176,7 @@ export default function BlogDashboardPage() {
                                             </Link>
                                             <div className="flex items-center gap-2 text-xs text-gray-500">
                                                 <Eye className="w-3 h-3" />
-                                                {blog.viewCount.toLocaleString()} views
+                                                {blog.viewCount.toLocaleString()} lượt xem
                                             </div>
                                         </div>
                                     </div>
@@ -185,7 +185,7 @@ export default function BlogDashboardPage() {
                         ) : (
                             <div className="text-center py-4 text-gray-500">
                                 <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                <p>Cha c d liu</p>
+                                <p>Chưa có dữ liệu</p>
                             </div>
                         )}
                     </CardContent>
@@ -197,10 +197,10 @@ export default function BlogDashboardPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <BarChart3 className="w-5 h-5" />
-                        Hot ng gn y
+                        Hoạt động gần đây
                     </CardTitle>
                     <CardDescription>
-                        Cc hot ng blog mi nht
+                        Các hoạt động blog mới nhất
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -233,7 +233,7 @@ export default function BlogDashboardPage() {
                     ) : (
                         <div className="text-center py-8 text-gray-500">
                             <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                            <p>Cha c hot ng no</p>
+                            <p>Chưa có hoạt động nào</p>
                         </div>
                     )}
                 </CardContent>
@@ -242,14 +242,14 @@ export default function BlogDashboardPage() {
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <QuickActionCard
-                    title="To bi vit"
-                    description="Vit bi vit mi"
+                    title="Tạo bài viết"
+                    description="Viết bài viết mới"
                     href="/admin/blog/posts/new"
                     icon={Plus}
                 />
                 <QuickActionCard
                     title="Quản lý danh mục"
-                    description="T chc danh mục blog"
+                    description="Tổ chức danh mục blog"
                     href="/admin/blog/categories"
                     icon={FileText}
                 />
@@ -260,8 +260,8 @@ export default function BlogDashboardPage() {
                     icon={Share2}
                 />
                 <QuickActionCard
-                    title="Xem bo co"
-                    description="Phn tch chi tit"
+                    title="Xem báo cáo"
+                    description="Phân tích chi tiết"
                     href="/admin/blog/analytics"
                     icon={BarChart3}
                 />

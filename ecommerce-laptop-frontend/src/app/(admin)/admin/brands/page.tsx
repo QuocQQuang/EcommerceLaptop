@@ -12,7 +12,7 @@ export default function BrandsRedirect() {
 
   return (
     <div className="flex items-center justify-center h-64">
-      <p>ang chuyn hng...</p>
+      <p>Đang chuyển hướng...</p>
     </div>
   );
 }

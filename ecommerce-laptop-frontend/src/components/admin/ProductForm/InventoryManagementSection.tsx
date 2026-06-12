@@ -106,7 +106,7 @@ export default function InventoryManagementSection({
                                 id="warehouseLocation"
                                 value={formData.inventory?.warehouseLocation || ''}
                                 onChange={(e) => onNestedInputChange('inventory', 'warehouseLocation', e.target.value)}
-                                placeholder="VD: Kho A - K 1 - Tng 2"
+                                placeholder="VD: Kho A - Kệ 1 - Tầng 2"
                             />
                             <p className="text-xs text-muted-foreground">
                                 Vị trí cụ thể của sản phẩm trong kho

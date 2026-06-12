@@ -55,7 +55,7 @@ export default function BundleSpecificationsSection({
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle>Thng s combo</CardTitle>
+                                <CardTitle>Thông số combo</CardTitle>
                                 <CardDescription>
                                     Nhập thông tin chi tiết cho combo sản phẩm
                                 </CardDescription>
@@ -81,7 +81,7 @@ export default function BundleSpecificationsSection({
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="discountPercentage">Phn trm gim gi</Label>
+                                <Label htmlFor="discountPercentage">Phần trăm giảm giá</Label>
                                 <Input
                                     id="discountPercentage"
                                     type="number"

@@ -12,7 +12,7 @@ export default function ComparePage() {
     return (
         <StaticPageLayout
             title="Compare Laptops"
-            subtitle="So snh cc mu laptop  chn ra chic ph hp nht"
+            subtitle="So sánh các mẫu laptop để chọn ra chiếc phù hợp nhất"
             tableOfContents={[]}
             breadcrumbs={breadcrumbs}
         >

@@ -113,20 +113,20 @@ export function StaticPageLayout({
               {lastUpdated && (
                 <div className="flex items-center">
                   <Clock className="w-4 h-4 mr-1" />
-                  <span>Cp nht: {lastUpdated}</span>
+                  <span>Cập nhật: {lastUpdated}</span>
                 </div>
               )}
 
               {author && (
                 <div className="flex items-center">
-                  <span>Tc gi: {author}</span>
+                  <span>Tác giả: {author}</span>
                 </div>
               )}
 
               {readTime && (
                 <div className="flex items-center">
                   <Eye className="w-4 h-4 mr-1" />
-                  <span>{readTime} pht c</span>
+                  <span>{readTime} phút đọc</span>
                 </div>
               )}
 
@@ -177,7 +177,7 @@ export function StaticPageLayout({
             </p>
             {lastUpdated && (
               <p className="text-xs text-gray-500">
-                Ln cp nht cui: {lastUpdated}
+                Lần cập nhật cuối: {lastUpdated}
               </p>
             )}
           </div>

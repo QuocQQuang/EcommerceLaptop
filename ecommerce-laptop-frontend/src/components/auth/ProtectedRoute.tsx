@@ -115,7 +115,7 @@ export function ProtectedRoute({
                 <div className="text-center">
                     <LoadingSpinner size="lg" />
                     <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                        ang kim tra quyn truy cp...
+                        Đang kiểm tra quyền truy cập...
                     </p>
                 </div>
             </div>

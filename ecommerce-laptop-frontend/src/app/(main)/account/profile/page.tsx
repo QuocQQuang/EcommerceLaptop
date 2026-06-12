@@ -310,7 +310,7 @@ export default function ProfilePage() {
                                     name="lastName"
                                     render={({ field }: { field: any }) => (
                                         <FormItem>
-                                            <FormLabel>Tn</FormLabel>
+                                            <FormLabel>Tên</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     placeholder="Vn A"
@@ -343,8 +343,8 @@ export default function ProfilePage() {
                                 disabled={isSavingProfile || !profileForm.formState.isDirty}
                             >
                                 {isSavingProfile
-                                    ? 'ang lu...'
-                                    : 'Lu thay i'}
+                                    ? 'Đang lưu...'
+                                    : 'Lưu thay đổi'}
                             </Button>
                         </form>
                     </Form>

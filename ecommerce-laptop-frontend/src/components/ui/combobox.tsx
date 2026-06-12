@@ -182,7 +182,7 @@ export function Combobox({
                             Xc nhn
                         </Button>
                         <Button size="sm" variant="outline" onClick={handleCustomCancel}>
-                            Hy
+                            Hủy
                         </Button>
                     </div>
                 </div>

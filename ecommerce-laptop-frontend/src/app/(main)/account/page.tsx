@@ -248,7 +248,7 @@ export default function AccountPage() {
                                                 ) : (
                                                     <Save className="h-4 w-4 mr-2" />
                                                 )}
-                                                Lu
+                                                Lưu
                                             </Button>
                                         </div>
                                     )}

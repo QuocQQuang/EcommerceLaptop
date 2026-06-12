@@ -77,7 +77,7 @@ export default function LlmConfigPage() {
             // if (data.length > 0 && !selectedProvider) { ... }
         } catch (error) {
             console.error("Failed to load providers", error);
-            toast.error("Khng th ti danh sch nh cung cp");
+            toast.error("Không thể tải danh sách nhà cung cấp");
         } finally {
             setIsLoading(false);
         }
@@ -92,10 +92,10 @@ export default function LlmConfigPage() {
                 setSelectedProvider(null);
                 setSelectedProfile(null);
             }
-            toast.success(" xóa nh cung cp");
+            toast.success("đã xóa nhà cung cấp");
         } catch (e) {
             console.error(e);
-            toast.error("Xóa tht bi");
+            toast.error("Xóa thất bại");
         }
     };
 
@@ -151,7 +151,7 @@ export default function LlmConfigPage() {
 
     const handleSaveProvider = async () => {
         if (!formData.name) {
-            toast.error("Tn nh cung cp l bt buc");
+            toast.error("Tên nhà cung cấp là bắt buộc");
             return;
         }
         setIsSaving(true);
@@ -162,13 +162,13 @@ export default function LlmConfigPage() {
                 setProviders([...providers, created]);
                 setSelectedProvider(created);
                 setIsEditingProvider(false);
-                toast.success(" to nh cung cp mi");
+                toast.success("đã tạo nhà cung cấp mới");
             } else if (selectedProvider) {
                 // Update implementation would go here
             }
         } catch (e) {
             console.error(e);
-            toast.error('Lu tht bi');
+            toast.error('Lưu thất bại');
         } finally {
             setIsSaving(false);
         }
@@ -176,7 +176,7 @@ export default function LlmConfigPage() {
 
     const handleSaveProfile = async () => {
         if (!formData.name || !formData.modelId) {
-            toast.error("Tn cấu hình v Model ID l bt buc");
+            toast.error("Tên cấu hình và Model ID là bắt buộc");
             return;
         }
         setIsSaving(true);
@@ -196,7 +196,7 @@ export default function LlmConfigPage() {
                     const updatedProfile = updatedProvider.profiles?.find(p => p.id === selectedProfile.id);
                     if (updatedProfile) setSelectedProfile(updatedProfile);
                 }
-                toast.success(" cp nht cấu hình");
+                toast.success("đã cập nhật cấu hình");
             } else {
                 const created = await llmService.createProfile(profileData);
                 await loadProviders();
@@ -206,7 +206,7 @@ export default function LlmConfigPage() {
             setIsEditingProfile(false);
         } catch (e) {
             console.error(e);
-            toast.error('Lu tht bi');
+            toast.error('Lưu thất bại');
         } finally {
             setIsSaving(false);
         }
@@ -217,8 +217,8 @@ export default function LlmConfigPage() {
         setTestStatus('idle');
         const success = await llmService.testConnection(selectedProfile.id);
         setTestStatus(success ? 'success' : 'date-error');
-        if (success) toast.success("Kt ni thnh cng!");
-        else toast.error("Kt ni tht bi. Kim tra API Key v URL.");
+        if (success) toast.success("Kết nối thành công!");
+        else toast.error("Kết nối thất bại. Kiểm tra API Key và URL.");
     };
 
     const handleActivateProfile = async () => {
@@ -229,7 +229,7 @@ export default function LlmConfigPage() {
             toast.success(` kích hoạt: ${selectedProfile.name}`);
         } catch (e: any) {
             console.error(e);
-            toast.error("Kích hoạt tht bi");
+            toast.error("Kích hoạt thất bại");
         }
     };
 
@@ -242,7 +242,7 @@ export default function LlmConfigPage() {
             toast.success(" xóa cấu hình");
         } catch (e) {
             console.error(e);
-            toast.error("Xóa tht bi");
+            toast.error("Xóa thất bại");
         }
     };
 
@@ -292,10 +292,10 @@ export default function LlmConfigPage() {
             await llmService.updateSystemSetting('EnableQueryRewriting', String(globalEnableRewriting));
             await llmService.setActiveRewritingProfile(globalRewritingProfileId);
             await llmService.updateSystemSetting('ProductCarouselLimit', String(globalCarouselLimit));
-            toast.success(" lu cấu hình RAG Global");
+            toast.success("Đã lưu cấu hình RAG Global");
         } catch (e) {
             console.error(e);
-            toast.error("Lu tht bi");
+            toast.error("Lưu thất bại");
         } finally {
             setIsSaving(false);
         }
@@ -306,7 +306,7 @@ export default function LlmConfigPage() {
             <div className="flex flex-col gap-2">
                 <h1 className="text-3xl font-bold tracking-tight">Cấu hình LLM (AI)</h1>
                 <p className="text-muted-foreground">
-                    Quản lý các nhà cung cấp AI, cấu hình profile v kim tra kt ni.
+                    Quản lý các nhà cung cấp AI, cấu hình profile và kiểm tra kết nối.
                 </p>
             </div>
 
@@ -328,7 +328,7 @@ export default function LlmConfigPage() {
                         {isLoading ? (
                             <div className="p-8 text-center text-muted-foreground">
                                 <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-                                ang ti...
+                                Đang tải...
                             </div>
                         ) : (
                             <div className="divide-y max-h-[600px] overflow-y-auto">
@@ -378,7 +378,7 @@ export default function LlmConfigPage() {
                                 ))}
                                 {providers.length === 0 && (
                                     <div className="p-8 text-center text-muted-foreground text-sm">
-                                        Cha c nh cung cp no.
+                                        Chưa có nhà cung cấp nào.
                                     </div>
                                 )}
                             </div>
@@ -393,9 +393,9 @@ export default function LlmConfigPage() {
                             <div className="bg-muted/50 p-6 rounded-full mb-4">
                                 <Cpu className="h-10 w-10 text-muted-foreground" />
                             </div>
-                            <h3 className="text-xl font-semibold mb-2">Cha chn cấu hình</h3>
+                            <h3 className="text-xl font-semibold mb-2">Chưa chọn cấu hình</h3>
                             <p className="text-muted-foreground max-w-sm">
-                                Vui lng chn mt nh cung cp t danh sch bn tri hoc to mi  bt u cấu hình.
+Vui lòng chọn một nhà cung cấp từ danh sách bên trái hoặc tạo mới để bắt đầu cấu hình.
                             </p>
                         </Card>
                     ) : (
@@ -406,7 +406,7 @@ export default function LlmConfigPage() {
                                         <div>
                                             <CardTitle>{isEditingProvider ? 'To Nh Cung Cp Mi' : (selectedProfile ? `Cấu hình: ${selectedProfile.name}` : providerDisplayName(selectedProvider))}</CardTitle>
                                             <CardDescription>
-                                                {selectedProfile ? `ID: ${selectedProfile.modelId}  Provider: ${selectedProvider?.name}` : 'Thng tin chung nh cung cp'}
+                                                {selectedProfile ? `ID: ${selectedProfile.modelId}  Provider: ${selectedProvider?.name}` : 'Thông tin chung nhà cung cấp'}
                                             </CardDescription>
                                         </div>
                                         <div className="flex gap-2">
@@ -440,14 +440,14 @@ export default function LlmConfigPage() {
                                     {isEditingProvider && (
                                         <div className="space-y-4 max-w-xl">
                                             <div className="grid gap-2">
-                                                <Label htmlFor="provider-name">Tn Nh Cung Cp</Label>
+                                                <Label htmlFor="provider-name">Tên Nhà Cung Cấp</Label>
                                                 <Input id="provider-name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="VD: OpenRouter, OpenAI..." />
                                             </div>
                                             <div className="grid gap-2">
                                                 <Label htmlFor="provider-type">Loi (Type)</Label>
                                                 <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v })}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Chn loi" />
+                                                        <SelectValue placeholder="Chọn loại" />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value="openai">OpenAI Compatible</SelectItem>
@@ -472,7 +472,7 @@ export default function LlmConfigPage() {
                                         <div className="space-y-6">
                                             <div className="grid md:grid-cols-2 gap-4">
                                                 <div className="grid gap-2">
-                                                    <Label>Tn Profile Display</Label>
+                                                    <Label>Tên Profile Display</Label>
                                                     <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="VD: GPT-4 Production" />
                                                 </div>
                                                 <div className="grid gap-2">
@@ -487,7 +487,7 @@ export default function LlmConfigPage() {
                                                         {fetchedModels.length > 0 ? (
                                                             <Select value={formData.modelId} onValueChange={(v) => setFormData({ ...formData, modelId: v })}>
                                                                 <SelectTrigger className="flex-1">
-                                                                    <SelectValue placeholder="Chn model" />
+                                                                    <SelectValue placeholder="Chọn model" />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     {fetchedModels.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
@@ -592,10 +592,10 @@ export default function LlmConfigPage() {
                                 </CardContent>
                                 {(isEditingProvider || isEditingProfile) && (
                                     <CardFooter className="flex justify-end gap-2 bg-muted/10 py-4">
-                                        <Button variant="ghost" onClick={() => { setIsEditingProvider(false); setIsEditingProfile(false); }}>Hy b</Button>
+                                        <Button variant="ghost" onClick={() => { setIsEditingProvider(false); setIsEditingProfile(false); }}>Hủy bỏ</Button>
                                         <Button onClick={isEditingProvider ? handleSaveProvider : handleSaveProfile} disabled={isSaving}>
                                             {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                                            {isEditingProvider ? 'To Provider' : 'Lu Thay i'}
+                                            {isEditingProvider ? 'Tạo Provider' : 'Lưu thay đổi'}
                                         </Button>
                                     </CardFooter>
                                 )}
@@ -622,9 +622,9 @@ export default function LlmConfigPage() {
                                         <Button variant="outline" onClick={async () => {
                                             if (!confirm('Hành động này sẽ Re-index lại toàn bộ sản phẩm. Cần một khoảng thời gian. Tiếp tục?')) return;
                                             try {
-                                                toast.info("ang bt u Re-index...");
+                                                toast.info("Đang bắt đầu Re-index...");
                                                 await llmService.reindexVectorDb();
-                                                toast.success(" yu cu Re-index thnh cng.");
+                                                toast.success("Yêu cầu Re-index thành công.");
                                             } catch (e: any) {
                                                 toast.error("Failed: " + e.message);
                                             }
@@ -645,10 +645,10 @@ export default function LlmConfigPage() {
                                             </CardTitle>
                                             <Button size="sm" onClick={handleSaveGlobalConfig} disabled={isSaving}>
                                                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                                                Lu Cấu hình Global
+                                                Lưu cấu hình Global
                                             </Button>
                                         </div>
-                                        <CardDescription>Cấu hình p dng cho ton b h thng RAG chatbot, độc lập vi profile Chat chnh.</CardDescription>
+                                        <CardDescription>Cấu hình áp dụng cho toàn bộ hệ thống RAG chatbot, độc lập với profile Chat chính.</CardDescription>
                                     </CardHeader>
                                     <CardContent className="p-6 space-y-6">
                                         {/* Enable Query Rewriting */}
@@ -656,7 +656,7 @@ export default function LlmConfigPage() {
                                             <div className="space-y-0.5">
                                                 <Label htmlFor="global-enable-rewriting" className="text-sm font-medium cursor-pointer">Enable Query Rewriting</Label>
                                                 <p className="text-xs text-muted-foreground">
-                                                    S dng LLM ring bit  ti u cu hi v trch xut filters trc khi tm kim.
+Sử dụng LLM riêng biệt để tối ưu câu hỏi và trích xuất filters trước khi tìm kiếm.
                                                 </p>
                                             </div>
                                             <Switch
@@ -674,7 +674,7 @@ export default function LlmConfigPage() {
                                                 onValueChange={(v) => setGlobalRewritingProfileId(v === "null" ? null : parseInt(v))}
                                             >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Chn profile..." />
+                                                    <SelectValue placeholder="Chọn profile..." />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="null">-- Disabled / Use Main Profile --</SelectItem>
@@ -686,7 +686,7 @@ export default function LlmConfigPage() {
                                                 </SelectContent>
                                             </Select>
                                             <p className="text-xs text-muted-foreground">
-                                                Chn mt profile nh/nhanh (v d: gpt-4o-mini, llama3)  gim chi ph v  tr rewriting.
+                                                Chọn một profile nhẹ/nhanh (ví dụ: gpt-4o-mini, llama3) để giảm chi phí và độ trễ rewriting.
                                                 Nu  trng, h thng s fallback v Main Chat Profile.
                                             </p>
                                         </div>

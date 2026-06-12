@@ -57,7 +57,7 @@ export function PromotionInteractiveContent() {
   const voucherCodes = [
     {
       code: 'LAPTOP500K',
-      title: 'Gim 500,000',
+      title: 'Giảm 500,000',
       description: 'Cho đơn hàng từ 15 triệu',
       expiry: '30/09/2025',
       used: 847,
@@ -66,7 +66,7 @@ export function PromotionInteractiveContent() {
     },
     {
       code: 'STUDENT30',
-      title: 'Gim 30%',
+      title: 'Giảm 30%',
       description: 'Dành cho sinh viên',
       expiry: '31/12/2025',
       used: 234,
@@ -75,7 +75,7 @@ export function PromotionInteractiveContent() {
     },
     {
       code: 'FIRSTBUY200K',
-      title: 'Gim 200,000',
+      title: 'Giảm 200,000',
       description: 'Khách hàng mới',
       expiry: '15/10/2025',
       used: 156,
@@ -119,7 +119,7 @@ export function PromotionInteractiveContent() {
         <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-6 text-white mb-8">
           <div className="text-center">
             <h3 className="text-2xl font-bold mb-2"> ĐANG DIỄN RA</h3>
-            <p className="text-lg mb-4">Thi gian cn li:</p>
+            <p className="text-lg mb-4">Thời gian còn lại:</p>
             <div className="flex justify-center space-x-4 text-2xl font-mono font-bold">
               <div className="bg-black/20 px-4 py-2 rounded">05</div>
               <span>:</span>
@@ -164,8 +164,8 @@ export function PromotionInteractiveContent() {
 
                   <div className="mb-3">
                     <div className="flex justify-between text-sm text-gray-600 mb-1">
-                      <span> bn: {item.soldCount}</span>
-                      <span>Cn li: {item.totalStock - item.soldCount}</span>
+                      <span>Đã bán: {item.soldCount}</span>
+                      <span>Còn lại: {item.totalStock - item.soldCount}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div

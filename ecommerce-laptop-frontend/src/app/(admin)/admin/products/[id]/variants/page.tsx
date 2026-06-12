@@ -869,7 +869,7 @@ export default function VariantManagementPage() {
 
     // Handle delete variant
     const handleDeleteVariant = (variantId: number) => {
-        if (window.confirm('Bn c chc chn mun xa bin th ny?')) {
+        if (window.confirm('Bạn có chắc chắn muốn xóa biến thể này?')) {
             deleteVariantMutation.mutate(variantId);
         }
     };
@@ -956,7 +956,7 @@ export default function VariantManagementPage() {
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Tn</Label>
+                            <Label className="text-sm font-medium text-muted-foreground">Tên</Label>
                             <p className="font-medium">{product.name}</p>
                         </div>
                         <div>
@@ -1178,10 +1178,10 @@ export default function VariantManagementPage() {
                                 </div>
                             </div>
                             <div>
-                                <Label htmlFor="description">M t</Label>
+                                <Label htmlFor="description">Mô tả</Label>
                                 <Input
                                     id="description"
-                                    placeholder="M t bin th..."
+                                    placeholder="Mô tả biến thể..."
                                     value={createFormData.description}
                                     onChange={(e) => setCreateFormData(prev => ({ ...prev, description: e.target.value }))}
                                 />

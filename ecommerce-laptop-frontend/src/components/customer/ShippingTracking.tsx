@@ -34,7 +34,7 @@ export function ShippingTracking({
             <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                     <Truck className="h-5 w-5" />
-                    <span>Thng tin vn chuyn</span>
+                    <span>Thông tin vận chuyển</span>
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -88,7 +88,7 @@ export function ShippingTracking({
                 {!trackingNumber && (
                     <div className="p-3 bg-yellow-50 rounded-lg">
                         <p className="text-sm text-yellow-800">
-                            M vn n s c cp nht khi đơn hàng c giao cho n v vn chuyn.
+                            Mã vận đơn sẽ được cập nhật khi đơn hàng được giao cho đơn vị vận chuyển.
                         </p>
                     </div>
                 )}

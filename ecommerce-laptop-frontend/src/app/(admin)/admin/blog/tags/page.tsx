@@ -137,7 +137,7 @@ export default function TagsPage() {
         const errors: Record<string, string> = {};
 
         if (!state.modalState.tag.name?.trim()) {
-            errors.name = 'Tn tag l bt buc';
+            errors.name = 'Tên tag là bắt buộc';
         }
 
         // Check if name is unique (except for current tag in edit mode)
@@ -146,7 +146,7 @@ export default function TagsPage() {
             tag.id !== state.modalState.tag.id
         );
         if (existingTag) {
-            errors.name = 'Tn tag  tn ti';
+            errors.name = 'Tên tag đã tồn tại';
         }
 
         setState(prev => ({
@@ -207,7 +207,7 @@ export default function TagsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Quản lý Tags</h1>
-                    <p className="text-gray-500">To v quản lý tags cho bi vit blog</p>
+                    <p className="text-gray-500">Tạo và quản lý tags cho bài viết blog</p>
                 </div>
                 <Button onClick={() => openModal('create')}>
                     <Plus className="w-4 h-4 mr-2" />
@@ -223,7 +223,7 @@ export default function TagsPage() {
                         <Input
                             value={state.searchTerm}
                             onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.target.value }))}
-                            placeholder="Tm kim tags..."
+                            placeholder="Tìm kiếm tags..."
                             className="pl-10"
                         />
                     </div>
@@ -247,18 +247,18 @@ export default function TagsPage() {
                         <div className="text-center py-12">
                             <Tag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                {state.searchTerm ? 'Khng tm thy tag' : 'Cha c tag no'}
+                                {state.searchTerm ? 'Không tìm thấy tag' : 'Chưa có tag nào'}
                             </h3>
                             <p className="text-gray-500 mb-4">
                                 {state.searchTerm
-                                    ? 'Th tm kim vi t kha khc'
-                                    : 'To tag u tin  bt u gn nhn bi vit'
+                                    ? 'Thử tìm kiếm với từ khóa khác'
+                                    : 'Tạo tag đầu tiên để bắt đầu gắn nhãn bài viết'
                                 }
                             </p>
                             {!state.searchTerm && (
                                 <Button onClick={() => openModal('create')}>
                                     <Plus className="w-4 h-4 mr-2" />
-                                    To tag u tin
+                                    Tạo tag đầu tiên
                                 </Button>
                             )}
                         </div>
@@ -266,9 +266,9 @@ export default function TagsPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Tn tag</TableHead>
-                                    <TableHead>Ngy to</TableHead>
-                                    <TableHead className="w-24">Thao tc</TableHead>
+                                    <TableHead>Tên tag</TableHead>
+                                    <TableHead>Ngày tạo</TableHead>
+                                    <TableHead className="w-24">Thao tác</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -317,19 +317,19 @@ export default function TagsPage() {
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            {state.modalState.mode === 'create' ? 'To tag mi' : 'Chỉnh sửa tag'}
+                            {state.modalState.mode === 'create' ? 'Tạo tag mới' : 'Chỉnh sửa tag'}
                         </DialogTitle>
                         <DialogDescription>
                             {state.modalState.mode === 'create'
-                                ? 'To tag mi  gn nhn bi vit blog'
-                                : 'Cp nht thng tin tag'
+                                ? 'Tạo tag mới để gắn nhãn bài viết blog'
+                                : 'Cập nhật thông tin tag'
                             }
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4">
                         <div>
-                            <Label htmlFor="tagName">Tn tag *</Label>
+                            <Label htmlFor="tagName">Tên tag *</Label>
                             <Input
                                 id="tagName"
                                 value={state.modalState.tag.name || ''}
@@ -341,18 +341,18 @@ export default function TagsPage() {
                                 <p className="text-sm text-red-600 mt-1">{state.modalState.errors.name}</p>
                             )}
                             <p className="text-xs text-gray-500 mt-1">
-                                Tag s hin th nh: #{state.modalState.tag.name || 'ten-tag'}
+                                Tag sẽ hiển thị như: #{state.modalState.tag.name || 'ten-tag'}
                             </p>
                         </div>
                     </div>
 
                     <DialogFooter>
                         <Button variant="outline" onClick={closeModal}>
-                            Hy
+                            Hủy
                         </Button>
                         <Button onClick={saveTag} disabled={state.saving}>
                             {state.saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                            {state.modalState.mode === 'create' ? 'To tag' : 'Cp nht'}
+                            {state.modalState.mode === 'create' ? 'Tạo tag' : 'Cập nhật'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -365,18 +365,18 @@ export default function TagsPage() {
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Xa tag</AlertDialogTitle>
+                        <AlertDialogTitle>Xóa tag</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Bn c chc chn mun xa tag "#{state.deletingTag?.name}"?
+                            Bạn có chắc chắn muốn xóa tag "#{state.deletingTag?.name}"?
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Hy</AlertDialogCancel>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => state.deletingTag && deleteTag(state.deletingTag)}
                             className="bg-red-600 hover:bg-red-700"
                         >
-                            Xa tag
+                            Xóa tag
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

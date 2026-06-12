@@ -507,7 +507,7 @@ export default function CommentsPage() {
                                                 <p className="text-gray-700 mb-2">{comment.content}</p>
 
                                                 <div className="text-sm text-gray-500">
-                                                    Bi vit: <span className="font-medium">{comment.blog?.title}</span>
+                                                    Bài viết: <span className="font-medium">{comment.blog?.title}</span>
                                                 </div>
                                             </div>
                                         </div>

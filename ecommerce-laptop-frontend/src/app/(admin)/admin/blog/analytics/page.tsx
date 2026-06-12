@@ -167,10 +167,10 @@ export default function AnalyticsPage() {
     // Get period display name
     const getPeriodDisplay = (period: string) => {
         switch (period) {
-            case 'week': return '7 ngy qua';
-            case 'month': return '30 ngy qua';
-            case 'quarter': return '3 thng qua';
-            case 'year': return '1 nm qua';
+            case 'week': return '7 ngày qua';
+            case 'month': return '30 ngày qua';
+            case 'quarter': return '3 tháng qua';
+            case 'year': return '1 năm qua';
             default: return period;
         }
     };

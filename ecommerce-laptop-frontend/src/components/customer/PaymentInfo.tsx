@@ -38,12 +38,12 @@ export function PaymentInfo({
     const getPaymentStatusInfo = (status: string) => {
         const statusMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
             'pending': {
-                label: 'Ch thanh toán',
+                label: 'Chờ thanh toán',
                 color: 'bg-yellow-100 text-yellow-800',
                 icon: <Clock className="h-4 w-4" />
             },
             'paid': {
-                label: ' thanh toán',
+                label: 'đã thanh toán',
                 color: 'bg-green-100 text-green-800',
                 icon: <CheckCircle className="h-4 w-4" />
             },
@@ -53,7 +53,7 @@ export function PaymentInfo({
                 icon: <XCircle className="h-4 w-4" />
             },
             'refunded': {
-                label: ' hon tin',
+                label: 'đã hoàn tiền',
                 color: 'bg-blue-100 text-blue-800',
                 icon: <CheckCircle className="h-4 w-4" />
             }
@@ -74,13 +74,13 @@ export function PaymentInfo({
                 <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                         <CreditCard className="h-5 w-5" />
-                        <span>Thng tin thanh toán</span>
+                        <span>Thông tin thanh toán</span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {/* Payment Status */}
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Trng thi:</span>
+                        <span className="text-sm text-gray-600">Trạng thái:</span>
                         <Badge className={`${paymentStatusInfo.color} flex items-center space-x-1`}>
                             {paymentStatusInfo.icon}
                             <span>{paymentStatusInfo.label}</span>
@@ -89,8 +89,8 @@ export function PaymentInfo({
 
                     {/* Payment Method */}
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Phng thc:</span>
-                        <span className={`text-sm font-medium ${paymentMethod === 'Cha xc nh' ? 'text-gray-500 italic' : ''}`}>
+                        <span className="text-sm text-gray-600">Phương thức:</span>
+                        <span className={`text-sm font-medium ${paymentMethod === 'Chưa xác định' ? 'text-gray-500 italic' : ''}`}>
                             {paymentMethod}
                         </span>
                     </div>
@@ -98,7 +98,7 @@ export function PaymentInfo({
                     {/* Payment Date */}
                     {paidAt && (
                         <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Ngy thanh toán:</span>
+                            <span className="text-sm text-gray-600">Ngày thanh toán:</span>
                             <div className="flex items-center space-x-1">
                                 <Calendar className="h-4 w-4 text-gray-500" />
                                 <span className="text-sm">
@@ -117,11 +117,11 @@ export function PaymentInfo({
                 </CardHeader>
                 <CardContent className="space-y-3">
                     <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Tm tnh:</span>
+                        <span className="text-sm text-gray-600">Tạm tính:</span>
                         <span className="text-sm">{formatCurrencyPrice(subtotal, selectedCurrency)}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Ph vn chuyn:</span>
+                        <span className="text-sm text-gray-600">Phí vận chuyển:</span>
                         <span className="text-sm">{formatCurrencyPrice(shippingCost, selectedCurrency)}</span>
                     </div>
                     <div className="flex justify-between">
@@ -130,7 +130,7 @@ export function PaymentInfo({
                     </div>
                     <hr className="my-2" />
                     <div className="flex justify-between">
-                        <span className="font-medium">Tng cng:</span>
+                        <span className="font-medium">Tổng cộng:</span>
                         <span className="font-bold text-lg">{formatCurrencyPrice(totalAmount, selectedCurrency)}</span>
                     </div>
                 </CardContent>

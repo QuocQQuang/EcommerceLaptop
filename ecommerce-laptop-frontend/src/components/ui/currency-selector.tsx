@@ -68,7 +68,7 @@ export function CurrencySelector({
                         onClick={handleRefreshRates}
                         disabled={isLoading}
                         className="p-2"
-                        title="Cp nht t gi"
+                        title="Cập nhật tỷ giá"
                     >
                         <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                     </Button>
@@ -104,7 +104,7 @@ export function CurrencySelector({
                         onClick={handleRefreshRates}
                         disabled={isLoading}
                         className="p-2"
-                        title="Cp nht t gi"
+                        title="Cập nhật tỷ giá"
                     >
                         <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                     </Button>
@@ -145,7 +145,7 @@ export function CurrencySelector({
                     onClick={handleRefreshRates}
                     disabled={isLoading}
                     className="p-2 h-8 w-8"
-                    title="Cp nht t gi"
+                    title="Cập nhật tỷ giá"
                 >
                     <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                 </Button>

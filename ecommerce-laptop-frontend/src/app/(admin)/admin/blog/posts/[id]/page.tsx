@@ -206,15 +206,15 @@ export default function BlogEditPage() {
         const errors: Record<string, string> = {};
 
         if (!state.blog.title?.trim()) {
-            errors.title = 'Tiu  l bt buc';
+            errors.title = 'Tiêu đề là bắt buộc';
         }
 
         if (!state.blog.content?.trim()) {
-            errors.content = 'Ni dung l bt buc';
+            errors.content = 'Nội dung là bắt buộc';
         }
 
         if (!state.blog.slug?.trim()) {
-            errors.slug = 'Slug l bt buc';
+            errors.slug = 'Slug là bắt buộc';
         }
 
         setState(prev => ({ ...prev, errors }));
@@ -375,10 +375,10 @@ export default function BlogEditPage() {
         return (
             <div className="p-6">
                 <div className="text-center">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Khng tm thy bi vit</h2>
-                    <p className="text-gray-500 mb-4">Bi vit bn ang tm kim khng tn ti.</p>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Không tìm thấy bài viết</h2>
+                    <p className="text-gray-500 mb-4">Bài viết bạn đang tìm kiếm không tồn tại.</p>
                     <Button onClick={() => router.push('/admin/blog/posts')}>
-                        Quay li danh sách
+                        Quay lại danh sách
                     </Button>
                 </div>
             </div>
@@ -396,23 +396,23 @@ export default function BlogEditPage() {
                             <h1 className="text-2xl font-bold text-gray-900">Chỉnh sửa bài viết</h1>
                             {hasUnsavedChanges && (
                                 <p className="text-sm text-orange-600 mt-1">
-                                    * C thay i cha c lu
+                                    * Có thay đổi chưa được lưu
                                 </p>
                             )}
                         </div>
                         <div className="flex items-center gap-2">
                             {state.autoSaving && (
-                                <span className="text-sm text-gray-500 flex items-center gap-1">
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    ang lu...
-                                </span>
+                                    <span className="text-sm text-gray-500 flex items-center gap-1">
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        đang lưu...
+                                    </span>
                             )}
                             <Button
                                 variant="outline"
                                 onClick={() => router.push(`/blog/${state.blog?.slug}`)}
                             >
                                 <Eye className="w-4 h-4 mr-2" />
-                                Xem trc
+                                Xem trước
                             </Button>
                             <Button
                                 variant="outline"
@@ -421,7 +421,7 @@ export default function BlogEditPage() {
                             >
                                 {state.saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                                 <Save className="w-4 h-4 mr-2" />
-                                Lu
+                                Lưu
                             </Button>
                             {state.blog.status !== BlogStatus.Published && (
                                 <Button
@@ -430,7 +430,7 @@ export default function BlogEditPage() {
                                 >
                                     {state.publishing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                                     <Send className="w-4 h-4 mr-2" />
-                                    Xut bn
+                                    Xuất bản
                                 </Button>
                             )}
                             {state.blog.status === BlogStatus.Published && (
@@ -440,7 +440,7 @@ export default function BlogEditPage() {
                                     variant="outline"
                                 >
                                     {state.publishing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                                    n bi vit
+                                    Ẩn bài viết
                                 </Button>
                             )}
                             <AlertDialog>
@@ -451,21 +451,21 @@ export default function BlogEditPage() {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle>Xa bi vit</AlertDialogTitle>
+                                        <AlertDialogTitle>Xóa bài viết</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            Bn c chc chn mun xa bi vit "{state.blog.title}"?
-                                            Hnh ng ny khng th hon tc.
+                                            Bạn có chắc chắn muốn xóa bài viết "{state.blog.title}"?
+                                            Hành động này không thể hoàn tác.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel>Hy</AlertDialogCancel>
+                                        <AlertDialogCancel>Hủy</AlertDialogCancel>
                                         <AlertDialogAction
                                             onClick={deleteBlog}
                                             disabled={state.deleting}
                                             className="bg-red-600 hover:bg-red-700"
                                         >
                                             {state.deleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                                            Xa
+                                            Xóa
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -478,24 +478,24 @@ export default function BlogEditPage() {
                         <CardContent className="pt-6">
                             <div className="flex items-center gap-4 text-sm text-gray-600">
                                 <div className="flex items-center gap-1">
-                                    <span>Trng thi:</span>
+                                    <span>Trạng thái:</span>
                                     <Badge variant={
                                         state.blog.status === BlogStatus.Published ? 'default' :
                                             state.blog.status === BlogStatus.Draft ? 'secondary' : 'destructive'
                                     }>
-                                        {state.blog.status === BlogStatus.Published ? ' xut bn' :
-                                            state.blog.status === BlogStatus.Draft ? 'Bn nhp' : ' n'}
+                                        {state.blog.status === BlogStatus.Published ? 'Đã xuất bản' :
+                                            state.blog.status === BlogStatus.Draft ? 'Bản nháp' : 'Đã ẩn'}
                                     </Badge>
                                 </div>
                                 {state.blog.publishedAt && (
                                     <div className="flex items-center gap-1">
                                         <Calendar className="w-4 h-4" />
-                                        <span>Xut bn: {new Date(state.blog.publishedAt).toLocaleDateString('vi-VN')}</span>
+                                        <span>Xuất bản: {new Date(state.blog.publishedAt).toLocaleDateString('vi-VN')}</span>
                                     </div>
                                 )}
                                 <div className="flex items-center gap-1">
                                     <Eye className="w-4 h-4" />
-                                    <span>Lt xem: {state.blog.viewCount || 0}</span>
+                                    <span>Lượt xem: {state.blog.viewCount || 0}</span>
                                 </div>
                             </div>
                         </CardContent>
@@ -504,16 +504,16 @@ export default function BlogEditPage() {
                     {/* Title */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Tiu  v Slug</CardTitle>
+                            <CardTitle>Tiêu đề và Slug</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <Label htmlFor="title">Tiu  bi vit *</Label>
+                                <Label htmlFor="title">Tiêu đề bài viết *</Label>
                                 <Input
                                     id="title"
                                     value={state.blog.title || ''}
                                     onChange={(e) => updateBlog('title', e.target.value)}
-                                    placeholder="Nhp tiu  bi vit..."
+                                    placeholder="Nhập tiêu đề bài viết..."
                                     className={cn(state.errors.title && "border-red-500")}
                                 />
                                 {state.errors.title && (
@@ -539,12 +539,12 @@ export default function BlogEditPage() {
                             </div>
 
                             <div>
-                                <Label htmlFor="excerpt">Tm tt</Label>
+                                <Label htmlFor="excerpt">Tóm tắt</Label>
                                 <Textarea
                                     id="excerpt"
                                     value={state.blog.excerpt || ''}
                                     onChange={(e) => updateBlog('excerpt', e.target.value)}
-                                    placeholder="Tm tt ngn v bi vit..."
+                                    placeholder="Tóm tắt ngắn về bài viết..."
                                     rows={3}
                                 />
                             </div>
@@ -555,11 +555,11 @@ export default function BlogEditPage() {
                     <Card>
                         <CardHeader>
                             <div className="flex items-center justify-between">
-                                <CardTitle>Ni dung bi vit *</CardTitle>
+                                <CardTitle>Nội dung bài viết *</CardTitle>
                                 {readingTime > 0 && (
                                     <Badge variant="outline" className="flex items-center gap-1">
                                         <Clock className="w-3 h-3" />
-                                        {readingTime} pht c
+                                        {readingTime} phút đọc
                                     </Badge>
                                 )}
                             </div>
@@ -571,7 +571,7 @@ export default function BlogEditPage() {
                                     onChange={(content: string) => updateBlog('content', content)}
                                     modules={quillModules}
                                     formats={quillFormats}
-                                    placeholder="Vit ni dung bi vit ca bn  y..."
+                                    placeholder="Viết nội dung bài viết của bạn ở đây..."
                                     style={{ minHeight: '400px' }}
                                 />
                             </div>
@@ -589,12 +589,12 @@ export default function BlogEditPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <ImageIcon className="w-5 h-5" />
-                                nh i din
+                                Ảnh đại diện
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <Label htmlFor="featuredImage">URL nh</Label>
+                                <Label htmlFor="featuredImage">URL ảnh</Label>
                                 <Input
                                     id="featuredImage"
                                     value={state.blog.featuredImageUrl || ''}
@@ -626,7 +626,7 @@ export default function BlogEditPage() {
                                 onValueChange={(value) => updateBlog('categoryId', value === '0' ? undefined : parseInt(value))}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Chn danh mục" />
+                                    <SelectValue placeholder="Chọn danh mục" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="0">Không danh mục</SelectItem>
@@ -675,7 +675,7 @@ export default function BlogEditPage() {
 
                             {/* Available Tags */}
                             <div className="space-y-2">
-                                <Label>Chn tags c sn</Label>
+                                <Label>Chọn tags có sẵn</Label>
                                 <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                                     {state.tags
                                         .filter(tag => !state.selectedTags.includes(tag.id))
@@ -698,7 +698,7 @@ export default function BlogEditPage() {
                                 <Label>Thêm tag mới</Label>
                                 <div className="flex gap-2 mt-1">
                                     <Input
-                                        placeholder="Tn tag..."
+                                        placeholder="Tên tag..."
                                         onKeyPress={(e) => {
                                             if (e.key === 'Enter') {
                                                 handleAddTag((e.target as HTMLInputElement).value);
@@ -716,12 +716,12 @@ export default function BlogEditPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Settings className="w-5 h-5" />
-                                Ci t
+                                Cài đặt
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="isFeatured">Bi vit ni bt</Label>
+                                <Label htmlFor="isFeatured">Bài viết nổi bật</Label>
                                 <Switch
                                     id="isFeatured"
                                     checked={state.blog.isFeatured}

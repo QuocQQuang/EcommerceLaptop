@@ -111,7 +111,7 @@ export default function OrderDetailPage() {
         const statusMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
             'pending': { label: 'Ch x l', color: 'bg-yellow-100 text-yellow-800', icon: <Clock className="h-4 w-4" /> },
             'confirmed': { label: ' xc nhn', color: 'bg-blue-100 text-blue-800', icon: <CheckCircle className="h-4 w-4" /> },
-            'processing': { label: 'ang x l', color: 'bg-purple-100 text-purple-800', icon: <Package className="h-4 w-4" /> },
+            'processing': { label: 'Đang xử lý', color: 'bg-purple-100 text-purple-800', icon: <Package className="h-4 w-4" /> },
             'shipped': { label: ' giao hng', color: 'bg-green-100 text-green-800', icon: <Truck className="h-4 w-4" /> },
             'delivered': { label: ' nhn hng', color: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-4 w-4" /> },
             'cancelled': { label: ' hy', color: 'bg-red-100 text-red-800', icon: <XCircle className="h-4 w-4" /> }
@@ -123,7 +123,7 @@ export default function OrderDetailPage() {
         const statusMap: Record<string, { label: string; color: string }> = {
             'pending': { label: 'Ch thanh ton', color: 'bg-yellow-100 text-yellow-800' },
             'paid': { label: ' thanh ton', color: 'bg-green-100 text-green-800' },
-            'failed': { label: 'Thanh ton tht bi', color: 'bg-red-100 text-red-800' },
+            'failed': { label: 'Thanh toán thất bại', color: 'bg-red-100 text-red-800' },
             'refunded': { label: ' hon tin', color: 'bg-blue-100 text-blue-800' }
         };
         return statusMap[status] || { label: status, color: 'bg-gray-100 text-gray-800' };
@@ -132,7 +132,7 @@ export default function OrderDetailPage() {
     // Determine payment status and method from audit trail
     const getPaymentInfo = (order: OrderDetails) => {
         let paymentStatus = order.paymentStatus || 'pending';
-        let paymentMethod = order.paymentMethod || 'Cha xc nh';
+        let paymentMethod = order.paymentMethod || 'Chưa xác nhận';
 
         // Check audit trail for payment information
         if (order.auditTrail && order.auditTrail.length > 0) {

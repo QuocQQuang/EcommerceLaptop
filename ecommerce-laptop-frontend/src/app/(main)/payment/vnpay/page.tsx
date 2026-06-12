@@ -150,7 +150,7 @@ function VNPayPaymentContent() {
                             </Button>
 
                             <div className="text-xs text-muted-foreground text-center">
-                                Bằng cách nhấp vào nút trên, bạn đồng ý với <Link href="/terms" className="underline">Điều khoản dịch vụ</Link> và <Link href="/privacy" className="underline">Chính sách bảo mật</Link>
+                                Bằng cách nhấp vào nút trên, bạn đồng ý với điều khoản dịch vụ và chính sách bảo mật của cửa hàng
                             </div>
                         </CardContent>
                     </Card>

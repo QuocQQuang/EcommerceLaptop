@@ -377,8 +377,6 @@ export function createSecurityMiddleware(config: Partial<SecurityConfig> = {}) {
                 '/api/auth/login',
                 '/api/auth/register',
                 '/api/public',
-                '/terms',
-                '/privacy',
                 '/products',
                 '/about',
                 '/contact',
@@ -389,8 +387,6 @@ export function createSecurityMiddleware(config: Partial<SecurityConfig> = {}) {
                 '/auth',
                 '/register',
                 '/admin-login',
-                '/terms',
-                '/privacy',
                 '/products',
                 '/about',
                 '/contact'

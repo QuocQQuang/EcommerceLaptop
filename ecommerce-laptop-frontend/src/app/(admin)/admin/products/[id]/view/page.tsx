@@ -59,7 +59,7 @@ const getStockBadge = (stock: number) => {
   if (stock === 0) {
     return <Badge variant="destructive">Hết hàng</Badge>;
   } else if (stock < 5) {
-    return <Badge variant="outline" className="text-orange-600">Sắp hếÍt ({stock})</Badge>;
+    return <Badge variant="outline" className="text-orange-600">Sắp hết ({stock})</Badge>;
   } else if (stock < 10) {
     return <Badge variant="outline" className="text-yellow-600">Ít ({stock})</Badge>;
   } else {
@@ -130,7 +130,7 @@ export default function ProductViewPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Li</h1>
+            <h1 className="text-3xl font-bold">Lỗi</h1>
           </div>
         </div>
         <Card>
@@ -160,7 +160,7 @@ export default function ProductViewPage() {
             <div>
               <h1 className="text-3xl font-bold">{product?.name}</h1>
               <p className="text-muted-foreground">
-                Chi tit sản phẩm #{productId}
+                Chi tiết sản phẩm #{productId}
               </p>
             </div>
           </div>
@@ -183,7 +183,7 @@ export default function ProductViewPage() {
               <CardHeader>
                 <CardTitle>Thông tin cơ bản</CardTitle>
                 <CardDescription>
-                  Thông tin cơ bản ca sản phẩm
+                  Thông tin cơ bản của sản phẩm
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -225,7 +225,7 @@ export default function ProductViewPage() {
                 <Separator />
 
                 <div className="space-y-2">
-                  <span className="font-medium">M t:</span>
+                  <span className="font-medium">Mô tả:</span>
                   <p className="text-muted-foreground">
                     {product?.description || 'Không có mô tả'}
                   </p>
@@ -273,7 +273,7 @@ export default function ProductViewPage() {
             {product?.specifications && product.specifications.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Thường s k thut</CardTitle>
+                  <CardTitle>Thông số kỹ thuật</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

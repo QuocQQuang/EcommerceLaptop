@@ -57,15 +57,15 @@ export function PaymentProgress({
         {
             id: 'init',
             title: 'Khi to',
-            description: 'To giao dch thanh toán',
+            description: 'Tạo giao dịch thanh toán',
             status: currentStep === 'init' ? 'current' :
                 ['processing', 'redirect', 'complete'].includes(currentStep) ? 'completed' : 'pending',
             icon: CheckCircle
         },
         {
             id: 'processing',
-            title: 'X l',
-            description: isProcessing ? 'ang x l thanh toán...' : 'Ch x l',
+            title: 'Xử lý',
+            description: isProcessing ? 'đang xử lý thanh toán...' : 'Chờ xử lý',
             status: currentStep === 'processing' ? 'current' :
                 currentStep === 'complete' ? 'completed' : 'pending',
             icon: isProcessing ? Loader2 : Clock
@@ -80,7 +80,7 @@ export function PaymentProgress({
         },
         {
             id: 'complete',
-            title: 'Hon thnh',
+            title: 'Hoàn thành',
             description: 'Thanh toán thành công',
             status: currentStep === 'complete' ? 'completed' : 'pending',
             icon: CheckCircle
@@ -129,14 +129,14 @@ export function PaymentProgress({
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <CreditCard className="h-5 w-5" />
-                    Tin trnh thanh toán
+                    Tiến trình thanh toán
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
                 {/* Progress Bar */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                        <span>Tin  tng th</span>
+                        <span>Tiến độ tổng thể</span>
                         <span>{Math.round(progress)}%</span>
                     </div>
                     <Progress value={progress} className="h-2" />
@@ -156,9 +156,9 @@ export function PaymentProgress({
                                 <div className="flex items-center gap-2 mb-1">
                                     <h4 className="font-medium text-sm">{step.title}</h4>
                                     <Badge variant={getStepBadgeVariant(step)} className="text-xs">
-                                        {getStepStatus(step) === 'completed' ? 'Hon thnh' :
-                                            getStepStatus(step) === 'current' ? 'ang x l' :
-                                                getStepStatus(step) === 'failed' ? 'Tht bi' : 'Ch x l'}
+                                        {getStepStatus(step) === 'completed' ? 'Hoàn thành' :
+                                            getStepStatus(step) === 'current' ? 'Đang xử lý' :
+                                                getStepStatus(step) === 'failed' ? 'Tht bi' : 'Chờ xử lý'}
                                     </Badge>
                                 </div>
                                 <p className="text-sm text-muted-foreground">
@@ -188,7 +188,7 @@ export function PaymentProgress({
                 {/* Gateway Info */}
                 <div className="pt-4 border-t">
                     <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Cng thanh toán:</span>
+                        <span className="text-muted-foreground">Cổng thanh toán:</span>
                         <span className="font-medium">{gateway}</span>
                     </div>
                     <div className="flex justify-between text-sm">

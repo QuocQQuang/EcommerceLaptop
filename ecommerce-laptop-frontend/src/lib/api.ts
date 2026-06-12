@@ -42,11 +42,6 @@ if (!apiBaseURL) {
     }
 }
 
-logger.info(' Initializing API Client', {
-    baseURL: apiBaseURL,
-    environment: process.env.NODE_ENV
-});
-
 // Create an Axios instance with a base URL from environment variables
 const apiClient = axios.create({
     baseURL: apiBaseURL,

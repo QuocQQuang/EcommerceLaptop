@@ -786,7 +786,7 @@ export default function NewBlogPage() {
 
                             {/* Temporarily hide featured posts until homepage section is implemented */}
                             {/* <div className="flex items-center justify-between">
-                                <Label htmlFor="isFeatured">Bi vit ni bt</Label>
+                                <Label htmlFor="isFeatured">Bài viết nổi bật</Label>
                                 <Switch
                                     id="isFeatured"
                                     checked={state.blog.isFeatured || false}
@@ -797,11 +797,11 @@ export default function NewBlogPage() {
                     </Card>
 
                     {/* SEO - Temporarily hidden until meta tags are implemented in HTML head */}
-                    {/* <Card>
+                            {/* <Card>
                         <CardHeader>
                             <CardTitle>SEO</CardTitle>
                             <CardDescription>
-                                Ti u ha cho cng c tm kim
+                                Tối ưu hóa cho công cụ tìm kiếm
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">

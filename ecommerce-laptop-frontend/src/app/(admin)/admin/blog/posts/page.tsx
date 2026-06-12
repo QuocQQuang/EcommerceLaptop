@@ -43,8 +43,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, type ComponentType } from 'react';
 
 const statusLabels: Record<BlogStatusType, string> = {
-    [BlogStatus.Published]: ' xut bn',
-    [BlogStatus.Draft]: 'Bn nhp',
+    [BlogStatus.Published]: 'Đã xuất bản',
+    [BlogStatus.Draft]: 'Bản nháp',
 };
 
 interface BlogsListState {
@@ -163,7 +163,7 @@ export default function BlogsListPage() {
 
     // Bulk actions
     const handleBulkDelete = async () => {
-        if (state.selectedBlogs.size === 0 || !confirm(`Bn c chc mun xa ${state.selectedBlogs.size} bi vit?`)) {
+        if (state.selectedBlogs.size === 0 || !confirm(`Bạn có chắc muốn xóa ${state.selectedBlogs.size} bài viết?`)) {
             return;
         }
 
@@ -182,7 +182,7 @@ export default function BlogsListPage() {
 
     // Individual actions
     const handleDeleteBlog = async (id: number, title: string) => {
-        if (!confirm(`Bn c chc mun xa bi vit "${title}"?`)) {
+        if (!confirm(`Bạn có chắc muốn xóa bài viết "${title}"?`)) {
             return;
         }
 
@@ -220,13 +220,13 @@ export default function BlogsListPage() {
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Quản lý bài viết</h1>
                     <p className="text-gray-600 mt-1">
-                        Qun l tt c bi vit blog ca bn
+                        Quản lý tất cả bài viết blog của bạn
                     </p>
                 </div>
                 <Button asChild>
                     <Link href="/admin/blog/posts/new">
                         <Plus className="w-4 h-4 mr-2" />
-                        To bi vit
+                        Tạo bài viết
                     </Link>
                 </Button>
             </div>
@@ -236,7 +236,7 @@ export default function BlogsListPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Filter className="w-5 h-5" />
-                        B lc v tm kim
+                        Bộ lọc và tìm kiếm
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -245,7 +245,7 @@ export default function BlogsListPage() {
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <Input
-                                placeholder="Tm kim bi vit..."
+                                placeholder="Tìm kiếm bài viết..."
                                 value={filters.search}
                                 onChange={(e) => handleFilterChange('search', e.target.value)}
                                 className="pl-10"
@@ -258,12 +258,12 @@ export default function BlogsListPage() {
                             onValueChange={(value) => handleFilterChange('status', value === 'all' ? undefined : value)}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Trng thi" />
+                                <SelectValue placeholder="Trạng thái" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Tt c trng thi</SelectItem>
-                                <SelectItem value="published"> xut bn</SelectItem>
-                                <SelectItem value="draft">Bn nhp</SelectItem>
+                                <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                                <SelectItem value="published">Đã xuất bản</SelectItem>
+                                <SelectItem value="draft">Bản nháp</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -276,11 +276,11 @@ export default function BlogsListPage() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="updatedAt">Mi cp nht</SelectItem>
-                                <SelectItem value="createdAt">Mi to</SelectItem>
-                                <SelectItem value="publishedAt">Mi xut bn</SelectItem>
-                                <SelectItem value="title">Tiu </SelectItem>
-                                <SelectItem value="viewCount">Lt xem</SelectItem>
+                                <SelectItem value="updatedAt">Mới cập nhật</SelectItem>
+                                <SelectItem value="createdAt">Mới tạo</SelectItem>
+                                <SelectItem value="publishedAt">Mới xuất bản</SelectItem>
+                                <SelectItem value="title">Tiêu đề</SelectItem>
+                                <SelectItem value="viewCount">Lượt xem</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -293,8 +293,8 @@ export default function BlogsListPage() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="desc">Gim dn</SelectItem>
-                                <SelectItem value="asc">Tng dn</SelectItem>
+                                <SelectItem value="desc">Giảm dần</SelectItem>
+                                <SelectItem value="asc">Tăng dần</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -304,7 +304,7 @@ export default function BlogsListPage() {
                         <div className="flex flex-wrap gap-2 mt-4">
                             {filters.search && (
                                 <Badge variant="secondary" className="flex items-center gap-1">
-                                    Tm kim: {filters.search}
+                                    Tìm kiếm: {filters.search}
                                     <X
                                         className="w-3 h-3 cursor-pointer"
                                         onClick={() => handleFilterChange('search', '')}
@@ -313,7 +313,7 @@ export default function BlogsListPage() {
                             )}
                             {filters.status && (
                                 <Badge variant="secondary" className="flex items-center gap-1">
-                                    Trng thi: {statusLabels[filters.status] ?? filters.status}
+                                    Trạng thái: {statusLabels[filters.status] ?? filters.status}
                                     <X
                                         className="w-3 h-3 cursor-pointer"
                                         onClick={() => handleFilterChange('status', undefined)}
@@ -332,7 +332,7 @@ export default function BlogsListPage() {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-medium">
-                                     chn {state.selectedBlogs.size} bi vit
+                                    Đã chọn {state.selectedBlogs.size} bài viết
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -343,14 +343,14 @@ export default function BlogsListPage() {
                                     disabled={state.bulkActionLoading}
                                 >
                                     <Trash2 className="w-4 h-4 mr-2" />
-                                    Xa
+                                    Xóa
                                 </Button>
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => setState(prev => ({ ...prev, selectedBlogs: new Set<number>() }))}
                                 >
-                                    Hy
+                                    Hủy
                                 </Button>
                             </div>
                         </div>
@@ -365,7 +365,7 @@ export default function BlogsListPage() {
                         <div>
                             <CardTitle>Danh sách bài viết</CardTitle>
                             <CardDescription>
-                                {state.loading ? 'ang ti...' : `${state.totalCount} bi vit`}
+                                {state.loading ? 'đang tải...' : `${state.totalCount} bài viết`}
                             </CardDescription>
                         </div>
 
@@ -375,7 +375,7 @@ export default function BlogsListPage() {
                                     checked={state.selectedBlogs.size === state.blogs.length}
                                     onCheckedChange={handleSelectAll}
                                 />
-                                <span className="text-sm text-gray-600">Chn tt c</span>
+                                <span className="text-sm text-gray-600">Chọn tất cả</span>
                             </div>
                         )}
                     </div>
@@ -386,12 +386,12 @@ export default function BlogsListPage() {
                     ) : state.blogs.length === 0 ? (
                         <div className="text-center py-12">
                             <div className="text-gray-500">
-                                <h3 className="text-lg font-medium mb-2">Cha c bi vit no</h3>
-                                <p className="mb-4">To bi vit u tin  bt u</p>
+                                <h3 className="text-lg font-medium mb-2">Chưa có bài viết nào</h3>
+                                <p className="mb-4">Tạo bài viết đầu tiên để bắt đầu</p>
                                 <Button asChild>
                                     <Link href="/admin/blog/posts/new">
                                         <Plus className="w-4 h-4 mr-2" />
-                                        To bi vit
+                        Tạo bài viết
                                     </Link>
                                 </Button>
                             </div>
@@ -419,7 +419,7 @@ export default function BlogsListPage() {
             {!state.loading && state.totalPages > 1 && (
                 <div className="flex items-center justify-between">
                     <p className="text-sm text-gray-700">
-                        Hin th {((state.currentPage - 1) * 10) + 1} n {Math.min(state.currentPage * 10, state.totalCount)} trong {state.totalCount} kt qu
+                        Hiển thị {((state.currentPage - 1) * 10) + 1} đến {Math.min(state.currentPage * 10, state.totalCount)} trong {state.totalCount} kết quả
                     </p>
                     <div className="flex items-center gap-2">
                         <Button
@@ -428,7 +428,7 @@ export default function BlogsListPage() {
                             onClick={() => fetchBlogs(state.currentPage - 1)}
                             disabled={state.currentPage <= 1}
                         >
-                            Trc
+                            Trước
                         </Button>
 
                         {/* Page Numbers */}
@@ -487,8 +487,8 @@ function BlogRowItem({
 }) {
     const getStatusBadge = (status: BlogStatusType) => {
         const variants: Record<BlogStatusType, { variant: 'default' | 'secondary' | 'outline' | 'destructive'; label: string; icon: ComponentType<{ className?: string }> }> = {
-            [BlogStatus.Published]: { variant: 'default', label: 'Xut bn', icon: CheckCircle },
-            [BlogStatus.Draft]: { variant: 'secondary', label: 'Nhp', icon: Edit },
+            [BlogStatus.Published]: { variant: 'default', label: 'Xuất bản', icon: CheckCircle },
+            [BlogStatus.Draft]: { variant: 'secondary', label: 'Nháp', icon: Edit },
         };
 
         const config = variants[status] ?? variants[BlogStatus.Draft];
@@ -532,7 +532,7 @@ function BlogRowItem({
                     <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                             <Link
-                                href={`/admin/blog/posts/${blog.id}`}
+                                href={`/admin/blog/posts/${blog.id}/edit`}
                                 className="text-lg font-semibold text-gray-900 hover:text-blue-600 truncate block"
                             >
                                 {blog.title}
@@ -555,23 +555,23 @@ function BlogRowItem({
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuItem asChild>
-                                        <Link href={`/admin/blog/posts/${blog.id}`}>
+                                        <Link href={`/admin/blog/posts/${blog.id}/edit`}>
                                             <Edit className="w-4 h-4 mr-2" />
-                                            Sa
+                                            Sửa
                                         </Link>
                                     </DropdownMenuItem>
 
                                     {blog.status === BlogStatus.Draft && (
                                         <DropdownMenuItem onClick={() => onPublish(blog.id)}>
                                             <CheckCircle className="w-4 h-4 mr-2" />
-                                            Xut bn
+                                            Xuất bản
                                         </DropdownMenuItem>
                                     )}
 
                                     {blog.status === BlogStatus.Published && (
                                         <DropdownMenuItem onClick={() => onUnpublish(blog.id)}>
                                             <Archive className="w-4 h-4 mr-2" />
-                                            n bi vit
+                                            Ẩn bài viết
                                         </DropdownMenuItem>
                                     )}
 
@@ -581,7 +581,7 @@ function BlogRowItem({
                                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                     >
                                         <Trash2 className="w-4 h-4 mr-2" />
-                                        Xa
+                                        Xóa
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>

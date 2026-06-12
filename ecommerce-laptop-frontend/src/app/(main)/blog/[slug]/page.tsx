@@ -74,15 +74,15 @@ function CommentItem({ comment, onReply }: CommentItemProps) {
     const getStatusText = (status: CommentStatus) => {
         switch (status) {
             case CommentStatus.Approved:
-                return ' duyt';
+                return 'Đã duyệt';
             case CommentStatus.Pending:
-                return 'Ch duyt';
+                return 'Chờ duyệt';
             case CommentStatus.Rejected:
-                return 'T chi';
+                return 'Từ chối';
             case CommentStatus.Spam:
                 return 'Spam';
             default:
-                return 'Khng xc nh';
+                return 'Không xác định';
         }
     };
 
@@ -113,11 +113,11 @@ function CommentItem({ comment, onReply }: CommentItemProps) {
                                 className="text-blue-600 hover:text-blue-700 px-0"
                             >
                                 <MessageCircle className="w-4 h-4 mr-1" />
-                                Phn hi
+                                Phản hồi
                             </Button>
                             <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-700 px-0">
                                 <ThumbsUp className="w-4 h-4 mr-1" />
-                                Thch
+                                Thích
                             </Button>
                         </div>
                     )}
@@ -215,7 +215,7 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
         } catch (error) {
             console.error('Failed to load blog:', error);
             setState(prev => ({ ...prev, loading: false }));
-            toast.error('Khng th ti bi vit');
+            toast.error('Không thể tải bài viết');
         }
     }, [slug]);
 
@@ -260,7 +260,7 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
         } catch (error) {
             console.error('Failed to toggle like:', error);
             setState(prev => ({ ...prev, liking: false }));
-            toast.error('Khng th cp nht lt thch');
+            toast.error('Không thể cập nhật lượt thích');
         }
     }, [state.blog, state.hasLiked, state.liking]);
 
@@ -279,7 +279,7 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
         if (!state.blog) return;
 
         if (!state.newComment.content.trim() || !state.newComment.authorName.trim() || !state.newComment.authorEmail.trim()) {
-            toast.error('Vui lng in y  thng tin');
+            toast.error('Vui lòng điền đầy đủ thông tin');
             return;
         }
 
@@ -302,18 +302,18 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                 submittingComment: false
             }));
 
-            toast.success('Bnh lun  c ng');
+            toast.success('Bình luận đã được gửi');
             await loadComments();
         } catch (error) {
             console.error('Failed to submit comment:', error);
             setState(prev => ({ ...prev, submittingComment: false }));
-            toast.error('Khng th gi bnh lun');
+            toast.error('Không thể gửi bình luận');
         }
     };
 
     // Format reading time
     const formatReadingTime = (minutes: number) => {
-        return minutes < 1 ? 'Di 1 pht c' : `${minutes} pht c`;
+        return minutes < 1 ? 'Dưới 1 phút đọc' : `${minutes} phút đọc`;
     };
 
     // Parse content for product links
@@ -366,8 +366,8 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
             <div className="min-h-screen bg-gray-50">
                 <div className="container mx-auto px-4 py-8">
                     <div className="text-center">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Khng tm thy bi vit</h2>
-                        <p className="text-gray-600 mb-4">Bi vit bn ang tm kim khng tn ti hoc  b xa.</p>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Không tìm thấy bài viết</h2>
+                        <p className="text-gray-600 mb-4">Bài viết bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
                         <Button onClick={() => router.push('/blog')}>
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Quay lại danh sách
@@ -388,16 +388,12 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                 <div className="flex items-center justify-between mb-6">
                     <Button variant="outline" onClick={() => router.push('/blog')}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
-                        Quay li
+                        Quay lại
                     </Button>
                     <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm">
                             <Share2 className="w-4 h-4 mr-2" />
-                            Chia s
-                        </Button>
-                        <Button variant={state.hasLiked ? 'default' : 'outline'} size="sm" onClick={handleToggleLike} disabled={state.liking}>
-                            <Heart className="w-4 h-4 mr-2" />
-                            {state.hasLiked ? ' thch' : 'Thch'} ({state.blog.likeCount})
+                            Chia sẻ
                         </Button>
                     </div>
                 </div>
@@ -411,9 +407,9 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                                 variant={state.blog.status === 'published' ? 'default' : 'secondary'}
                                 className="text-sm"
                             >
-                                {state.blog.status === 'published' ? ' xut bn' :
-                                    state.blog.status === 'draft' ? 'Bn nhp' :
-                                        state.blog.status === 'scheduled' ? ' ln lch' : 'Lu tr'}
+                                {state.blog.status === 'published' ? 'đã xuất bản' :
+                                    state.blog.status === 'draft' ? 'Bản nháp' :
+                                        state.blog.status === 'scheduled' ? 'đã lên lịch' : 'Lưu trữ'}
                             </Badge>
                         </div>
 
@@ -429,8 +425,8 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                                     [state.blog.author.firstName, state.blog.author.lastName]
                                         .filter(Boolean)
                                         .join(' ') ||
-                                    'Khng r tc gi'
-                                    : 'Khng r tc gi'}
+                                    'Không rõ tác giả'
+                                    : 'Không rõ tác giả'}
                             </div>
                             <div className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4" />
@@ -442,11 +438,11 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                             </div>
                             <div className="flex items-center gap-1">
                                 <Eye className="w-4 h-4" />
-                                {state.blog.viewCount} lt xem
+                                {state.blog.viewCount} lượt xem
                             </div>
                             <div className="flex items-center gap-1">
                                 <MessageCircle className="w-4 h-4" />
-                                {state.blog.commentCount} bnh lun
+                                {state.blog.commentCount} bình luận
                             </div>
                         </div>
 
@@ -491,15 +487,15 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                             <div className="flex items-center gap-4">
                                 <Button variant={state.hasLiked ? 'default' : 'outline'} size="sm" onClick={handleToggleLike} disabled={state.liking}>
                                     <Heart className="w-4 h-4 mr-2" />
-                                    {state.hasLiked ? ' thch' : 'Thch'} ({state.blog.likeCount})
+                                    {state.hasLiked ? 'đã thích' : 'Thích'} ({state.blog.likeCount})
                                 </Button>
                                 <Button variant="outline" size="sm">
                                     <Share2 className="w-4 h-4 mr-2" />
-                                    Chia s ({(state.blog as any).shareCount || 0})
+                                    Chia sẻ ({(state.blog as any).shareCount || 0})
                                 </Button>
                             </div>
                             <div className="text-sm text-gray-500">
-                                Cp nht ln cui: {new Date(state.blog.updatedAt).toLocaleDateString('vi-VN')}
+                                Cập nhật lần cuối: {new Date(state.blog.updatedAt).toLocaleDateString('vi-VN')}
                             </div>
                         </div>
                     </CardContent>
@@ -510,10 +506,10 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <MessageCircle className="w-5 h-5" />
-                            Bnh lun ({approvedComments.length})
+                            Bình luận ({approvedComments.length})
                         </CardTitle>
                         <CardDescription>
-                            Tng tc v tho lun v bi vit
+                            Tương tác và thảo luận về bài viết
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -534,7 +530,7 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Tn ca bn *
+                                                    Tên của bạn *
                                                 </label>
                                                 <input
                                                     type="text"
@@ -559,13 +555,13 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                                                         newComment: { ...prev.newComment, authorEmail: e.target.value }
                                                     }))}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    placeholder="Nhp email ca bn"
+                                                    placeholder="Nhập email của bạn"
                                                 />
                                             </div>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Ni dung bnh lun *
+                                                Nội dung bình luận *
                                             </label>
                                             <textarea
                                                 value={state.newComment.content}
@@ -573,7 +569,7 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                                                     ...prev,
                                                     newComment: { ...prev.newComment, content: e.target.value }
                                                 }))}
-                                                placeholder="Chia s suy ngh ca bn v bi vit..."
+                                                placeholder="Chia sẻ suy nghĩ của bạn về bài viết..."
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-20"
                                             />
                                         </div>
@@ -586,10 +582,10 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                                                 {state.submittingComment ? (
                                                     <>
                                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                                                        ang gi...
+                                                        Đang gửi...
                                                     </>
                                                 ) : (
-                                                    'Gi bnh lun'
+                                                    'Gửi bình luận'
                                                 )}
                                             </Button>
                                             <Button
@@ -601,11 +597,11 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                                                 }))}
                                                 size="sm"
                                             >
-                                                Hy
+                                                Hủy
                                             </Button>
                                         </div>
                                         <p className="text-xs text-gray-500">
-                                            Bnh lun ca bn s c xem xt trc khi hin th.
+                                            Bình luận của bạn sẽ được xem xét trước khi hiển thị.
                                         </p>
                                     </div>
                                 )}
@@ -635,11 +631,11 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                         ) : (
                             <div className="text-center py-8">
                                 <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                <p className="text-gray-500 mb-2">Cha c bnh lun no</p>
+                                <p className="text-gray-500 mb-2">Chưa có bình luận nào</p>
                                 <p className="text-sm text-gray-400">
                                     {(state.blog as any).allowComments !== false
-                                        ? 'Hy l ngi u tin bnh lun v bi vit ny!'
-                                        : 'Bnh lun  c tt cho bi vit ny.'
+                                        ? 'Hãy là người đầu tiên bình luận về bài viết này!'
+                                        : 'Bình luận đã được tắt cho bài viết này.'
                                     }
                                 </p>
                             </div>

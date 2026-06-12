@@ -1,6 +1,11 @@
-// Enhanced frontend logger for both server and client side
+// Enhanced frontend logger for both server and client side.
+// Production defaults to error-only so static generation and browser runtime do not leak debug JSON.
 const isDev = process.env.NODE_ENV === 'development';
-const logLevel = process.env.NEXT_PUBLIC_LOG_LEVEL || 'info';
+const configuredLogLevel = process.env.NEXT_PUBLIC_LOG_LEVEL;
+const logLevel = configuredLogLevel || (isDev ? 'info' : 'error');
+const shouldLogInfo = isDev && (logLevel === 'info' || logLevel === 'debug');
+const shouldLogWarn = isDev && (logLevel === 'warn' || logLevel === 'info' || logLevel === 'debug');
+const shouldLogDebug = isDev && logLevel === 'debug';
 
 // Colors for console logging
 const colors = {
@@ -26,7 +31,7 @@ class FrontendLogger {
     }
 
     info(message: string, meta?: any) {
-        if (isDev || logLevel === 'debug') {
+        if (shouldLogInfo) {
             console.log(this.formatMessage('info', message, meta));
         }
         
@@ -45,7 +50,7 @@ class FrontendLogger {
     }
 
     warn(message: string, meta?: any) {
-        if (isDev || logLevel === 'debug') {
+        if (shouldLogWarn) {
             console.warn(this.formatMessage('warn', message, meta));
         }
         
@@ -55,7 +60,7 @@ class FrontendLogger {
     }
 
     debug(message: string, meta?: any) {
-        if (logLevel === 'debug') {
+        if (shouldLogDebug) {
             console.debug(this.formatMessage('debug', message, meta));
         }
         

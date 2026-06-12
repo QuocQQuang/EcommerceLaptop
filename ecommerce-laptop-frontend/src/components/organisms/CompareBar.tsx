@@ -22,7 +22,7 @@ export default function CompareBar() {
                     <Link href="/compare">
                         <Button size="sm" className="bg-blue-600 text-white">So snh ngay</Button>
                     </Link>
-                    <Button size="sm" variant="outline" onClick={() => clear()}>Xa</Button>
+                    <Button size="sm" variant="outline" onClick={() => clear()}>Xóa</Button>
                 </div>
             </div>
         </div>

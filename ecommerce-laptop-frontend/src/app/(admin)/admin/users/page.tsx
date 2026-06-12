@@ -204,7 +204,7 @@ const UserFormDialog = ({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Tn</Label>
+              <Label htmlFor="lastName">Tên</Label>
               <Input
                 id="lastName"
                 value={formData.lastName}

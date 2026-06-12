@@ -244,7 +244,7 @@ export default function CategoriesPage() {
         categoryIdToDelete: categoryToDelete.id,
         newCategoryId: parseInt(newCategoryId)
       });
-      toast.success(` chuyn sản phẩm v xóa danh mục "${categoryToDelete.name}" thành công!`);
+      toast.success(` đã chuyển sản phẩm và xóa danh mục "${categoryToDelete.name}" thành công!`);
     } catch (error: any) {
       const errorMessage = error?.response?.data?.error || error?.message || 'Có lỗi xảy ra khi chuyển sản phẩm và xóa danh mục';
       toast.error(`Không thể chuyển sản phẩm và xóa danh mục "${categoryToDelete.name}": ${errorMessage}`);
@@ -443,7 +443,7 @@ export default function CategoriesPage() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mi'}
+              {editingCategory ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}
             </DialogTitle>
             <DialogDescription>
               {editingCategory
@@ -467,7 +467,7 @@ export default function CategoriesPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">M t</Label>
+                <Label htmlFor="description">Mô tả</Label>
                 <Textarea
                   id="description"
                   value={formData.description}

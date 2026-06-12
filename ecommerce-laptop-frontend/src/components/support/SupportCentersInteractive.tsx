@@ -22,7 +22,7 @@ const supportCenters: SupportCenter[] = [
   {
     id: 1,
     name: 'Trung tâm bảo hành TP.HCM',
-    address: '123 Nguyn Vn C, Qun 5, TP.HCM',
+    address: '123 Nguyễn Văn C, Quận 5, TP.HCM',
     phone: '028-3555-1234',
     hours: '8:00 - 17:00 (T2-T6)',
     services: ['Bảo hành laptop', 'Sửa chữa phần cứng', 'Thay thế linh kiện', 'Cài đặt phần mềm']

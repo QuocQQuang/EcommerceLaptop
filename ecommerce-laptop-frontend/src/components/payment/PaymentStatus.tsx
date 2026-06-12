@@ -45,7 +45,7 @@ export function PaymentStatus({
             case 'confirmed':
                 return {
                     icon: CheckCircle,
-                    label: 'Thnh cng',
+                    label: 'Thành công',
                     variant: 'default' as const,
                     color: 'text-green-600',
                     bgColor: 'bg-green-50',
@@ -55,7 +55,7 @@ export function PaymentStatus({
             case 'processing':
                 return {
                     icon: Clock,
-                    label: 'ang x l',
+                    label: 'Đang xử lý',
                     variant: 'secondary' as const,
                     color: 'text-yellow-600',
                     bgColor: 'bg-yellow-50',
@@ -109,7 +109,7 @@ export function PaymentStatus({
             <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <Icon className={`h-5 w-5 ${statusConfig.color}`} />
-                    Trng thi thanh toán
+                    Trạng thái thanh toán
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -128,7 +128,7 @@ export function PaymentStatus({
                 {/* Progress Bar */}
                 <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                        <span>Tin </span>
+                        <span>Tiến độ</span>
                         <span>{progress}%</span>
                     </div>
                     <Progress value={progress} className="h-2" />
@@ -138,14 +138,14 @@ export function PaymentStatus({
                 <div className="space-y-2 text-sm">
                     {gateway && (
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Cng thanh toán:</span>
+                            <span className="text-muted-foreground">Cổng thanh toán:</span>
                             <span className="font-medium">{gateway}</span>
                         </div>
                     )}
 
                     {method && (
                         <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Phng thc:</span>
+                            <span className="text-muted-foreground">Phương thức:</span>
                             <div className="flex items-center gap-1">
                                 {getMethodIcon(method)}
                                 <span className="font-medium capitalize">
@@ -157,14 +157,14 @@ export function PaymentStatus({
 
                     {transactionId && (
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">M giao dch:</span>
+                            <span className="text-muted-foreground">Mã giao dịch:</span>
                             <span className="font-mono text-xs">{transactionId}</span>
                         </div>
                     )}
 
                     {amount && currency && (
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">S tin:</span>
+                            <span className="text-muted-foreground">Số tiền:</span>
                             <span className="font-semibold">
                                 {amount.toLocaleString('vi-VN')} {currency}
                             </span>
@@ -183,12 +183,12 @@ export function PaymentStatus({
                             {isRetrying ? (
                                 <>
                                     <RefreshCw className="h-4 w-4 animate-spin" />
-                                    ang th li...
+                                    đang thử lại...
                                 </>
                             ) : (
                                 <>
                                     <RefreshCw className="h-4 w-4" />
-                                    Th li thanh toán
+                                    Thử lại thanh toán
                                 </>
                             )}
                         </button>
@@ -199,17 +199,17 @@ export function PaymentStatus({
                 <div className="text-xs text-muted-foreground">
                     {status === 'completed' && (
                         <p className="text-green-600">
-                             Thanh toán  c xc nhn thnh cng
+                            Thanh toán đã được xác nhận thành công
                         </p>
                     )}
                     {status === 'processing' && (
                         <p className="text-yellow-600">
-                             ang x l thanh toán, vui lng i...
+                            đang xử lý thanh toán, vui lòng đợi...
                         </p>
                     )}
                     {status === 'failed' && (
                         <p className="text-red-600">
-                             Thanh toán tht bi. Vui lng th li hoc chn phng thc khc.
+                            Thanh toán thất bại. Vui lòng thử lại hoặc chọn phương thức khác.
                         </p>
                     )}
                 </div>

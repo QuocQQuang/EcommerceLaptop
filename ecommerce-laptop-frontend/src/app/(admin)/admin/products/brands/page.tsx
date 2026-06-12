@@ -261,7 +261,7 @@ export default function BrandsPage() {
         brandIdToDelete: brandToDelete.id,
         newBrandId: parseInt(newBrandId)
       });
-      toast.success(` chuyển sản phẩm v xóa thương hiệu "${brandToDelete.name}" thành công!`);
+      toast.success(` chuyển sản phẩm và xóa thương hiệu "${brandToDelete.name}" thành công!`);
     } catch (error: any) {
       const errorMessage = error?.response?.data?.error || error?.message || 'Có lỗi xảy ra khi chuyển sản phẩm và xóa thương hiệu';
       toast.error(`Không thể chuyển sản phẩm và xóa thương hiệu "${brandToDelete.name}": ${errorMessage}`);
@@ -332,7 +332,7 @@ export default function BrandsPage() {
         <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
           <Button onClick={handleCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            ThêMô tảhương hiệu
+            Thêm thương hiệu
           </Button>
         </PermissionGuard>
       </div>
@@ -340,13 +340,13 @@ export default function BrandsPage() {
       {/* Search */}
       <Card>
         <CardHeader>
-          <CardTitle>Tìm kiếMô tảhương hiệu</CardTitle>
+          <CardTitle>Tìm kiếm thương hiệu</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="TìMô tảheo tên thương hiệu, quốc gia..."
+              placeholder="Tìm theo tên thương hiệu, quốc gia..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
@@ -405,7 +405,7 @@ export default function BrandsPage() {
                         <div>
                           <div className="font-medium">{brand.name}</div>
                           {brand.description && (
-                            <div className="text-sMô tảext-muted-foreground">
+                            <div className="text-sm text-muted-foreground">
                               {brand.description}
                             </div>
                           )}
@@ -443,10 +443,10 @@ export default function BrandsPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={brand.isActive ? "default" : "secondary"}>
-                        {brand.isActive ? 'Hạt động' : 'Tạm ngưng'}
+                        {brand.isActive ? 'Hoạt động' : 'Tạm ngưng'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sMô tảext-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground">
                       {formatDate(brand.updatedAt)}
                     </TableCell>
                     <TableCell className="text-right">
@@ -562,7 +562,7 @@ export default function BrandsPage() {
                 variant="outline"
                 onClick={() => setShowCreateDialog(false)}
               >
-                Hủy bỏa
+                Hủy bỏ
               </Button>
               <Button
                 type="submit"

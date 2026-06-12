@@ -52,7 +52,7 @@ export function DashboardLayout({
             )}
             <div className="flex items-center text-sm text-gray-500 mt-2">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-              <span>Cp nht ln cui: {new Date().toLocaleString('vi-VN')}</span>
+              <span>Cập nhật lần cuối: {new Date().toLocaleString('vi-VN')}</span>
             </div>
           </div>
 
@@ -241,8 +241,8 @@ function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
   const options = [
     { value: 'today', label: 'Hm nay' },
     { value: 'yesterday', label: 'Hm qua' },
-    { value: 'week', label: '7 ngy qua' },
-    { value: 'month', label: 'Thng ny' },
+    { value: 'week', label: '7 ngày qua' },
+    { value: 'month', label: 'Tháng này' },
     { value: 'quarter', label: 'Qu ny' },
     { value: 'year', label: 'Nm ny' },
     { value: 'custom', label: 'Ty chnh' }
@@ -253,7 +253,7 @@ function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
       <Calendar className="w-4 h-4 text-gray-500" />
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-32">
-          <SelectValue placeholder="Chn khong thi gian" />
+          <SelectValue placeholder="Chọn khoảng thời gian" />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (

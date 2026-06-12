@@ -57,8 +57,8 @@ test.describe('Authentication', () => {
     test('should display register page', async ({ page }) => {
         await page.goto('/auth/register');
 
-        await expect(page).toHaveTitle(/ng k/);
-        await expect(page.locator('h1')).toContainText('ng k');
+        await expect(page).toHaveTitle(/Đăng ký/);
+        await expect(page.locator('h1')).toContainText('Đăng ký');
 
         // Check for form elements
         await expect(page.locator('input[name="firstName"]')).toBeVisible();

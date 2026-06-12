@@ -37,7 +37,7 @@ export function SecurityAlert({
         const configs = {
             suspicious_activity: {
                 icon: Eye,
-                title: 'Hot ng ng ng',
+                title: 'Hoạt động đáng ngờ',
                 color: 'border-yellow-500 bg-yellow-50',
                 iconColor: 'text-yellow-600'
             },
@@ -68,7 +68,7 @@ export function SecurityAlert({
             low: { color: 'bg-green-100 text-green-800', label: 'Thp' },
             medium: { color: 'bg-yellow-100 text-yellow-800', label: 'Trung bnh' },
             high: { color: 'bg-orange-100 text-orange-800', label: 'Cao' },
-            critical: { color: 'bg-red-100 text-red-800', label: 'Nghim trng' }
+            critical: { color: 'bg-red-100 text-red-800', label: 'Nghiêm trọng' }
         };
         return configs[severity];
     };
@@ -173,8 +173,8 @@ export function SecurityAlerts({
         if (accessCount > 10) {
             newAlerts.push({
                 type: 'high_access',
-                message: `đơn hàng ${orderNumber}  c truy cp ${accessCount} ln`,
-                details: 'S ln truy cp cao c th cho thy hot ng ng ng',
+                message: `đơn hàng ${orderNumber} đã được truy cập ${accessCount} lần`,
+                details: 'Số lần truy cập cao có thể cho thấy hoạt động đáng ngờ',
                 timestamp: now.toISOString(),
                 severity: accessCount > 20 ? 'critical' : 'high',
                 onInvestigate: () => {
@@ -187,8 +187,8 @@ export function SecurityAlerts({
         if (lastAccess && (now.getTime() - lastAccess.getTime()) < 5 * 60 * 1000) {
             newAlerts.push({
                 type: 'suspicious_activity',
-                message: `đơn hàng ${orderNumber} va c truy cp gn y`,
-                details: 'Truy cp trong vng 5 pht qua c th cn ch ',
+                message: `đơn hàng ${orderNumber} vừa được truy cập gần đây`,
+                details: 'Truy cập trong vòng 5 phút qua có thể cần chú ý',
                 timestamp: now.toISOString(),
                 severity: 'medium',
                 onInvestigate: () => {
@@ -201,8 +201,8 @@ export function SecurityAlerts({
         if (accessCount > 5 && lastAccess && (now.getTime() - lastAccess.getTime()) < 30 * 60 * 1000) {
             newAlerts.push({
                 type: 'data_breach_risk',
-                message: `Nhiu ln truy cp lin tip vo đơn hàng ${orderNumber}`,
-                details: 'C th c ri ro r r thng tin khch hng',
+                message: `Nhiều lần truy cập liên tiếp vào đơn hàng ${orderNumber}`,
+                details: 'Có thể có rủi ro rò rỉ thông tin khách hàng',
                 timestamp: now.toISOString(),
                 severity: 'high',
                 onInvestigate: () => {

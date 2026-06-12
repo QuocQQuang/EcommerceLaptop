@@ -60,11 +60,11 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
     // Enhanced password validation rules
     const passwordRules = [
         { rule: 't nht 8 k t', valid: formData.password.length >= 8 },
-        { rule: 'Cha ch ci in hoa', valid: /[A-Z]/.test(formData.password) },
-        { rule: 'Cha ch ci thng', valid: /[a-z]/.test(formData.password) },
-        { rule: 'Cha s', valid: /[0-9]/.test(formData.password) },
-        { rule: 'Cha k t c bit (@$!%*?&)', valid: /[@$!%*?&]/.test(formData.password) },
-        { rule: 'Khng cha chui lin tip (e.g., 123)', valid: !isSequential(formData.password) }
+        { rule: 'Chứa chữ cái in hoa', valid: /[A-Z]/.test(formData.password) },
+        { rule: 'Chứa chữ cái thường', valid: /[a-z]/.test(formData.password) },
+        { rule: 'Chứa số', valid: /[0-9]/.test(formData.password) },
+        { rule: 'Chứa ký tự đặc biệt (@$!%*?&)', valid: /[@$!%*?&]/.test(formData.password) },
+        { rule: 'Không chứa chuỗi liên tiếp (ví dụ: 123)', valid: !isSequential(formData.password) }
     ];
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -224,7 +224,7 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
                             </motion.div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="lastName" className="text-sm font-medium text-[#f5f5f5]">Tn *</Label>
+                            <Label htmlFor="lastName" className="text-sm font-medium text-[#f5f5f5]">Tên *</Label>
                             <motion.div whileFocus={inputFocusVariants}>
                                 <Input
                                     id="lastName"
@@ -297,7 +297,7 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
 
                     {/* Phone Field */}
                     <div className="space-y-2">
-                        <Label htmlFor="phoneNumber" className="text-sm font-medium text-[#f5f5f5]">S in thoi</Label>
+                        <Label htmlFor="phoneNumber" className="text-sm font-medium text-[#f5f5f5]">Số điện thoại</Label>
                         <motion.div whileFocus={inputFocusVariants}>
                             <Input
                                 id="phoneNumber"
@@ -440,14 +440,7 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
                                 )}
                             />
                             <label htmlFor="agreeToTerms" className="text-sm text-[#9ca3af] cursor-pointer leading-relaxed">
-                                Tôi đồng ý với{' '}
-                                <a href="/terms" className="text-[#00f5d4] hover:text-[#6366f1]">
-                                    Điều khoản sử dụng
-                                </a>{' '}
-                                v{' '}
-                                <a href="/privacy" className="text-[#00f5d4] hover:text-[#6366f1]">
-                                    Chính sách bảo mật
-                                </a>
+                                Tôi đồng ý với điều khoản sử dụng và chính sách bảo mật của cửa hàng
                             </label>
                         </div>
                         {validation.touched.agreeToTerms && validation.errors.agreeToTerms && (

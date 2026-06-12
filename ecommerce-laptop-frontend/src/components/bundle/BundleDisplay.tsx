@@ -217,14 +217,14 @@ export function BundleDisplay({ product }: BundleDisplayProps) {
                                                             </div>
                                                             {accessory.discountPercentage > 0 && (
                                                                 <div className="flex justify-between">
-                                                                    <span className="text-sm text-gray-600">Gim gi:</span>
+                                                                    <span className="text-sm text-gray-600">Giảm giá:</span>
                                                                     <span className="text-sm font-semibold text-red-600">
                                                                         {accessory.discountPercentage}%
                                                                     </span>
                                                                 </div>
                                                             )}
                                                             <div className="flex justify-between border-t pt-2">
-                                                                <span className="text-sm font-semibold">Tng cng:</span>
+                                                                <span className="text-sm font-semibold">Tổng cộng:</span>
                                                                 <span className="text-sm font-bold text-blue-600">
                                                                     {formatPrice(accessory.totalPrice)}
                                                                 </span>

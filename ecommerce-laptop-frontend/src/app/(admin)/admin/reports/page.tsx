@@ -158,7 +158,7 @@ const useReportsQuery = (dateRange: { from: Date; to: Date }) => {
         customerSegments: [
           { segment: 'VIP', customers: 45, revenue: 890000000, percentage: 32.4 },
           { segment: 'Thường xuyên', customers: 178, revenue: 1250000000, percentage: 45.5 },
-          { segment: 'Mi', customers: 633, revenue: 610000000, percentage: 22.2 }
+          { segment: 'Mới', customers: 633, revenue: 610000000, percentage: 22.2 }
         ]
       };
     },
@@ -302,7 +302,7 @@ export default function ReportsPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Khong thi gian</label>
+                <label className="text-sm font-medium mb-2 block">Khoảng thời gian</label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-64">
@@ -321,7 +321,7 @@ export default function ReportsPage() {
                             to: new Date()
                           })}
                         >
-                          7 ngy qua
+                          7 ngày qua
                         </Button>
                         <Button
                           variant="outline"
@@ -331,7 +331,7 @@ export default function ReportsPage() {
                             to: new Date()
                           })}
                         >
-                          30 ngy qua
+                          30 ngày qua
                         </Button>
                         <Button
                           variant="outline"
@@ -341,7 +341,7 @@ export default function ReportsPage() {
                             to: endOfMonth(new Date())
                           })}
                         >
-                          Thng ny
+                          Tháng này
                         </Button>
                         <Button
                           variant="outline"
@@ -351,7 +351,7 @@ export default function ReportsPage() {
                             to: endOfMonth(subDays(new Date(), 30))
                           })}
                         >
-                          Thng trc
+                          Tháng trước
                         </Button>
                       </div>
                     </div>
@@ -399,7 +399,7 @@ export default function ReportsPage() {
                   </div>
                   <div className={`text-xs flex items-center gap-1 ${getChangeColor(reportData.salesOverview.ordersChange)}`}>
                     {getChangeIcon(reportData.salesOverview.ordersChange)}
-                    {formatPercent(reportData.salesOverview.ordersChange)} so vi thng trc
+                    {formatPercent(reportData.salesOverview.ordersChange)} so với tháng trước
                   </div>
                 </CardContent>
               </Card>
@@ -415,7 +415,7 @@ export default function ReportsPage() {
                   </div>
                   <div className={`text-xs flex items-center gap-1 ${getChangeColor(reportData.salesOverview.customersChange)}`}>
                     {getChangeIcon(reportData.salesOverview.customersChange)}
-                    {formatPercent(reportData.salesOverview.customersChange)} so vi thng trc
+                    {formatPercent(reportData.salesOverview.customersChange)} so với tháng trước
                   </div>
                 </CardContent>
               </Card>
@@ -431,7 +431,7 @@ export default function ReportsPage() {
                   </div>
                   <div className={`text-xs flex items-center gap-1 ${getChangeColor(reportData.salesOverview.aovChange)}`}>
                     {getChangeIcon(reportData.salesOverview.aovChange)}
-                    {formatPercent(reportData.salesOverview.aovChange)} so vi thng trc
+                    {formatPercent(reportData.salesOverview.aovChange)} so với tháng trước
                   </div>
                 </CardContent>
               </Card>
@@ -525,7 +525,7 @@ export default function ReportsPage() {
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={(value, name) => [formatNumber(value as number), 'S n']}
+                        formatter={(value, name) => [formatNumber(value as number), 'Số lượng']}
                         labelFormatter={(label) => getStatusLabel(label)}
                       />
                     </PieChart>

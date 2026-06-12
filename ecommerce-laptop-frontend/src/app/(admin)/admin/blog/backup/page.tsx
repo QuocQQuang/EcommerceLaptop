@@ -791,7 +791,7 @@ export default function BlogBackupRestorePage() {
                                             checked={settings.includePosts}
                                             onCheckedChange={(checked) => updateSetting('includePosts', !!checked)}
                                         />
-                                        <Label htmlFor="includePosts">Bi vit</Label>
+                                        <Label htmlFor="includePosts">Bài viết</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <Checkbox
@@ -993,7 +993,7 @@ export default function BlogBackupRestorePage() {
                                             <h4 className="font-semibold">Backup đầy đủ thành công</h4>
                                             <p className="text-sm text-gray-600">Full Backup - 2025-01-15</p>
                                         </div>
-                                        <span className="text-sm text-gray-500">2 gi trc</span>
+                                        <span className="text-sm text-gray-500">2 giờ trước</span>
                                     </div>
                                 </div>
 
@@ -1003,7 +1003,7 @@ export default function BlogBackupRestorePage() {
                                             <h4 className="font-semibold">Khôi phục thành công</h4>
                                             <p className="text-sm text-gray-600">Khôi phục từ Content Only - 2025-01-14</p>
                                         </div>
-                                        <span className="text-sm text-gray-500">1 ngy trc</span>
+                                        <span className="text-sm text-gray-500">1 ngày trước</span>
                                     </div>
                                 </div>
 
@@ -1013,7 +1013,7 @@ export default function BlogBackupRestorePage() {
                                             <h4 className="font-semibold">Backup tự động đã lên lịch</h4>
                                             <p className="text-sm text-gray-600">Backup hàng tuần sẽ chạy vào 00:00</p>
                                         </div>
-                                        <span className="text-sm text-gray-500">2 ngy trc</span>
+                                        <span className="text-sm text-gray-500">2 ngày trước</span>
                                     </div>
                                 </div>
 
@@ -1023,7 +1023,7 @@ export default function BlogBackupRestorePage() {
                                             <h4 className="font-semibold">Backup thất bại</h4>
                                             <p className="text-sm text-gray-600">Lỗi: Không đủ dung lượng lưu trữ</p>
                                         </div>
-                                        <span className="text-sm text-gray-500">3 ngy trc</span>
+                                        <span className="text-sm text-gray-500">3 ngày trước</span>
                                     </div>
                                 </div>
                             </div>

@@ -293,7 +293,7 @@ function ResetPasswordContent() {
                                 {loading ? (
                                     <>
                                         <LoadingSpinner size="sm" className="mr-2" />
-                                        ang cp nht...
+                                        Đang cập nhật...
                                     </>
                                 ) : (
                                     <>

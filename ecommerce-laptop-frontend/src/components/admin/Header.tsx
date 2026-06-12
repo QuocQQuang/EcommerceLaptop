@@ -100,7 +100,7 @@ export function Header({ onMenuToggle, sidebarCollapsed }: HeaderProps) {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Tm kim..."
+                placeholder="Tìm kiếm..."
                 className="w-full max-w-sm pl-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -178,7 +178,7 @@ export function Header({ onMenuToggle, sidebarCollapsed }: HeaderProps) {
                   className="text-destructive focus:text-destructive"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
-                  ng xut
+                  Đăng xuất
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

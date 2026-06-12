@@ -91,10 +91,10 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                 score: data.title.length >= 30 && data.title.length <= 60 ? 100 :
                     data.title.length >= 20 && data.title.length <= 70 ? 70 : 30,
                 message: data.title.length >= 30 && data.title.length <= 60
-                    ? ' di tiu  ti u (30-60 k t)'
+                    ? 'độ dài tiêu đề tối ưu (30-60 ký tự)'
                     : data.title.length > 70
-                        ? 'Tiu  qu di, c th b ct trong kt qu tm kim'
-                        : 'Tiu  qu ngn, nn c 30-60 k t',
+                        ? 'Tiêu đề quá dài, có thể bị cắt trong kết quả tìm kiếm'
+                        : 'Tiêu đề quá ngắn, nên có 30-60 ký tự',
                 status: (data.title.length >= 30 && data.title.length <= 60 ? 'good' :
                     data.title.length >= 20 && data.title.length <= 70 ? 'warning' : 'error') as 'good' | 'warning' | 'error'
             },
@@ -103,10 +103,10 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                 score: data.description.length >= 120 && data.description.length <= 160 ? 100 :
                     data.description.length >= 100 && data.description.length <= 180 ? 70 : 30,
                 message: data.description.length >= 120 && data.description.length <= 160
-                    ? ' di m t ti u (120-160 k t)'
+                    ? 'độ dài mô tả tối ưu (120-160 ký tự)'
                     : data.description.length > 180
-                        ? 'M t qu di, c th b ct trong kt qu tm kim'
-                        : 'M t qu ngn, nn c 120-160 k t',
+                        ? 'Mô tả quá dài, có thể bị cắt trong kết quả tìm kiếm'
+                        : 'Mô tả quá ngắn, nên có 120-160 ký tự',
                 status: (data.description.length >= 120 && data.description.length <= 160 ? 'good' :
                     data.description.length >= 100 && data.description.length <= 180 ? 'warning' : 'error') as 'good' | 'warning' | 'error'
             },
@@ -117,11 +117,11 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                     data.description.toLowerCase().includes(data.focusKeyword.toLowerCase())
                 ) ? 100 : data.focusKeyword ? 50 : 0,
                 message: !data.focusKeyword
-                    ? 'Cha t t kha chnh'
+                    ? 'Chưa đặt từ khóa chính'
                     : (data.title.toLowerCase().includes(data.focusKeyword.toLowerCase()) ||
                         data.description.toLowerCase().includes(data.focusKeyword.toLowerCase()))
-                        ? 'T kha chnh c s dng trong tiu  hoc m t'
-                        : 'T kha chnh cha c s dng trong tiu  hoc m t',
+                        ? 'Từ khóa chính được sử dụng trong tiêu đề hoặc mô tả'
+                        : 'Từ khóa chính chưa được sử dụng trong tiêu đề hoặc mô tả',
                 status: (!data.focusKeyword ? 'error' :
                     (data.title.toLowerCase().includes(data.focusKeyword.toLowerCase()) ||
                         data.description.toLowerCase().includes(data.focusKeyword.toLowerCase())) ? 'good' : 'warning') as 'good' | 'warning' | 'error'
@@ -131,9 +131,9 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                 score: data.slug && /^[a-z0-9-]+$/.test(data.slug) && data.slug.length <= 75 ? 100 :
                     data.slug && data.slug.length <= 100 ? 70 : 30,
                 message: !data.slug
-                    ? 'Cha c URL slug'
+                    ? 'Chưa có URL slug'
                     : /^[a-z0-9-]+$/.test(data.slug) && data.slug.length <= 75
-                        ? 'URL slug ti u'
+                        ? 'URL slug tối ưu'
                         : 'URL slug nên chứa chữ thường, số và dấu gạch ngang',
                 status: (!data.slug ? 'error' :
                     /^[a-z0-9-]+$/.test(data.slug) && data.slug.length <= 75 ? 'good' : 'warning') as 'good' | 'warning' | 'error'
@@ -141,19 +141,19 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
 
             imageAlt: {
                 score: data.ogImage ? 100 : 0,
-                message: data.ogImage ? ' c hnh nh i din' : 'Cha c hnh nh i din',
+                message: data.ogImage ? 'Có hình ảnh đại diện' : 'Chưa có hình ảnh đại diện',
                 status: (data.ogImage ? 'good' : 'warning') as 'good' | 'warning' | 'error'
             },
 
             internalLinks: {
                 score: 80, // Mock score
-                message: 'Cn kim tra lin kt ni b trong ni dung',
+                message: 'Cần kiểm tra liên kết nội bộ trong nội dung',
                 status: 'good' as 'good' | 'warning' | 'error'
             },
 
             readability: {
                 score: 85, // Mock score
-                message: 'Kh nng c hiu tt',
+                message: 'Khả năng đọc hiểu tốt',
                 status: 'good' as 'good' | 'warning' | 'error'
             },
 
@@ -161,10 +161,10 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                 score: (data.ogTitle && data.ogDescription ? 100 :
                     (data.ogTitle || data.ogDescription ? 50 : 0)),
                 message: (data.ogTitle && data.ogDescription)
-                    ? ' ti u cho mng x hi'
+                    ? 'đã tối ưu cho mạng xã hội'
                     : (data.ogTitle || data.ogDescription)
-                        ? 'Thiu mt s th meta mng x hi'
-                        : 'Cha ti u cho mng x hi',
+                        ? 'Thiếu một số thẻ meta mạng xã hội'
+                        : 'Chưa tối ưu cho mạng xã hội',
                 status: ((data.ogTitle && data.ogDescription) ? 'good' :
                     (data.ogTitle || data.ogDescription) ? 'warning' : 'error') as 'good' | 'warning' | 'error'
             }
@@ -211,7 +211,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
             twitterDescription: prev.twitterDescription || prev.description,
             twitterImage: prev.twitterImage || prev.ogImage
         }));
-        toast.success(' t ng in thng tin mng x hi');
+        toast.success('đã tự động điền thông tin mạng xã hội');
     };
 
     // Generate slug from title
@@ -226,7 +226,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
             .replace(/-+/g, '-'); // Replace multiple hyphens with single hyphen
 
         setSeoData(prev => ({ ...prev, slug }));
-        toast.success(' to URL slug t ng');
+        toast.success('đã tạo URL slug tự động');
     };
 
     // Save SEO data
@@ -235,10 +235,10 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
             setSaving(true);
             // Mock API call
             console.log('Saving SEO data:', seoData);
-            toast.success(' lu thng tin SEO');
+            toast.success('đã lưu thông tin SEO');
         } catch (error) {
             console.error('Failed to save SEO data:', error);
-            toast.error('Khng th lu thng tin SEO');
+            toast.error('Không thể lưu thông tin SEO');
         } finally {
             setSaving(false);
         }
@@ -251,12 +251,12 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
             // Mock analysis
             setTimeout(() => {
                 setAnalyzing(false);
-                toast.success(' phn tch SEO hon tt');
+                toast.success('Phân tích SEO hoàn tất');
             }, 2000);
         } catch (error) {
             console.error('Failed to analyze content:', error);
             setAnalyzing(false);
-            toast.error('Khng th phn tch ni dung');
+            toast.error('Không thể phân tích nội dung');
         }
     };
 
@@ -288,8 +288,8 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Ti u SEO</h1>
-                    <p className="text-gray-500">Ti u ha ni dung cho cc cng c tm kim v mng x hi</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Tối ưu SEO</h1>
+                    <p className="text-gray-500">Tối ưu hóa nội dung cho các công cụ tìm kiếm và mạng xã hội</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={analyzeContent} disabled={analyzing}>
@@ -298,7 +298,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                         ) : (
                             <BarChart className="w-4 h-4 mr-2" />
                         )}
-                        Phn tch SEO
+                        Phân tích SEO
                     </Button>
                     <Button onClick={handleSave} disabled={saving}>
                         {saving ? (
@@ -316,7 +316,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Target className="w-5 h-5" />
-                                im SEO
+                                Điểm SEO
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
@@ -330,8 +330,8 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                     className="h-2"
                                 />
                                 <p className="text-sm text-gray-500 mt-2">
-                                    {(seoScore?.overall || 0) >= 80 ? 'Tuyt vi!' :
-                                        (seoScore?.overall || 0) >= 60 ? 'Kh tt' : 'Cần cải thiện'}
+                                    {(seoScore?.overall || 0) >= 80 ? 'Tuyệt vời!' :
+                                        (seoScore?.overall || 0) >= 60 ? 'Khá tốt' : 'Cần cải thiện'}
                                 </p>
                             </div>
 
@@ -339,7 +339,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
 
                             {/* Detailed Scores */}
                             <div className="space-y-3">
-                                <h4 className="font-semibold">Chi tit nh gi</h4>
+                                <h4 className="font-semibold">Chi tiết đánh giá</h4>
                                 {seoScore && Object.entries(seoScore.details).map(([key, check]) => (
                                     <div key={key} className="flex items-start gap-3">
                                         {getStatusIcon(check.status)}
@@ -365,46 +365,46 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                 <div className="lg:col-span-2">
                     <Tabs defaultValue="basic" className="space-y-6">
                         <TabsList className="grid w-full grid-cols-4">
-                            <TabsTrigger value="basic">C bn</TabsTrigger>
-                            <TabsTrigger value="social">Mng x hi</TabsTrigger>
-                            <TabsTrigger value="advanced">Nng cao</TabsTrigger>
-                            <TabsTrigger value="preview">Xem trc</TabsTrigger>
+                            <TabsTrigger value="basic">Cơ bản</TabsTrigger>
+                            <TabsTrigger value="social">Mạng xã hội</TabsTrigger>
+                            <TabsTrigger value="advanced">Nâng cao</TabsTrigger>
+                            <TabsTrigger value="preview">Xem trước</TabsTrigger>
                         </TabsList>
 
                         {/* Basic SEO Tab */}
                         <TabsContent value="basic" className="space-y-6">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Thng tin SEO c bn</CardTitle>
+                                    <CardTitle>Thông tin SEO cơ bản</CardTitle>
                                     <CardDescription>
-                                        Cu hnh cc thng tin SEO c bn cho bi vit
+                                        Cấu hình các thông tin SEO cơ bản cho bài viết
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
-                                        <Label htmlFor="title">Tiu  SEO *</Label>
+                                        <Label htmlFor="title">Tiêu đề SEO *</Label>
                                         <Input
                                             id="title"
                                             value={seoData.title}
                                             onChange={(e) => setSeoData(prev => ({ ...prev, title: e.target.value }))}
-                                            placeholder="Nhp tiu  ti u SEO..."
+                                            placeholder="Nhập tiêu đề tối ưu SEO..."
                                         />
                                         <p className="text-xs text-gray-500 mt-1">
-                                            {seoData.title.length}/60 k t (ti u: 30-60)
+                                            {seoData.title.length}/60 ký tự (tối ưu: 30-60)
                                         </p>
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="description">M t SEO *</Label>
+                                        <Label htmlFor="description">Mô tả SEO *</Label>
                                         <Textarea
                                             id="description"
                                             value={seoData.description}
                                             onChange={(e) => setSeoData(prev => ({ ...prev, description: e.target.value }))}
-                                            placeholder="Nhp m t hp dn cho kt qu tm kim..."
+                                            placeholder="Nhập mô tả hấp dẫn cho kết quả tìm kiếm..."
                                             className="min-h-20"
                                         />
                                         <p className="text-xs text-gray-500 mt-1">
-                                            {seoData.description.length}/160 k t (ti u: 120-160)
+                                            {seoData.description.length}/160 ký tự (tối ưu: 120-160)
                                         </p>
                                     </div>
 
@@ -423,7 +423,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                                 onClick={generateSlug}
                                                 disabled={!seoData.title}
                                             >
-                                                T ng
+                                                Tự động
                                             </Button>
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">
@@ -432,17 +432,17 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="focusKeyword">T kha chnh</Label>
+                                        <Label htmlFor="focusKeyword">Từ khóa chính</Label>
                                         <Input
                                             id="focusKeyword"
                                             value={seoData.focusKeyword}
                                             onChange={(e) => setSeoData(prev => ({ ...prev, focusKeyword: e.target.value }))}
-                                            placeholder="t kha chnh"
+                                            placeholder="từ khóa chính"
                                         />
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="keywords">T kha ph</Label>
+                                        <Label htmlFor="keywords">Từ khóa phụ</Label>
                                         <div className="flex gap-2">
                                             <Input
                                                 id="keywords"
@@ -493,7 +493,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                         Open Graph (Facebook)
                                     </CardTitle>
                                     <CardDescription>
-                                        Ti u hin th khi chia s trn Facebook v cc nn tng khc
+                                        Tối ưu hiển thị khi chia sẻ trên Facebook và các nền tảng khác
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
@@ -504,33 +504,33 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                             size="sm"
                                             onClick={autoFillSocialMeta}
                                         >
-                                            T ng in t thng tin c bn
+                                            Tự động điền từ thông tin cơ bản
                                         </Button>
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="ogTitle">Tiu  OG</Label>
+                                        <Label htmlFor="ogTitle">Tiêu đề OG</Label>
                                         <Input
                                             id="ogTitle"
                                             value={seoData.ogTitle}
                                             onChange={(e) => setSeoData(prev => ({ ...prev, ogTitle: e.target.value }))}
-                                            placeholder="Tiu  hin th khi chia s..."
+                                            placeholder="Tiêu đề hiển thị khi chia sẻ..."
                                         />
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="ogDescription">M t OG</Label>
+                                        <Label htmlFor="ogDescription">Mô tả OG</Label>
                                         <Textarea
                                             id="ogDescription"
                                             value={seoData.ogDescription}
                                             onChange={(e) => setSeoData(prev => ({ ...prev, ogDescription: e.target.value }))}
-                                            placeholder="M t hin th khi chia s..."
+                                            placeholder="Mô tả hiển thị khi chia sẻ..."
                                             className="min-h-20"
                                         />
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="ogImage">Hnh nh OG</Label>
+                                        <Label htmlFor="ogImage">Hình ảnh OG</Label>
                                         <Input
                                             id="ogImage"
                                             value={seoData.ogImage}
@@ -538,7 +538,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                             placeholder="https://example.com/image.jpg"
                                         />
                                         <p className="text-xs text-gray-500 mt-1">
-                                            Kch thc khuyn ngh: 1200x630px
+                                            Kích thước khuyến nghị: 1200x630px
                                         </p>
                                     </div>
                                 </CardContent>
@@ -551,33 +551,33 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                         Twitter Card
                                     </CardTitle>
                                     <CardDescription>
-                                        Ti u hin th khi chia s trn Twitter
+                                        Tối ưu hiển thị khi chia sẻ trên Twitter
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div>
-                                        <Label htmlFor="twitterTitle">Tiu  Twitter</Label>
+                                        <Label htmlFor="twitterTitle">Tiêu đề Twitter</Label>
                                         <Input
                                             id="twitterTitle"
                                             value={seoData.twitterTitle}
                                             onChange={(e) => setSeoData(prev => ({ ...prev, twitterTitle: e.target.value }))}
-                                            placeholder="Tiu  Twitter Card..."
+                                            placeholder="Tiêu đề Twitter Card..."
                                         />
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="twitterDescription">M t Twitter</Label>
+                                        <Label htmlFor="twitterDescription">Mô tả Twitter</Label>
                                         <Textarea
                                             id="twitterDescription"
                                             value={seoData.twitterDescription}
                                             onChange={(e) => setSeoData(prev => ({ ...prev, twitterDescription: e.target.value }))}
-                                            placeholder="M t Twitter Card..."
+                                            placeholder="Mô tả Twitter Card..."
                                             className="min-h-20"
                                         />
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="twitterImage">Hnh nh Twitter</Label>
+                                        <Label htmlFor="twitterImage">Hình ảnh Twitter</Label>
                                         <Input
                                             id="twitterImage"
                                             value={seoData.twitterImage}
@@ -595,7 +595,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                 <CardHeader>
                                     <CardTitle>Cài đặt nâng cao</CardTitle>
                                     <CardDescription>
-                                        Cc ty chn SEO nng cao cho chuyn gia
+                                        Các tùy chọn SEO nâng cao cho chuyên gia
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
@@ -603,7 +603,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                         <div className="p-4 border rounded-lg">
                                             <h4 className="font-semibold mb-2">Schema Markup</h4>
                                             <p className="text-sm text-gray-600 mb-2">
-                                                T ng to structured data cho bi vit
+                                                Tự động tạo structured data cho bài viết
                                             </p>
                                             <Button variant="outline" size="sm">
                                                 Cấu hình Schema
@@ -616,14 +616,14 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                                 Quản lý sitemap XML cho blog
                                             </p>
                                             <Button variant="outline" size="sm">
-                                                To Sitemap
+                                                Tạo Sitemap
                                             </Button>
                                         </div>
 
                                         <div className="p-4 border rounded-lg">
                                             <h4 className="font-semibold mb-2">Robot.txt</h4>
                                             <p className="text-sm text-gray-600 mb-2">
-                                                Cu hnh robots.txt cho SEO
+                                                Cấu hình robots.txt cho SEO
                                             </p>
                                             <Button variant="outline" size="sm">
                                                 Chỉnh sửa Robots
@@ -633,10 +633,10 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                         <div className="p-4 border rounded-lg">
                                             <h4 className="font-semibold mb-2">Analytics</h4>
                                             <p className="text-sm text-gray-600 mb-2">
-                                                Tch hp Google Analytics & Search Console
+                                                Tích hợp Google Analytics & Search Console
                                             </p>
                                             <Button variant="outline" size="sm">
-                                                Kt ni Analytics
+                                                Kết nối Analytics
                                             </Button>
                                         </div>
                                     </div>
@@ -650,10 +650,10 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
                                         <Eye className="w-5 h-5" />
-                                        Xem trc kt qu tm kim
+                                        Xem trước kết quả tìm kiếm
                                     </CardTitle>
                                     <CardDescription>
-                                        Xem cch bi vit hin th trn cc nn tng
+                                        Xem cách bài viết hiển thị trên các nền tảng
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-6">
@@ -665,13 +665,13 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                         </h4>
                                         <div className="border rounded-lg p-4 bg-white">
                                             <div className="text-blue-600 text-lg hover:underline cursor-pointer">
-                                                {seoData.title || 'Tiu  bi vit...'}
+                                                {seoData.title || 'Tiêu đề bài viết...'}
                                             </div>
                                             <div className="text-green-700 text-sm mt-1">
                                                 {seoData.canonicalUrl || 'https://example.com/bai-viet'}
                                             </div>
                                             <div className="text-gray-600 text-sm mt-2">
-                                                {seoData.description || 'M t bi vit s hin th  y...'}
+                                                {seoData.description || 'Mô tả bài viết sẽ hiển thị ở đây...'}
                                             </div>
                                         </div>
                                     </div>
@@ -701,10 +701,10 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                                     example.com
                                                 </div>
                                                 <div className="font-semibold mt-1">
-                                                    {seoData.ogTitle || seoData.title || 'Tiu  bi vit...'}
+                                                    {seoData.ogTitle || seoData.title || 'Tiêu đề bài viết...'}
                                                 </div>
                                                 <div className="text-gray-600 text-sm mt-1">
-                                                    {seoData.ogDescription || seoData.description || 'M t bi vit...'}
+                                                    {seoData.ogDescription || seoData.description || 'Mô tả bài viết...'}
                                                 </div>
                                             </div>
                                         </div>
@@ -719,13 +719,13 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                         <div className="border rounded-lg p-4 bg-gray-100 max-w-xs">
                                             <div className="bg-white rounded p-3">
                                                 <div className="text-blue-600 text-sm font-medium">
-                                                    {seoData.title || 'Tiu ...'}
+                                                    {seoData.title || 'Tiêu đề...'}
                                                 </div>
                                                 <div className="text-green-600 text-xs mt-1">
                                                     example.com
                                                 </div>
                                                 <div className="text-gray-600 text-xs mt-2 line-clamp-2">
-                                                    {seoData.description || 'M t...'}
+                                                    {seoData.description || 'Mô tả...'}
                                                 </div>
                                             </div>
                                         </div>

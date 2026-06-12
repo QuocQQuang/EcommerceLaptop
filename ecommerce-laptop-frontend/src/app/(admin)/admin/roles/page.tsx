@@ -59,7 +59,7 @@ const PermissionModules: Record<string, string> = {
   products: 'Quản lý sản phẩm',
   orders: 'Quản lý đơn hàng',
   promotions: 'Quản lý khuyến mãi',
-  system: 'Quản trị h thng',
+  system: 'Quản trị hệ thống',
   logs: 'Nhật ký & Kiểm toán',
   security: 'Bảo mật',
   content: 'Quản lý nội dung',
@@ -134,7 +134,7 @@ const RoleFormDialog = ({
   const mutationOptions = {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      toast.success(mode === 'create' ? 'Tạo vai trò thnh cng' : 'Cp nht vai trò thnh cng');
+      toast.success(mode === 'create' ? 'Tạo vai trò thành công' : 'Cập nhật vai trò thành công');
       onOpenChange(false);
     },
     onError: (error: any) => {
@@ -626,7 +626,7 @@ export default function RolesPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tng quyền hạn</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng quyền hạn</CardTitle>
             <Key className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
