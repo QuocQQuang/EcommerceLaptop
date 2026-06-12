@@ -641,14 +641,14 @@ Vui lòng chọn một nhà cung cấp từ danh sách bên trái hoặc tạo m
                                     <CardHeader className="pb-3 border-b">
                                         <div className="flex justify-between items-center">
                                             <CardTitle className="text-lg flex items-center gap-2">
-                                                <Zap className="h-5 w-5 text-blue-600" /> Global Configuration
+                                                <Zap className="h-5 w-5 text-blue-600" />Configuration
                                             </CardTitle>
                                             <Button size="sm" onClick={handleSaveGlobalConfig} disabled={isSaving}>
                                                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                                                 Lưu cấu hình Global
                                             </Button>
                                         </div>
-                                        <CardDescription>Cấu hình áp dụng cho toàn bộ hệ thống RAG chatbot, độc lập với profile Chat chính.</CardDescription>
+                                        <CardDescription>Profile cấu hình áp dụng cho RAG chatbot, độc lập với profile Chat chính.</CardDescription>
                                     </CardHeader>
                                     <CardContent className="p-6 space-y-6">
                                         {/* Enable Query Rewriting */}

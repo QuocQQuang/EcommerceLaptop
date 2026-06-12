@@ -457,27 +457,17 @@ public class SecurityController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50,
         [FromQuery] string? eventType = null,
-        [FromQuery] string? severity = null, // Note: Service signature updated to standard params order?
+        [FromQuery] string? severity = null,
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null)
     {
-        // Service signature correction: 
-        // GetEventsAsync(eventType, from, to, userId, adminId, page, pageSize)
-        // Severity was missing in my previous signature update?
-        // Wait, the Interface defines GetEventsAsync without 'severity' in the middle?
-        // Interface: GetEventsAsync(string? eventType = null, DateTime? from = null, DateTime? to = null, int? userId = null, int? adminUserId = null, int page = 1, int pageSize = 50);
-        // BUT my implementation code uses 'severity' inside the body! I must pass it.
-        // I need to correct the Service Interface and Implementation to include 'Severtiy' OR pass it as metadata.
-        // Looking at previous state, I removed 'Severity' from implementation signature in previous step? 
-        // Yes, "GetEventsAsync(string? eventType..."
-        // I should have kept 'severity'.
-        
-        // I will fix the Controller call assuming I will fix Service signature next. 
-        // Or I pass null for userId/adminId.
-        
-        // Let's use named arguments for safety if possible, or just positional.
-        
-        var result = await _securityEventService.GetEventsAsync(eventType, severity, fromDate, toDate, null, null, page, pageSize);
+        var result = await _securityEventService.GetEventsAsync(
+            eventType: eventType,
+            severity: severity,
+            from: fromDate,
+            to: toDate,
+            page: page,
+            pageSize: pageSize);
 
         if (!result.IsSuccess)
             return BadRequest(new { error = result.ErrorMessage });

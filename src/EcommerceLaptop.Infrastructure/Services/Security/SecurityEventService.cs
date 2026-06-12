@@ -52,8 +52,10 @@ public class SecurityEventService : ISecurityEventService
                 // These are logged as structured properties, parseable by LokiClient
                 ["IPAddress"] = securityEvent.IPAddress ?? "Unknown",
                 ["UserId"] = securityEvent.UserId?.ToString() ?? "Anonymous",
+                ["AdminUserId"] = securityEvent.AdminUserId?.ToString() ?? "",
                 ["CorrelationId"] = securityEvent.CorrelationId ?? "",
-                ["Details"] = securityEvent.Details ?? ""
+                ["Details"] = securityEvent.Details ?? "",
+                ["UserAgent"] = securityEvent.UserAgent ?? ""
             }))
             {
                 // Log with Description as the main message (@m in Loki)
@@ -399,40 +401,68 @@ public class SecurityEventService : ISecurityEventService
         {
             // 1. Fetch Rules metrics from SQL
             var activeRules = await _context.RateLimitRules.CountAsync(r => r.IsActive);
-            // Count of actively blocked IPs (via rules)
-            var blockedIPRules = await _context.IPBlockRules.CountAsync(r => r.IsActive);
 
             // 2. Fetch Event metrics from Loki
             var to = DateTime.UtcNow;
             var from = to.AddDays(-days);
 
-            // Total Blocked events (fired by IPBlockMiddleware)
-            // Assuming "ip_blocked" is the EventType logged
-            var totalBlockedEvents = await _lokiClient.CountAsync($"{{app=\"ecommerce-api\", EventType=\"ip_blocked\"}}", from, to);
+            var securityEvents = await _lokiClient.QueryAsync("{app=\"ecommerce-api\", EventType=~\".+\"}", from, to, 1000);
+            var blockedEvents = securityEvents
+                .Where(e => e.EventType.Equals("ip_blocked", StringComparison.OrdinalIgnoreCase)
+                    || e.EventType.Equals("ip_access_blocked", StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
-            // Rate Limit Violations
+            var totalBlockedEvents = blockedEvents.Count;
             var rateLimitViolations = await _lokiClient.CountAsync($"{{app=\"ecommerce-api\", EventType=\"rate_limit_exceeded\"}}", from, to);
 
-            // Suspicious Activity (high severity events)
-            var suspiciousCount = await _lokiClient.CountAsync($"{{app=\"ecommerce-api\", Severity=\"Critical\"}}", from, to);
+            var suspiciousCount = securityEvents
+                .Where(e => !string.IsNullOrWhiteSpace(e.IPAddress) && e.IPAddress != "Unknown")
+                .Where(e => IsHighSeverity(e.Severity)
+                    || e.EventType.Equals("failed_login", StringComparison.OrdinalIgnoreCase)
+                    || e.EventType.Equals("failed_password_change", StringComparison.OrdinalIgnoreCase)
+                    || e.EventType.Equals("http_404_not_found", StringComparison.OrdinalIgnoreCase))
+                .Select(e => e.IPAddress)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Count();
 
-            // Today's blocked count
             var todayFrom = DateTime.UtcNow.Date;
-            var todayBlocked = await _lokiClient.CountAsync($"{{app=\"ecommerce-api\", EventType=\"ip_blocked\"}}", todayFrom, to);
+            var todayBlocked = blockedEvents.Count(e => e.CreatedAt >= todayFrom);
+
+            var topBlockedIps = blockedEvents
+                .Where(e => !string.IsNullOrWhiteSpace(e.IPAddress) && e.IPAddress != "Unknown")
+                .GroupBy(e => e.IPAddress, StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(g => g.Count())
+                .Take(10)
+                .Select(g => new EcommerceLaptop.Core.DTOs.Admin.TopBlockedIpDto
+                {
+                    Ip = g.Key,
+                    Count = g.Count(),
+                    LastSeen = g.Max(e => e.CreatedAt)
+                })
+                .ToList();
+
+            var rateLimitStats = securityEvents
+                .Where(e => e.EventType.Equals("rate_limit_exceeded", StringComparison.OrdinalIgnoreCase))
+                .GroupBy(e => ExtractDetailValue(e.Details, "endpoint") ?? ExtractDetailValue(e.Details, "Endpoint") ?? "Unknown")
+                .OrderByDescending(g => g.Count())
+                .Take(10)
+                .Select(g => new EcommerceLaptop.Core.DTOs.Admin.EndpointRateLimitStatDto
+                {
+                    Endpoint = g.Key,
+                    Violations = g.Count(),
+                    LastViolation = g.Max(e => e.CreatedAt)
+                })
+                .ToList();
 
             return ServiceResult<EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto>.Success(new EcommerceLaptop.Core.DTOs.Admin.SecurityMetricsDto
             {
                 ActiveRules = activeRules,
-                // TotalBlocked can range from rules count to actual events. 
-                // Let's use actual blocked EVENTS for "TotalBlocked" metric if that's what dashboard expects,
-                // or just the number of blocked IPs in DB. 
-                // Usually "Total Blocked" implies traffic blocked.
                 TotalBlocked = totalBlockedEvents,
                 RateLimitViolations = rateLimitViolations,
                 SuspiciousIPs = suspiciousCount,
                 TodayBlocked = todayBlocked,
-                TopBlockedIPs = new List<EcommerceLaptop.Core.DTOs.Admin.TopBlockedIpDto>(), // Requires aggregation query support
-                RateLimitStats = new List<EcommerceLaptop.Core.DTOs.Admin.EndpointRateLimitStatDto>() // Requires aggregation query support
+                TopBlockedIPs = topBlockedIps,
+                RateLimitStats = rateLimitStats
             });
         }
         catch (Exception ex)
@@ -461,6 +491,32 @@ public class SecurityEventService : ISecurityEventService
             || severity?.Equals("Critical", StringComparison.OrdinalIgnoreCase) == true
             || severity?.Equals("Error", StringComparison.OrdinalIgnoreCase) == true
             || severity?.Equals("Fatal", StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    private static string? ExtractDetailValue(string? details, string propertyName)
+    {
+        if (string.IsNullOrWhiteSpace(details))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(details);
+            if (doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty(propertyName, out var property))
+            {
+                return property.ValueKind == JsonValueKind.String
+                    ? property.GetString()
+                    : property.ToString();
+            }
+        }
+        catch
+        {
+            return null;
+        }
+
+        return null;
     }
 }
 

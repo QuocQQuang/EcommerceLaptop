@@ -130,7 +130,10 @@ public class ProductsController(
             // Logic errors like "Not Found" can be handled by logic.
         if (product is null)
              return ErrorResponse("Product not found", 404);
-        if (!product.IsActive)
+        // Allow admin users to view inactive products for editing
+        var isAdmin = User.Identity?.IsAuthenticated == true &&
+                       User.HasClaim(c => c.Type == "permission" && c.Value == "products:read");
+        if (!product.IsActive && !isAdmin)
              return ErrorResponse("Product not found", 404);
 
         // Load variants if this is a base product
@@ -586,7 +589,201 @@ public class ProductsController(
         return SuccessResponse(new { deleted = true }, "Product deleted successfully");
     }
 
-    
+    #region Variant CRUD Operations
+
+    /// <summary>
+    /// Gets all variants for a product (Admin only)
+    /// </summary>
+    [HttpGet("{id}/variants")]
+    [Authorize(Policy = "RequirePermission:products:read")]
+    public async Task<IActionResult> GetVariants(int id)
+    {
+        var variants = await _productService.GetVariantsAsync(id);
+        var variantDtos = _mapper.Map<List<ProductDto>>(variants);
+        return SuccessResponse(variantDtos);
+    }
+
+    /// <summary>
+    /// Updates a variant (Admin only)
+    /// </summary>
+    [HttpPut("{id}/variants/{variantId}")]
+    [Authorize(Policy = "RequirePermission:products:write")]
+    public async Task<IActionResult> UpdateVariant(int id, int variantId, [FromBody] UpdateVariantDto request)
+    {
+        var variant = await _productService.GetByIdAsync(variantId);
+        if (variant == null || variant.ParentProductId != id)
+            return ErrorResponse("Variant not found", 404);
+
+        var updatedVariant = new Product().AsVariant();
+        updatedVariant.VariantName = request.VariantName;
+        updatedVariant.VariantSku = request.VariantSku;
+        if (request.Price.HasValue) updatedVariant.Price = request.Price.Value;
+        if (request.Description != null) updatedVariant.Description = request.Description;
+        if (request.IsActive.HasValue) updatedVariant.IsActive = request.IsActive.Value;
+        if (request.StockQuantity.HasValue) updatedVariant.StockQuantity = request.StockQuantity.Value;
+
+        var result = await _productService.UpdateVariantAsync(variantId, updatedVariant);
+        if (result == null)
+            return ErrorResponse("Variant not found", 404);
+
+        // Sync inventory if StockQuantity provided
+        if (request.StockQuantity.HasValue)
+        {
+            var inventory = await _inventoryService.GetInventoryByProductIdAsync(variantId);
+            if (inventory == null)
+            {
+                await _inventoryService.CreateInventoryAsync(new CoreInventory.CreateInventoryRequest
+                {
+                    ProductId = variantId,
+                    QuantityInStock = request.StockQuantity.Value,
+                    ReorderLevel = 10,
+                    MaxStockLevel = 1000,
+                    WarehouseLocation = "Main Warehouse",
+                    UnitCost = variant.Price * 0.8m
+                });
+            }
+            else
+            {
+                var diff = request.StockQuantity.Value - inventory.QuantityInStock;
+                if (diff != 0)
+                {
+                    await _inventoryService.AdjustStockAsync(new CoreInventory.StockAdjustmentRequest
+                    {
+                        ProductId = variantId,
+                        Quantity = diff,
+                        Reference = "VARIANT_UPDATE",
+                        Notes = $"Variant inventory update: {inventory.QuantityInStock} -> {request.StockQuantity.Value}",
+                        WarehouseLocation = inventory.WarehouseLocation
+                    });
+                }
+            }
+        }
+
+        var variantDto = _mapper.Map<ProductDto>(result);
+        return SuccessResponse(variantDto, "Variant updated successfully");
+    }
+
+    /// <summary>
+    /// Deletes a variant (Admin only)
+    /// </summary>
+    [HttpDelete("{id}/variants/{variantId}")]
+    [Authorize(Policy = "RequirePermission:products:delete")]
+    public async Task<IActionResult> DeleteVariant(int id, int variantId)
+    {
+        var success = await _productService.DeleteVariantAsync(variantId);
+        if (!success)
+            return ErrorResponse("Variant not found", 404);
+
+        return SuccessResponse(new { deleted = true }, "Variant deleted successfully");
+    }
+
+    #endregion
+
+    #region Product Image Upload Operations
+
+    /// <summary>
+    /// Uploads product images to ImgBB cloud hosting (Admin only)
+    /// </summary>
+    [HttpPost("{id}/images")]
+    [Authorize(Policy = "RequirePermission:products:manage")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadProductImages(int id, IFormFileCollection files)
+    {
+        if (files == null || files.Count == 0)
+            return ErrorResponse("No files provided", 400);
+
+        var product = await _productService.GetByIdAsync(id);
+        if (product == null)
+            return ErrorResponse("Product not found", 404);
+
+        var uploadResults = new List<ImageUploadResult>();
+        var productImages = new List<ProductImage>();
+
+        for (int i = 0; i < files.Count; i++)
+        {
+            var file = files[i];
+            if (!_imageHostingService.IsValidImage(file.FileName, file.ContentType, file.Length))
+                return ErrorResponse($"Invalid image file: {file.FileName}", 400);
+
+            try
+            {
+                using var stream = file.OpenReadStream();
+                var uploadResult = await _imageHostingService.UploadImageAsync(stream, file.FileName, ImageCategory.Products);
+                uploadResults.Add(uploadResult);
+
+                productImages.Add(new ProductImage
+                {
+                    ProductId = id,
+                    ImageUrl = uploadResult.Url,
+                    AltText = $"{product.Name} - Image",
+                    DisplayOrder = productImages.Count + 1,
+                    ImageId = uploadResult.ImageId,
+                    DeleteUrl = uploadResult.DeleteUrl
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to upload image {FileName} for product {ProductId}", file.FileName, id);
+                foreach (var uploadedResult in uploadResults)
+                {
+                    try { await _imageHostingService.DeleteImageAsync(uploadedResult.ImageId); }
+                    catch (Exception cleanupEx) { logger.LogError(cleanupEx, "Failed to cleanup uploaded image {ImageId}", uploadedResult.ImageId); }
+                }
+                return ErrorResponse($"Failed to upload image: {file.FileName}", 500);
+            }
+        }
+
+        await _productService.UpdateProductImagesAsync(id, productImages);
+
+        return Ok(new
+        {
+            success = true,
+            message = $"Successfully uploaded {productImages.Count} images",
+            data = new
+            {
+                productId = id,
+                uploadedImages = uploadResults.Select((r, idx) => new
+                {
+                    imageId = r.ImageId,
+                    imageUrl = r.Url,
+                    displayOrder = idx + 1,
+                    message = "Upload successful"
+                }).ToList()
+            }
+        });
+    }
+
+    /// <summary>
+    /// Deletes a product image (Admin only)
+    /// </summary>
+    [HttpDelete("{id}/images/{imageId}")]
+    [Authorize(Policy = "RequirePermission:products:manage")]
+    public async Task<IActionResult> DeleteProductImage(int id, string imageId)
+    {
+        var product = await _productService.GetByIdAsync(id);
+        if (product == null)
+            return ErrorResponse("Product not found", 404);
+
+        var image = product.Images.FirstOrDefault(i => i.ImageId == imageId);
+        if (image == null)
+            return ErrorResponse("Image not found", 404);
+
+        try
+        {
+            await _imageHostingService.DeleteImageAsync(image.ImageId!);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to delete image from hosting service: {ImageId}", imageId);
+        }
+
+        await _productService.RemoveProductImageAsync(id, image.Id);
+
+        return SuccessResponse(new { deleted = true }, "Image deleted successfully");
+    }
+
+    #endregion
+
     private Product MapToProduct(JsonElement request, string productType)
     {
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -623,6 +820,14 @@ public class ProductsController(
             else if (isActive.ValueKind == JsonValueKind.False) product.IsActive = false;
         }
 
+
+        // Update SKU, CategoryId, BrandId (these were missing from updates)
+        if (updateData.TryGetValue(nameof(UpdateProductRequest.SKU), out var sku) && sku.ValueKind == JsonValueKind.String)
+            product.SKU = sku.GetString()!;
+        if (updateData.TryGetValue(nameof(UpdateProductRequest.CategoryId), out var catId) && catId.TryGetInt32(out var catIdVal))
+            product.CategoryId = catIdVal;
+        if (updateData.TryGetValue(nameof(UpdateProductRequest.BrandId), out var brandId) && brandId.TryGetInt32(out var brandIdVal))
+            product.BrandId = brandIdVal;
 
         // Update type-specific properties
         switch (product)

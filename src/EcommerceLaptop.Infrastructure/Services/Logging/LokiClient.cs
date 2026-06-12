@@ -277,10 +277,30 @@ public class LokiClient : ILokiClient
                 if (int.TryParse(uidStr, out var uid))
                     userId = uid;
             }
+
+            int? adminUserId = null;
+            if (root.TryGetProperty("AdminUserId", out var adminUidProp))
+            {
+                var adminUidStr = adminUidProp.ValueKind == System.Text.Json.JsonValueKind.Number
+                    ? adminUidProp.GetInt32().ToString()
+                    : adminUidProp.GetString();
+                if (int.TryParse(adminUidStr, out var adminUid))
+                    adminUserId = adminUid;
+            }
             
             string? correlationId = null;
             if (root.TryGetProperty("CorrelationId", out var cidProp))
                 correlationId = cidProp.GetString();
+
+            string? details = null;
+            if (root.TryGetProperty("Details", out var detailsProp))
+                details = detailsProp.ValueKind == System.Text.Json.JsonValueKind.String
+                    ? detailsProp.GetString()
+                    : detailsProp.ToString();
+
+            string? userAgent = null;
+            if (root.TryGetProperty("UserAgent", out var userAgentProp))
+                userAgent = userAgentProp.GetString();
             
             return new SecurityEvent
             {
@@ -291,7 +311,10 @@ public class LokiClient : ILokiClient
                 Severity = severity,
                 IPAddress = ipAddress ?? "Unknown",
                 UserId = userId,
-                CorrelationId = correlationId
+                AdminUserId = adminUserId,
+                CorrelationId = correlationId,
+                Details = details,
+                UserAgent = userAgent
             };
         }
         catch

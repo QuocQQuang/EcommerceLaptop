@@ -47,6 +47,7 @@ ecommerce-laptop-frontend/.pnpm-store/
 ecommerce-laptop-frontend/.eslintcache
 .pnpm-store/
 .vercel/
+openspec/
 **/.eslintcache
 
 # Build artifacts / reports

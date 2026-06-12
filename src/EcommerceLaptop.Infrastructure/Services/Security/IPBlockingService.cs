@@ -34,30 +34,19 @@ public class IPBlockingService : IIPBlockingService
         try
         {
             var db = _redis.GetDatabase();
-            // Check Redis directly for O(1) performance
-            // Key format: blacklist:{ip}
             bool isBlocked = await db.KeyExistsAsync($"blacklist:{ipAddress}");
             
             if (isBlocked)
             {
-                // Verify it's not whitelisted first? 
-                // Usually whitelist overrides blacklist.
-                // Let's check whitelist first if we want strict logic, but for "shield" performance, 
-                // usually we check blacklist. 
-                // However, IsIPWhitelistedAsync is called separately in Middleware currently.
-                // Middleware logic: Check Whitelist -> Check Blacklist.
-                // So here we only check Blacklist.
                 return ServiceResult<bool>.Success(true);
             }
 
-            return ServiceResult<bool>.Success(false);
+            return ServiceResult<bool>.Success(await MatchesActiveRuleAsync(ipAddress, "blacklist"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if IP {IP} is blocked in Redis", ipAddress);
-            // Fallback to DB (optional, but for "no SQL" goal, maybe safer to return false vs crashing)
-            // Or return false to fail open.
-            return ServiceResult<bool>.Success(false);
+            return ServiceResult<bool>.Success(await MatchesActiveRuleAsync(ipAddress, "blacklist"));
         }
     }
 
@@ -67,12 +56,17 @@ public class IPBlockingService : IIPBlockingService
         {
             var db = _redis.GetDatabase();
             bool isWhitelisted = await db.KeyExistsAsync($"whitelist:{ipAddress}");
-            return ServiceResult<bool>.Success(isWhitelisted);
+            if (isWhitelisted)
+            {
+                return ServiceResult<bool>.Success(true);
+            }
+
+            return ServiceResult<bool>.Success(await MatchesActiveRuleAsync(ipAddress, "whitelist"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking if IP {IP} is whitelisted in Redis", ipAddress);
-            return ServiceResult<bool>.Success(false);
+            return ServiceResult<bool>.Success(await MatchesActiveRuleAsync(ipAddress, "whitelist"));
         }
     }
 
@@ -306,12 +300,23 @@ public class IPBlockingService : IIPBlockingService
     {
         try
         {
-            var cutoffTime = DateTime.UtcNow.AddHours(-hours);
-            
-            // Events are now in Loki. 
-            // TODO: Implement LogQL query for suspicious IPs via LokiClient if needed.
-            // For now, return empty to unblock build.
-            return ServiceResult<List<string>>.Success(new List<string>());
+            var to = DateTime.UtcNow;
+            var from = to.AddHours(-Math.Max(hours, 1));
+            var suspiciousResult = await _securityEventService.GetSuspiciousActivityAsync(from, to, threshold: 3);
+
+            if (!suspiciousResult.IsSuccess || suspiciousResult.Data == null)
+            {
+                return ServiceResult<List<string>>.Failure(suspiciousResult.ErrorMessage ?? "Failed to get suspicious IPs");
+            }
+
+            var suspiciousIps = suspiciousResult.Data
+                .Where(e => !string.IsNullOrWhiteSpace(e.IPAddress) && e.IPAddress != "Unknown")
+                .GroupBy(e => e.IPAddress, StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(g => g.Count())
+                .Select(g => g.Key)
+                .ToList();
+
+            return ServiceResult<List<string>>.Success(suspiciousIps);
         }
         catch (Exception ex)
         {
@@ -360,10 +365,6 @@ public class IPBlockingService : IIPBlockingService
     {
         try
         {
-            // Only sync single IPs to Redis for O(1) lookup
-            // CIDR/Range rules are not synced to Redis Key-Value store in this simple implementation
-            // They rely on the slower SQL/Memory path if IsIPBlockedAsync fell back (which it doesn't currently)
-            // For now, checks are strictly for specific IPs in Redis.
             if (IsValidIP(rule.IPAddress) && rule.IsActive)
             {
                 var db = _redis.GetDatabase();
@@ -412,6 +413,30 @@ public class IPBlockingService : IIPBlockingService
     {
         return IPAddress.TryParse(ip, out _);
     }
+
+    private async Task<bool> MatchesActiveRuleAsync(string ipAddress, string type)
+    {
+        if (!IPAddress.TryParse(ipAddress, out _))
+        {
+            return false;
+        }
+
+        var now = DateTime.UtcNow;
+        var rules = await _context.IPBlockRules
+            .Where(r => r.IsActive
+                && r.Type == type
+                && (!r.ExpiresAt.HasValue || r.ExpiresAt > now))
+            .ToListAsync();
+
+        var matchedRule = rules.FirstOrDefault(rule => IsIPInRule(ipAddress, rule));
+        if (matchedRule == null)
+        {
+            return false;
+        }
+
+        await UpdateRuleStatisticsAsync(matchedRule.Id, ipAddress);
+        return true;
+    }
     
     // Removed GetCachedIPRulesAsync as we use Redis direct lookup now
     
@@ -426,7 +451,7 @@ public class IPBlockingService : IIPBlockingService
     {
         try
         {
-            if (rule.Type == "range")
+            if (rule.IPAddress.Contains('-'))
             {
                  return IsIPInRange(ipAddress, rule.IPAddress);
             }
@@ -437,7 +462,6 @@ public class IPBlockingService : IIPBlockingService
             }
             else
             {
-                // Single IP
                 return ipAddress.Equals(rule.IPAddress, StringComparison.OrdinalIgnoreCase);
             }
         }
@@ -451,7 +475,6 @@ public class IPBlockingService : IIPBlockingService
     {
         try
         {
-            // Parse range like "192.168.1.1-192.168.1.255"
             var parts = ipRange.Split('-');
             if (parts.Length != 2) return false;
 
@@ -463,14 +486,12 @@ public class IPBlockingService : IIPBlockingService
             var endBytes = endIP.GetAddressBytes();
             var testBytes = testIP.GetAddressBytes();
 
-            if (startBytes.Length != testBytes.Length) return false;
+            if (startBytes.Length != testBytes.Length || endBytes.Length != testBytes.Length)
+            {
+                return false;
+            }
 
-            // Convert to uint for comparison
-            uint startNum = BitConverter.ToUInt32(startBytes.Reverse().ToArray(), 0);
-            uint endNum = BitConverter.ToUInt32(endBytes.Reverse().ToArray(), 0);
-            uint testNum = BitConverter.ToUInt32(testBytes.Reverse().ToArray(), 0);
-
-            return testNum >= startNum && testNum <= endNum;
+            return CompareBytes(testBytes, startBytes) >= 0 && CompareBytes(testBytes, endBytes) <= 0;
         }
         catch
         {
@@ -527,18 +548,18 @@ public class IPBlockingService : IIPBlockingService
         {
             if (ipString.Contains('/'))
             {
-                // CIDR validation
-                var parts = ipString.Split('/');
-                if (parts.Length != 2) return false;
-                
-                if (!IPAddress.TryParse(parts[0], out _)) return false;
-                if (!int.TryParse(parts[1], out var prefix)) return false;
-                
-                return prefix >= 0 && prefix <= 32; // IPv4 CIDR
+                return IsValidCIDR(ipString);
+            }
+            else if (ipString.Contains('-'))
+            {
+                var parts = ipString.Split('-', StringSplitOptions.TrimEntries);
+                return parts.Length == 2
+                    && IPAddress.TryParse(parts[0], out var startIp)
+                    && IPAddress.TryParse(parts[1], out var endIp)
+                    && startIp.AddressFamily == endIp.AddressFamily;
             }
             else
             {
-                // Single IP validation
                 return IPAddress.TryParse(ipString, out _);
             }
         }
@@ -649,7 +670,7 @@ public class IPBlockingService : IIPBlockingService
 
             _context.IPBlockRules.Add(rule);
             await _context.SaveChangesAsync();
-            await InvalidateCacheAsync();
+            await SyncRuleToRedisAsync(rule);
 
             return ServiceResult<bool>.Success(true);
         }
@@ -681,7 +702,7 @@ public class IPBlockingService : IIPBlockingService
             rule.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
-            await InvalidateCacheAsync();
+            await RemoveRuleFromRedisAsync(rule);
 
             return ServiceResult<bool>.Success(true);
         }
@@ -699,10 +720,26 @@ public class IPBlockingService : IIPBlockingService
     {
         try
         {
+            var blockedEvents = await _securityEventService.GetSuspiciousActivityAsync(from, to, threshold: 1);
+            var blockedAttempts = blockedEvents.IsSuccess && blockedEvents.Data != null
+                ? blockedEvents.Data.Count(e =>
+                    e.EventType.Equals("ip_access_blocked", StringComparison.OrdinalIgnoreCase)
+                    || e.EventType.Equals("ip_blocked", StringComparison.OrdinalIgnoreCase)
+                    || e.EventType.Equals("rate_limit_exceeded", StringComparison.OrdinalIgnoreCase))
+                : 0;
+
+            var uniqueBlockedIps = blockedEvents.IsSuccess && blockedEvents.Data != null
+                ? blockedEvents.Data
+                    .Where(e => !string.IsNullOrWhiteSpace(e.IPAddress) && e.IPAddress != "Unknown")
+                    .Select(e => e.IPAddress)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Count()
+                : 0;
+
             var stats = new Dictionary<string, int>
             {
-                ["TotalBlockedAttempts"] = 0, // Pending Loki Aggregation
-                ["UniqueBlockedIPs"] = 0,     // Pending Loki Aggregation
+                ["TotalBlockedAttempts"] = blockedAttempts,
+                ["UniqueBlockedIPs"] = uniqueBlockedIps,
                 ["ActiveBlockRules"] = await _context.IPBlockRules
                     .Where(r => r.IsActive && r.Type == "blacklist")
                     .CountAsync(),
@@ -737,10 +774,10 @@ public class IPBlockingService : IIPBlockingService
                 rule.IsActive = false;
                 rule.UpdatedAt = now;
                 rule.LastUpdatedBy = "System";
+                await RemoveRuleFromRedisAsync(rule);
             }
 
             await _context.SaveChangesAsync();
-            await InvalidateCacheAsync();
 
             _logger.LogInformation("Cleaned up {Count} expired IP blocking rules", expiredRules.Count);
             return ServiceResult<bool>.Success(true);
@@ -756,6 +793,11 @@ public class IPBlockingService : IIPBlockingService
     /// Validate CIDR range format
     /// </summary>
     public bool ValidateCIDR(string cidrRange)
+    {
+        return IsValidCIDR(cidrRange);
+    }
+
+    private static bool IsValidCIDR(string cidrRange)
     {
         if (string.IsNullOrEmpty(cidrRange))
             return false;
@@ -821,7 +863,7 @@ public class IPBlockingService : IIPBlockingService
 
             _context.IPBlockRules.Add(rule);
             await _context.SaveChangesAsync();
-            await InvalidateCacheAsync();
+            await SyncRuleToRedisAsync(rule);
 
             _logger.LogWarning("CIDR range {CIDRRange} blocked by {AdminUserId}: {Reason}", cidrRange, adminUserId, reason);
 
@@ -854,26 +896,21 @@ public class IPBlockingService : IIPBlockingService
     /// </summary>
     private bool IsIPMatchRule(string ipAddress, IPBlockRule rule)
     {
-        try
+        return IsIPInRule(ipAddress, rule);
+    }
+
+    private static int CompareBytes(byte[] left, byte[] right)
+    {
+        for (var i = 0; i < left.Length; i++)
         {
-            if (rule.Type == "single")
+            var comparison = left[i].CompareTo(right[i]);
+            if (comparison != 0)
             {
-                return rule.IPAddress == ipAddress;
+                return comparison;
             }
-            else if (rule.Type == "range")
-            {
-                return IsIPInRange(ipAddress, rule.IPAddress);
-            }
-            else if (rule.Type == "cidr")
-            {
-                return IsIPInCIDR(ipAddress, rule.IPAddress);
-            }
-            return false;
         }
-        catch
-        {
-            return false;
-        }
+
+        return 0;
     }
 
     #endregion
