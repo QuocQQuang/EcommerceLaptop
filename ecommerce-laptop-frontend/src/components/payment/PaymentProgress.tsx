@@ -57,7 +57,7 @@ export function PaymentProgress({
         {
             id: 'init',
             title: 'Khi to',
-            description: 'To giao dch thanh ton',
+            description: 'To giao dch thanh toán',
             status: currentStep === 'init' ? 'current' :
                 ['processing', 'redirect', 'complete'].includes(currentStep) ? 'completed' : 'pending',
             icon: CheckCircle
@@ -65,15 +65,15 @@ export function PaymentProgress({
         {
             id: 'processing',
             title: 'X l',
-            description: isProcessing ? 'ang x l thanh ton...' : 'Ch x l',
+            description: isProcessing ? 'ang x l thanh toán...' : 'Ch x l',
             status: currentStep === 'processing' ? 'current' :
                 currentStep === 'complete' ? 'completed' : 'pending',
             icon: isProcessing ? Loader2 : Clock
         },
         {
             id: 'redirect',
-            title: 'Chuyn hng',
-            description: gateway === 'SePay' ? 'Qut m QR  thanh ton' : 'Chuyn n cng thanh ton',
+            title: 'Chuyển hướng',
+            description: gateway === 'SePay' ? 'Quét mã QR để thanh toán' : 'Chuyển đến cổng thanh toán',
             status: currentStep === 'redirect' ? 'current' :
                 currentStep === 'complete' ? 'completed' : 'pending',
             icon: getMethodIcon(method)
@@ -81,7 +81,7 @@ export function PaymentProgress({
         {
             id: 'complete',
             title: 'Hon thnh',
-            description: 'Thanh ton thnh cng',
+            description: 'Thanh toán thành công',
             status: currentStep === 'complete' ? 'completed' : 'pending',
             icon: CheckCircle
         }
@@ -129,7 +129,7 @@ export function PaymentProgress({
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <CreditCard className="h-5 w-5" />
-                    Tin trnh thanh ton
+                    Tin trnh thanh toán
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -188,7 +188,7 @@ export function PaymentProgress({
                 {/* Gateway Info */}
                 <div className="pt-4 border-t">
                     <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Cng thanh ton:</span>
+                        <span className="text-muted-foreground">Cng thanh toán:</span>
                         <span className="font-medium">{gateway}</span>
                     </div>
                     <div className="flex justify-between text-sm">

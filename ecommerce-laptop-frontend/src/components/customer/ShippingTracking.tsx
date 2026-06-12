@@ -88,7 +88,7 @@ export function ShippingTracking({
                 {!trackingNumber && (
                     <div className="p-3 bg-yellow-50 rounded-lg">
                         <p className="text-sm text-yellow-800">
-                            M vn n s c cp nht khi n hng c giao cho n v vn chuyn.
+                            M vn n s c cp nht khi đơn hàng c giao cho n v vn chuyn.
                         </p>
                     </div>
                 )}

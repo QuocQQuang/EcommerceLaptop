@@ -228,10 +228,10 @@ export default function CategoriesPage() {
 
     try {
       await deleteCategoryMutation.mutateAsync(categoryToDelete.id);
-      toast.success(` xa danh mc "${categoryToDelete.name}" thnh cng!`);
+      toast.success(` xóa danh mục "${categoryToDelete.name}" thành công!`);
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.error || error?.message || 'C li xy ra khi xa danh mc';
-      toast.error(`Khng th xa danh mc "${categoryToDelete.name}": ${errorMessage}`);
+      const errorMessage = error?.response?.data?.error || error?.message || 'Có lỗi xảy ra khi xóa danh mục';
+      toast.error(`Không thể xóa danh mục "${categoryToDelete.name}": ${errorMessage}`);
       throw error;
     }
   };
@@ -244,10 +244,10 @@ export default function CategoriesPage() {
         categoryIdToDelete: categoryToDelete.id,
         newCategoryId: parseInt(newCategoryId)
       });
-      toast.success(` chuyn sn phm v xa danh mc "${categoryToDelete.name}" thnh cng!`);
+      toast.success(` chuyn sản phẩm v xóa danh mục "${categoryToDelete.name}" thành công!`);
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.error || error?.message || 'C li xy ra khi chuyn sn phm v xa danh mc';
-      toast.error(`Khng th chuyn sn phm v xa danh mc "${categoryToDelete.name}": ${errorMessage}`);
+      const errorMessage = error?.response?.data?.error || error?.message || 'Có lỗi xảy ra khi chuyển sản phẩm và xóa danh mục';
+      toast.error(`Không thể chuyển sản phẩm và xóa danh mục "${categoryToDelete.name}": ${errorMessage}`);
       throw error;
     }
   };
@@ -257,10 +257,10 @@ export default function CategoriesPage() {
 
     try {
       await forceCategoryMutation.mutateAsync(categoryToDelete.id);
-      toast.success(` xa p buc danh mc "${categoryToDelete.name}" v x l cc mc lin quan!`);
+      toast.success(` xóa bắt buộc danh mục "${categoryToDelete.name}" và xử lý các mục liên quan!`);
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.error || error?.message || 'C li xy ra khi xa p buc danh mc';
-      toast.error(`Khng th xa p buc danh mc "${categoryToDelete.name}": ${errorMessage}`);
+      const errorMessage = error?.response?.data?.error || error?.message || 'Có lỗi xảy ra khi xóa bắt buộc danh mục';
+      toast.error(`Không thể xóa bắt buộc danh mục "${categoryToDelete.name}": ${errorMessage}`);
       throw error;
     }
   };
@@ -288,11 +288,11 @@ export default function CategoriesPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold">Li ti d liu</h3>
+          <h3 className="text-lg font-semibold">Lỗi tải dữ liệu</h3>
           <p className="text-muted-foreground mb-4">
-            Khng th ti danh sch danh mc. Vui lng th li.
+            Khng th ti Danh sách danh mục. Vui lòng thử lại.
           </p>
-          <Button onClick={() => refetch()}>Th li</Button>
+          <Button onClick={() => refetch()}>Thử lại</Button>
         </div>
       </div>
     );
@@ -306,13 +306,13 @@ export default function CategoriesPage() {
           <Link href="/admin/products">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay li Sn phm
+              Quay lại Sản phẩm
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Qun l danh mc</h1>
+            <h1 className="text-3xl font-bold">Quản lý danh mục</h1>
             <p className="text-muted-foreground">
-              Qun l danh mc sn phm laptop
+              Quản lý danh mục sản phẩm laptop
             </p>
           </div>
         </div>
@@ -320,7 +320,7 @@ export default function CategoriesPage() {
         <PermissionGuard permission={PERMISSIONS.PRODUCTS_WRITE}>
           <Button onClick={handleCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            Thm danh mc
+            Thêm danh mục
           </Button>
         </PermissionGuard>
       </div>
@@ -330,10 +330,10 @@ export default function CategoriesPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
-              Danh sch danh mc ({categories?.length || 0})
+              Danh sách danh mục ({categories?.length || 0})
             </CardTitle>
             <Button variant="outline" onClick={() => refetch()}>
-              Lm mi
+              Làm mới
             </Button>
           </div>
         </CardHeader>
@@ -356,13 +356,13 @@ export default function CategoriesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tn danh mc</TableHead>
+                  <TableHead>Tên danh mục</TableHead>
                   <TableHead>Slug</TableHead>
-                  <TableHead>Danh mc cha</TableHead>
-                  <TableHead>S sn phm</TableHead>
-                  <TableHead>Trng thi</TableHead>
-                  <TableHead>Cp nht</TableHead>
-                  <TableHead className="text-right">Thao tc</TableHead>
+                  <TableHead>Danh mục cha</TableHead>
+                  <TableHead>Số sản phẩm</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead>Cập nhật</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -398,7 +398,7 @@ export default function CategoriesPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={category.isActive ? "default" : "secondary"}>
-                        {category.isActive ? 'Hot ng' : 'Tm ngng'}
+                        {category.isActive ? 'Hoạt động' : 'Tạm ngưng'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
@@ -415,7 +415,7 @@ export default function CategoriesPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleEdit(category)}>
                               <Edit className="h-4 w-4 mr-2" />
-                              Chnh sa
+                              Chỉnh sửa
                             </DropdownMenuItem>
                             <PermissionGuard permission={PERMISSIONS.PRODUCTS_DELETE}>
                               <DropdownMenuItem
@@ -423,7 +423,7 @@ export default function CategoriesPage() {
                                 className="text-red-600"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Xa
+                                Xóa
                               </DropdownMenuItem>
                             </PermissionGuard>
                           </DropdownMenuContent>
@@ -443,12 +443,12 @@ export default function CategoriesPage() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? 'Chnh sa danh mc' : 'Thm danh mc mi'}
+              {editingCategory ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mi'}
             </DialogTitle>
             <DialogDescription>
               {editingCategory
-                ? 'Cp nht thng tin danh mc sn phm'
-                : 'To danh mc mi cho sn phm'
+                ? 'Cập nhật thông tin danh mục sản phẩm'
+                : 'Tạo danh mục mới cho sản phẩm'
               }
             </DialogDescription>
           </DialogHeader>
@@ -456,12 +456,12 @@ export default function CategoriesPage() {
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Tn danh mc *</Label>
+                <Label htmlFor="name">Tên danh mục *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Nhp tn danh mc"
+                  placeholder="Nhập tên danh mục"
                   required
                 />
               </div>
@@ -472,20 +472,20 @@ export default function CategoriesPage() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="M t danh mc"
+                  placeholder="Mô tả danh mục"
                   rows={3}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="parentId">Danh mc cha</Label>
+                <Label htmlFor="parentId">Danh mục cha</Label>
                 <select
                   id="parentId"
                   value={formData.parentId}
                   onChange={(e) => setFormData(prev => ({ ...prev, parentId: e.target.value }))}
                   className="w-full px-3 py-2 border rounded-md"
                 >
-                  <option value="">Khng c (danh mc gc)</option>
+                  <option value="">Không có (danh mục gốc)</option>
                   {parentCategories.map((category) => (
                     <option key={category.id} value={category.id.toString()}>
                       {category.name}
@@ -501,7 +501,7 @@ export default function CategoriesPage() {
                   checked={formData.isActive}
                   onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
                 />
-                <Label htmlFor="isActive">Kch hot danh mc</Label>
+                <Label htmlFor="isActive">Kích hoạt danh mục</Label>
               </div>
             </div>
 
@@ -511,16 +511,16 @@ export default function CategoriesPage() {
                 variant="outline"
                 onClick={() => setShowCreateDialog(false)}
               >
-                Hy b
+                Hủy bỏ
               </Button>
               <Button
                 type="submit"
                 disabled={!formData.name || createCategoryMutation.isPending || updateCategoryMutation.isPending}
               >
                 {createCategoryMutation.isPending || updateCategoryMutation.isPending ? (
-                  editingCategory ? 'ang cp nht...' : 'ang to...'
+                  editingCategory ? 'đang cập nhật...' : 'đang tạo...'
                 ) : (
-                  editingCategory ? 'Cp nht' : 'To danh mc'
+                  editingCategory ? 'Cập nhật' : 'Tạo danh mục'
                 )}
               </Button>
             </DialogFooter>
@@ -545,3 +545,9 @@ export default function CategoriesPage() {
     </div>
   );
 }
+
+
+
+
+
+

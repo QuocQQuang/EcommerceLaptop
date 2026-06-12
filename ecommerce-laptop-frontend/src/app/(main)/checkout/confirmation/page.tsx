@@ -143,7 +143,7 @@ function OrderConfirmationContent() {
                                 Xác nhận đơn hàng
                             </CardTitle>
                             <CardDescription>
-                                n hng #{order.orderNumber} - {formatCurrencyPrice(order.totalAmount, selectedCurrency)}
+                                Đơn hàng #{order.orderNumber} - {formatCurrencyPrice(order.totalAmount, selectedCurrency)}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">

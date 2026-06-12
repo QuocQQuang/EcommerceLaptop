@@ -29,9 +29,9 @@ export default function InventoryManagementSection({
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle>Qun l kho hng</CardTitle>
+                                <CardTitle>Quản lý kho hàng</CardTitle>
                                 <CardDescription>
-                                    Qun l s lng tn kho, mc cnh bo v v tr kho
+                                    Quản lý số lượng tồn kho, mức cảnh báo và vị trí kho
                                 </CardDescription>
                             </div>
                             {isExpanded ? (
@@ -46,7 +46,7 @@ export default function InventoryManagementSection({
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="quantityInStock">S lng tn kho</Label>
+                                <Label htmlFor="quantityInStock">Số lượng tồn kho</Label>
                                 <Input
                                     id="quantityInStock"
                                     type="number"
@@ -60,7 +60,7 @@ export default function InventoryManagementSection({
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="reservedQuantity">S lng  t</Label>
+                                <Label htmlFor="reservedQuantity">Số lượng đã đặt</Label>
                                 <Input
                                     id="reservedQuantity"
                                     type="number"
@@ -73,7 +73,7 @@ export default function InventoryManagementSection({
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="reorderLevel">Mc t hng li</Label>
+                                <Label htmlFor="reorderLevel">Mức đặt hàng lại</Label>
                                 <Input
                                     id="reorderLevel"
                                     type="number"
@@ -82,11 +82,11 @@ export default function InventoryManagementSection({
                                     placeholder="5"
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    Khi tn kho xung di mc ny, h thng s cnh bo
+                                    Khi tồn kho xuống dưới mức này, hệ thống sẽ cảnh báo
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="maxStockLevel">Mc tn kho ti a</Label>
+                                <Label htmlFor="maxStockLevel">Mức tồn kho tối đa</Label>
                                 <Input
                                     id="maxStockLevel"
                                     type="number"
@@ -95,13 +95,13 @@ export default function InventoryManagementSection({
                                     placeholder="100"
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    Mc tn kho ti a cho php trong kho
+                                    Mức tồn kho tối đa cho phép trong kho
                                 </p>
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="warehouseLocation">V tr kho</Label>
+                            <Label htmlFor="warehouseLocation">Vị trí kho</Label>
                             <Input
                                 id="warehouseLocation"
                                 value={formData.inventory?.warehouseLocation || ''}
@@ -109,41 +109,41 @@ export default function InventoryManagementSection({
                                 placeholder="VD: Kho A - K 1 - Tng 2"
                             />
                             <p className="text-xs text-muted-foreground">
-                                V tr c th ca sn phm trong kho
+                                Vị trí cụ thể của sản phẩm trong kho
                             </p>
                         </div>
 
                         {/* Inventory Summary */}
                         <div className="p-4 bg-muted rounded-lg">
-                            <h4 className="font-medium mb-2">Tm tt tn kho</h4>
+                            <h4 className="font-medium mb-2">Tóm tắt tồn kho</h4>
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
-                                    <span className="text-muted-foreground">Tng tn kho:</span>
+                                    <span className="text-muted-foreground">Tổng tồn kho:</span>
                                     <span className="ml-2 font-medium">
                                         {formData.inventory?.quantityInStock || 0}
                                     </span>
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground"> t:</span>
+                                    <span className="text-muted-foreground">Đã đặt:</span>
                                     <span className="ml-2 font-medium">
                                         {formData.inventory?.reservedQuantity || 0}
                                     </span>
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground">C th bn:</span>
+                                    <span className="text-muted-foreground">Có thể bán:</span>
                                     <span className="ml-2 font-medium text-green-600">
                                         {(parseInt(formData.inventory?.quantityInStock || '0') - parseInt(formData.inventory?.reservedQuantity || '0'))}
                                     </span>
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground">Trng thi:</span>
+                                    <span className="text-muted-foreground">Trạng thái:</span>
                                     <span className={`ml-2 font-medium ${parseInt(formData.inventory?.quantityInStock || '0') <= parseInt(formData.inventory?.reorderLevel || '0')
                                             ? 'text-red-600'
                                             : 'text-green-600'
                                         }`}>
                                         {parseInt(formData.inventory?.quantityInStock || '0') <= parseInt(formData.inventory?.reorderLevel || '0')
-                                            ? 'Cn t hng'
-                                            : ' hng'
+                                            ? 'Cần đặt hàng'
+                                            : 'Đủ hàng'
                                         }
                                     </span>
                                 </div>

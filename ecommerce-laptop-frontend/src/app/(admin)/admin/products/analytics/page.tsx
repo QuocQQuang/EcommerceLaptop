@@ -177,7 +177,7 @@ export default function ProductAnalyticsPage() {
                     <Link href="/admin/products">
                         <Button variant="outline" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
-                            Quay li Sn phm
+                            Quay lại Sản phẩm
                         </Button>
                     </Link>
                     <div>
@@ -209,7 +209,7 @@ export default function ProductAnalyticsPage() {
                     <Link href="/admin/products">
                         <Button variant="outline" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
-                            Quay li Sn phm
+                            Quay lại Sản phẩm
                         </Button>
                     </Link>
                     <div>
@@ -512,3 +512,4 @@ export default function ProductAnalyticsPage() {
         </div>
     );
 }
+

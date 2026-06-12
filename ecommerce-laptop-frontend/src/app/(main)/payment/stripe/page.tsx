@@ -34,7 +34,7 @@ function StripePaymentContent() {
         if (orderId > 0) {
             orderService.getOrderStatus(orderId)
                 .then(setOrder)
-                .catch(() => toast.error('Khng th ti thng tin n hng'));
+                .catch(() => toast.error('Không thể tải thông tin đơn hàng'));
         } else {
             toast.error('ID đơn hàng không hợp lệ');
             router.push('/checkout');
@@ -48,10 +48,10 @@ function StripePaymentContent() {
             if (result.isSuccess) {
                 setClientSecret(result.clientSecret);
             } else {
-                toast.error(result.errorMessage || 'Khng th to thanh ton Stripe');
+                toast.error(result.errorMessage || 'Không thể tạo thanh toán Stripe');
             }
         } catch (error) {
-            toast.error('Li khi to thanh ton Stripe');
+            toast.error('Lỗi khi tạo thanh toán Stripe');
         }
     };
 
@@ -206,7 +206,7 @@ function StripeForm({ order, clientSecret }: { order: OrderResponse | null, clie
         event.preventDefault();
 
         if (!stripe || !elements || !order) {
-            setError('Stripe cha sn sng. Vui lng th li.');
+            setError('Stripe chưa sẵn sàng. Vui lòng thử lại.');
             return;
         }
 
@@ -228,11 +228,11 @@ function StripeForm({ order, clientSecret }: { order: OrderResponse | null, clie
             });
 
             if (stripeError) {
-                setError(stripeError.message || 'Thanh ton tht bi. Vui lng th li.');
+                setError(stripeError.message || 'Thanh toán thất bại. Vui lòng thử lại.');
                 setIsProcessing(false);
             }
         } catch (err) {
-            setError('C li xy ra. Vui lng th li.');
+            setError('Có lỗi xảy ra. Vui lòng thử lại.');
             setIsProcessing(false);
         }
     };
@@ -275,7 +275,7 @@ function StripeForm({ order, clientSecret }: { order: OrderResponse | null, clie
                         <span>Đang xử lý...</span>
                     </div>
                 ) : (
-                    <span>Thanh ton {formatCurrencyPrice(order?.totalAmount || 0, 'VND')}</span>
+                    <span>Thanh toán {formatCurrencyPrice(order?.totalAmount || 0, 'VND')}</span>
                 )}
             </Button>
 

@@ -15,7 +15,7 @@ function PaymentReturnContent() {
     const [status, setStatus] = useState<'loading' | 'success' | 'failed'>(
         'loading',
     );
-    const [message, setMessage] = useState('ang xc thc thanh ton...');
+    const [message, setMessage] = useState('Đang xác thực thanh toán...');
     const [orderId, setOrderId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -31,13 +31,13 @@ function PaymentReturnContent() {
                     queryString,
                 );
                 setStatus('success');
-                setMessage(data.message || 'Thanh ton thnh cng!');
+                setMessage(data.message || 'Thanh toán thành công!');
                 setOrderId(data.orderId);
             } catch (error: any) {
                 setStatus('failed');
                 setMessage(
                     error.response?.data?.message ||
-                    'Xc thc thanh ton tht bi. Vui lng th li hoc lin h h tr.',
+                    'Xác thực thanh toán thất bại. Vui lòng thử lại hoặc liên hệ hỗ trợ.',
                 );
                 setOrderId(error.response?.data?.orderId || null);
             }
@@ -66,9 +66,9 @@ function PaymentReturnContent() {
                         </div>
                     )}
                     <CardTitle className="mt-6 text-2xl font-bold">
-                        {status === 'loading' && 'ang x l...'}
-                        {status === 'success' && 'Thanh ton thnh cng!'}
-                        {status === 'failed' && 'Thanh ton tht bi'}
+                        {status === 'loading' && 'Đang xử lý...'}
+                        {status === 'success' && 'Thanh toán thành công!'}
+                        {status === 'failed' && 'Thanh toán thất bại'}
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -76,7 +76,7 @@ function PaymentReturnContent() {
 
                     {orderId && (
                         <div className="bg-gray-100 rounded-lg p-3">
-                            <p className="text-sm text-gray-600">M n hng ca bn:</p>
+                            <p className="text-sm text-gray-600">Mã đơn hàng của bạn:</p>
                             <p className="text-lg font-bold text-primary">#{orderId}</p>
                         </div>
                     )}
@@ -86,12 +86,12 @@ function PaymentReturnContent() {
                             {orderId && (
                                 <Button asChild>
                                     <Link href={`/account/orders/${orderId}`}>
-                                        Xem chi tit n hng
+                                        Xem chi tiết đơn hàng
                                     </Link>
                                 </Button>
                             )}
                             <Button variant="outline" asChild>
-                                <Link href="/products">Tip tc mua sm</Link>
+                                <Link href="/products">Tiếp tục mua sắm</Link>
                             </Button>
                         </div>
                     )}

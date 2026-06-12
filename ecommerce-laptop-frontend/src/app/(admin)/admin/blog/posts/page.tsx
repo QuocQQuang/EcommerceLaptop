@@ -218,7 +218,7 @@ export default function BlogsListPage() {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Qun l bi vit</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">Quản lý bài viết</h1>
                     <p className="text-gray-600 mt-1">
                         Qun l tt c bi vit blog ca bn
                     </p>
@@ -363,7 +363,7 @@ export default function BlogsListPage() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Danh sch bi vit</CardTitle>
+                            <CardTitle>Danh sách bài viết</CardTitle>
                             <CardDescription>
                                 {state.loading ? 'ang ti...' : `${state.totalCount} bi vit`}
                             </CardDescription>

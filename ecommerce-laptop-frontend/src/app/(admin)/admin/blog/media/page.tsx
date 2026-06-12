@@ -368,7 +368,7 @@ export default function MediaPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Th vin Media</h1>
-                    <p className="text-gray-500">Qun l hnh nh v files cho blog</p>
+                    <p className="text-gray-500">Quản lý hình ảnh và files cho blog</p>
                 </div>
                 <div className="flex items-center gap-2">
                     {state.bulkSelectMode ? (

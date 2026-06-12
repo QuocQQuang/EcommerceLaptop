@@ -10,79 +10,75 @@ namespace EcommerceLaptop.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Thm columns
-            migrationBuilder.AddColumn<int>(
-                name: "ParentProductId",
-                table: "Products",
-                type: "int",
-                nullable: true);
+            migrationBuilder.Sql("""
+                IF COL_LENGTH('dbo.Products', 'ParentProductId') IS NULL
+                    ALTER TABLE [Products] ADD [ParentProductId] int NULL;
 
-            migrationBuilder.AddColumn<string>(
-                name: "VariantName",
-                table: "Products",
-                type: "nvarchar(255)",
-                maxLength: 255,
-                nullable: true);
+                IF COL_LENGTH('dbo.Products', 'VariantName') IS NULL
+                    ALTER TABLE [Products] ADD [VariantName] nvarchar(255) NULL;
 
-            migrationBuilder.AddColumn<string>(
-                name: "VariantSku",
-                table: "Products",
-                type: "nvarchar(50)",
-                maxLength: 50,
-                nullable: true);
+                IF COL_LENGTH('dbo.Products', 'VariantSku') IS NULL
+                    ALTER TABLE [Products] ADD [VariantSku] nvarchar(50) NULL;
 
-            // Thm foreign key constraint
-            migrationBuilder.AddForeignKey(
-                name: "FK_Products_ParentProduct",
-                table: "Products",
-                column: "ParentProductId",
-                principalTable: "Products",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                IF NOT EXISTS (
+                    SELECT 1 FROM sys.indexes
+                    WHERE [name] = N'IX_Products_ParentProductId'
+                      AND [object_id] = OBJECT_ID(N'[dbo].[Products]')
+                )
+                    CREATE INDEX [IX_Products_ParentProductId] ON [Products] ([ParentProductId]);
 
-            // Thm indexes
-            migrationBuilder.CreateIndex(
-                name: "IX_Products_ParentProductId",
-                table: "Products",
-                column: "ParentProductId");
+                IF NOT EXISTS (
+                    SELECT 1 FROM sys.indexes
+                    WHERE [name] = N'IX_Products_VariantSku'
+                      AND [object_id] = OBJECT_ID(N'[dbo].[Products]')
+                )
+                    CREATE UNIQUE INDEX [IX_Products_VariantSku] ON [Products] ([VariantSku])
+                    WHERE [VariantSku] IS NOT NULL;
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Products_VariantSku",
-                table: "Products",
-                column: "VariantSku",
-                unique: true,
-                filter: "[VariantSku] IS NOT NULL");
+                IF NOT EXISTS (
+                    SELECT 1 FROM sys.foreign_keys
+                    WHERE [name] = N'FK_Products_ParentProduct'
+                      AND [parent_object_id] = OBJECT_ID(N'[dbo].[Products]')
+                )
+                    ALTER TABLE [Products] ADD CONSTRAINT [FK_Products_ParentProduct]
+                    FOREIGN KEY ([ParentProductId]) REFERENCES [Products] ([Id]) ON DELETE NO ACTION;
+                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Drop indexes
-            migrationBuilder.DropIndex(
-                name: "IX_Products_VariantSku",
-                table: "Products");
+            migrationBuilder.Sql("""
+                IF EXISTS (
+                    SELECT 1 FROM sys.foreign_keys
+                    WHERE [name] = N'FK_Products_ParentProduct'
+                      AND [parent_object_id] = OBJECT_ID(N'[dbo].[Products]')
+                )
+                    ALTER TABLE [Products] DROP CONSTRAINT [FK_Products_ParentProduct];
 
-            migrationBuilder.DropIndex(
-                name: "IX_Products_ParentProductId",
-                table: "Products");
+                IF EXISTS (
+                    SELECT 1 FROM sys.indexes
+                    WHERE [name] = N'IX_Products_VariantSku'
+                      AND [object_id] = OBJECT_ID(N'[dbo].[Products]')
+                )
+                    DROP INDEX [IX_Products_VariantSku] ON [Products];
 
-            // Drop foreign key
-            migrationBuilder.DropForeignKey(
-                name: "FK_Products_ParentProduct",
-                table: "Products");
+                IF EXISTS (
+                    SELECT 1 FROM sys.indexes
+                    WHERE [name] = N'IX_Products_ParentProductId'
+                      AND [object_id] = OBJECT_ID(N'[dbo].[Products]')
+                )
+                    DROP INDEX [IX_Products_ParentProductId] ON [Products];
 
-            // Drop columns
-            migrationBuilder.DropColumn(
-                name: "VariantSku",
-                table: "Products");
+                IF COL_LENGTH('dbo.Products', 'VariantSku') IS NOT NULL
+                    ALTER TABLE [Products] DROP COLUMN [VariantSku];
 
-            migrationBuilder.DropColumn(
-                name: "VariantName",
-                table: "Products");
+                IF COL_LENGTH('dbo.Products', 'VariantName') IS NOT NULL
+                    ALTER TABLE [Products] DROP COLUMN [VariantName];
 
-            migrationBuilder.DropColumn(
-                name: "ParentProductId",
-                table: "Products");
+                IF COL_LENGTH('dbo.Products', 'ParentProductId') IS NOT NULL
+                    ALTER TABLE [Products] DROP COLUMN [ParentProductId];
+                """);
         }
     }
 }

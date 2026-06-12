@@ -32,7 +32,7 @@ function PayPalPaymentContent() {
         if (orderId > 0) {
             orderService.getOrderStatus(orderId)
                 .then(setOrder)
-                .catch(() => toast.error('Khng th ti thng tin n hng'));
+                .catch(() => toast.error('Không thể tải thông tin đơn hàng'));
         } else {
             toast.error('ID đơn hàng không hợp lệ');
             router.push('/checkout');
@@ -80,7 +80,7 @@ function PayPalPaymentContent() {
             }
         } catch (error) {
             console.error('Error creating PayPal order:', error);
-            toast.error('Khng th to n hng PayPal');
+            toast.error('Không thể tạo đơn hàng PayPal');
             throw error;
         }
     };
@@ -99,24 +99,24 @@ function PayPalPaymentContent() {
             const result = await paymentService.capturePayPalPayment(data.orderID, orderId);
 
             if (result.isSuccess) {
-                toast.success('Thanh ton thnh cng!');
+                toast.success('Thanh toán thành công!');
                 router.push(`/checkout/confirmation?orderId=${orderId}`);
             } else {
                 throw new Error(result.errorMessage || 'Payment capture failed');
             }
         } catch (error) {
             console.error('Error capturing PayPal payment:', error);
-            toast.error('Li khi x l thanh ton PayPal');
+            toast.error('Lỗi khi xử lý thanh toán PayPal');
         }
     };
 
     const onError = (error: any) => {
         console.error('PayPal error:', error);
-        toast.error(' xy ra li vi PayPal');
+        toast.error('Đã xảy ra lỗi với PayPal');
     };
 
     const onCancel = () => {
-        toast.info('Thanh ton  b hy');
+        toast.info('Thanh toán đã bị hủy');
         router.push('/checkout');
     };
 
@@ -125,7 +125,7 @@ function PayPalPaymentContent() {
             <div className="min-h-[60vh] flex items-center justify-center">
                 <div className="text-center">
                     <LoadingSpinner size="lg" />
-                    <p className="mt-4 text-sm text-gray-500">ang ti thng tin n hng...</p>
+                    <p className="mt-4 text-sm text-gray-500">Đang tải thông tin đơn hàng...</p>
                 </div>
             </div>
         );
@@ -135,7 +135,7 @@ function PayPalPaymentContent() {
         return (
             <div className="min-h-[60vh] flex items-center justify-center">
                 <div className="text-center">
-                    <p className="text-gray-500">Khng tm thy thng tin n hng</p>
+                    <p className="text-gray-500">Không tìm thấy thông tin đơn hàng</p>
                     <Button asChild className="mt-4" variant="outline">
                         <Link href="/checkout">Quay li</Link>
                     </Button>
@@ -153,7 +153,7 @@ function PayPalPaymentContent() {
                         <ArrowLeft className="h-4 w-4 mr-1" />
                         Quay li
                     </Link>
-                    <h1 className="text-2xl font-semibold text-gray-900 mt-4">Thanh ton</h1>
+                    <h1 className="text-2xl font-semibold text-gray-900 mt-4">Thanh toán</h1>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
@@ -162,10 +162,10 @@ function PayPalPaymentContent() {
                         <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
                             {/* Amount in USD */}
                             <div className="text-center pb-2">
-                                <p className="text-sm text-gray-500">S tin thanh ton</p>
+                                <p className="text-sm text-gray-500">Số tiền thanh toán</p>
                                 <p className="text-2xl font-semibold text-gray-900 mt-1">${convertToUSD(order.totalAmount)} USD</p>
                                 <p className="text-xs text-gray-400 mt-1">
-                                    Tng ng {formatCurrencyPrice(order.totalAmount, selectedCurrency)}
+                                    Tương đương {formatCurrencyPrice(order.totalAmount, selectedCurrency)}
                                 </p>
                             </div>
 
@@ -192,7 +192,7 @@ function PayPalPaymentContent() {
                             {/* Secured by PayPal */}
                             <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
                                 <Lock className="h-3 w-3" />
-                                <span>c bo mt bi PayPal</span>
+                                <span>được bảo mật bởi PayPal</span>
                             </div>
                         </div>
                     </div>
@@ -200,7 +200,7 @@ function PayPalPaymentContent() {
                     {/* Order Summary  Right, narrower */}
                     <div className="lg:col-span-2 order-1 lg:order-2">
                         <div className="bg-white rounded-lg border border-gray-200 p-6 lg:sticky lg:top-8">
-                            <h2 className="text-base font-semibold text-gray-900 mb-4">n hng #{order.orderNumber}</h2>
+                            <h2 className="text-base font-semibold text-gray-900 mb-4">Đơn hàng #{order.orderNumber}</h2>
 
                             {/* Items */}
                             <div className="space-y-3 mb-4">
@@ -222,16 +222,16 @@ function PayPalPaymentContent() {
                             {/* Totals */}
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">Tm tnh</span>
+                                    <span className="text-gray-500">Tạm tính</span>
                                     <span className="text-gray-900">{formatCurrencyPrice(order.subtotal, selectedCurrency)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">Ph vn chuyn</span>
+                                    <span className="text-gray-500">Phí vận chuyển</span>
                                     <span className="text-gray-900">{formatCurrencyPrice(order.shippingFee, selectedCurrency)}</span>
                                 </div>
                                 {order.discount > 0 && (
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Gim gi</span>
+                                        <span className="text-gray-500">Giảm giá</span>
                                         <span className="text-green-600">-{formatCurrencyPrice(order.discount, selectedCurrency)}</span>
                                     </div>
                                 )}
@@ -240,7 +240,7 @@ function PayPalPaymentContent() {
                             <Separator className="my-4" />
 
                             <div className="flex justify-between">
-                                <span className="text-base font-semibold text-gray-900">Tng cng</span>
+                                <span className="text-base font-semibold text-gray-900">Tổng cộng</span>
                                 <span className="text-base font-semibold text-gray-900">{formatCurrencyPrice(order.totalAmount, selectedCurrency)}</span>
                             </div>
                         </div>

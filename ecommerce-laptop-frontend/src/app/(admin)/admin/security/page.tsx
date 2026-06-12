@@ -350,7 +350,7 @@ export default function SecurityPage() {
       toast.success('Quy tc IP  c cp nht');
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht quy tc IP');
+      toast.error('C li xy ra khi cp nht quy tắc IP');
     }
   });
 
@@ -375,7 +375,7 @@ export default function SecurityPage() {
       toast.success('Quy tc IP mi  c to');
     },
     onError: () => {
-      toast.error('C li xy ra khi to quy tc IP');
+      toast.error('C li xy ra khi to quy tắc IP');
     }
   });
 
@@ -389,7 +389,7 @@ export default function SecurityPage() {
       toast.success('Quy tc IP  c xa');
     },
     onError: () => {
-      toast.error('C li xy ra khi xa quy tc IP');
+      toast.error('C li xy ra khi xa quy tắc IP');
     }
   });
 
@@ -400,7 +400,7 @@ export default function SecurityPage() {
       toast.success('Quy tc gii hn tc   c cp nht');
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht quy tc gii hn tc ');
+      toast.error('C li xy ra khi cp nht quy tắc gii hn tc ');
     }
   });
 
@@ -418,7 +418,7 @@ export default function SecurityPage() {
       toast.success('Quy tc gii hn tc  mi  c to');
     },
     onError: () => {
-      toast.error('C li xy ra khi to quy tc gii hn tc ');
+      toast.error('C li xy ra khi to quy tắc gii hn tc ');
     }
   });
 
@@ -429,7 +429,7 @@ export default function SecurityPage() {
       toast.success('Quy tc gii hn tc   c xa');
     },
     onError: () => {
-      toast.error('C li xy ra khi xa quy tc gii hn tc ');
+      toast.error('C li xy ra khi xa quy tắc gii hn tc ');
     }
   });
 
@@ -538,7 +538,7 @@ export default function SecurityPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Bo mt h thng</h1>
           <p className="text-muted-foreground">
-            Qun l IP blocking, rate limiting v gim st bo mt
+            Quản lý IP blocking, rate limiting v gim st bo mt
           </p>
         </div>
         <div className="flex space-x-2">
@@ -768,7 +768,7 @@ export default function SecurityPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center space-x-2">
                   <Ban className="h-5 w-5" />
-                  <span>Qun l IP Blocking</span>
+                  <span>Quản lý IP Blocking</span>
                 </CardTitle>
                 <div className="flex items-center space-x-2">
                   <ExportButtons
@@ -780,14 +780,14 @@ export default function SecurityPage() {
                     <DialogTrigger asChild>
                       <Button>
                         <Plus className="h-4 w-4 mr-2" />
-                        Thm quy tc IP
+                        Thêm quy tắc IP
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px]">
                       <DialogHeader>
-                        <DialogTitle>Thm quy tc IP mi</DialogTitle>
+                        <DialogTitle>Thêm quy tắc IP mi</DialogTitle>
                         <DialogDescription>
-                          To quy tc chn hoc cho php IP address.
+                          To quy tắc chn hoc cho php IP address.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
@@ -828,7 +828,7 @@ export default function SecurityPage() {
                           </Label>
                           <Textarea
                             id="ip-reason"
-                            placeholder="L do p dng quy tc ny..."
+                            placeholder="L do p dng quy tắc ny..."
                             className="col-span-3"
                             value={newIPRule.reason || ''}
                             onChange={(e) => setNewIPRule(prev => ({ ...prev, reason: e.target.value }))}
@@ -858,7 +858,7 @@ export default function SecurityPage() {
                           {createIPRuleMutation.isPending ? (
                             <RefreshCw className="h-4 w-4 animate-spin mr-2" />
                           ) : null}
-                          To quy tc
+                          To quy tắc
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -896,7 +896,7 @@ export default function SecurityPage() {
                       rule.reason.toLowerCase().includes(searchTerm.toLowerCase());
                     const matchesActiveFilter = !showActiveOnly || rule.isActive;
                     return matchesSearch && matchesActiveFilter;
-                  }).length} / {ipRules.length} quy tc
+                  }).length} / {ipRules.length} quy tắc
                 </div>
               </div>
 
@@ -904,7 +904,7 @@ export default function SecurityPage() {
               {ipRulesLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">ang ti quy tc IP...</span>
+                  <span className="ml-2">ang ti quy tắc IP...</span>
                 </div>
               ) : (
                 <Table>
@@ -1002,7 +1002,7 @@ export default function SecurityPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center space-x-2">
                   <Clock className="h-5 w-5" />
-                  <span>Qun l Rate Limiting</span>
+                  <span>Quản lý Rate Limiting</span>
                 </CardTitle>
                 <div className="flex items-center space-x-2">
                   <ExportButtons
@@ -1013,20 +1013,20 @@ export default function SecurityPage() {
                     <DialogTrigger asChild>
                       <Button>
                         <Plus className="h-4 w-4 mr-2" />
-                        Thm quy tc Rate Limit
+                        Thêm quy tắc Rate Limit
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[525px]">
                       <DialogHeader>
-                        <DialogTitle>Thm quy tc Rate Limit mi</DialogTitle>
+                        <DialogTitle>Thêm quy tắc Rate Limit mi</DialogTitle>
                         <DialogDescription>
-                          To quy tc gii hn tc  request cho endpoint.
+                          To quy tắc gii hn tc  request cho endpoint.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="rule-name" className="text-right">
-                            Tn quy tc
+                            Tn quy tắc
                           </Label>
                           <Input
                             id="rule-name"
@@ -1128,7 +1128,7 @@ export default function SecurityPage() {
                           {createRateLimitMutation.isPending ? (
                             <RefreshCw className="h-4 w-4 animate-spin mr-2" />
                           ) : null}
-                          To quy tc
+                          To quy tắc
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -1166,7 +1166,7 @@ export default function SecurityPage() {
                       rule.endpoint.toLowerCase().includes(searchTerm.toLowerCase());
                     const matchesActiveFilter = !showActiveOnly || rule.isActive;
                     return matchesSearch && matchesActiveFilter;
-                  }).length} / {rateLimitRules.length} quy tc
+                  }).length} / {rateLimitRules.length} quy tắc
                 </div>
               </div>
 
@@ -1174,7 +1174,7 @@ export default function SecurityPage() {
               {rateLimitRulesLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">ang ti quy tc Rate Limit...</span>
+                  <span className="ml-2">ang ti quy tắc Rate Limit...</span>
                 </div>
               ) : (
                 <Table>
@@ -1395,7 +1395,7 @@ export default function SecurityPage() {
                               <span className="text-sm">
                                 {event.eventType === 'failed_login' && 'ng nhp tht bi'}
                                 {event.eventType === 'password_changed' && 'i mt khu'}
-                                {event.eventType === 'ip_rule_deleted' && 'Xa quy tc IP'}
+                                {event.eventType === 'ip_rule_deleted' && 'Xa quy tắc IP'}
                                 {event.eventType === 'suspicious_activity' && 'Hot ng ng nghi'}
                                 {!['failed_login', 'password_changed', 'ip_rule_deleted', 'suspicious_activity'].includes(event.eventType) && event.eventType}
                               </span>

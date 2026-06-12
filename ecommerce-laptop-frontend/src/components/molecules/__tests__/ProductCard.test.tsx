@@ -107,7 +107,7 @@ describe('ProductCard', () => {
         render(<ProductCard product={outOfStockProduct} />)
 
         // ProductCard renders "Ht hng" in both the badge and the stock status span
-        const elements = screen.getAllByText('Ht hng')
+        const elements = screen.getAllByText('Hết hàng')
         expect(elements.length).toBeGreaterThan(0)
     })
 
@@ -115,7 +115,7 @@ describe('ProductCard', () => {
         const user = userEvent.setup()
         render(<ProductCard product={mockProduct} />)
 
-        const addButton = screen.getByText('Thm vo gi')
+        const addButton = screen.getByText('Thêm vào giỏ')
         await user.click(addButton)
 
         expect(mockAddToCart).toHaveBeenCalledWith(mockProduct, 1)
@@ -141,7 +141,7 @@ describe('ProductCard', () => {
         render(<ProductCard product={minimalProduct} />)
 
         expect(screen.getByText('Minimal Laptop')).toBeInTheDocument()
-        expect(screen.getByText('Cn hng')).toBeInTheDocument()
+        expect(screen.getByText('Còn hàng')).toBeInTheDocument()
     })
 
     it('applies hover effects correctly', () => {

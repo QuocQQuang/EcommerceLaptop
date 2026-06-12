@@ -88,11 +88,11 @@ const useCreateProductMutation = (productImages: ProductImage[]) => {
       return newProduct;
     },
     onSuccess: (newProduct) => {
-      toast.success('Sn phm  c to thnh cng!');
+      toast.success('Sản phẩm đã được tạo thành công!');
       return newProduct;
     },
     onError: (error: any) => {
-      toast.error(`Li to sn phm: ${error.message || 'C li xy ra'}`);
+      toast.error(`Lỗi tạo sản phẩm: ${error.message || 'Có lỗi xảy ra'}`);
     }
   });
 };
@@ -232,9 +232,9 @@ export default function AddProductPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">Thm sn phm mi</h1>
+          <h1 className="text-3xl font-bold">Thêm sản phẩm mới</h1>
           <p className="text-muted-foreground">
-            To sn phm mi trong h thng
+            Tạo sản phẩm mới trong hệ thống
           </p>
         </div>
       </div>

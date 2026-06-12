@@ -126,7 +126,7 @@ export function ProductCarousel({ products, onConsult }: ProductCarouselProps) {
                                 ? 'bg-green-100 text-green-700'
                                 : 'bg-red-100 text-red-700'
                                 }`}>
-                                {product.inStock ? 'Cn hng' : 'Ht hng'}
+                                {product.inStock ? 'Còn hàng' : 'Hết hàng'}
                             </span>
                         </div>
 
@@ -148,7 +148,7 @@ export function ProductCarousel({ products, onConsult }: ProductCarouselProps) {
                                     onClick={() => handleAddToCart(product)}
                                     disabled={!product.inStock}
                                     className="bg-neutral-900 text-white p-1.5 rounded-lg hover:bg-neutral-800 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors"
-                                    aria-label={`Thm ${product.name} vo gi hng`}
+                                    aria-label={`Thêm ${product.name} vào giỏ hàng`}
                                 >
                                     <ShoppingCart size={14} />
                                 </button>
@@ -157,10 +157,10 @@ export function ProductCarousel({ products, onConsult }: ProductCarouselProps) {
                                 <button
                                     onClick={() => onConsult(product.name)}
                                     className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-neutral-700 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-lg transition-colors"
-                                    aria-label={`T vn v ${product.name}`}
+                                    aria-label={`Tư vấn về ${product.name}`}
                                 >
                                     <MessageCircle size={12} />
-                                    <span>T vn</span>
+                                    <span>Tư vấn</span>
                                 </button>
                             )}
                         </div>

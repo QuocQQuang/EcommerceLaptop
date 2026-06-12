@@ -84,7 +84,7 @@ export default function LlmConfigPage() {
     };
 
     const handleDeleteProvider = async (provider: LlmProvider) => {
-        if (!confirm(`Bn c chc chn mun xa nh cung cp "${provider.name}" v tt c cu hnh lin quan?`)) return;
+        if (!confirm(`Bạn có chắc chắn muốn xóa nhà cung cấp "${provider.name}" và tất cả cấu hình liên quan?`)) return;
         try {
             await llmService.deleteProvider(provider.id);
             await loadProviders();
@@ -92,10 +92,10 @@ export default function LlmConfigPage() {
                 setSelectedProvider(null);
                 setSelectedProfile(null);
             }
-            toast.success(" xa nh cung cp");
+            toast.success(" xóa nh cung cp");
         } catch (e) {
             console.error(e);
-            toast.error("Xa tht bi");
+            toast.error("Xóa tht bi");
         }
     };
 
@@ -176,7 +176,7 @@ export default function LlmConfigPage() {
 
     const handleSaveProfile = async () => {
         if (!formData.name || !formData.modelId) {
-            toast.error("Tn cu hnh v Model ID l bt buc");
+            toast.error("Tn cấu hình v Model ID l bt buc");
             return;
         }
         setIsSaving(true);
@@ -196,12 +196,12 @@ export default function LlmConfigPage() {
                     const updatedProfile = updatedProvider.profiles?.find(p => p.id === selectedProfile.id);
                     if (updatedProfile) setSelectedProfile(updatedProfile);
                 }
-                toast.success(" cp nht cu hnh");
+                toast.success(" cp nht cấu hình");
             } else {
                 const created = await llmService.createProfile(profileData);
                 await loadProviders();
                 setSelectedProfile(created);
-                toast.success(" to cu hnh mi");
+                toast.success(" to cấu hình mi");
             }
             setIsEditingProfile(false);
         } catch (e) {
@@ -226,23 +226,23 @@ export default function LlmConfigPage() {
         try {
             await llmService.activateProfile(selectedProfile.id);
             setActiveProfileId(selectedProfile.id);
-            toast.success(` kch hot: ${selectedProfile.name}`);
+            toast.success(` kích hoạt: ${selectedProfile.name}`);
         } catch (e: any) {
             console.error(e);
-            toast.error("Kch hot tht bi");
+            toast.error("Kích hoạt tht bi");
         }
     };
 
     const handleDeleteProfile = async () => {
-        if (!selectedProfile || !confirm('Bn c chc chn mun xa cu hnh ny?')) return;
+        if (!selectedProfile || !confirm('Bạn có chắc chắn muốn xóa cấu hình này?')) return;
         try {
             await llmService.deleteProfile(selectedProfile.id);
             setSelectedProfile(null);
             await loadProviders();
-            toast.success(" xa cu hnh");
+            toast.success(" xóa cấu hình");
         } catch (e) {
             console.error(e);
-            toast.error("Xa tht bi");
+            toast.error("Xóa tht bi");
         }
     };
 
@@ -292,7 +292,7 @@ export default function LlmConfigPage() {
             await llmService.updateSystemSetting('EnableQueryRewriting', String(globalEnableRewriting));
             await llmService.setActiveRewritingProfile(globalRewritingProfileId);
             await llmService.updateSystemSetting('ProductCarouselLimit', String(globalCarouselLimit));
-            toast.success(" lu cu hnh RAG Global");
+            toast.success(" lu cấu hình RAG Global");
         } catch (e) {
             console.error(e);
             toast.error("Lu tht bi");
@@ -304,9 +304,9 @@ export default function LlmConfigPage() {
     return (
         <div className="container mx-auto py-6 space-y-6">
             <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight">Cu hnh LLM (AI)</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Cấu hình LLM (AI)</h1>
                 <p className="text-muted-foreground">
-                    Qun l cc nh cung cp AI, cu hnh profile v kim tra kt ni.
+                    Quản lý các nhà cung cấp AI, cấu hình profile v kim tra kt ni.
                 </p>
             </div>
 
@@ -320,7 +320,7 @@ export default function LlmConfigPage() {
                                 <Server className="h-5 w-5" /> Nh Cung Cp
                             </CardTitle>
                             <Button size="sm" onClick={handleNewProvider}>
-                                <Plus className="h-4 w-4 mr-1" /> Thm
+                                <Plus className="h-4 w-4 mr-1" /> Thêm
                             </Button>
                         </div>
                     </CardHeader>
@@ -369,7 +369,7 @@ export default function LlmConfigPage() {
                                                         className="w-full justify-start text-xs h-8"
                                                         onClick={(e) => { e.stopPropagation(); handleNewProfile(); }}
                                                     >
-                                                        <Plus className="h-3 w-3 mr-2" /> Thm Profile
+                                                        <Plus className="h-3 w-3 mr-2" /> Thêm Profile
                                                     </Button>
                                                 </div>
                                             )}
@@ -393,9 +393,9 @@ export default function LlmConfigPage() {
                             <div className="bg-muted/50 p-6 rounded-full mb-4">
                                 <Cpu className="h-10 w-10 text-muted-foreground" />
                             </div>
-                            <h3 className="text-xl font-semibold mb-2">Cha chn cu hnh</h3>
+                            <h3 className="text-xl font-semibold mb-2">Cha chn cấu hình</h3>
                             <p className="text-muted-foreground max-w-sm">
-                                Vui lng chn mt nh cung cp t danh sch bn tri hoc to mi  bt u cu hnh.
+                                Vui lng chn mt nh cung cp t danh sch bn tri hoc to mi  bt u cấu hình.
                             </p>
                         </Card>
                     ) : (
@@ -404,7 +404,7 @@ export default function LlmConfigPage() {
                                 <CardHeader className="border-b bg-muted/10 pb-4">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <CardTitle>{isEditingProvider ? 'To Nh Cung Cp Mi' : (selectedProfile ? `Cu hnh: ${selectedProfile.name}` : providerDisplayName(selectedProvider))}</CardTitle>
+                                            <CardTitle>{isEditingProvider ? 'To Nh Cung Cp Mi' : (selectedProfile ? `Cấu hình: ${selectedProfile.name}` : providerDisplayName(selectedProvider))}</CardTitle>
                                             <CardDescription>
                                                 {selectedProfile ? `ID: ${selectedProfile.modelId}  Provider: ${selectedProvider?.name}` : 'Thng tin chung nh cung cp'}
                                             </CardDescription>
@@ -419,7 +419,7 @@ export default function LlmConfigPage() {
                                                         Test
                                                     </Button>
                                                     <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={handleActivateProfile}>
-                                                        <CheckCircle className="h-4 w-4 mr-2" /> Kch Hot
+                                                        <CheckCircle className="h-4 w-4 mr-2" /> Kích hoạt
                                                     </Button>
                                                     <Button variant="secondary" size="sm" onClick={() => setIsEditingProfile(true)}>
                                                         Sa
@@ -428,7 +428,7 @@ export default function LlmConfigPage() {
                                             )}
                                             {selectedProvider && !isEditingProvider && !selectedProfile && (
                                                 <Button variant="destructive" size="sm" onClick={() => handleDeleteProvider(selectedProvider)}>
-                                                    <Trash2 className="h-4 w-4 mr-2" /> Xa Provider
+                                                    <Trash2 className="h-4 w-4 mr-2" /> Xóa Provider
                                                 </Button>
                                             )}
                                         </div>
@@ -521,7 +521,7 @@ export default function LlmConfigPage() {
 
                                             <div className="space-y-4">
                                                 <div className="flex items-center justify-between">
-                                                    <Label>Cu hnh nng cao (JSON)</Label>
+                                                    <Label>Cấu hình nng cao (JSON)</Label>
                                                     <div className="flex items-center bg-muted p-1 rounded-md">
                                                         <Button variant={isVisualMode ? 'secondary' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setIsVisualMode(true)}>Visual</Button>
                                                         <Button variant={!isVisualMode ? 'secondary' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setIsVisualMode(false)}>JSON</Button>
@@ -620,7 +620,7 @@ export default function LlmConfigPage() {
                                         </Button>
 
                                         <Button variant="outline" onClick={async () => {
-                                            if (!confirm('Hnh ng ny s Re-index li ton b sn phm. Cn mt khong thi gian. Tip tc?')) return;
+                                            if (!confirm('Hành động này sẽ Re-index lại toàn bộ sản phẩm. Cần một khoảng thời gian. Tiếp tục?')) return;
                                             try {
                                                 toast.info("ang bt u Re-index...");
                                                 await llmService.reindexVectorDb();
@@ -645,10 +645,10 @@ export default function LlmConfigPage() {
                                             </CardTitle>
                                             <Button size="sm" onClick={handleSaveGlobalConfig} disabled={isSaving}>
                                                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                                                Lu Cu Hnh Global
+                                                Lu Cấu hình Global
                                             </Button>
                                         </div>
-                                        <CardDescription>Cu hnh p dng cho ton b h thng RAG chatbot, c lp vi profile Chat chnh.</CardDescription>
+                                        <CardDescription>Cấu hình p dng cho ton b h thng RAG chatbot, độc lập vi profile Chat chnh.</CardDescription>
                                     </CardHeader>
                                     <CardContent className="p-6 space-y-6">
                                         {/* Enable Query Rewriting */}
@@ -705,7 +705,7 @@ export default function LlmConfigPage() {
                                                 />
                                                 <div className="w-12 text-center font-mono text-sm border rounded py-1">{globalCarouselLimit}</div>
                                             </div>
-                                            <p className="text-xs text-muted-foreground">S lng sn phm ti a tr v trong Carousel.</p>
+                                            <p className="text-xs text-muted-foreground">S lng sản phẩm ti a tr v trong Carousel.</p>
                                         </div>
                                     </CardContent>
                                 </Card>

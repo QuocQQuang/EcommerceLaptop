@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # === CORE SERVICES (Required) ===
 
   redis:
     image: redis:7-alpine
@@ -58,7 +57,6 @@ services:
           cpus: '0.5'
     restart: unless-stopped
 
-  # === MONITORING STACK (Optional - c th tt  tit kim RAM) ===
 
   prometheus:
     image: prom/prometheus:latest

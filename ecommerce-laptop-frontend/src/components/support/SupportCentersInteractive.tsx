@@ -21,27 +21,27 @@ interface SupportCenter {
 const supportCenters: SupportCenter[] = [
   {
     id: 1,
-    name: 'Trung tm bo hnh TP.HCM',
+    name: 'Trung tâm bảo hành TP.HCM',
     address: '123 Nguyn Vn C, Qun 5, TP.HCM',
     phone: '028-3555-1234',
     hours: '8:00 - 17:00 (T2-T6)',
-    services: ['Bo hnh laptop', 'Sa cha phn cng', 'Thay th linh kin', 'Ci t phn mm']
+    services: ['Bảo hành laptop', 'Sửa chữa phần cứng', 'Thay thế linh kiện', 'Cài đặt phần mềm']
   },
   {
     id: 2,
-    name: 'Trung tm bo hnh H Ni',
-    address: '456 Gii Phng, Hai B Trng, H Ni',
+    name: 'Trung tâm bảo hành Hà Nội',
+    address: '456 Giải Phóng, Hai Bà Trưng, Hà Nội',
     phone: '024-3666-5678',
     hours: '8:00 - 17:00 (T2-T6)',
-    services: ['Bo hnh laptop', 'Sa cha phn cng', 'Thay th linh kin', 'Ci t phn mm']
+    services: ['Bảo hành laptop', 'Sửa chữa phần cứng', 'Thay thế linh kiện', 'Cài đặt phần mềm']
   },
   {
     id: 3,
-    name: 'Trung tm bo hnh  Nng',
-    address: '789 L Dun, Hi Chu,  Nng',
+    name: 'Trung tâm bảo hành Đà Nẵng',
+    address: '789 Lê Duẩn, Hải Châu, Đà Nẵng',
     phone: '0236-3777-9012',
     hours: '8:00 - 17:00 (T2-T6)',
-    services: ['Bo hnh laptop', 'Sa cha c bn', 'T vn k thut']
+    services: ['Bảo hành laptop', 'Sửa chữa cơ bản', 'Tư vấn kỹ thuật']
   }
 ];
 

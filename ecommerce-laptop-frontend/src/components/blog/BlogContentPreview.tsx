@@ -41,14 +41,14 @@ function ProductLink({ productId, productName, productPrice, productImage }: Pro
                                 className="inline-flex items-center px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors duration-200"
                             >
                                 <ExternalLink className="w-4 h-4 mr-2" />
-                                Xem sn phm
+                                Xem sản phẩm
                             </Link>
                             <Link
                                 href={`/products/${productId}`}
                                 className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
                             >
                                 <ShoppingCart className="w-4 h-4 mr-2" />
-                                Thm vo gi
+                                Thêm vào giỏ
                             </Link>
                         </div>
                     </div>

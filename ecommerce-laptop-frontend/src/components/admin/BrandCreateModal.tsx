@@ -44,13 +44,13 @@ export default function BrandCreateModal({
         },
         onSuccess: (newBrand) => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'brands'] });
-            toast.success('To thng hiu thnh cng!');
+            toast.success('Tạo thương hiệu thành công!');
             onBrandCreated?.(newBrand);
             onOpenChange(false);
             resetForm();
         },
         onError: (error: any) => {
-            toast.error(`Li khi to thng hiu: ${error.message || 'C li xy ra'}`);
+            toast.error(`Lỗi khi tạo thương hiệu: ${error.message || 'Có lỗi xảy ra'}`);
         }
     });
 

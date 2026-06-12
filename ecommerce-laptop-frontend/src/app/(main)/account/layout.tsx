@@ -18,22 +18,22 @@ interface AccountLayoutProps {
 
 const accountNavigation = [
     {
-        name: 'Tng quan',
+        name: 'Tổng quan',
         href: '/account',
         icon: User,
     },
     {
-        name: 'n hng',
+        name: 'Đơn hàng',
         href: '/account/orders',
         icon: ShoppingBag,
     },
     {
-        name: 'a ch',
+        name: 'Địa chỉ',
         href: '/account/addresses',
         icon: MapPin,
     },
     {
-        name: 'nh gi',
+        name: 'Đánh giá',
         href: '/account/reviews',
         icon: MessageSquare,
     },
@@ -52,7 +52,7 @@ export default function AccountLayout({ children }: AccountLayoutProps) {
                     {/* Sidebar Navigation */}
                     <div className="md:col-span-1">
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold mb-4">Ti khon ca ti</h2>
+                            <h2 className="text-lg font-semibold mb-4">Tài khoản của tôi</h2>
                             <nav className="space-y-2">
                                 {accountNavigation.map((item) => {
                                     const Icon = item.icon;

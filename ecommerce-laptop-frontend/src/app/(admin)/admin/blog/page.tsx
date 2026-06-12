@@ -72,7 +72,7 @@ export default function BlogDashboardPage() {
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Blog Dashboard</h1>
                     <p className="text-gray-600 mt-1">
-                        Qun l v theo di hiu sut blog ca bn
+                        Quản lý và theo dõi hiu sut blog ca bn
                     </p>
                 </div>
                 <div className="flex gap-3">
@@ -248,14 +248,14 @@ export default function BlogDashboardPage() {
                     icon={Plus}
                 />
                 <QuickActionCard
-                    title="Qun l danh mc"
-                    description="T chc danh mc blog"
+                    title="Quản lý danh mục"
+                    description="T chc danh mục blog"
                     href="/admin/blog/categories"
                     icon={FileText}
                 />
                 <QuickActionCard
-                    title="Qun l tags"
-                    description="Thm v sa tags"
+                    title="Quản lý tags"
+                    description="Thêm và sửa tags"
                     href="/admin/blog/tags"
                     icon={Share2}
                 />

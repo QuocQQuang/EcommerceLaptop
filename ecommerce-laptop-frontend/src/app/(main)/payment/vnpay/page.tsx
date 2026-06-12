@@ -39,7 +39,7 @@ function VNPayPaymentContent() {
                     console.log('Shipping Address Type:', typeof orderData.shippingAddress);
                     setOrder(orderData);
                 })
-                .catch(() => toast.error('Khng th ti thng tin n hng'));
+                .catch(() => toast.error('Không thể tải thông tin đơn hàng'));
         } else {
             toast.error('ID đơn hàng không hợp lệ');
             router.push('/checkout');
@@ -53,7 +53,7 @@ function VNPayPaymentContent() {
         }
 
         setIsLoading(true);
-        const toastId = toast.loading('ang to lin kt thanh ton VNPAY...');
+        const toastId = toast.loading('Đang tạo liên kết thanh toán VNPAY...');
 
         const request: InitializePaymentRequest = {
             orderId,
@@ -68,13 +68,13 @@ function VNPayPaymentContent() {
             const result = await paymentService.initializePayment(request);
 
             if (result.isSuccess && result.paymentUrl) {
-                toast.success('Lin kt thanh ton  sn sng!', { id: toastId });
+                toast.success('Liên kết thanh toán đã sẵn sàng!', { id: toastId });
                 window.location.href = result.paymentUrl;
             } else {
-                toast.error(result.errorMessage || 'Khng th to lin kt thanh ton', { id: toastId });
+                toast.error(result.errorMessage || 'Không thể tạo liên kết thanh toán', { id: toastId });
             }
         } catch (error) {
-            toast.error('Li khi to thanh ton. Vui lng th li.', { id: toastId });
+            toast.error('Lỗi khởi tạo thanh toán. Vui lòng thử lại.', { id: toastId });
         } finally {
             setIsLoading(false);
         }
@@ -101,10 +101,10 @@ function VNPayPaymentContent() {
                         <CardHeader>
                             <CardTitle className="flex items-center">
                                 <CreditCard className="h-5 w-5 mr-2" />
-                                Thanh ton qua VNPAY
+                                Thanh toán qua VNPAY
                             </CardTitle>
                             <CardDescription>
-                                n hng #{order.orderNumber} - {formatCurrencyPrice(order.totalAmount, selectedCurrency)}
+                                 Đơn hàng #{order.orderNumber} - {formatCurrencyPrice(order.totalAmount, selectedCurrency)}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
@@ -136,7 +136,7 @@ function VNPayPaymentContent() {
                                     </RadioGroup>
                                 </div>
                                 <p className="text-sm text-muted-foreground">
-                                    {environment === 'sandbox' ? 'S dng VNPAY Sandbox - Khng tr tin tht. S dng th test: 9704198526191432198 (thnh cng)' : 'Thanh ton thc t vi th tht.'}
+                                    {environment === 'sandbox' ? 'Sử dụng VNPAY Sandbox - Không trả tiền thật. Sử dụng thẻ test: 9704198526191432198 (thành công)' : 'Thanh toán thực tế với thẻ thật.'}
                                 </p>
                             </div>
 
@@ -146,7 +146,7 @@ function VNPayPaymentContent() {
                                 size="lg"
                                 disabled={isLoading}
                             >
-                                {isLoading ? <LoadingSpinner /> : 'Thanh ton vi VNPAY'}
+                                {isLoading ? <LoadingSpinner /> : 'Thanh toán với VNPAY'}
                             </Button>
 
                             <div className="text-xs text-muted-foreground text-center">

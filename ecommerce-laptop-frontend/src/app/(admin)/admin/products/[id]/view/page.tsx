@@ -57,13 +57,13 @@ const formatDate = (dateString: string) => {
 
 const getStockBadge = (stock: number) => {
   if (stock === 0) {
-    return <Badge variant="destructive">Ht hng</Badge>;
+    return <Badge variant="destructive">Hết hàng</Badge>;
   } else if (stock < 5) {
-    return <Badge variant="outline" className="text-orange-600">Sp ht ({stock})</Badge>;
+    return <Badge variant="outline" className="text-orange-600">Sắp hếÍt ({stock})</Badge>;
   } else if (stock < 10) {
-    return <Badge variant="outline" className="text-yellow-600">t ({stock})</Badge>;
+    return <Badge variant="outline" className="text-yellow-600">Ít ({stock})</Badge>;
   } else {
-    return <Badge variant="outline" className="text-green-600">Cn hng ({stock})</Badge>;
+    return <Badge variant="outline" className="text-green-600">Còn hàng ({stock})</Badge>;
   }
 };
 
@@ -126,7 +126,7 @@ export default function ProductViewPage() {
           <Link href="/admin/products">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay li
+              Quay lại
             </Button>
           </Link>
           <div>
@@ -137,7 +137,7 @@ export default function ProductViewPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-red-600">
               <AlertCircle className="h-5 w-5" />
-              <span>Khng th ti thng tin sn phm: {(error as any)?.message || 'C li xy ra'}</span>
+              <span>Khng th ti Thường tin sản phẩm: {(error as any)?.message || 'Có lỗi xảy ra'}</span>
             </div>
           </CardContent>
         </Card>
@@ -154,13 +154,13 @@ export default function ProductViewPage() {
             <Link href="/admin/products">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Quay li
+                Quay lại
               </Button>
             </Link>
             <div>
               <h1 className="text-3xl font-bold">{product?.name}</h1>
               <p className="text-muted-foreground">
-                Chi tit sn phm #{productId}
+                Chi tit sản phẩm #{productId}
               </p>
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function ProductViewPage() {
             <Link href={`/admin/products/${productId}`}>
               <Button>
                 <Edit className="h-4 w-4 mr-2" />
-                Chnh sa
+                Chỉnh sửa
               </Button>
             </Link>
           </PermissionGuard>
@@ -181,9 +181,9 @@ export default function ProductViewPage() {
             {/* Basic Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Thng tin c bn</CardTitle>
+                <CardTitle>Thông tin cơ bản</CardTitle>
                 <CardDescription>
-                  Thng tin c bn ca sn phm
+                  Thông tin cơ bản ca sản phẩm
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -200,21 +200,21 @@ export default function ProductViewPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Building className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Thng hiu:</span>
+                      <span className="font-medium">Thương hiệu:</span>
                     </div>
                     <p>{product?.brand}</p>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Tag className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Loi sn phm:</span>
+                      <span className="font-medium">Loi sản phẩm:</span>
                     </div>
                     <p>{product?.type}</p>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Gi bn:</span>
+                      <span className="font-medium">Giá bán:</span>
                     </div>
                     <p className="text-lg font-semibold text-green-600">
                       {formatCurrency(product?.price || 0)}
@@ -227,7 +227,7 @@ export default function ProductViewPage() {
                 <div className="space-y-2">
                   <span className="font-medium">M t:</span>
                   <p className="text-muted-foreground">
-                    {product?.description || 'Khng c m t'}
+                    {product?.description || 'Không có mô tả'}
                   </p>
                 </div>
 
@@ -235,7 +235,7 @@ export default function ProductViewPage() {
                   <>
                     <Separator />
                     <div className="space-y-2">
-                      <span className="font-medium">M t ngn:</span>
+                      <span className="font-medium">Mô tả ngắn:</span>
                       <p className="text-muted-foreground">
                         {product.shortDescription}
                       </p>
@@ -248,7 +248,7 @@ export default function ProductViewPage() {
             {/* Product Images */}
             <Card>
               <CardHeader>
-                <CardTitle>Hnh nh sn phm</CardTitle>
+                <CardTitle>Hnh nh sản phẩm</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -273,7 +273,7 @@ export default function ProductViewPage() {
             {product?.specifications && product.specifications.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Thng s k thut</CardTitle>
+                  <CardTitle>Thường s k thut</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -294,33 +294,33 @@ export default function ProductViewPage() {
             {/* Status */}
             <Card>
               <CardHeader>
-                <CardTitle>Trng thi</CardTitle>
+                <CardTitle>Trạng thái</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <span className="font-medium">Hot ng:</span>
                   {product?.isActive ? (
-                    <Badge variant="default">ang bn</Badge>
+                    <Badge variant="default">đang bán</Badge>
                   ) : (
-                    <Badge variant="secondary">Tm ngng</Badge>
+                    <Badge variant="secondary">Tạm ngưng</Badge>
                   )}
                 </div>
 
                 <Separator />
 
                 <div className="space-y-2">
-                  <span className="font-medium">Tn kho:</span>
+                  <span className="font-medium">Tồn kho:</span>
                   {getStockBadge(product?.stockQuantity || 0)}
                 </div>
 
                 <Separator />
 
                 <div className="space-y-2">
-                  <span className="font-medium">Ni bt:</span>
+                  <span className="font-medium">Nổi bật:</span>
                   {product?.isFeatured ? (
-                    <Badge variant="default">Ni bt</Badge>
+                    <Badge variant="default">Nổi bật</Badge>
                   ) : (
-                    <Badge variant="outline">Thng</Badge>
+                    <Badge variant="outline">Thường</Badge>
                   )}
                 </div>
               </CardContent>
@@ -329,13 +329,13 @@ export default function ProductViewPage() {
             {/* Timestamps */}
             <Card>
               <CardHeader>
-                <CardTitle>Thi gian</CardTitle>
+                <CardTitle>Thời gian</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">To lc:</span>
+                    <span className="font-medium">Tạo lúc:</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {formatDate(product?.createdAt || '')}
@@ -347,7 +347,7 @@ export default function ProductViewPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Cp nht lc:</span>
+                    <span className="font-medium">Cập nhật lúc:</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {formatDate(product?.updatedAt || '')}

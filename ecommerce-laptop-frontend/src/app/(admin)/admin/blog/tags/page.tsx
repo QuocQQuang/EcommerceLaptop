@@ -206,12 +206,12 @@ export default function TagsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Qun l Tags</h1>
-                    <p className="text-gray-500">To v qun l tags cho bi vit blog</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Quản lý Tags</h1>
+                    <p className="text-gray-500">To v quản lý tags cho bi vit blog</p>
                 </div>
                 <Button onClick={() => openModal('create')}>
                     <Plus className="w-4 h-4 mr-2" />
-                    Thm tag
+                    Thêm tag
                 </Button>
             </div>
 
@@ -235,7 +235,7 @@ export default function TagsPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Hash className="w-5 h-5" />
-                        Danh sch tags ({filteredTags.length})
+                        Danh sách tags ({filteredTags.length})
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -317,7 +317,7 @@ export default function TagsPage() {
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            {state.modalState.mode === 'create' ? 'To tag mi' : 'Chnh sa tag'}
+                            {state.modalState.mode === 'create' ? 'To tag mi' : 'Chỉnh sửa tag'}
                         </DialogTitle>
                         <DialogDescription>
                             {state.modalState.mode === 'create'
@@ -334,7 +334,7 @@ export default function TagsPage() {
                                 id="tagName"
                                 value={state.modalState.tag.name || ''}
                                 onChange={(e) => updateModalTag('name', e.target.value)}
-                                placeholder="Nhp tn tag..."
+                                placeholder="Nhập tên tag..."
                                 className={cn(state.modalState.errors.name && "border-red-500")}
                             />
                             {state.modalState.errors.name && (

@@ -173,7 +173,7 @@ export function SecurityAlerts({
         if (accessCount > 10) {
             newAlerts.push({
                 type: 'high_access',
-                message: `n hng ${orderNumber}  c truy cp ${accessCount} ln`,
+                message: `đơn hàng ${orderNumber}  c truy cp ${accessCount} ln`,
                 details: 'S ln truy cp cao c th cho thy hot ng ng ng',
                 timestamp: now.toISOString(),
                 severity: accessCount > 20 ? 'critical' : 'high',
@@ -187,7 +187,7 @@ export function SecurityAlerts({
         if (lastAccess && (now.getTime() - lastAccess.getTime()) < 5 * 60 * 1000) {
             newAlerts.push({
                 type: 'suspicious_activity',
-                message: `n hng ${orderNumber} va c truy cp gn y`,
+                message: `đơn hàng ${orderNumber} va c truy cp gn y`,
                 details: 'Truy cp trong vng 5 pht qua c th cn ch ',
                 timestamp: now.toISOString(),
                 severity: 'medium',
@@ -201,7 +201,7 @@ export function SecurityAlerts({
         if (accessCount > 5 && lastAccess && (now.getTime() - lastAccess.getTime()) < 30 * 60 * 1000) {
             newAlerts.push({
                 type: 'data_breach_risk',
-                message: `Nhiu ln truy cp lin tip vo n hng ${orderNumber}`,
+                message: `Nhiu ln truy cp lin tip vo đơn hàng ${orderNumber}`,
                 details: 'C th c ri ro r r thng tin khch hng',
                 timestamp: now.toISOString(),
                 severity: 'high',

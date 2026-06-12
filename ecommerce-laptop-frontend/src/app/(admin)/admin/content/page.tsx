@@ -513,7 +513,7 @@ export default function ContentManagementPage() {
                       <Link href="/content/posts/add">
                         <Button>
                           <Plus className="h-4 w-4 mr-2" />
-                          Thm bi vit
+                          Thêm bài viết
                         </Button>
                       </Link>
                     </PermissionGuard>

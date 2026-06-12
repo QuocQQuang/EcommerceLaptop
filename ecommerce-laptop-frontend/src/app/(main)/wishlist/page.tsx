@@ -4,13 +4,13 @@ import WishlistView from '@/components/organisms/WishlistView';
 export default function WishlistPage() {
     const breadcrumbs = [
         { label: 'Trang ch', href: '/' },
-        { label: 'Danh sch yu thch' }
+        { label: 'Danh sách yêu thích' }
     ];
 
     return (
         <StaticPageLayout
             title="Wishlist"
-            subtitle="Lu nhng mu laptop bn quan tm  xem sau hoc mua sau"
+            subtitle="Lưu những mẫu laptop bạn quan tâm để xem sau hoặc mua sau"
             tableOfContents={[]}
             breadcrumbs={breadcrumbs}
         >

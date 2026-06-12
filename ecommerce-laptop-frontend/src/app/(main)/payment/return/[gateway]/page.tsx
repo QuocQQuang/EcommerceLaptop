@@ -27,38 +27,38 @@ interface PaymentResult {
 
 // VNPay Error Code Mappings
 const VNPAY_ERROR_CODES: Record<string, string> = {
-    '07': 'Tr tin thnh cng. Giao dch b nghi ng (lin quan ti la o, giao dch bt thng).',
-    '09': 'Th/Ti khon cha ng k dch v InternetBanking ti ngn hng.',
-    '10': 'Xc thc thng tin th/ti khon khng ng qu 3 ln.',
-    '11': ' ht hn ch thanh ton.',
-    '12': 'Th/Ti khon b kha.',
-    '13': 'Nhp sai mt khu xc thc giao dch (OTP).',
-    '24': 'Khch hng hy giao dch.',
-    '51': 'Ti khon khng  s d.',
-    '65': 'Ti khon  vt qu hn mc giao dch trong ngy.',
-    '75': 'Ngn hng thanh ton ang bo tr.',
-    '79': 'Nhp sai mt khu thanh ton qu s ln quy nh.',
+    '07': 'Trả tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).',
+    '09': 'Thẻ/Tài khoản chưa đăng ký dịch vụ InternetBanking tại ngân hàng.',
+    '10': 'Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần.',
+    '11': 'Đã hết hạn chờ thanh toán.',
+    '12': 'Thẻ/Tài khoản bị khóa.',
+    '13': 'Nhập sai mật khẩu xác thực giao dịch (OTP).',
+    '24': 'Khách hàng hủy giao dịch.',
+    '51': 'Tài khoản không đủ số dư.',
+    '65': 'Tài khoản đã vượt quá hạn mức giao dịch trong ngày.',
+    '75': 'Ngân hàng thanh toán đang bảo trì.',
+    '79': 'Nhập sai mật khẩu thanh toán quá số lần quy định.',
 };
 
 // MoMo Error Code Mappings
 const MOMO_ERROR_CODES: Record<string, string> = {
-    '9000': 'Giao dch c khi to, ch ngi dng xc nhn thanh ton.',
-    '8000': 'Giao dch ang c x l.',
-    '7000': 'Giao dch b t chi bi ngi dng.',
-    '6000': 'Giao dch b t chi do vt qu s ln nhp sai mt khu.',
-    '5000': 'Giao dch b t chi do OTP sai.',
-    '4000': 'Giao dch b t chi do qu hn thanh ton.',
-    '3000': 'Giao dch b hy.',
-    '2000': 'Giao dch tht bi do li nghip v.',
-    '1000': 'Giao dch tht bi do li k thut.',
-    '11': 'Truy cp b t chi.',
+    '9000': 'Giao dịch được khởi tạo, chờ người dùng xác nhận thanh toán.',
+    '8000': 'Giao dịch đang được xử lý.',
+    '7000': 'Giao dịch bị từ chối bởi người dùng.',
+    '6000': 'Giao dịch bị từ chối do vượt quá số lần nhập sai mật khẩu.',
+    '5000': 'Giao dịch bị từ chối do OTP sai.',
+    '4000': 'Giao dịch bị từ chối do quá hạn thanh toán.',
+    '3000': 'Giao dịch bị hủy.',
+    '2000': 'Giao dịch thất bại do lỗi nghiệp vụ.',
+    '1000': 'Giao dịch thất bại do lỗi kỹ thuật.',
+    '11': 'Truy cập bị từ chối.',
     '49': 'Checksum failed.',
 };
 
 // ZaloPay Error Code Mappings
 const ZALOPAY_ERROR_CODES: Record<string, string> = {
-    '-1': 'Giao dch tht bi.',
-    '2': 'Giao dch b t chi.',
+    '-1': 'Giao dịch thất bại.',
+    '2': 'Giao dịch bị từ chối.',
 };
 
 // Gateway handler functions
@@ -70,7 +70,7 @@ function processVNPayReturn(searchParams: URLSearchParams): PaymentResult {
     const vnpTransactionStatus = searchParams.get('vnp_TransactionStatus');
 
     if (!vnpResponseCode) {
-        return { success: false, message: 'Thiu thng tin phn hi t VNPay' };
+        return { success: false, message: 'Thiếu thông tin phản hồi từ VNPay' };
     }
 
     const isSuccess = vnpResponseCode === '00' && vnpTransactionStatus === '00';
@@ -82,12 +82,12 @@ function processVNPayReturn(searchParams: URLSearchParams): PaymentResult {
             orderId: vnpTxnRef || 'N/A',
             transactionId: vnpTransactionNo || 'N/A',
             amount: formattedAmount,
-            message: 'Thanh ton VNPay thnh cng!',
+            message: 'Thanh toán VNPay thành công!',
             responseCode: vnpResponseCode
         };
     }
 
-    const errorMessage = VNPAY_ERROR_CODES[vnpResponseCode] || `Thanh ton tht bi. M li: ${vnpResponseCode}`;
+    const errorMessage = VNPAY_ERROR_CODES[vnpResponseCode] || `Thanh toán thất bại. Mã lỗi: ${vnpResponseCode}`;
     return {
         success: false,
         orderId: vnpTxnRef || 'N/A',
@@ -104,7 +104,7 @@ function processMoMoReturn(searchParams: URLSearchParams): PaymentResult {
     const localMessage = searchParams.get('localMessage');
 
     if (!resultCode) {
-        return { success: false, message: 'Thiu thng tin phn hi t MoMo' };
+        return { success: false, message: 'Thiếu thông tin phản hồi từ MoMo' };
     }
 
     const isSuccess = resultCode === '0';
@@ -115,12 +115,12 @@ function processMoMoReturn(searchParams: URLSearchParams): PaymentResult {
             orderId: orderId || 'N/A',
             transactionId: transId || 'N/A',
             amount: amount ? parseInt(amount).toLocaleString('vi-VN') + ' VN' : 'N/A',
-            message: localMessage || 'Thanh ton MoMo thnh cng!',
+            message: localMessage || 'Thanh toán MoMo thành công!',
             responseCode: resultCode
         };
     }
 
-    const errorMessage = MOMO_ERROR_CODES[resultCode] || localMessage || `Thanh ton tht bi. M li: ${resultCode}`;
+    const errorMessage = MOMO_ERROR_CODES[resultCode] || localMessage || `Thanh toán thất bại. Mã lỗi: ${resultCode}`;
     return {
         success: false,
         orderId: orderId || 'N/A',
@@ -135,7 +135,7 @@ function processZaloPayReturn(searchParams: URLSearchParams): PaymentResult {
     const amount = searchParams.get('amount');
 
     if (!status) {
-        return { success: false, message: 'Thiu thng tin phn hi t ZaloPay' };
+        return { success: false, message: 'Thiếu thông tin phản hồi từ ZaloPay' };
     }
 
     const isSuccess = status === '1';
@@ -145,12 +145,12 @@ function processZaloPayReturn(searchParams: URLSearchParams): PaymentResult {
             success: true,
             orderId: apptransid || 'N/A',
             amount: amount ? parseInt(amount).toLocaleString('vi-VN') + ' VN' : 'N/A',
-            message: 'Thanh ton ZaloPay thnh cng!',
+            message: 'Thanh toán ZaloPay thành công!',
             responseCode: status
         };
     }
 
-    const errorMessage = ZALOPAY_ERROR_CODES[status] || `Thanh ton tht bi. M li: ${status}`;
+    const errorMessage = ZALOPAY_ERROR_CODES[status] || `Thanh toán thất bại. Mã lỗi: ${status}`;
     return {
         success: false,
         orderId: apptransid || 'N/A',
@@ -166,7 +166,7 @@ function processPayPalReturn(searchParams: URLSearchParams): PaymentResult {
     const orderId = searchParams.get('orderId');
 
     if (!paymentId && !token) {
-        return { success: false, message: 'Thiu thng tin thanh ton t PayPal' };
+        return { success: false, message: 'Thiếu thông tin thanh toán từ PayPal' };
     }
 
     if (paymentId || (token && PayerID)) {
@@ -174,11 +174,11 @@ function processPayPalReturn(searchParams: URLSearchParams): PaymentResult {
             success: true,
             orderId: orderId || 'N/A',
             transactionId: paymentId || token || 'N/A',
-            message: 'Thanh ton PayPal thnh cng!'
+            message: 'Thanh toán PayPal thành công!'
         };
     }
 
-    return { success: false, message: 'Thanh ton PayPal khng thnh cng' };
+    return { success: false, message: 'Thanh toán PayPal không thành công' };
 }
 
 function processSepayReturn(searchParams: URLSearchParams): PaymentResult {
@@ -188,7 +188,7 @@ function processSepayReturn(searchParams: URLSearchParams): PaymentResult {
     const amount = searchParams.get('amount');
 
     if (!status) {
-        return { success: false, message: 'Thiu thng tin phn hi t SePay' };
+        return { success: false, message: 'Thiếu thông tin phản hồi từ SePay' };
     }
 
     const isSuccess = status === 'success' || status === '1';
@@ -199,14 +199,14 @@ function processSepayReturn(searchParams: URLSearchParams): PaymentResult {
             orderId: orderId || 'N/A',
             transactionId: transactionId || 'N/A',
             amount: amount ? parseInt(amount).toLocaleString('vi-VN') + ' VN' : 'N/A',
-            message: 'Thanh ton SePay thnh cng!'
+            message: 'Thanh toán SePay thành công!'
         };
     }
 
     return {
         success: false,
         orderId: orderId || 'N/A',
-        message: 'Thanh ton SePay tht bi'
+        message: 'Thanh toán SePay thất bại'
     };
 }
 
@@ -272,7 +272,7 @@ function PaymentReturnContent({ gateway }: { gateway: GatewayType }) {
                     const orderId = parseInt(orderIdStr || '0');
 
                     if (!paymentIntent || orderId <= 0) {
-                        setResult({ success: false, message: 'Thiu thng tin thanh ton hoc n hng' });
+                        setResult({ success: false, message: 'Thiếu thông tin thanh toán hoặc đơn hàng' });
                         setIsLoading(false);
                         return;
                     }
@@ -282,7 +282,7 @@ function PaymentReturnContent({ gateway }: { gateway: GatewayType }) {
                         const orderUserId = orderRes.customerId;
 
                         if (!orderUserId || !hasOrderAccess(orderUserId)) {
-                            toast.error('Bn khng c quyn truy cp n hng ny.');
+                            toast.error('Bạn không có quyền truy cập đơn hàng này.');
                             router.push('/account/orders');
                             return;
                         }
@@ -291,15 +291,15 @@ function PaymentReturnContent({ gateway }: { gateway: GatewayType }) {
                             success: true,
                             orderId: orderIdStr || 'N/A',
                             transactionId: paymentIntent,
-                            message: 'Thanh ton Stripe thnh cng!'
+                            message: 'Thanh toán Stripe thành công!'
                         });
-                        toast.success('Thanh ton thnh cng!');
+                        toast.success('Thanh toán thành công!');
                     } else {
                         setResult({
                             success: false,
-                            message: redirectStatus === 'failed' ? 'Thanh ton Stripe tht bi' : 'Trng thi thanh ton khng xc nh'
+                                message: redirectStatus === 'failed' ? 'Thanh toán Stripe thất bại' : 'Trạng thái thanh toán không xác định'
                         });
-                        toast.error('Thanh ton tht bi!');
+                        toast.error('Thanh toán thất bại!');
                     }
                 } else {
                     // Use gateway handler for other gateways
@@ -308,17 +308,17 @@ function PaymentReturnContent({ gateway }: { gateway: GatewayType }) {
                     setResult(paymentResult);
 
                     if (paymentResult.success) {
-                        toast.success('Thanh ton thnh cng!');
+                        toast.success('Thanh toán thành công!');
                     } else {
-                        toast.error('Thanh ton tht bi!');
+                        toast.error('Thanh toán thất bại!');
                     }
                 }
             } catch (error) {
                 logger.error(` ${gatewayNames[gateway]} Return: Exception during processing`, {
                     error: error instanceof Error ? error.message : 'Unknown error'
                 });
-                setResult({ success: false, message: 'C li xy ra khi x l kt qu thanh ton' });
-                toast.error('C li xy ra!');
+                setResult({ success: false, message: 'Có lỗi xảy ra khi xử lý kết quả thanh toán' });
+                toast.error('Có lỗi xảy ra!');
             } finally {
                 setIsLoading(false);
             }
@@ -333,7 +333,7 @@ function PaymentReturnContent({ gateway }: { gateway: GatewayType }) {
                 <Card className="w-full max-w-md">
                     <CardContent className="p-8 text-center">
                         <LoadingSpinner size="lg" />
-                        <p className="mt-4 text-muted-foreground">ang x l kt qu thanh ton...</p>
+                        <p className="mt-4 text-muted-foreground">Đang xử lý kết quả thanh toán...</p>
                     </CardContent>
                 </Card>
             </div>
@@ -352,7 +352,7 @@ function PaymentReturnContent({ gateway }: { gateway: GatewayType }) {
                         )}
                     </div>
                     <CardTitle className={result?.success ? 'text-green-700' : 'text-red-700'}>
-                        {result?.success ? 'Thanh ton thnh cng!' : 'Thanh ton tht bi!'}
+                        {result?.success ? 'Thanh toán thành công!' : 'Thanh toán thất bại!'}
                     </CardTitle>
                     <CardDescription>{result?.message}</CardDescription>
                 </CardHeader>
@@ -361,25 +361,25 @@ function PaymentReturnContent({ gateway }: { gateway: GatewayType }) {
                         <div className="space-y-2 text-sm">
                             {result.orderId && result.orderId !== 'N/A' && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">M n hng:</span>
+                                    <span className="text-muted-foreground">Mã đơn hàng:</span>
                                     <span className="font-medium">#{result.orderId}</span>
                                 </div>
                             )}
                             {result.transactionId && result.transactionId !== 'N/A' && result.success && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">M giao dch:</span>
+                                    <span className="text-muted-foreground">Mã giao dịch:</span>
                                     <span className="font-medium text-xs">{result.transactionId}</span>
                                 </div>
                             )}
                             {result.amount && result.amount !== 'N/A' && result.success && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">S tin:</span>
+                                    <span className="text-muted-foreground">Số tiền:</span>
                                     <span className="font-medium">{result.amount}</span>
                                 </div>
                             )}
                             {result.responseCode && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">M phn hi:</span>
+                                    <span className="text-muted-foreground">Mã phản hồi:</span>
                                     <span className="font-medium">{result.responseCode}</span>
                                 </div>
                             )}
@@ -390,19 +390,19 @@ function PaymentReturnContent({ gateway }: { gateway: GatewayType }) {
                         {result?.success ? (
                             <>
                                 <Button asChild className="w-full">
-                                    <Link href="/account/orders">Xem n hng</Link>
+                                    <Link href="/account/orders">Xem đơn hàng</Link>
                                 </Button>
                                 <Button variant="outline" asChild className="w-full">
-                                    <Link href="/">Tip tc mua sm</Link>
+                                    <Link href="/">Tiếp tục mua sắm</Link>
                                 </Button>
                             </>
                         ) : (
                             <>
                                 <Button asChild className="w-full">
-                                    <Link href="/checkout">Th li thanh ton</Link>
+                                    <Link href="/checkout">Thử lại thanh toán</Link>
                                 </Button>
                                 <Button variant="outline" asChild className="w-full">
-                                    <Link href="/cart">Quay li gi hng</Link>
+                                    <Link href="/cart">Quay lại giỏ hàng</Link>
                                 </Button>
                             </>
                         )}

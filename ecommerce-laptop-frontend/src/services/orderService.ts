@@ -71,7 +71,7 @@ export const orderService = {
             const enhancedError = new Error(
                 error.response?.data?.message ||
                 error.message ||
-                'To n hng tht bi. Vui lng th li.'
+                'Tạo đơn hàng thất bại. Vui lòng thử lại.'
             );
             enhancedError.name = 'OrderCreationError';
             (enhancedError as any).originalError = error;

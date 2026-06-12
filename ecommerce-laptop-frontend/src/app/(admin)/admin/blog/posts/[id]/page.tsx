@@ -378,7 +378,7 @@ export default function BlogEditPage() {
                     <h2 className="text-xl font-semibold text-gray-900 mb-2">Khng tm thy bi vit</h2>
                     <p className="text-gray-500 mb-4">Bi vit bn ang tm kim khng tn ti.</p>
                     <Button onClick={() => router.push('/admin/blog/posts')}>
-                        Quay li danh sch
+                        Quay li danh sách
                     </Button>
                 </div>
             </div>
@@ -393,7 +393,7 @@ export default function BlogEditPage() {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Chnh sa bi vit</h1>
+                            <h1 className="text-2xl font-bold text-gray-900">Chỉnh sửa bài viết</h1>
                             {hasUnsavedChanges && (
                                 <p className="text-sm text-orange-600 mt-1">
                                     * C thay i cha c lu
@@ -618,7 +618,7 @@ export default function BlogEditPage() {
                     {/* Category */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Danh mc</CardTitle>
+                            <CardTitle>Danh mục</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Select
@@ -626,10 +626,10 @@ export default function BlogEditPage() {
                                 onValueChange={(value) => updateBlog('categoryId', value === '0' ? undefined : parseInt(value))}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Chn danh mc" />
+                                    <SelectValue placeholder="Chn danh mục" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="0">Khng danh mc</SelectItem>
+                                    <SelectItem value="0">Không danh mục</SelectItem>
                                     {state.categories.map(category => (
                                         <SelectItem key={category.id} value={category.id.toString()}>
                                             {category.name}
@@ -695,7 +695,7 @@ export default function BlogEditPage() {
 
                             {/* Add New Tag */}
                             <div>
-                                <Label>Thm tag mi</Label>
+                                <Label>Thêm tag mới</Label>
                                 <div className="flex gap-2 mt-1">
                                     <Input
                                         placeholder="Tn tag..."

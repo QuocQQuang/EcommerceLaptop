@@ -28,7 +28,7 @@ export const ReviewItem: React.FC<ReviewItemProps> = ({
     };
 
     const handleDelete = () => {
-        if (window.confirm('Bn c chc chn mun xa nh gi ny?')) {
+        if (window.confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
             onDelete?.(review.id);
         }
         setShowMenu(false);
@@ -68,7 +68,7 @@ export const ReviewItem: React.FC<ReviewItemProps> = ({
                             {review.isVerifiedPurchase && (
                                 <div className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
                                     <Shield className="w-3 h-3" />
-                                    <span> mua hng</span>
+                                    <span>Đã mua hàng</span>
                                 </div>
                             )}
                         </div>
@@ -98,7 +98,7 @@ export const ReviewItem: React.FC<ReviewItemProps> = ({
                                         className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
                                     >
                                         <Edit className="w-4 h-4" />
-                                        Chnh sa
+                                        Chỉnh sửa
                                     </button>
                                 )}
                                 {review.canDelete && (
@@ -107,7 +107,7 @@ export const ReviewItem: React.FC<ReviewItemProps> = ({
                                         className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
                                     >
                                         <Trash2 className="w-4 h-4" />
-                                        Xa
+                                        Xóa
                                     </button>
                                 )}
                             </div>

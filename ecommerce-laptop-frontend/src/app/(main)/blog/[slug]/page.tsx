@@ -169,13 +169,13 @@ function ProductLink({ productId, productName, productPrice, productImage }: Pro
                             <Button asChild size="sm">
                                 <Link href={`/products/${productId}`}>
                                     <ExternalLink className="w-4 h-4 mr-2" />
-                                    Xem sn phm
+                                    Xem sản phẩm
                                 </Link>
                             </Button>
                             <Button asChild size="sm" variant="outline">
                                 <Link href={`/products/${productId}`}>
                                     <ShoppingCart className="w-4 h-4 mr-2" />
-                                    Thm vo gi
+                                    Thêm vào giỏ
                                 </Link>
                             </Button>
                         </div>
@@ -370,7 +370,7 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                         <p className="text-gray-600 mb-4">Bi vit bn ang tm kim khng tn ti hoc  b xa.</p>
                         <Button onClick={() => router.push('/blog')}>
                             <ArrowLeft className="w-4 h-4 mr-2" />
-                            Quay li danh sch
+                            Quay lại danh sách
                         </Button>
                     </div>
                 </div>
@@ -527,7 +527,7 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                                         variant="outline"
                                     >
                                         <MessageCircle className="w-4 h-4 mr-2" />
-                                        Thm bnh lun
+                                        Thêm bình luận
                                     </Button>
                                 ) : (
                                     <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
@@ -544,7 +544,7 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                                                         newComment: { ...prev.newComment, authorName: e.target.value }
                                                     }))}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    placeholder="Nhp tn ca bn"
+                                                    placeholder="Nhập tên của bạn"
                                                 />
                                             </div>
                                             <div>

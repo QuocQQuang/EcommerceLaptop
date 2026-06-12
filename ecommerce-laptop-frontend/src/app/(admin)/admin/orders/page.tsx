@@ -346,7 +346,7 @@ export default function OrdersPage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Tm kim v lc n hng</CardTitle>
+          <CardTitle>Tìm kiếm và lọc đơn hàng</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 flex-wrap">
@@ -354,7 +354,7 @@ export default function OrdersPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Tm theo m n hng, tn khch hng, email..."
+                  placeholder="Tìm theo mã đơn hàng, tên khách hàng, email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
@@ -364,29 +364,29 @@ export default function OrdersPage() {
 
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Trng thi n hng" />
+                <SelectValue placeholder="Trạng thái đơn hàng" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tt c trng thi</SelectItem>
-                <SelectItem value="pending">Ch xc nhn</SelectItem>
-                <SelectItem value="confirmed"> xc nhn</SelectItem>
-                <SelectItem value="processing">ang x l</SelectItem>
-                <SelectItem value="shipped">ang giao</SelectItem>
-                <SelectItem value="delivered"> giao</SelectItem>
-                <SelectItem value="cancelled"> hy</SelectItem>
+                <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                <SelectItem value="pending">Chờ xác nhận</SelectItem>
+                <SelectItem value="confirmed">Đã xác nhận</SelectItem>
+                <SelectItem value="processing">Đang xử lý</SelectItem>
+                <SelectItem value="shipped">Đang giao</SelectItem>
+                <SelectItem value="delivered">Đã giao</SelectItem>
+                <SelectItem value="cancelled">Đã hủy</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={selectedPaymentStatus} onValueChange={setSelectedPaymentStatus}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Trng thi thanh ton" />
+                <SelectValue placeholder="Trạng thái thanh toán" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tt c thanh ton</SelectItem>
-                <SelectItem value="pending">Ch thanh ton</SelectItem>
-                <SelectItem value="paid"> thanh ton</SelectItem>
-                <SelectItem value="failed">Tht bi</SelectItem>
-                <SelectItem value="refunded"> hon tin</SelectItem>
+                <SelectItem value="all">Tất cả thanh toán</SelectItem>
+                <SelectItem value="pending">Chờ thanh toán</SelectItem>
+                <SelectItem value="paid">Đã thanh toán</SelectItem>
+                <SelectItem value="failed">Thất bại</SelectItem>
+                <SelectItem value="refunded">Đã hoàn tiền</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -398,10 +398,10 @@ export default function OrdersPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>
-              Danh sch n hng ({ordersData?.totalCount || 0})
+              Danh sách đơn hàng ({ordersData?.totalCount || 0})
             </CardTitle>
             <Button variant="outline" onClick={() => refetch()}>
-              Lm mi
+              Làm mới
             </Button>
           </div>
         </CardHeader>
@@ -430,7 +430,7 @@ export default function OrdersPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      M n hng
+                      Mã đơn hàng
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -439,7 +439,7 @@ export default function OrdersPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Khch hng
+                      Khách hàng
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -448,7 +448,7 @@ export default function OrdersPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Sn phm
+                      Sản phẩm
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -457,7 +457,7 @@ export default function OrdersPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Tng tin
+                      Tổng tiền
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -466,7 +466,7 @@ export default function OrdersPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Trng thi
+                      Trạng thái
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -475,7 +475,7 @@ export default function OrdersPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Thanh ton
+                      Thanh toán
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -484,7 +484,7 @@ export default function OrdersPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Phng thc
+                      Phương thức
                     </SortableTableHeader>
                   </TableHead>
                   <TableHead>
@@ -493,10 +493,10 @@ export default function OrdersPage() {
                       sortConfig={sortConfig}
                       onSort={handleSort}
                     >
-                      Ngy to
+                      Ngày tạo
                     </SortableTableHeader>
                   </TableHead>
-                  <TableHead className="text-right">Thao tc</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -517,7 +517,7 @@ export default function OrdersPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{order.itemCount} sn phm</Badge>
+                      <Badge variant="outline">{order.itemCount} sản phẩm</Badge>
                     </TableCell>
                     <TableCell className="font-medium">
                       {formatCurrency(order.total)}
@@ -541,7 +541,7 @@ export default function OrdersPage() {
                           <DropdownMenuItem asChild>
                             <Link href={`/admin/orders/${order.id}`}>
                               <Eye className="h-4 w-4 mr-2" />
-                              Xem chi tit
+                              Xem chi tiết
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
@@ -564,7 +564,7 @@ export default function OrdersPage() {
                                 ) : (
                                   <CheckCircle className="h-4 w-4 mr-2" />
                                 )}
-                                Xc nhn n hng
+                                Xác nhận đơn hàng
                               </DropdownMenuItem>
                             )}
                             {order.status === 'confirmed' && (
@@ -577,7 +577,7 @@ export default function OrdersPage() {
                                 ) : (
                                   <Package className="h-4 w-4 mr-2" />
                                 )}
-                                Bt u x l
+                                Bắt đầu xử lý
                               </DropdownMenuItem>
                             )}
                             {order.status === 'processing' && (
@@ -590,7 +590,7 @@ export default function OrdersPage() {
                                 ) : (
                                   <Truck className="h-4 w-4 mr-2" />
                                 )}
-                                Giao hng
+                                Giao hàng
                               </DropdownMenuItem>
                             )}
                             {(order.status === 'pending' || order.status === 'confirmed') && (
@@ -604,7 +604,7 @@ export default function OrdersPage() {
                                 ) : (
                                   <XCircle className="h-4 w-4 mr-2" />
                                 )}
-                                Hy n hng
+                                Hủy đơn hàng
                               </DropdownMenuItem>
                             )}
                           </PermissionGuard>

@@ -57,9 +57,9 @@ export default function MediaManagementSection({
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle>Hnh nh & Media</CardTitle>
+                                <CardTitle>Hình ảnh & Media</CardTitle>
                                 <CardDescription>
-                                    Qun l hnh nh v media cho sn phm
+                                    Quản lý hình ảnh và media cho sản phẩm
                                 </CardDescription>
                             </div>
                             {isExpanded ? (
@@ -73,9 +73,9 @@ export default function MediaManagementSection({
                 <CollapsibleContent>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label>Hnh nh sn phm</Label>
+                            <Label>Hình ảnh sản phẩm</Label>
                             <p className="text-sm text-muted-foreground">
-                                Upload hnh nh cho sn phm (ti a 10 nh)
+                                Upload hình ảnh cho sản phẩm (tối đa 10 ảnh)
                             </p>
                             <ImageUpload
                                 productId={productId}

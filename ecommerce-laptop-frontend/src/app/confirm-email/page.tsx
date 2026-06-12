@@ -29,7 +29,7 @@ function ConfirmEmailContent() {
             if (!token) {
                 setState({
                     status: 'error',
-                    message: 'Thiu m xc thc. Vui lng kim tra li email v th lin kt ng.',
+                    message: 'Thiếu mã xác thực. Vui lòng kiểm tra lại email và nhấn liên kết đăng nhập.',
                     isLoading: false
                 });
                 return;
@@ -43,7 +43,7 @@ function ConfirmEmailContent() {
                 if (data.success) {
                     setState({
                         status: 'success',
-                        message: data.message || 'Email ca bn  c xc thc thnh cng!',
+                        message: data.message || 'Email của bạn đã được xác thực thành công!',
                         isLoading: false
                     });
                 } else {
@@ -53,7 +53,7 @@ function ConfirmEmailContent() {
 
                     setState({
                         status: isExpired ? 'expired' : 'error',
-                        message: data.message || 'Xc thc email tht bi. Vui lng th li.',
+                        message: data.message || 'Xác thực email thất bại. Vui lòng thử lại.',
                         isLoading: false
                     });
                 }
@@ -61,7 +61,7 @@ function ConfirmEmailContent() {
                 console.error('Email confirmation error:', error);
                 setState({
                     status: 'error',
-                    message: ' xy ra li. Vui lng th li sau.',
+                    message: 'Đã xảy ra lỗi. Vui lòng thử lại sau.',
                     isLoading: false
                 });
             }
@@ -127,14 +127,14 @@ function ConfirmEmailContent() {
                                 onClick={handleReturnToLogin}
                                 className="w-full bg-green-600 hover:bg-green-700"
                             >
-                                Tip tc ng nhp
+                                Tiếp tục đăng nhập
                             </Button>
                             <Button
                                 onClick={handleReturnToHome}
                                 variant="outline"
                                 className="w-full"
                             >
-                                V trang ch
+                                Về trang chủ
                             </Button>
                         </>
                     )}
@@ -145,14 +145,14 @@ function ConfirmEmailContent() {
                                 onClick={handleResendConfirmation}
                                 className="w-full bg-orange-600 hover:bg-orange-700"
                             >
-                                Gi li email xc thc
+                                Gửi lại email xác thực
                             </Button>
                             <Button
                                 onClick={handleReturnToHome}
                                 variant="outline"
                                 className="w-full"
                             >
-                                V trang ch
+                                Về trang chủ
                             </Button>
                         </>
                     )}
@@ -163,14 +163,14 @@ function ConfirmEmailContent() {
                                 onClick={handleResendConfirmation}
                                 className="w-full"
                             >
-                                Th li
+                                Thử lại
                             </Button>
                             <Button
                                 onClick={handleReturnToHome}
                                 variant="outline"
                                 className="w-full"
                             >
-                                V trang ch
+                                Về trang chủ
                             </Button>
                         </>
                     )}

@@ -17,12 +17,12 @@ interface OrderStatusProgressProps {
 
 export function OrderStatusProgress({ status, className }: OrderStatusProgressProps) {
     const statusSteps = [
-        { key: 'pending', label: 'Ch x l', icon: Clock, color: 'bg-yellow-500' },
-        { key: 'confirmed', label: ' xc nhn', icon: CheckCircle, color: 'bg-blue-500' },
-        { key: 'processing', label: 'ang x l', icon: Package, color: 'bg-purple-500' },
-        { key: 'shipped', label: ' giao hng', icon: Truck, color: 'bg-green-500' },
-        { key: 'delivered', label: ' nhn hng', icon: CheckCircle, color: 'bg-green-600' },
-        { key: 'cancelled', label: ' hy', icon: XCircle, color: 'bg-red-500' }
+        { key: 'pending', label: 'Chờ xử lý', icon: Clock, color: 'bg-yellow-500' },
+        { key: 'confirmed', label: 'Đã xác nhận', icon: CheckCircle, color: 'bg-blue-500' },
+        { key: 'processing', label: 'Đang xử lý', icon: Package, color: 'bg-purple-500' },
+        { key: 'shipped', label: 'Đã giao hàng', icon: Truck, color: 'bg-green-500' },
+        { key: 'delivered', label: 'Đã nhận hàng', icon: CheckCircle, color: 'bg-green-600' },
+        { key: 'cancelled', label: 'Đã hủy', icon: XCircle, color: 'bg-red-500' }
     ];
 
     const currentStepIndex = statusSteps.findIndex(step => step.key === status);
@@ -30,12 +30,12 @@ export function OrderStatusProgress({ status, className }: OrderStatusProgressPr
 
     const getStatusInfo = (stepKey: string) => {
         const statusMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-            'pending': { label: 'Ch x l', color: 'bg-yellow-100 text-yellow-800', icon: <Clock className="h-4 w-4" /> },
-            'confirmed': { label: ' xc nhn', color: 'bg-blue-100 text-blue-800', icon: <CheckCircle className="h-4 w-4" /> },
-            'processing': { label: 'ang x l', color: 'bg-purple-100 text-purple-800', icon: <Package className="h-4 w-4" /> },
-            'shipped': { label: ' giao hng', color: 'bg-green-100 text-green-800', icon: <Truck className="h-4 w-4" /> },
-            'delivered': { label: ' nhn hng', color: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-4 w-4" /> },
-            'cancelled': { label: ' hy', color: 'bg-red-100 text-red-800', icon: <XCircle className="h-4 w-4" /> }
+            'pending': { label: 'Chờ xử lý', color: 'bg-yellow-100 text-yellow-800', icon: <Clock className="h-4 w-4" /> },
+            'confirmed': { label: 'Đã xác nhận', color: 'bg-blue-100 text-blue-800', icon: <CheckCircle className="h-4 w-4" /> },
+            'processing': { label: 'Đang xử lý', color: 'bg-purple-100 text-purple-800', icon: <Package className="h-4 w-4" /> },
+            'shipped': { label: 'Đã giao hàng', color: 'bg-green-100 text-green-800', icon: <Truck className="h-4 w-4" /> },
+            'delivered': { label: 'Đã nhận hàng', color: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-4 w-4" /> },
+            'cancelled': { label: 'Đã hủy', color: 'bg-red-100 text-red-800', icon: <XCircle className="h-4 w-4" /> }
         };
         return statusMap[stepKey] || { label: stepKey, color: 'bg-gray-100 text-gray-800', icon: <Clock className="h-4 w-4" /> };
     };

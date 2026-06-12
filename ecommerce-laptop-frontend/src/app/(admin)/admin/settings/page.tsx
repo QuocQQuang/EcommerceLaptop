@@ -230,41 +230,41 @@ export default function SettingsPage() {
   const settingsMutation = useMutation({
     mutationFn: updateSystemSettings,
     onSuccess: () => {
-      toast.success('Ci t  c cp nht thnh cng');
+      toast.success('Cài đặt  c cp nht thnh cng');
       queryClient.invalidateQueries({ queryKey: ['system-settings'] });
       setEditedSettings({});
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht ci t');
+      toast.error('C li xy ra khi cp nht cài đặt');
     }
   });
 
   const smtpMutation = useMutation({
     mutationFn: updateSMTPSettings,
     onSuccess: () => {
-      toast.success('Ci t SMTP  c cp nht thnh cng');
+      toast.success('Cài đặt SMTP  c cp nht thnh cng');
       queryClient.invalidateQueries({ queryKey: ['smtp-settings'] });
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht ci t SMTP');
+      toast.error('C li xy ra khi cp nht cài đặt SMTP');
     }
   });
 
   const paymentMutation = useMutation({
     mutationFn: updatePaymentGateway,
     onSuccess: () => {
-      toast.success('Ci t cng thanh ton  c cp nht');
+      toast.success('Cài đặt cng thanh toán  c cp nht');
       queryClient.invalidateQueries({ queryKey: ['payment-gateways'] });
     },
     onError: () => {
-      toast.error('C li xy ra khi cp nht cng thanh ton');
+      toast.error('C li xy ra khi cp nht cng thanh toán');
     }
   });
 
   const emailNotificationsMutation = useMutation({
     mutationFn: updateEmailNotificationSettings,
     onSuccess: () => {
-      toast.success('Ci t email notifications  c cp nht');
+      toast.success('Cài đặt email notifications  c cp nht');
       queryClient.invalidateQueries({ queryKey: ['email-notification-settings'] });
     },
     onError: () => {
@@ -275,7 +275,7 @@ export default function SettingsPage() {
   const emailRateLimitMutation = useMutation({
     mutationFn: updateEmailRateLimitSettings,
     onSuccess: () => {
-      toast.success('Ci t rate limit email  c cp nht');
+      toast.success('Cài đặt rate limit email  c cp nht');
       queryClient.invalidateQueries({ queryKey: ['email-rate-limit-settings'] });
     },
     onError: () => {
@@ -345,9 +345,9 @@ export default function SettingsPage() {
       }
 
       if (success) {
-        toast.success(`Kt ni ${type === 'smtp' ? 'SMTP' : type === 'email-notification' ? 'email notification' : 'cng thanh ton'} thnh cng`);
+        toast.success(`Kt ni ${type === 'smtp' ? 'SMTP' : type === 'email-notification' ? 'email notification' : 'cng thanh toán'} thnh cng`);
       } else {
-        toast.error(`Kt ni ${type === 'smtp' ? 'SMTP' : type === 'email-notification' ? 'email notification' : 'cng thanh ton'} tht bi`);
+        toast.error(`Kt ni ${type === 'smtp' ? 'SMTP' : type === 'email-notification' ? 'email notification' : 'cng thanh toán'} tht bi`);
       }
     } catch (error) {
       toast.error('C li xy ra khi kim tra kt ni');
@@ -434,7 +434,7 @@ export default function SettingsPage() {
           <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold">Khng c quyn truy cp</h3>
           <p className="text-muted-foreground">
-            Bn khng c quyn truy cp trang ci t h thng
+            Bn khng c quyn truy cp trang cài đặt h thng
           </p>
         </div>
       </div>
@@ -458,9 +458,9 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Ci t h thng</h1>
+          <h1 className="text-3xl font-bold">Cài đặt h thng</h1>
           <p className="text-muted-foreground">
-            Qun l cu hnh v ty chn h thng
+            Quản lý cấu hình v ty chn h thng
           </p>
         </div>
       </div>
@@ -477,7 +477,7 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="payments" disabled={!canManagePayments}>
             <CreditCard className="h-4 w-4" />
-            <span>Thanh ton</span>
+            <span>Thanh toán</span>
           </TabsTrigger>
           <TabsTrigger value="security" disabled={!canManageSecurity}>
             <Shield className="h-4 w-4" />
@@ -515,7 +515,7 @@ export default function SettingsPage() {
                       {category === 'security' && <Shield className="h-5 w-5" />}
                       {category === 'database' && <Database className="h-5 w-5" />}
                       <span>
-                        {category === 'general' ? 'Ci t chung' :
+                        {category === 'general' ? 'Cài đặt chung' :
                           category === 'security' ? 'Bo mt' :
                             category === 'database' ? 'C s d liu' : category}
                       </span>
@@ -643,7 +643,7 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Mail className="h-5 w-5" />
-                  <span>Ci t SMTP</span>
+                  <span>Cài đặt SMTP</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -738,7 +738,7 @@ export default function SettingsPage() {
                         ) : (
                           <Save className="h-4 w-4 mr-2" />
                         )}
-                        Lu ci t
+                        Lu cài đặt
                       </Button>
                       <Button
                         variant="outline"
@@ -846,12 +846,12 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Shield className="h-5 w-5" />
-                <span>Ci t bo mt</span>
+                <span>Cài đặt bo mt</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Cc ci t bo mt c qun l trong tab &quot;Chung&quot;  trn.
+                Cc cài đặt bo mt c quản lý trong tab &quot;Chung&quot;  trn.
               </p>
             </CardContent>
           </Card>
@@ -863,14 +863,14 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Bell className="h-5 w-5" />
-                <span>Ci t thng bo email</span>
+                <span>Cài đặt thng bo email</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {emailNotificationsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">ang ti ci t thng bo...</span>
+                  <span className="ml-2">ang ti cài đặt thng bo...</span>
                 </div>
               ) : (
                 <div className="space-y-8">
@@ -887,7 +887,7 @@ export default function SettingsPage() {
                           </span>
                           <span>
                             {category === 'user' && 'Thng bo ngi dng'}
-                            {category === 'order' && 'Thng bo n hng'}
+                            {category === 'order' && 'Thông báo đơn hàng'}
                             {category === 'system' && 'Thng bo h thng'}
                             {category === 'marketing' && 'Thng bo marketing'}
                           </span>
@@ -920,7 +920,7 @@ export default function SettingsPage() {
                                         )}
                                         {notification.recipients.toAdmin && (
                                           <Badge variant="secondary" className="text-xs">
-                                            Qun tr vin
+                                            Quản trị viên
                                           </Badge>
                                         )}
                                         {notification.recipients.toCustomEmails.map((email, index) => (
@@ -957,7 +957,7 @@ export default function SettingsPage() {
                   {/* Global notification settings */}
                   <Card className="mt-8">
                     <CardHeader>
-                      <CardTitle className="text-base">Ci t chung</CardTitle>
+                      <CardTitle className="text-base">Cài đặt chung</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between">
@@ -1006,17 +1006,17 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle className="text-base flex items-center space-x-2">
                         <Shield className="h-5 w-5" />
-                        <span>Ci t Rate Limit Email</span>
+                        <span>Cài đặt Rate Limit Email</span>
                       </CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        Cu hnh gii hn s lng email gi  trnh spam v bo v h thng
+                        Cấu hình gii hn s lng email gi  trnh spam v bo v h thng
                       </p>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {emailRateLimitLoading ? (
                         <div className="flex items-center justify-center py-8">
                           <RefreshCw className="h-6 w-6 animate-spin" />
-                          <span className="ml-2">ang ti ci t rate limit...</span>
+                          <span className="ml-2">ang ti cài đặt rate limit...</span>
                         </div>
                       ) : emailRateLimitSettings ? (
                         <>
@@ -1093,7 +1093,7 @@ export default function SettingsPage() {
                               ) : (
                                 <Save className="h-4 w-4 mr-2" />
                               )}
-                              Lu ci t Rate Limit
+                              Lu cài đặt Rate Limit
                             </Button>
                             <Button
                               onClick={() => emailRateLimitRefetch()}
@@ -1122,7 +1122,7 @@ export default function SettingsPage() {
                         </>
                       ) : (
                         <div className="text-center py-8 text-muted-foreground">
-                          Khng th ti ci t rate limit
+                          Khng th ti cài đặt rate limit
                         </div>
                       )}
                     </CardContent>

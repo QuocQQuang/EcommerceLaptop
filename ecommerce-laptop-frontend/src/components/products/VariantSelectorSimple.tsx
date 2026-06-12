@@ -60,7 +60,7 @@ export default function VariantSelectorSimple({
         <div className={`space-y-4 ${className}`}>
             {/* Variant Selection */}
             <div className="space-y-3">
-                <Label className="text-base font-semibold">Chn cu hnh:</Label>
+                <Label className="text-base font-semibold">Chọn cấu hình:</Label>
                 <RadioGroup
                     value={selectedVariantId?.toString() || ''}
                     onValueChange={handleVariantChange}
@@ -85,12 +85,12 @@ export default function VariantSelectorSimple({
                                         {variant.stockQuantity > 0 ? (
                                             <Badge variant="secondary" className="text-xs">
                                                 <CheckCircle className="mr-1 h-3 w-3" />
-                                                Cn hng
+                                                Còn hàng
                                             </Badge>
                                         ) : (
                                             <Badge variant="destructive" className="text-xs">
                                                 <XCircle className="mr-1 h-3 w-3" />
-                                                Ht hng
+                                                Hết hàng
                                             </Badge>
                                         )}
                                     </div>

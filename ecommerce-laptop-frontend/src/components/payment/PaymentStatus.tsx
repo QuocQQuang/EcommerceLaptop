@@ -109,7 +109,7 @@ export function PaymentStatus({
             <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <Icon className={`h-5 w-5 ${statusConfig.color}`} />
-                    Trng thi thanh ton
+                    Trng thi thanh toán
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -138,7 +138,7 @@ export function PaymentStatus({
                 <div className="space-y-2 text-sm">
                     {gateway && (
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Cng thanh ton:</span>
+                            <span className="text-muted-foreground">Cng thanh toán:</span>
                             <span className="font-medium">{gateway}</span>
                         </div>
                     )}
@@ -188,7 +188,7 @@ export function PaymentStatus({
                             ) : (
                                 <>
                                     <RefreshCw className="h-4 w-4" />
-                                    Th li thanh ton
+                                    Th li thanh toán
                                 </>
                             )}
                         </button>
@@ -199,17 +199,17 @@ export function PaymentStatus({
                 <div className="text-xs text-muted-foreground">
                     {status === 'completed' && (
                         <p className="text-green-600">
-                             Thanh ton  c xc nhn thnh cng
+                             Thanh toán  c xc nhn thnh cng
                         </p>
                     )}
                     {status === 'processing' && (
                         <p className="text-yellow-600">
-                             ang x l thanh ton, vui lng i...
+                             ang x l thanh toán, vui lng i...
                         </p>
                     )}
                     {status === 'failed' && (
                         <p className="text-red-600">
-                             Thanh ton tht bi. Vui lng th li hoc chn phng thc khc.
+                             Thanh toán tht bi. Vui lng th li hoc chn phng thc khc.
                         </p>
                     )}
                 </div>

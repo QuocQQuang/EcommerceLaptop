@@ -101,7 +101,7 @@ describe('Dashboard Integration', () => {
       },
       lowStock: {
         value: 8,
-        label: 'sn phm sp ht'
+        label: 'sản phẩm sắp hết'
       },
       visitors: {
         value: 1250,
@@ -233,7 +233,7 @@ describe('Dashboard Integration', () => {
       activities.push({
         id: `order-${order.id}`,
         type: 'order',
-        message: `n hng mi t ${order.customerName}: ${(order.total / 1000000).toFixed(1)}M VN`,
+        message: `Đơn hàng mới từ ${order.customerName}: ${(order.total / 1000000).toFixed(1)}M VN`,
         time: order.createdAt,
         icon: 'ShoppingCart',
         color: 'text-yellow-500'

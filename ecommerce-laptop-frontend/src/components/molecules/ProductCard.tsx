@@ -122,7 +122,7 @@ export function ProductCard({ product, className, variant = 'default', layout = 
                                     )}
                                     {product.stockQuantity === 0 && (
                                         <Badge variant="outline" className="text-xs">
-                                            Ht hng
+                                            Hết hàng
                                         </Badge>
                                     )}
                                 </div>
@@ -145,9 +145,9 @@ export function ProductCard({ product, className, variant = 'default', layout = 
                                     {/* Stock Status */}
                                     <div className="text-sm">
                                         {product.stockQuantity > 0 ? (
-                                            <span className="text-green-600">Cn hng</span>
+                                            <span className="text-green-600">Còn hàng</span>
                                         ) : (
-                                            <span className="text-red-600">Ht hng</span>
+                                            <span className="text-red-600">Hết hàng</span>
                                         )}
                                     </div>
                                 </div>
@@ -185,7 +185,7 @@ export function ProductCard({ product, className, variant = 'default', layout = 
                                             size="sm"
                                         >
                                             <ShoppingCart className="w-4 h-4 mr-2" />
-                                            Thm vo gi
+                                            Thêm vào giỏ
                                         </Button>
                                     </div>
                                 </div>
@@ -225,7 +225,7 @@ export function ProductCard({ product, className, variant = 'default', layout = 
                             )}
                             {product.stockQuantity === 0 && (
                                 <Badge variant="outline" className="text-xs">
-                                    Ht hng
+                                    Hết hàng
                                 </Badge>
                             )}
                         </div>
@@ -315,9 +315,9 @@ export function ProductCard({ product, className, variant = 'default', layout = 
                         {/* Stock Status */}
                         <div className="text-xs">
                             {product.stockQuantity > 0 ? (
-                                <span className="text-green-600">Cn hng</span>
+                                <span className="text-green-600">Còn hàng</span>
                             ) : (
-                                <span className="text-red-600">Ht hng</span>
+                                <span className="text-red-600">Hết hàng</span>
                             )}
                         </div>
                     </div>
@@ -331,7 +331,7 @@ export function ProductCard({ product, className, variant = 'default', layout = 
                         size="sm"
                     >
                         <ShoppingCart className="w-4 h-4 mr-2" />
-                        Thm vo gi
+                        Thêm vào giỏ
                     </Button>
                 </CardFooter>
             </Card>

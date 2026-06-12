@@ -172,7 +172,7 @@ describe('CartSidebar', () => {
         render(<CartSidebar />)
 
         // Either a checkout button or link should be present
-        const checkoutElement = screen.queryByText(/Thanh ton|thanh ton|checkout/i)
+        const checkoutElement = screen.queryByText(/Thanh toán|thanh toán|checkout/i)
         if (checkoutElement) {
             expect(checkoutElement).toBeInTheDocument()
         } else {

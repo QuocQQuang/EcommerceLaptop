@@ -1,9 +1,4 @@
-# Production override - dng km vi docker-compose.yml
-# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-#
-# Secrets cn thit trn VPS (dng .env file hoc environment):
-#   DB_CONNECTION_STRING, REDIS_CONNECTION_STRING,
-#   JWT_SECRET, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, v.v.
+
 
 version: '3.8'
 
@@ -16,7 +11,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      # Inject t .env hoc GitHub Secrets  VPS env
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
       - ConnectionStrings__Redis=${REDIS_CONNECTION_STRING}
       - JwtSettings__Secret=${JWT_SECRET}

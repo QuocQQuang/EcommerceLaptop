@@ -100,9 +100,9 @@ export function PWAInstaller() {
                 <AlertDescription className="text-blue-800">
                     <div className="flex items-start justify-between">
                         <div className="flex-1 mr-3">
-                            <p className="font-medium mb-1">Ci t ng dng</p>
+                            <p className="font-medium mb-1">Cài đặt ứng dụng</p>
                             <p className="text-sm">
-                                Thm Laptop Store vo mn hnh chnh  truy cp nhanh hn!
+                                Thêm Laptop Store vào màn hình chính để truy cập nhanh hơn!
                             </p>
                         </div>
                         <button
@@ -119,7 +119,7 @@ export function PWAInstaller() {
                             className="bg-blue-600 hover:bg-blue-700"
                         >
                             <Download className="h-4 w-4 mr-2" />
-                            Ci t
+                            Cài đặt
                         </Button>
                         <Button
                             onClick={handleDismiss}

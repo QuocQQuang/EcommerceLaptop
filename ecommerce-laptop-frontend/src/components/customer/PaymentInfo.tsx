@@ -38,17 +38,17 @@ export function PaymentInfo({
     const getPaymentStatusInfo = (status: string) => {
         const statusMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
             'pending': {
-                label: 'Ch thanh ton',
+                label: 'Ch thanh toán',
                 color: 'bg-yellow-100 text-yellow-800',
                 icon: <Clock className="h-4 w-4" />
             },
             'paid': {
-                label: ' thanh ton',
+                label: ' thanh toán',
                 color: 'bg-green-100 text-green-800',
                 icon: <CheckCircle className="h-4 w-4" />
             },
             'failed': {
-                label: 'Thanh ton tht bi',
+                label: 'Thanh toán thất bại',
                 color: 'bg-red-100 text-red-800',
                 icon: <XCircle className="h-4 w-4" />
             },
@@ -74,7 +74,7 @@ export function PaymentInfo({
                 <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                         <CreditCard className="h-5 w-5" />
-                        <span>Thng tin thanh ton</span>
+                        <span>Thng tin thanh toán</span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -98,7 +98,7 @@ export function PaymentInfo({
                     {/* Payment Date */}
                     {paidAt && (
                         <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Ngy thanh ton:</span>
+                            <span className="text-sm text-gray-600">Ngy thanh toán:</span>
                             <div className="flex items-center space-x-1">
                                 <Calendar className="h-4 w-4 text-gray-500" />
                                 <span className="text-sm">
@@ -113,7 +113,7 @@ export function PaymentInfo({
             {/* Payment Breakdown */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Tng kt thanh ton</CardTitle>
+                    <CardTitle>Tổng kết thanh toán</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                     <div className="flex justify-between">

@@ -240,7 +240,7 @@ export default function BlogViewPage({ params }: { params: { id: string } }) {
                     <p className="text-gray-600 mb-4">Bi vit bn ang tm kim khng tn ti hoc  b xa.</p>
                     <Button onClick={() => router.push('/admin/blog/posts')}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
-                        Quay li danh sch
+                        Quay lại danh sách
                     </Button>
                 </div>
             </div>
@@ -255,11 +255,11 @@ export default function BlogViewPage({ params }: { params: { id: string } }) {
             <div className="flex items-center justify-between mb-6">
                 <Button variant="outline" onClick={() => router.push('/admin/blog/posts')}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Quay li
+                    Quay lại
                 </Button>
                 <Button onClick={handleEditBlog}>
                     <Edit className="w-4 h-4 mr-2" />
-                    Chnh sa
+                    Chỉnh sửa
                 </Button>
             </div>
 
@@ -391,7 +391,7 @@ export default function BlogViewPage({ params }: { params: { id: string } }) {
                                     variant="outline"
                                 >
                                     <MessageCircle className="w-4 h-4 mr-2" />
-                                    Thm bnh lun
+                                    Thêm bình luận
                                 </Button>
                             ) : (
                                 <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
@@ -408,7 +408,7 @@ export default function BlogViewPage({ params }: { params: { id: string } }) {
                                                     newComment: { ...prev.newComment, authorName: e.target.value }
                                                 }))}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Nhp tn ca bn"
+                                                placeholder="Nhập tên của bạn"
                                             />
                                         </div>
                                         <div>

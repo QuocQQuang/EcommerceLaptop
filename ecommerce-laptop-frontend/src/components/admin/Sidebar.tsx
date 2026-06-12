@@ -78,7 +78,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             </div>
             <div>
               <h1 className="text-lg font-semibold">Admin Panel</h1>
-              <p className="text-xs text-muted-foreground">Qun tr h thng</p>
+              <p className="text-xs text-muted-foreground">Quản trị hệ thống</p>
             </div>
           </div>
         )}

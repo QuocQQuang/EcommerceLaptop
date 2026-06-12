@@ -1173,7 +1173,7 @@ export const updateOrderStatus = async (orderId: number, status: string, note?: 
   } catch (error: any) {
     // Enhanced error handling for better UX
     if (error.response?.status === 404) {
-      const errorMessage = error.response?.data?.message || 'Khng th cp nht trng thi n hng';
+      const errorMessage = error.response?.data?.message || 'Không thể cập nhật trạng thái đơn hàng';
 
       // Try to extract workflow validation info from error message
       const workflowError: OrderStatusUpdateError = {
@@ -1181,7 +1181,7 @@ export const updateOrderStatus = async (orderId: number, status: string, note?: 
         currentStatus: 'unknown',
         attemptedStatus: status,
         validTransitions: [],
-        details: error.response?.data?.details || 'Chuyn i trng thi khng hp l'
+        details: error.response?.data?.details || 'Chuyển đổi trạng thái không hợp lệ'
       };
 
       // Enhanced error object for UI handling

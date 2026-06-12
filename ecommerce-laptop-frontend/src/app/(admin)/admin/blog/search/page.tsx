@@ -379,7 +379,7 @@ export default function BlogSearchPage() {
                             <CardContent className="space-y-4">
                                 {/* Categories Filter */}
                                 <div>
-                                    <Label className="text-sm font-medium mb-2 block">Danh mc</Label>
+                                    <Label className="text-sm font-medium mb-2 block">Danh mục</Label>
                                     <div className="flex flex-wrap gap-2">
                                         {categories.map((category) => (
                                             <div key={category.id} className="flex items-center space-x-2">
@@ -720,7 +720,7 @@ export default function BlogSearchPage() {
                         <CardHeader>
                             <CardTitle>Tm kim  lu</CardTitle>
                             <CardDescription>
-                                Qun l cc b lc tm kim  lu
+                                Quản lý các bộ lọc tìm kiếm  lu
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -739,7 +739,7 @@ export default function BlogSearchPage() {
                                                         )}
                                                         {saved.filters.categories.length > 0 && (
                                                             <Badge variant="outline">
-                                                                {saved.filters.categories.length} danh mc
+                                                                {saved.filters.categories.length} danh mục
                                                             </Badge>
                                                         )}
                                                         {saved.filters.tags.length > 0 && (

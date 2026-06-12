@@ -134,7 +134,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                     ? 'Cha c URL slug'
                     : /^[a-z0-9-]+$/.test(data.slug) && data.slug.length <= 75
                         ? 'URL slug ti u'
-                        : 'URL slug nn ch cha ch thng, s v du gch ngang',
+                        : 'URL slug nên chứa chữ thường, số và dấu gạch ngang',
                 status: (!data.slug ? 'error' :
                     /^[a-z0-9-]+$/.test(data.slug) && data.slug.length <= 75 ? 'good' : 'warning') as 'good' | 'warning' | 'error'
             },
@@ -304,7 +304,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                         {saving ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                         ) : null}
-                        Lu ci t
+                        Lưu cài đặt
                     </Button>
                 </div>
             </div>
@@ -331,7 +331,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                 />
                                 <p className="text-sm text-gray-500 mt-2">
                                     {(seoScore?.overall || 0) >= 80 ? 'Tuyt vi!' :
-                                        (seoScore?.overall || 0) >= 60 ? 'Kh tt' : 'Cn ci thin'}
+                                        (seoScore?.overall || 0) >= 60 ? 'Kh tt' : 'Cần cải thiện'}
                                 </p>
                             </div>
 
@@ -427,7 +427,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                             </Button>
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">
-                                            Ch s dng ch thng, s v du gch ngang
+                                            Chỉ sử dụng chữ thường, số và dấu gạch ngang
                                         </p>
                                     </div>
 
@@ -448,7 +448,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                                 id="keywords"
                                                 value={keywordInput}
                                                 onChange={(e) => setKeywordInput(e.target.value)}
-                                                placeholder="Thm t kha..."
+                                                placeholder="Thêm từ khóa..."
                                                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
                                             />
                                             <Button type="button" variant="outline" onClick={addKeyword}>
@@ -593,7 +593,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                         <TabsContent value="advanced" className="space-y-6">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Ci t nng cao</CardTitle>
+                                    <CardTitle>Cài đặt nâng cao</CardTitle>
                                     <CardDescription>
                                         Cc ty chn SEO nng cao cho chuyn gia
                                     </CardDescription>
@@ -606,14 +606,14 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                                 T ng to structured data cho bi vit
                                             </p>
                                             <Button variant="outline" size="sm">
-                                                Cu hnh Schema
+                                                Cấu hình Schema
                                             </Button>
                                         </div>
 
                                         <div className="p-4 border rounded-lg">
                                             <h4 className="font-semibold mb-2">Sitemap</h4>
                                             <p className="text-sm text-gray-600 mb-2">
-                                                Qun l sitemap XML cho blog
+                                                Quản lý sitemap XML cho blog
                                             </p>
                                             <Button variant="outline" size="sm">
                                                 To Sitemap
@@ -626,7 +626,7 @@ export default function BlogSEOPage({ postId, initialData }: BlogSEOPageProps) {
                                                 Cu hnh robots.txt cho SEO
                                             </p>
                                             <Button variant="outline" size="sm">
-                                                Chnh sa Robots
+                                                Chỉnh sửa Robots
                                             </Button>
                                         </div>
 

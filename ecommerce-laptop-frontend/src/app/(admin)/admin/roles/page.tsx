@@ -54,26 +54,25 @@ import { toast } from 'sonner';
 // =====================================================================
 
 const PermissionModules: Record<string, string> = {
-  users: 'Qun l Admin',
-  roles: 'Qun l vai tr',
-  products: 'Qun l sn phm',
-  orders: 'Qun l n hng',
-  promotions: 'Qun l khuyn mi',
-  system: 'Qun tr h thng',
-  logs: 'Nht k & Kim ton',
-  security: 'Bo mt',
-  settings: 'Ci t h thng',
-  content: 'Qun l ni dung',
-  reports: 'Bo co',
-  permissions: 'Phn quyn'
+  users: 'Quản lý Admin',
+  roles: 'Quản lý vai trò',
+  products: 'Quản lý sản phẩm',
+  orders: 'Quản lý đơn hàng',
+  promotions: 'Quản lý khuyến mãi',
+  system: 'Quản trị h thng',
+  logs: 'Nhật ký & Kiểm toán',
+  security: 'Bảo mật',
+  content: 'Quản lý nội dung',
+  reports: 'Báo cáo',
+  permissions: 'Phân quyền'
 };
 
 const PermissionActions: Record<string, { label: string; description: string }> = {
-  read: { label: 'Xem', description: 'Quyn xem danh sch v chi tit.' },
-  write: { label: 'Thm/Sa', description: 'Quyn to mi v cp nht.' },
-  delete: { label: 'Xa', description: 'Quyn xa cc mc.' },
-  manage: { label: 'Qun tr', description: 'Ton quyn trn module, bao gm cc quyn khc.' },
-  export: { label: 'Xut', description: 'Quyn xut d liu ra file (CSV, PDF, etc.).' },
+  read: { label: 'Xem', description: 'Quyền xem danh sách và chi tiết.' },
+  write: { label: 'Thêm/Sửa', description: 'Quyền tạo mới và cập nhật.' },
+  delete: { label: 'Xóa', description: 'Quyền xóa các mục.' },
+  manage: { label: 'Quản trị', description: 'Toàn quyền trên module, bao gồm các quyền khác.' },
+  export: { label: 'Xuất', description: 'Quyền xuất dữ liệu ra file (CSV, PDF, etc.).' },
 };
 
 interface RoleFormData {
@@ -135,7 +134,7 @@ const RoleFormDialog = ({
   const mutationOptions = {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      toast.success(mode === 'create' ? 'To vai tr thnh cng' : 'Cp nht vai tr thnh cng');
+      toast.success(mode === 'create' ? 'Tạo vai trò thnh cng' : 'Cp nht vai trò thnh cng');
       onOpenChange(false);
     },
     onError: (error: any) => {
@@ -234,41 +233,41 @@ const RoleFormDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>{mode === 'create' ? 'To vai tr mi' : `Sa vai tr: ${role?.name}`}</DialogTitle>
+          <DialogTitle>{mode === 'create' ? 'Tạo vai trò mới' : `Sửa vai trò: ${role?.name}`}</DialogTitle>
           <DialogDescription>
             {mode === 'create'
-              ? 'nh ngha vai tr v phn quyn chi tit cho ngi dng h thng.'
-              : 'Cp nht thng tin v quyn hn cho vai tr ny.'}
+              ? 'Định nghĩa vai trò và phân quyền chi tiết cho người dùng hệ thống.'
+              : 'Cập nhật thông tin và quyền hạn cho vai trò này.'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="basic">Thng tin c bn</TabsTrigger>
-              <TabsTrigger value="permissions">Phn quyn chi tit</TabsTrigger>
+              <TabsTrigger value="basic">Thông tin cơ bản</TabsTrigger>
+              <TabsTrigger value="permissions">Phân quyền chi tiết</TabsTrigger>
             </TabsList>
 
             <div className="flex-1 overflow-auto">
               <TabsContent value="basic" className="p-4 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Tn vai tr</Label>
+                  <Label htmlFor="name">Tên vai trò</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
-                    placeholder="VD: Qun l sn phm"
+                    placeholder="VD: Quản lý sản phẩm"
                     required
                     disabled={isLoading || formData.isSystem}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">M t</Label>
+                  <Label htmlFor="description">Mô tả</Label>
                   <Input
                     id="description"
                     value={formData.description}
                     onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
-                    placeholder="VD: Chu trch nhim qun l sn phm, thng hiu v danh mc"
+                    placeholder="VD: Chịu trách nhiệm quản lý sản phẩm, thương hiệu và danh mục"
                     required
                     disabled={isLoading}
                   />
@@ -281,12 +280,12 @@ const RoleFormDialog = ({
                     disabled={isLoading || (mode === 'edit' && role?.isSystem)}
                   />
                   <Label htmlFor="isSystem" className="cursor-pointer">
-                    Vai tr h thng
+                    Vai trò hệ thống
                   </Label>
                 </div>
                 {formData.isSystem && (
                   <p className="text-xs text-amber-600">
-                    Vai tr h thng c cc quyn hn c nh v khng th b chnh sa hoc xa.
+                    Vai trò hệ thống có các quyền hạn cố định và không thể bị chỉnh sửa hoặc xóa.
                   </p>
                 )}
               </TabsContent>
@@ -295,17 +294,17 @@ const RoleFormDialog = ({
                 <div className="px-4 pt-4 pb-2">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex-1">
-                      <h3 className="text-lg font-medium">Danh sch quyn hn</h3>
+                      <h3 className="text-lg font-medium">Danh sách quyền hạn</h3>
                       <p className="text-sm text-muted-foreground">
-                        Chn cc quyn hn chi tit cho vai tr ny.
+                        Chọn các quyền hạn chi tiết cho vai trò này.
                       </p>
                     </div>
-                    <Badge variant="secondary">{formData.permissionIds.length} quyn c chn</Badge>
+                    <Badge variant="secondary">{formData.permissionIds.length} quyền được chọn</Badge>
                   </div>
                   <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Tm kim quyn..."
+                      placeholder="Tìm kiếm quyền..."
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
                       className="pl-8 w-full"
@@ -376,7 +375,7 @@ const RoleFormDialog = ({
                                           aria-label={`Select all permissions for ${activeModule}`}
                                         />
                                         <Label htmlFor={`select-all-${activeModule}`} className="text-sm font-normal cursor-pointer">
-                                          Chn tt c
+                                          Chọn tất cả
                                         </Label>
                                       </>
                                     );
@@ -390,8 +389,8 @@ const RoleFormDialog = ({
                                     <TableHeader>
                                       <TableRow>
                                         <TableHead className="w-[50px]"></TableHead>
-                                        <TableHead>Tn quyn</TableHead>
-                                        <TableHead>M t</TableHead>
+                                        <TableHead>Tên quyền</TableHead>
+                                        <TableHead>Mô tả</TableHead>
                                       </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -425,13 +424,13 @@ const RoleFormDialog = ({
                               </CardContent>
                             </Card>
                           ) : (
-                            <div className="w-full flex items-center justify-center text-muted-foreground">Chn nhm quyn  xem chi tit</div>
+                            <div className="w-full flex items-center justify-center text-muted-foreground">Chọn nhóm quyền để xem chi tiết</div>
                           )}
                         </div>
                       </div>
                     ) : (
                       <div className="w-full text-center py-10">
-                        <p className="text-muted-foreground">Khng tm thy quyn no.</p>
+                        <p className="text-muted-foreground">Không tìm thấy quyền nào.</p>
                       </div>
                     )
                   )}
@@ -447,10 +446,10 @@ const RoleFormDialog = ({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Hy
+              Hủy
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'ang lu...' : (mode === 'create' ? 'To vai tr' : 'Lu thay i')}
+              {isLoading ? 'đang lưu...' : (mode === 'create' ? 'Tạo vai trò' : 'Lưu thay đổi')}
             </Button>
           </DialogFooter>
         </form>
@@ -473,7 +472,7 @@ const RoleCard = ({ role }: { role: Role }) => {
     mutationFn: (id: string) => deleteRole(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      toast.success('Xa vai tr thnh cng');
+      toast.success('Xóa vai trò thành công');
       setShowDelete(false);
     },
     onError: (error) => toast.error(handleApiError(error)),
@@ -513,17 +512,17 @@ const RoleCard = ({ role }: { role: Role }) => {
         </CardHeader>
         <CardContent className="flex-1 space-y-3">
           <div className="flex items-center justify-between text-sm border-t pt-3">
-            <span className="text-muted-foreground flex items-center"><Users className="h-4 w-4 mr-1" /> S ngi dng</span>
+            <span className="text-muted-foreground flex items-center"><Users className="h-4 w-4 mr-1" /> Số người dùng</span>
             <Badge variant="secondary">{role.userCount}</Badge>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground flex items-center"><Key className="h-4 w-4 mr-1" /> Tng quyn</span>
+            <span className="text-muted-foreground flex items-center"><Key className="h-4 w-4 mr-1" /> Tổng quyền</span>
             <Badge variant="secondary">{role.permissions?.length || 0}</Badge>
           </div>
           {role.isSystem && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground flex items-center">Loi vai tr</span>
-              <Badge variant="outline" className="text-amber-600 border-amber-500">H thng</Badge>
+              <span className="text-muted-foreground flex items-center">Loại vai trò</span>
+              <Badge variant="outline" className="text-amber-600 border-amber-500">Hệ thống</Badge>
             </div>
           )}
         </CardContent>
@@ -536,19 +535,19 @@ const RoleCard = ({ role }: { role: Role }) => {
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xc nhn xa vai tr</DialogTitle>
+            <DialogTitle>Xác nhận xóa vai trò</DialogTitle>
             <DialogDescription>
-              Bn c chc chn mun xa vai tr <strong>{role.name}</strong>? Hnh ng ny khng th hon tc v c th nh hng n ngi dng hin ti.
+              Bạn có chắc chắn muốn xóa vai trò <strong>{role.name}</strong>? Hành động này không thể hoàn tác và có thể ảnh hưởng đến người dùng hiện tại.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDelete(false)}>Hy</Button>
+            <Button variant="outline" onClick={() => setShowDelete(false)}>Hủy</Button>
             <Button
               variant="destructive"
               onClick={() => deleteMutation.mutate(String(role.id))}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'ang xa...' : 'Xa vnh vin'}
+              {deleteMutation.isPending ? 'đang xóa...' : 'Xóa vĩnh viễn'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -581,8 +580,8 @@ export default function RolesPage() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-destructive">Li ti d liu</h2>
-          <p className="text-muted-foreground">Khng th ti danh sch vai tr. Vui lng th li sau.</p>
+          <h2 className="text-xl font-semibold text-destructive">Lỗi tải dữ liệu</h2>
+          <p className="text-muted-foreground">Không thể tải danh sách vai trò. Vui lòng thử lại sau.</p>
         </div>
       </div>
     );
@@ -592,15 +591,15 @@ export default function RolesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Qun l vai tr</h1>
+          <h1 className="text-3xl font-bold">Quản lý vai trò</h1>
           <p className="text-muted-foreground">
-            To, qun l v phn quyn cho cc vai tr trong h thng.
+            Tạo, quản lý và phân quyền cho các vai trò trong hệ thống.
           </p>
         </div>
         <PermissionGuard permission={PERMISSIONS.ROLES_WRITE}>
           <Button onClick={() => setShowCreate(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            To vai tr mi
+            Tạo vai trò mới
           </Button>
         </PermissionGuard>
       </div>
@@ -609,7 +608,7 @@ export default function RolesPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tng vai tr</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng vai trò</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -618,7 +617,7 @@ export default function RolesPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vai tr h thng</CardTitle>
+            <CardTitle className="text-sm font-medium">Vai trò hệ thống</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -627,7 +626,7 @@ export default function RolesPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tng quyn hn</CardTitle>
+            <CardTitle className="text-sm font-medium">Tng quyền hạn</CardTitle>
             <Key className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

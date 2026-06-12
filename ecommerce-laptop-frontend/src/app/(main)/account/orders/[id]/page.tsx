@@ -92,7 +92,7 @@ export default function OrderDetailPage() {
             setOrder(response as unknown as OrderDetails);
         } catch (error: any) {
             console.error('Error loading order details:', error);
-            toast.error('Khng th ti thng tin n hng');
+            toast.error('Không thể tải thông tin đơn hàng');
             if (error.response?.status === 404) {
                 router.push('/account/orders');
             }
@@ -190,12 +190,12 @@ export default function OrderDetailPage() {
         return (
             <div className="container mx-auto px-4 py-8">
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Khng tm thy n hng</h1>
-                    <p className="text-gray-600 mb-6">n hng bn tm kim khng tn ti hoc  b xa.</p>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Không tìm thấy đơn hàng</h1>
+                    <p className="text-gray-600 mb-6">Đơn hàng bạn tìm kiếm không tồn tại hoặc đã bị xóa.</p>
                     <Link href="/account/orders">
                         <Button>
                             <ArrowLeft className="h-4 w-4 mr-2" />
-                            Quay li danh sch n hng
+                            Quay lại danh sách đơn hàng
                         </Button>
                     </Link>
                 </div>
@@ -221,10 +221,10 @@ export default function OrderDetailPage() {
                         </Link>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900">
-                                n hng #{order.orderNumber}
+                                Đơn hàng #{order.orderNumber}
                             </h1>
                             <p className="text-gray-600">
-                                t ngy {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                                Đặt ngày {new Date(order.createdAt).toLocaleDateString('vi-VN')}
                             </p>
                         </div>
                     </div>
@@ -236,7 +236,7 @@ export default function OrderDetailPage() {
                             disabled={isRefreshing}
                         >
                             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                            Lm mi
+                            Làm mới
                         </Button>
                         {order.status === 'delivered' && (
                             <OrderExportButtons
@@ -265,7 +265,7 @@ export default function OrderDetailPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center space-x-2">
                                 <Package className="h-5 w-5" />
-                                <span>Chi tit sn phm</span>
+                                <span>Chi tiết sản phẩm</span>
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -317,12 +317,12 @@ export default function OrderDetailPage() {
                             <CardHeader>
                                 <CardTitle className="flex items-center space-x-2">
                                     <Calendar className="h-5 w-5" />
-                                    <span>Thng tin giao hng</span>
+                                    <span>Thông tin giao hàng</span>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-sm text-gray-700">
-                                    D kin giao hng: {new Date(order.estimatedDeliveryDate).toLocaleDateString('vi-VN')}
+                                    Dự kiến giao hàng: {new Date(order.estimatedDeliveryDate).toLocaleDateString('vi-VN')}
                                 </p>
                             </CardContent>
                         </Card>

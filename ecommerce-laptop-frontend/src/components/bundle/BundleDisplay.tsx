@@ -67,13 +67,13 @@ export function BundleDisplay({ product }: BundleDisplayProps) {
                         </div>
                         {calculateTotalSavings() > 0 && (
                             <div className="text-sm text-green-600">
-                                Tit kim: {formatPrice(calculateTotalSavings())}
+                                Tiết kiệm: {formatPrice(calculateTotalSavings())}
                             </div>
                         )}
                     </div>
                     <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
                         <ShoppingCart className="h-4 w-4 mr-2" />
-                        Thm Bundle vo gi
+                        Thêm Bundle vào giỏ
                     </Button>
                 </div>
             </div>
@@ -82,7 +82,7 @@ export function BundleDisplay({ product }: BundleDisplayProps) {
             {mainLaptop && (
                 <div className="bg-white border rounded-lg p-6">
                     <h4 className="text-lg font-semibold mb-4 text-gray-900">
-                        Sn phm chnh: {mainLaptop.productName}
+                        Sản phẩm chính: {mainLaptop.productName}
                     </h4>
                     <div className="flex items-center gap-4">
                         {mainLaptop.productImageUrl && (
@@ -119,7 +119,7 @@ export function BundleDisplay({ product }: BundleDisplayProps) {
             {accessories.length > 0 && (
                 <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-900">
-                        Sn phm ph km theo ({accessories.length})
+                        Sản phẩm phụ kèm theo ({accessories.length})
                     </h4>
 
                     {/* Accessory Images Grid */}
@@ -192,7 +192,7 @@ export function BundleDisplay({ product }: BundleDisplayProps) {
                                                         )}
                                                         <div className="space-y-2">
                                                             <div className="flex justify-between">
-                                                                <span className="text-sm text-gray-600">Thng hiu:</span>
+                                                                <span className="text-sm text-gray-600">Thương hiệu:</span>
                                                                 <span className="text-sm font-medium">{accessory.brand}</span>
                                                             </div>
                                                             <div className="flex justify-between">

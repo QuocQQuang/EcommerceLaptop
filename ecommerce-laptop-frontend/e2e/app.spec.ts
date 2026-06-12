@@ -117,7 +117,7 @@ test.describe('Shopping Cart', () => {
 
         // Should navigate to checkout page
         await expect(page).toHaveURL('/checkout');
-        await expect(page.locator('h1')).toContainText('Thanh ton');
+        await expect(page.locator('h1')).toContainText('Thanh toán');
     });
 });
 
@@ -172,7 +172,7 @@ test.describe('PWA Features', () => {
         // Check if PWA installer component is present
         const pwaInstaller = page.locator('[data-testid="pwa-installer"]');
         if (await pwaInstaller.isVisible()) {
-            await expect(pwaInstaller).toContainText('Ci t ng dng');
+            await expect(pwaInstaller).toContainText('Cài đặt ứng dụng');
         }
     });
 });

@@ -102,7 +102,7 @@ function SePayPaymentContent() {
                             hasAccess: hasAccess,
                             parsedUserId: parsedUserId
                         });
-                        toast.error('Bn khng c quyn truy cp n hng ny.');
+                        toast.error('Bạn không có quyền truy cập đơn hàng này.');
                         router.push('/account/orders');
                         return;
                     }
@@ -114,7 +114,7 @@ function SePayPaymentContent() {
                             status: order.status,
                             paymentStatus: order.paymentStatus
                         });
-                        toast.success('n hng  c xc nhn thnh cng! Chuyn n trang ti khon.');
+                        toast.success('Đơn hàng đã được xác nhận thành công! Chuyển đến trang tài khoản.');
                         router.push('/account');
                         return;
                     }
@@ -142,7 +142,7 @@ function SePayPaymentContent() {
                         orderId,
                         error: error instanceof Error ? error.message : 'Unknown error'
                     });
-                    toast.error('Khng th ti thng tin n hng');
+                    toast.error('Không thể tải thông tin đơn hàng');
                 });
 
             // Load SEPAY payment data from localStorage (guard repeated parsing)
@@ -188,7 +188,7 @@ function SePayPaymentContent() {
                             qrCodeUrl: paymentData.qrCodeUrl
                         });
 
-                        toast.success('Vui lng qut m QR  thanh ton!');
+                        toast.success('Vui lòng quét mã QR để thanh toán!');
                     } else {
                         logger.warn(' SEPAY: Order ID mismatch', {
                             expectedOrderId: orderId,
@@ -230,7 +230,7 @@ function SePayPaymentContent() {
                 setTimeLeft(left);
                 if (left <= 0) {
                     clearInterval(timer);
-                    toast.warning('M QR  ht hn. Vui lng to mi.');
+                    toast.warning('Mã QR đã hết hạn. Vui lòng tạo mới.');
                     setQrData(null);
                     stopPolling();
                 }
@@ -265,7 +265,7 @@ function SePayPaymentContent() {
                         });
 
                         stopPolling();
-                        toast.success('Thanh ton thnh cng! ang chuyn n trang xc nhn.');
+                        toast.success('Thanh toán thành công! Đang chuyển đến trang xác nhận.');
                         router.push(`/checkout/confirmation?orderId=${orderId}`);
                     }
                 }).catch((error) => {
@@ -306,7 +306,7 @@ function SePayPaymentContent() {
         }
 
         setIsLoading(true);
-        const toastId = toast.loading('ang ly cu hnh SePay...');
+        const toastId = toast.loading('Đang lấy cấu hình SePay...');
 
         try {
             // Fetch SePay config from backend
@@ -325,14 +325,14 @@ function SePayPaymentContent() {
             setQrData(result);
             setIsPolling(true);
             pollStatus();
-            toast.success('M QR  c to thnh cng!', { id: toastId });
+            toast.success('Mã QR đã được tạo thành công!', { id: toastId });
         } catch (error: any) {
             logger.error(' SEPAY: Error generating QR', {
                 orderId,
                 environment,
                 error: error.response?.data?.error || error.message
             });
-            toast.error(error.response?.data?.error || 'Li khi to m QR. Vui lng th li.', { id: toastId });
+            toast.error(error.response?.data?.error || 'Lỗi khi tạo mã QR. Vui lòng thử lại.', { id: toastId });
         } finally {
             setIsLoading(false);
         }
@@ -341,7 +341,7 @@ function SePayPaymentContent() {
     const handleEnvironmentChange = (checked: boolean) => {
         setEnvironment(checked ? 'production' : 'sandbox');
         if (qrData) {
-            toast.warning('M QR s c to li khi thay i ch .');
+                                    toast.warning('Mã QR sẽ được tạo lại khi thay đổi chế độ.');
             setQrData(null);
             stopPolling();
         }
@@ -368,10 +368,10 @@ function SePayPaymentContent() {
                         <CardHeader>
                             <CardTitle className="flex items-center">
                                 <QrCode className="h-5 w-5 mr-2 text-green-500" />
-                                Thanh ton qua Chuyn khon (SePay)
+                                Thanh toán qua Chuyển khoản (SePay)
                             </CardTitle>
                             <CardDescription>
-                                n hng #{order.orderNumber} - {CurrencyService.convertAmount(order.totalAmount, 'USD', 'VND').toLocaleString('vi-VN')} 
+                                 Đơn hàng #{order.orderNumber} - {CurrencyService.convertAmount(order.totalAmount, 'USD', 'VND').toLocaleString('vi-VN')} 
                                 <Badge variant="outline" className="ml-2">
                                     {environment}
                                 </Badge>
@@ -399,11 +399,11 @@ function SePayPaymentContent() {
                                         htmlFor="sepay-environment"
                                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                     >
-                                        {environment === 'sandbox' ? 'Ch  Test' : 'Ch  Thc t'}
+                                        {environment === 'sandbox' ? 'Chế độ Test' : 'Chế độ Thực tế'}
                                     </label>
                                 </div>
                                 <p className="text-sm text-muted-foreground">
-                                    {environment === 'sandbox' ? 'Ti khon test: VPBank 0908752170' : 'Ti khon thc: VPBank 1234567890'}
+                                    {environment === 'sandbox' ? 'Tài khoản test: VPBank 0908752170' : 'Tài khoản thực: VPBank 1234567890'}
                                 </p>
                             </div>
 
@@ -411,19 +411,19 @@ function SePayPaymentContent() {
                                 <div className="space-y-4">
                                     <h3 className="font-semibold">Hướng dẫn thanh toán</h3>
                                     <p className="text-sm text-muted-foreground">
-                                        1. Nhp nt &quot;To m QR&quot; bn di
+                                         1. Nhấn nút &quot;Tạo mã QR&quot; bên dưới
                                     </p>
                                     <p className="text-sm text-muted-foreground">
-                                        2. Qut m QR bng app ngn hng (VietQR)
+                                         2. Quét mã QR bằng app ngân hàng (VietQR)
                                     </p>
                                     <p className="text-sm text-muted-foreground">
-                                        3. Hoc chuyn khon th cng vi ni dung: <strong>{order.orderNumber}</strong>
+                                         3. Hoặc chuyển khoản thủ công với nội dung: <strong>{order.orderNumber}</strong>
                                     </p>
                                     <p className="text-sm text-muted-foreground">
-                                        4. Sau khi chuyn khon, h thng s t ng xc nhn trong 3-5 pht
+                                         4. Sau khi chuyển khoản, hệ thống sẽ tự động xác nhận trong 3-5 phút
                                     </p>
                                     <Button onClick={handleGenerateQR} className="w-full" disabled={isLoading}>
-                                        {isLoading ? <LoadingSpinner /> : 'To m QR thanh ton'}
+                                        {isLoading ? <LoadingSpinner /> : 'Tạo mã QR thanh toán'}
                                     </Button>
                                 </div>
                             ) : (
@@ -432,7 +432,7 @@ function SePayPaymentContent() {
                                         <div className="relative w-64 h-64 mx-auto mb-4">
                                             <Image
                                                 src={qrData.qrCodeUrl}
-                                                alt="M QR thanh ton SePay"
+                                                alt="Mã QR thanh toán SePay"
                                                 width={256}
                                                 height={256}
                                                 className="object-contain"
@@ -443,7 +443,7 @@ function SePayPaymentContent() {
                                         </div>
                                         <div className="space-y-2">
                                             <p className="text-sm text-muted-foreground">
-                                                Thi gian cn li: <span className="font-bold text-lg">{Math.floor(timeLeft / 60)}:{((timeLeft % 60) / 10).toFixed(0).padStart(2, '0')}:{((timeLeft % 60) % 60).toFixed(0).padStart(2, '0')}
+                                                Thời gian còn lại: <span className="font-bold text-lg">{Math.floor(timeLeft / 60)}:{((timeLeft % 60) / 10).toFixed(0).padStart(2, '0')}:{((timeLeft % 60) % 60).toFixed(0).padStart(2, '0')}
                                                 </span>
                                             </p>
                                         </div>
@@ -459,7 +459,7 @@ function SePayPaymentContent() {
                                             <p><strong>Số tài khoản:</strong> {qrData.bankAccount}</p>
                                             <p><strong>Số tiền:</strong> {qrData.amount.toLocaleString('vi-VN')} </p>
                                             <p className="text-xs text-muted-foreground">
-                                                <strong>Ni dung chuyn khon:</strong> {qrData.description} <br />
+                                                <strong>Nội dung chuyển khoản:</strong> {qrData.description} <br />
                                                 <span className="text-red-600">Quan trọng: Nội dung chuyển khoản phải chính xác để hệ thống nhận diện đơn hàng!</span>
                                             </p>
                                         </div>
