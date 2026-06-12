@@ -253,7 +253,7 @@ const RecentActivity = ({
       activities.push({
         id: `security-${event.id}`,
         type: 'security',
-        message: `Sự kiện bảo mật: ${event.description}`,
+        message: `event: ${event.description}`,
         time: formatDateTime(event.createdAt),
         icon: Shield,
         color: getSeverityColor(event.severity),

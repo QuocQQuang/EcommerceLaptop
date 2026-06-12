@@ -245,7 +245,7 @@ const RoleFormDialog = ({
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col gap-0">
             <TabsList className="mx-6 mt-4 grid w-auto shrink-0 grid-cols-2">
               <TabsTrigger value="basic">Thông tin cơ bản</TabsTrigger>
-              <TabsTrigger value="permissions">Phân quyền chi tiết</TabsTrigger>
+              <TabsTrigger value="permissions">Phân quyền</TabsTrigger>
             </TabsList>
 
             <div className="min-h-0 flex-1 overflow-hidden">

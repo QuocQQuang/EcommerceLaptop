@@ -11,6 +11,7 @@ import {
     BarChart3,
     Calendar,
     Eye,
+    Edit,
     FileText,
     Heart,
     MessageCircle,
@@ -76,6 +77,12 @@ export default function BlogDashboardPage() {
                     </p>
                 </div>
                 <div className="flex gap-3">
+                    <Button variant="outline" asChild>
+                        <Link href="/admin/blog/posts">
+                            <FileText className="w-4 h-4 mr-2" />
+                            Quản lý bài viết
+                        </Link>
+                    </Button>
                     <Button asChild>
                         <Link href="/admin/blog/posts/new">
                             <Plus className="w-4 h-4 mr-2" />
@@ -169,7 +176,7 @@ export default function BlogDashboardPage() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <Link
-                                                href={`/admin/blog/posts/${blog.id}`}
+                                                href={`/admin/blog/posts/${blog.id}/view`}
                                                 className="text-sm font-medium text-gray-900 hover:text-blue-600 truncate block"
                                             >
                                                 {blog.title}
@@ -179,6 +186,12 @@ export default function BlogDashboardPage() {
                                                 {blog.viewCount.toLocaleString()} lượt xem
                                             </div>
                                         </div>
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={`/admin/blog/posts/${blog.id}/edit`}>
+                                                <Edit className="w-4 h-4 mr-2" />
+                                                Sửa
+                                            </Link>
+                                        </Button>
                                     </div>
                                 ))}
                             </div>
@@ -241,6 +254,12 @@ export default function BlogDashboardPage() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <QuickActionCard
+                    title="Quản lý bài viết"
+                    description="Sửa, ẩn hoặc xóa bài viết"
+                    href="/admin/blog/posts"
+                    icon={FileText}
+                />
                 <QuickActionCard
                     title="Tạo bài viết"
                     description="Viết bài viết mới"

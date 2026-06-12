@@ -103,8 +103,8 @@ export function useExport() {
     const exportSecurityEvents = useCallback(async (options: ExportOptions = {}) => {
         await exportWithLoading(
             () => ExportService.downloadSecurityEventsExcel(options),
-            'Đã xuất danh sách sự kiện bảo mật thành công',
-            'Có lỗi xảy ra khi xuất danh sách sự kiện bảo mật',
+            'Đã xuất danh sách event thành công',
+            'Có lỗi xảy ra khi xuất danh sách event',
             'security-events'
         );
     }, [exportWithLoading]);

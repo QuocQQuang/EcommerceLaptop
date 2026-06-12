@@ -117,7 +117,7 @@ describe('Dashboard Integration', () => {
     expect(mockKPIs.todaySales).toHaveProperty('change');
     expect(mockKPIs.todaySales).toHaveProperty('isPositive');
     expect(mockKPIs.newOrders.value).toBe(45);
-    expect(mockKPIs.lowStock.label).toBe('sn phm sp ht');
+    expect(mockKPIs.lowStock.label).toBe('sản phẩm sắp hết');
   });
 
   it('should handle sales trend data structure correctly', () => {

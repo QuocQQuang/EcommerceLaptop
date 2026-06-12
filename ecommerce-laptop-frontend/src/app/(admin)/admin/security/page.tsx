@@ -654,7 +654,7 @@ export default function SecurityPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center space-x-2">
                   <Activity className="h-5 w-5" />
-                  <span>Sự kiện bảo mật gần đây</span>
+                  <span>Event gần đây</span>
                 </CardTitle>
                 <ExportButtons
                   type="security-report"
@@ -693,7 +693,7 @@ export default function SecurityPage() {
                   ))}
                   {filteredSecurityEvents.length === 0 && (
                     <p className="text-center py-8 text-muted-foreground">
-                      Không có sự kiện bảo mật nào gần đây
+                      Không có event nào gần đây
                     </p>
                   )}
                 </div>
@@ -1365,7 +1365,7 @@ export default function SecurityPage() {
               {securityEventsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <RefreshCw className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">Đang tải sự kiện bảo mật...</span>
+                  <span className="ml-2">Đang tải event...</span>
                 </div>
               ) : (
                 <Table>
@@ -1437,9 +1437,9 @@ export default function SecurityPage() {
               {filteredSecurityEvents.length === 0 && !securityEventsLoading && (
                 <div className="text-center py-8">
                   <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Không có sự kiện bảo mật</h3>
+                  <h3 className="text-lg font-semibold mb-2">Không có event</h3>
                   <p className="text-muted-foreground">
-                    Hệ thống đang hoạt động bình thường, không có sự kiện bảo mật nào được ghi nhận.
+                    Hệ thống đang hoạt động bình thường, không có event nào được ghi nhận.
                   </p>
                 </div>
               )}

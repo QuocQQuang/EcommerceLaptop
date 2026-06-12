@@ -73,7 +73,7 @@ export function ExportButtons({
                     break;
                 case 'security-events':
                     await ExportService.downloadSecurityEventsExcel(options);
-                    toast.success('Đã xuất danh sách sự kiện bảo mật thành công');
+                    toast.success('Đã xuất danh sách event thành công');
                     break;
                 case 'ip-block-rules':
                     await ExportService.downloadIPBlockRulesExcel(options);
@@ -122,10 +122,10 @@ export function ExportButtons({
             users: 'Xuất danh sách admin',
             revenue: 'Xuất báo cáo doanh thu',
             inventory: 'Xuất báo cáo tồn kho',
-            'security-events': 'Xuất sự kiện bảo mật',
-            'ip-block-rules': 'Xuất IP Block Rules',
-            'rate-limit-rules': 'Xuất Rate Limit Rules',
-            'security-report': 'Xuất báo cáo bảo mật'
+            'security-events': 'Xuất event',
+            'ip-block-rules': 'Tải IP Block Rules',
+            'rate-limit-rules': 'Tải Rate Limit Rules',
+            'security-report': 'Tải báo cáo'
         };
 
         return (

@@ -313,7 +313,7 @@ export class ExportService {
     }
 
     /**
-     * Xuất danh sách sự kiện bảo mật ra Excel
+     * Xuất danh sách event ra Excel
      */
     static async exportSecurityEventsToExcel(options: ExportOptions = {}): Promise<Blob> {
         const response = await adminClient.get('/export/security-events/excel', {
@@ -357,7 +357,7 @@ export class ExportService {
     }
 
     /**
-     * Xuất danh sách sự kiện bảo mật Excel và tải xuống
+     * Xuất danh sách event Excel và tải xuống
      */
     static async downloadSecurityEventsExcel(options: ExportOptions = {}): Promise<void> {
         try {

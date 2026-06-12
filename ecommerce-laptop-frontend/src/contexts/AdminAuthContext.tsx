@@ -359,7 +359,7 @@ export const getAdminMenuItems = (user: AdminUser | null) => {
       id: 'blog',
       label: 'Quản lý blog',
       icon: 'FileText',
-      href: '/admin/blog',
+      href: '/admin/blog/posts',
       requiredPermission: null,
     },
     {
