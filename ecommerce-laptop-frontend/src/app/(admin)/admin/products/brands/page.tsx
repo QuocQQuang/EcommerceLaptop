@@ -40,16 +40,15 @@ import {
   useAdminAuth
 } from '@/contexts/AdminAuthContext';
 import {
-  Brand,
-  BrandFormData,
-  PERMISSIONS,
   createBrand,
   deleteBrand,
   forceDeleteBrand,
   getBrandsWithCounts,
   reassignAndDeleteBrand,
   updateBrand
-} from '@/lib/admin-api';
+} from '@/features/admin/catalog/api';
+import type { Brand, BrandFormData } from '@/features/admin/catalog/types';
+import { PERMISSIONS } from '@/lib/admin-api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,

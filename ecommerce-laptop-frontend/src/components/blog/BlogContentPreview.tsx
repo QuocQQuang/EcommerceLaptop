@@ -1,7 +1,9 @@
 'use client';
 
-import { ExternalLink, ShoppingCart } from 'lucide-react';
+import { Check, ExternalLink, ShoppingCart, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
+import { useCart } from '@/hooks/useCart';
 
 interface ProductLinkProps {
     productId: number;
@@ -11,6 +13,36 @@ interface ProductLinkProps {
 }
 
 function ProductLink({ productId, productName, productPrice, productImage }: ProductLinkProps) {
+    const { addToCart } = useCart();
+    const [added, setAdded] = useState(false);
+
+    const handleAddToCart = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setAdded(true);
+        await addToCart({
+            id: productId,
+            name: productName,
+            price: productPrice ?? 0,
+            stockQuantity: 1,
+            imageUrl: productImage ?? '',
+            slug: productId.toString(),
+            description: '',
+            brand: '',
+            model: '',
+            type: 'Accessory',
+            isActive: true,
+            isFeatured: false,
+            images: [],
+            specifications: [],
+            categories: [],
+            createdAt: '',
+            updatedAt: '',
+            sku: '',
+        } as any, 1);
+        setTimeout(() => setAdded(false), 2000);
+    };
+
     return (
         <div className="my-8 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group">
             <div className="flex flex-col sm:flex-row">
@@ -42,13 +74,26 @@ function ProductLink({ productId, productName, productPrice, productImage }: Pro
                             }).format(productPrice)}
                         </p>
                     )}
-                    <Link
-                        href={`/products/${productId}`}
-                        className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-md hover:shadow-lg w-fit gap-2"
-                    >
-                        <ExternalLink className="w-4 h-4" />
-                        Xem chi tiết sản phẩm
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href={`/products/${productId}`}
+                            className="inline-flex items-center justify-center px-5 py-2.5 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 w-fit gap-2"
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                            Xem chi tiết
+                        </Link>
+                        <button
+                            onClick={handleAddToCart}
+                            disabled={added}
+                            className="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 active:bg-blue-800 disabled:bg-green-600 disabled:cursor-default transition-all duration-200 shadow-md hover:shadow-lg w-fit gap-2"
+                        >
+                            {added ? (
+                                <><Check className="w-4 h-4" /> Đã thêm</>
+                            ) : (
+                                <><ShoppingCart className="w-4 h-4" /> Thêm vào giỏ</>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

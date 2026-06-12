@@ -12,7 +12,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { BrandFormData, createBrand } from '@/lib/admin-api';
+import { createBrand } from '@/features/admin/catalog/api';
+import type { BrandFormData } from '@/features/admin/catalog/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';

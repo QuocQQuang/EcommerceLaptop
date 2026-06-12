@@ -15,10 +15,8 @@ import {
   PermissionGuard
 } from '@/contexts/AdminAuthContext';
 import { useCurrencyContext } from '@/contexts/CurrencyContext';
-import {
-  getAdminProduct,
-  PERMISSIONS
-} from '@/lib/admin-api';
+import { getAdminProduct } from '@/features/admin/products/api';
+import { PERMISSIONS } from '@/lib/admin-api';
 import { formatCurrencyPrice } from '@/lib/currency';
 import { useQuery } from '@tanstack/react-query';
 import {

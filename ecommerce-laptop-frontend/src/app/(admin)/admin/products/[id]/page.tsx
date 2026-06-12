@@ -13,9 +13,7 @@ import {
   PermissionGuard,
   useAdminAuth
 } from '@/contexts/AdminAuthContext';
-import {
-  PERMISSIONS,
-} from '@/lib/admin-api';
+import { PERMISSIONS } from '@/lib/admin-api';
 import { getBrands, getCategories } from '@/features/admin/catalog/api';
 import {
   deleteProductImage,

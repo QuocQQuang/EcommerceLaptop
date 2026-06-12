@@ -40,16 +40,15 @@ import {
   useAdminAuth
 } from '@/contexts/AdminAuthContext';
 import {
-  Category,
-  CategoryFormData,
-  PERMISSIONS,
   createCategory,
   deleteCategory,
   forceDeleteCategory,
   getCategoriesWithCounts,
   reassignAndDeleteCategory,
   updateCategory
-} from '@/lib/admin-api';
+} from '@/features/admin/catalog/api';
+import type { Category, CategoryFormData } from '@/features/admin/catalog/types';
+import { PERMISSIONS } from '@/lib/admin-api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,

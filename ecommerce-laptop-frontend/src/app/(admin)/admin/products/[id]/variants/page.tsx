@@ -32,7 +32,16 @@ import {
     useAdminAuth
 } from '@/contexts/AdminAuthContext';
 import { useCurrencyContext } from '@/contexts/CurrencyContext';
-import { createVariant, deleteVariant, deleteVariantImage, getAdminProduct, getProductVariants, PERMISSIONS, updateVariant, uploadVariantImages } from '@/lib/admin-api';
+import {
+    createVariant,
+    deleteVariant,
+    deleteVariantImage,
+    getAdminProduct,
+    getProductVariants,
+    updateVariant,
+    uploadVariantImages
+} from '@/features/admin/products/api';
+import { PERMISSIONS } from '@/lib/admin-api';
 import { formatCurrencyPrice } from '@/lib/currency';
 import { Product } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
