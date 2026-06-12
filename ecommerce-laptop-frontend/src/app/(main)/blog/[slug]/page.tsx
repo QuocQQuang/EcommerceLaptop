@@ -383,9 +383,9 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="mx-auto mb-6 flex max-w-4xl items-center justify-between gap-3">
                     <Button variant="outline" onClick={() => router.push('/blog')}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Quay lại
@@ -399,8 +399,8 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                 </div>
 
                 {/* Blog Content */}
-                <Card className="mb-8">
-                    <CardContent className="pt-6">
+                <Card className="mx-auto mb-8 max-w-4xl overflow-hidden">
+                    <CardContent className="px-5 py-6 sm:px-8 lg:px-10">
                         {/* Status Badge */}
                         <div className="mb-4">
                             <Badge
@@ -414,10 +414,10 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                         </div>
 
                         {/* Title */}
-                        <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">{state.blog.title}</h1>
+                        <h1 className="mb-4 text-3xl font-bold leading-tight tracking-tight text-gray-900 sm:text-4xl lg:text-5xl">{state.blog.title}</h1>
 
                         {/* Meta Information */}
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6">
+                        <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
                             <div className="flex items-center gap-1">
                                 <User className="w-4 h-4" />
                                 {state.blog.author
@@ -467,15 +467,15 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                                 <img
                                     src={state.blog.featuredImageUrl}
                                     alt={(state.blog as any).featuredImageAlt || state.blog.title}
-                                    className="w-full h-96 object-cover rounded-lg shadow-lg"
+                                    className="aspect-[16/9] w-full rounded-lg object-cover shadow-lg"
                                 />
                             </div>
                         )}
 
                         {/* Excerpt */}
                         {state.blog.excerpt && (
-                            <div className="mb-8 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
-                                <p className="text-gray-700 font-medium text-lg italic">{state.blog.excerpt}</p>
+                            <div className="mx-auto mb-8 max-w-3xl rounded-r-lg border-l-4 border-blue-500 bg-blue-50 p-5 sm:p-6">
+                                <p className="text-lg font-medium italic leading-8 text-gray-700">{state.blog.excerpt}</p>
                             </div>
                         )}
 
@@ -483,8 +483,8 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                         <BlogContentPreview content={state.blog.content} />
 
                         {/* Engagement Actions */}
-                        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
-                            <div className="flex items-center gap-4">
+                        <div className="mt-8 flex flex-col gap-4 border-t border-gray-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-wrap items-center gap-3">
                                 <Button variant={state.hasLiked ? 'default' : 'outline'} size="sm" onClick={handleToggleLike} disabled={state.liking}>
                                     <Heart className="w-4 h-4 mr-2" />
                                     {state.hasLiked ? 'đã thích' : 'Thích'} ({state.blog.likeCount})
@@ -502,7 +502,7 @@ export default function BlogViewPage({ params }: { params: Promise<{ slug: strin
                 </Card>
 
                 {/* Comments Section */}
-                <Card>
+                <Card className="mx-auto max-w-4xl">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <MessageCircle className="w-5 h-5" />

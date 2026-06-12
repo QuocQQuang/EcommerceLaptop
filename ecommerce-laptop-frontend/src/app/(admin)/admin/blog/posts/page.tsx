@@ -216,14 +216,14 @@ export default function BlogsListPage() {
     return (
         <div className="p-6 space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Quản lý bài viết</h1>
                     <p className="text-gray-600 mt-1">
                         Quản lý tất cả bài viết blog của bạn
                     </p>
                 </div>
-                <Button asChild>
+                <Button asChild className="self-start sm:self-auto">
                     <Link href="/admin/blog/posts/new">
                         <Plus className="w-4 h-4 mr-2" />
                         Tạo bài viết
@@ -417,11 +417,11 @@ export default function BlogsListPage() {
 
             {/* Pagination */}
             {!state.loading && state.totalPages > 1 && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-gray-700">
                         Hiển thị {((state.currentPage - 1) * 10) + 1} đến {Math.min(state.currentPage * 10, state.totalCount)} trong {state.totalCount} kết quả
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <Button
                             variant="outline"
                             size="sm"
@@ -503,8 +503,8 @@ function BlogRowItem({
     };
 
     return (
-        <div className={`p-6 ${!isLast ? 'border-b border-gray-200' : ''} hover:bg-gray-50 transition-colors`}>
-            <div className="flex items-start gap-4">
+        <div className={`p-4 sm:p-6 ${!isLast ? 'border-b border-gray-200' : ''} transition-colors hover:bg-gray-50`}>
+            <div className="flex items-start gap-3 sm:gap-4">
                 {/* Selection checkbox */}
                 <Checkbox
                     checked={isSelected}
@@ -529,7 +529,7 @@ function BlogRowItem({
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                         <div className="flex-1 min-w-0">
                             <Link
                                 href={`/admin/blog/posts/${blog.id}/edit`}
@@ -544,7 +544,7 @@ function BlogRowItem({
                             )}
                         </div>
 
-                        <div className="flex items-center gap-2 ml-4">
+                        <div className="flex shrink-0 items-center gap-2 xl:ml-4">
                             {getStatusBadge(blog.status)}
 
                             <DropdownMenu>
@@ -589,10 +589,12 @@ function BlogRowItem({
                     </div>
 
                     {/* Metadata */}
-                    <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
+                        <div className="flex min-w-0 items-center gap-1">
                             <User className="w-4 h-4" />
-                            {blog.author?.displayName || [blog.author?.firstName, blog.author?.lastName].filter(Boolean).join(' ') || 'Tác giả'}
+                            <span className="truncate">
+                                {blog.author?.displayName || [blog.author?.firstName, blog.author?.lastName].filter(Boolean).join(' ') || 'Tác giả'}
+                            </span>
                         </div>
 
                         <div className="flex items-center gap-1">
@@ -609,7 +611,7 @@ function BlogRowItem({
                             </Badge>
                         )}
 
-                        <div className="flex items-center gap-3 ml-auto">
+                        <div className="flex items-center gap-3 sm:ml-auto">
                             <div className="flex items-center gap-1">
                                 <Eye className="w-4 h-4" />
                                 {blog.viewCount || 0}

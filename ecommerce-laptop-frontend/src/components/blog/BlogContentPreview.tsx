@@ -44,7 +44,7 @@ function ProductLink({ productId, productName, productPrice, productImage }: Pro
     };
 
     return (
-        <div className="my-8 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group">
+        <div className="my-8 overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-xl">
             <div className="flex flex-col sm:flex-row">
                 {productImage && (
                     <div className="relative w-full sm:w-56 h-56 sm:h-auto bg-gradient-to-br from-blue-50 via-white to-purple-50 flex-shrink-0 overflow-hidden">
@@ -77,7 +77,7 @@ function ProductLink({ productId, productName, productPrice, productImage }: Pro
                     <div className="flex items-center gap-3">
                         <Link
                             href={`/products/${productId}`}
-                            className="inline-flex items-center justify-center px-5 py-2.5 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 w-fit gap-2"
+                            className="inline-flex w-fit items-center justify-center gap-2 rounded-md border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50"
                         >
                             <ExternalLink className="w-4 h-4" />
                             Xem chi tiết
@@ -85,7 +85,7 @@ function ProductLink({ productId, productName, productPrice, productImage }: Pro
                         <button
                             onClick={handleAddToCart}
                             disabled={added}
-                            className="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 active:bg-blue-800 disabled:bg-green-600 disabled:cursor-default transition-all duration-200 shadow-md hover:shadow-lg w-fit gap-2"
+                            className="inline-flex w-fit items-center justify-center gap-2 rounded-md bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-blue-700 hover:shadow-lg active:bg-blue-800 disabled:cursor-default disabled:bg-green-600"
                         >
                             {added ? (
                                 <><Check className="w-4 h-4" /> Đã thêm</>
@@ -140,7 +140,7 @@ export default function BlogContentPreview({ content }: BlogContentPreviewProps)
     const { processedContent, productLinks } = renderContentWithProductLinks(content);
 
     return (
-        <div className="blog-content max-w-none">
+        <div className="blog-content mx-auto max-w-3xl">
             {processedContent.split('__PRODUCT_LINK_').map((part, index) => {
                 if (index === 0) {
                     return (

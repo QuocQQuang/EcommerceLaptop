@@ -11,10 +11,12 @@ import {
     Calendar,
     Clock,
     Eye,
+    ImageIcon,
     MessageCircle,
     Search,
     Tag,
-    User
+    User,
+    X
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -114,13 +116,15 @@ export default function BlogListingPage() {
         return <BlogListingSkeleton />;
     }
 
-        return (
+    const visiblePages = getVisiblePages(state.currentPage, state.totalPages);
+
+    return (
         <div className="min-h-screen bg-gray-50">
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog</h1>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                <div className="mx-auto mb-10 max-w-3xl text-center">
+                    <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">Blog</h1>
+                    <p className="text-lg leading-8 text-gray-600 sm:text-xl">
                         Khám phá những bài viết mới nhất về công nghệ, laptop và các sản phẩm điện tử
                     </p>
                 </div>
@@ -168,9 +172,10 @@ export default function BlogListingPage() {
                                         Tìm kiếm: {state.searchTerm}
                                         <button
                                             onClick={() => handleSearch('')}
-                                            className="ml-1 text-gray-500 hover:text-gray-700"
+                                            className="ml-1 rounded-full text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            aria-label="Xóa bộ lọc tìm kiếm"
                                         >
-                                            
+                                            <X className="h-3 w-3" />
                                         </button>
                                     </Badge>
                                 )}
@@ -179,9 +184,10 @@ export default function BlogListingPage() {
                                         Danh mục: {state.categories.find(c => c.id === state.selectedCategory)?.name}
                                         <button
                                             onClick={() => handleCategoryFilter(null)}
-                                            className="ml-1 text-gray-500 hover:text-gray-700"
+                                            className="ml-1 rounded-full text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            aria-label="Xóa bộ lọc danh mục"
                                         >
-                                            
+                                            <X className="h-3 w-3" />
                                         </button>
                                     </Badge>
                                 )}
@@ -199,7 +205,7 @@ export default function BlogListingPage() {
 
                 {/* Blog Grid */}
                 {state.loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {Array.from({ length: 6 }).map((_, i) => (
                         <Card key={i}>
                                 <CardContent className="p-0">
@@ -214,7 +220,7 @@ export default function BlogListingPage() {
                     ))}
                     </div>
                 ) : state.blogs.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {state.blogs.map((blog) => (
                             <BlogCard key={blog.id} blog={blog} />
                         ))}
@@ -262,19 +268,16 @@ export default function BlogListingPage() {
                                 Trước
                             </Button>
 
-                            {Array.from({ length: Math.min(5, state.totalPages) }, (_, i) => {
-                                const page = i + 1;
-                                return (
-                                    <Button
-                                        key={page}
-                                        variant={state.currentPage === page ? "default" : "outline"}
-                                        size="sm"
-                                        onClick={() => setState(prev => ({ ...prev, currentPage: page }))}
-                                    >
-                                        {page}
-                                    </Button>
-                                );
-                            })}
+                            {visiblePages.map((page) => (
+                                <Button
+                                    key={page}
+                                    variant={state.currentPage === page ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => setState(prev => ({ ...prev, currentPage: page }))}
+                                >
+                                    {page}
+                                </Button>
+                            ))}
 
                             <Button
                                 variant="outline"
@@ -287,10 +290,19 @@ export default function BlogListingPage() {
                         </div>
                     </div>
                 )}
-                </div>
             </div>
-        );
+        </div>
+    );
+}
+
+function getVisiblePages(currentPage: number, totalPages: number) {
+    if (totalPages <= 5) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
+
+    const start = Math.min(Math.max(currentPage - 2, 1), totalPages - 4);
+    return Array.from({ length: 5 }, (_, i) => start + i);
+}
 
 function BlogCard({ blog }: { blog: Blog }) {
     const formatReadingTime = (minutes: number) => {
@@ -303,9 +315,9 @@ function BlogCard({ blog }: { blog: Blog }) {
     };
 
     return (
-        <Card className="group hover:shadow-lg transition-shadow duration-300">
-            <Link href={`/blog/${blog.slug}`}>
-                <CardContent className="p-0">
+        <Card className="group h-full overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+            <Link href={`/blog/${blog.slug}`} className="flex h-full flex-col">
+                <CardContent className="flex h-full flex-col p-0">
                     {/* Featured Image */}
                     {blog.featuredImageUrl ? (
                         <div className="relative overflow-hidden rounded-t-lg">
@@ -323,19 +335,21 @@ function BlogCard({ blog }: { blog: Blog }) {
                     ) : (
                         <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-t-lg">
                             <div className="text-gray-400 text-center">
-                                <div className="text-4xl mb-2"></div>
+                                <ImageIcon className="mx-auto mb-2 h-8 w-8" />
                                 <div className="text-sm">Không có ảnh</div>
                             </div>
                         </div>
                     )}
 
-                    <div className="p-6">
+                    <div className="flex flex-1 flex-col p-6">
                         {/* Category */}
-                        {blog.category && (
-                            <Badge variant="outline" className="mb-3">
-                                {blog.category.name}
-                            </Badge>
-                        )}
+                        <div className="mb-3 min-h-6">
+                            {blog.category && (
+                                <Badge variant="outline">
+                                    {blog.category.name}
+                                </Badge>
+                            )}
+                        </div>
 
                         {/* Title */}
                         <h3 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
@@ -350,7 +364,7 @@ function BlogCard({ blog }: { blog: Blog }) {
                         )}
 
                         {/* Meta Information */}
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
+                        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
                             <div className="flex items-center gap-1">
                                 <User className="w-4 h-4" />
                                 {blog.author?.displayName || 'Tác giả'}
@@ -366,7 +380,7 @@ function BlogCard({ blog }: { blog: Blog }) {
                         </div>
 
                         {/* Stats */}
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <div className="mt-auto flex items-center gap-4 text-sm text-gray-500">
                             <div className="flex items-center gap-1">
                                 <Eye className="w-4 h-4" />
                                 {blog.viewCount}
