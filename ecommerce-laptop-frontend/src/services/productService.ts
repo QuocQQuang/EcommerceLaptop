@@ -81,6 +81,10 @@ const transformProduct = (backendProduct: any): Product => {
         }
     }
 
+    const parentProductId = backendProduct.parentProductId ?? backendProduct.ParentProductId ?? null;
+    const variants = backendProduct.variants ?? backendProduct.Variants ?? [];
+    const productType = backendProduct.productType ?? backendProduct.ProductType;
+
     return {
         ...backendProduct,
         slug: slug,
@@ -95,28 +99,28 @@ const transformProduct = (backendProduct: any): Product => {
             ?? 0,
 
         // Variant support
-        parentProductId: backendProduct.parentProductId,
-        variantName: backendProduct.variantName,
-        variantSku: backendProduct.variantSku,
-        isVariant: backendProduct.isVariant || false,
-        isBaseProduct: backendProduct.isBaseProduct || false,
-        variants: (backendProduct.variants || []).map((v: any) => transformProduct(v)),
+        parentProductId: parentProductId ?? undefined,
+        variantName: backendProduct.variantName ?? backendProduct.VariantName,
+        variantSku: backendProduct.variantSku ?? backendProduct.VariantSku,
+        isVariant: backendProduct.isVariant ?? backendProduct.IsVariant ?? parentProductId !== null,
+        isBaseProduct: backendProduct.isBaseProduct ?? backendProduct.IsBaseProduct ?? parentProductId === null,
+        variants: variants.map((v: any) => transformProduct(v)),
 
         // Handle TPT-specific fields
-        ...(backendProduct.ProductType === 'Laptop' && {
+        ...(productType === 'Laptop' && {
             type: 'Laptop' as const,
-            cpuBrand: backendProduct.CpuBrand,
-            cpuModel: backendProduct.CpuModel,
-            cpuCores: backendProduct.CpuCores,
-            ramCapacityGB: backendProduct.RamCapacityGB,
-            ramType: backendProduct.RamType,
-            storageCapacityGB: backendProduct.StorageCapacityGB,
-            storageType: backendProduct.StorageType,
-            displaySizeInches: backendProduct.DisplaySizeInches,
-            displayResolution: backendProduct.DisplayResolution,
-            battery: backendProduct.BatteryCapacityWh,
-            weight: backendProduct.WeightKg,
-            warranty: backendProduct.WarrantyPeriod,
+            cpuBrand: backendProduct.cpuBrand ?? backendProduct.CpuBrand,
+            cpuModel: backendProduct.cpuModel ?? backendProduct.CpuModel,
+            cpuCores: backendProduct.cpuCores ?? backendProduct.CpuCores,
+            ramCapacityGB: backendProduct.ramCapacityGB ?? backendProduct.RamCapacityGB,
+            ramType: backendProduct.ramType ?? backendProduct.RamType,
+            storageCapacityGB: backendProduct.storageCapacityGB ?? backendProduct.StorageCapacityGB,
+            storageType: backendProduct.storageType ?? backendProduct.StorageType,
+            displaySizeInches: backendProduct.displaySizeInches ?? backendProduct.DisplaySizeInches,
+            displayResolution: backendProduct.displayResolution ?? backendProduct.DisplayResolution,
+            battery: backendProduct.batteryCapacityWh ?? backendProduct.BatteryCapacityWh,
+            weight: backendProduct.weightKg ?? backendProduct.WeightKg,
+            warranty: backendProduct.warrantyPeriod ?? backendProduct.WarrantyPeriod,
             // Provide a sensible specifications fallback if backend doesn't send structured specs
             specifications: backendProduct.specifications || [
                 { id: 1, name: 'CPU', value: `${backendProduct.CpuBrand ?? ''} ${backendProduct.CpuModel ?? ''}`, category: 'Hardware' },
@@ -127,9 +131,9 @@ const transformProduct = (backendProduct: any): Product => {
         }),
 
         // Bundle-specific mapping
-        ...((backendProduct.ProductType === 'Bundle' || backendProduct.BundleItems) && {
+        ...((productType === 'Bundle' || backendProduct.BundleItems || backendProduct.bundleItems) && {
             type: 'Bundle' as const,
-            bundleItems: backendProduct.BundleItems?.map((item: any) => ({
+            bundleItems: (backendProduct.BundleItems ?? backendProduct.bundleItems)?.map((item: any) => ({
                 id: item.Id ?? item.id ?? 0,
                 productId: item.ProductId ?? item.productId,
                 productName: item.ProductName ?? item.productName ?? item.Name ?? '',

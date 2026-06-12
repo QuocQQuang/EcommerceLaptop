@@ -3,17 +3,41 @@ import { ApiResponse, api, unwrapApiArray, unwrapApiData } from '@/lib/admin/htt
 import { getBrands } from '../catalog/api';
 import type { AdminProductsParams, AdminProductsResponse, ImageUploadResult } from './types';
 
+const normalizeProduct = (product: Product): Product => {
+  const parentProductId = product.parentProductId ?? null;
+  const variants = Array.isArray(product.variants)
+    ? product.variants.map(normalizeProduct)
+    : [];
+
+  return {
+    ...product,
+    parentProductId: parentProductId ?? undefined,
+    isVariant: product.isVariant ?? parentProductId !== null,
+    isBaseProduct: product.isBaseProduct ?? parentProductId === null,
+    variants
+  };
+};
+
 export const getAdminProducts = async (params: AdminProductsParams = {}): Promise<AdminProductsResponse> => {
   const backendParams: any = { ...params };
   if (backendParams.limit && !backendParams.pageSize) {
     backendParams.pageSize = backendParams.limit;
   }
   delete backendParams.limit;
+  if (backendParams.productType === 'all') {
+    delete backendParams.productType;
+  }
+  if (typeof backendParams.isActive === 'boolean' && !backendParams.status) {
+    backendParams.status = backendParams.isActive ? 'active' : 'inactive';
+  }
+  delete backendParams.isActive;
 
   const response = await api.get<any>('/products/admin', { params: backendParams });
   const raw = response.data;
+  const products = raw.data ?? raw.items ?? raw.products ?? [];
+
   return {
-    products: raw.data || [],
+    products: products.map(normalizeProduct),
     totalCount: raw.totalCount || 0,
     currentPage: raw.page || 1,
     totalPages: raw.totalPages || 0,
@@ -23,12 +47,12 @@ export const getAdminProducts = async (params: AdminProductsParams = {}): Promis
 
 export const getAdminProduct = async (productId: number): Promise<Product> => {
   const response = await api.get<ApiResponse<Product>>(`/products/admin/${productId}`);
-  return unwrapApiData<Product>(response.data);
+  return normalizeProduct(unwrapApiData<Product>(response.data));
 };
 
 export const getProductVariants = async (productId: number): Promise<Product[]> => {
   const response = await api.get<ApiResponse<Product[]>>(`/products/${productId}/variants`);
-  return unwrapApiArray<Product>(response.data);
+  return unwrapApiArray<Product>(response.data).map(normalizeProduct);
 };
 
 export const createProduct = async (productData: any): Promise<Product> => {

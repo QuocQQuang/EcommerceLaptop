@@ -589,18 +589,24 @@ public class ProductService : IProductService
         string? status = null,
         string? productType = null)
     {
-        bool? isActive = status?.ToLower() == "active" ? true : status?.ToLower() == "inactive" ? false : null;
-        bool baseOnly = productType?.ToLower() == "base";
+        var normalizedProductType = productType?.ToLowerInvariant();
+        bool? isActive = status?.ToLowerInvariant() == "active" ? true : status?.ToLowerInvariant() == "inactive" ? false : null;
+        bool baseOnly = normalizedProductType == "base";
+        bool variantsOnly = normalizedProductType == "variant";
+        bool includeVariants = !variantsOnly;
 
         var spec = new ProductFilterSpecification(
             search, brand, null, null, null, isActive, "newest",
             skip: (page - 1) * pageSize, take: pageSize,
-            baseProductsOnly: baseOnly);
+            baseProductsOnly: baseOnly,
+            variantsOnly: variantsOnly,
+            includeVariants: includeVariants);
 
         var countSpec = new ProductFilterSpecification(
             search, brand, null, null, null, isActive, "newest",
             skip: null, take: null,
-            baseProductsOnly: baseOnly);
+            baseProductsOnly: baseOnly,
+            variantsOnly: variantsOnly);
 
         var totalCount = await _productRepository.CountAsync(countSpec);
         var items = await _productRepository.GetAsync(spec);

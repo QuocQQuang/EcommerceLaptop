@@ -64,24 +64,41 @@ export default function EnhancedProductForm({
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-    // Calculate form completion progress
+    const stockValue = formData.inventory?.quantityInStock || formData.stock;
+    const requiredFieldStatus = useMemo(() => [
+        { key: 'name', filled: Boolean(formData.name?.trim()), message: 'Tên sản phẩm là bắt buộc' },
+        { key: 'sku', filled: Boolean(formData.sku?.trim()), message: 'SKU là bắt buộc' },
+        { key: 'productType', filled: Boolean(formData.productType), message: 'Loại sản phẩm là bắt buộc' },
+        { key: 'categoryId', filled: Boolean(formData.categoryId), message: 'Danh mục là bắt buộc' },
+        { key: 'brandId', filled: Boolean(formData.brandId), message: 'Thương hiệu là bắt buộc' },
+        {
+            key: 'price',
+            filled: formData.price !== '' && !Number.isNaN(Number(formData.price)) && Number(formData.price) >= 0,
+            message: 'Giá phải là số không âm'
+        },
+        {
+            key: 'stock',
+            filled: stockValue !== '' && !Number.isNaN(Number(stockValue)) && Number(stockValue) >= 0,
+            message: 'Tồn kho phải là số không âm'
+        }
+    ], [formData.name, formData.sku, formData.productType, formData.categoryId, formData.brandId, formData.price, stockValue]);
+
     const completionProgress = useMemo(() => {
-        const requiredFields = [
-            'name', 'sku', 'productType', 'brandId', 'price'
-        ];
+        const filledFields = requiredFieldStatus.filter(field => field.filled).length;
+        return Math.round((filledFields / requiredFieldStatus.length) * 100);
+    }, [requiredFieldStatus]);
 
-        const filledFields = requiredFields.filter(field => {
-            const value = formData[field as keyof ProductFormData];
-            return value && value.toString().trim() !== '';
+    const computedValidationErrors = useMemo(() => {
+        const errors: Record<string, string> = { ...validationErrors };
+        requiredFieldStatus.forEach(field => {
+            if (!field.filled) errors[field.key] = field.message;
         });
+        return errors;
+    }, [requiredFieldStatus, validationErrors]);
 
-        return Math.round((filledFields.length / requiredFields.length) * 100);
-    }, [formData]);
-
-    // Check for validation errors
     const hasErrors = useMemo(() => {
-        return Object.keys(validationErrors).length > 0;
-    }, [validationErrors]);
+        return Object.keys(computedValidationErrors).length > 0;
+    }, [computedValidationErrors]);
 
     // Handle input changes
     const handleInputChange = (field: keyof ProductFormData, value: any) => {
@@ -169,7 +186,7 @@ export default function EnhancedProductForm({
                     <BasicInformationSection
                         formData={formData}
                         onInputChange={handleInputChange}
-                        validationErrors={validationErrors}
+                        validationErrors={computedValidationErrors}
                         categories={categories}
                         brands={brands}
                         isExpanded={isSectionExpanded('basic-info')}
@@ -185,7 +202,7 @@ export default function EnhancedProductForm({
                         <LaptopSpecificationsSection
                             formData={formData}
                             onInputChange={handleInputChange}
-                            validationErrors={validationErrors}
+                            validationErrors={computedValidationErrors}
                             expandedSections={expandedSections}
                             onToggleSection={toggleSection}
                         />
@@ -194,7 +211,7 @@ export default function EnhancedProductForm({
                         <AccessorySpecificationsSection
                             formData={formData}
                             onInputChange={handleInputChange}
-                            validationErrors={validationErrors}
+                            validationErrors={computedValidationErrors}
                             isExpanded={isSectionExpanded('accessory-specs')}
                             onToggle={() => toggleSection('accessory-specs')}
                         />
@@ -204,7 +221,7 @@ export default function EnhancedProductForm({
                             formData={formData}
                             onInputChange={handleInputChange}
                             onNestedInputChange={handleNestedInputChange}
-                            validationErrors={validationErrors}
+                            validationErrors={computedValidationErrors}
                             products={products}
                             isExpanded={isSectionExpanded('bundle-specs')}
                             onToggle={() => toggleSection('bundle-specs')}
@@ -217,7 +234,7 @@ export default function EnhancedProductForm({
                     <InventoryManagementSection
                         formData={formData}
                         onNestedInputChange={handleNestedInputChange}
-                        validationErrors={validationErrors}
+                        validationErrors={computedValidationErrors}
                         isExpanded={isSectionExpanded('inventory')}
                         onToggle={() => toggleSection('inventory')}
                     />

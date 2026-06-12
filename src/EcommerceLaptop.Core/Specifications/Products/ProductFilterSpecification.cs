@@ -15,6 +15,7 @@ public class ProductFilterSpecification : BaseSpecification<Product>
         int? skip = null,
         int? take = null,
         bool baseProductsOnly = false,
+        bool variantsOnly = false,
         bool includeVariants = false)
         : base(p => 
             (string.IsNullOrEmpty(searchTerm) || p.Name.Contains(searchTerm) || p.Brand.Contains(searchTerm)) &&
@@ -23,7 +24,8 @@ public class ProductFilterSpecification : BaseSpecification<Product>
             (!maxPrice.HasValue || p.Price <= maxPrice.Value) &&
             (string.IsNullOrEmpty(category) || (p.Category != null && p.Category.Name == category)) &&
             (!isActive.HasValue || p.IsActive == isActive.Value) &&
-            (!baseProductsOnly || p.ParentProductId == null)
+            (!baseProductsOnly || p.ParentProductId == null) &&
+            (!variantsOnly || p.ParentProductId != null)
         )
     {
         AddInclude(p => p.Images);

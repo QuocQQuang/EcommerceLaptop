@@ -279,10 +279,17 @@ export default function EditProductPage() {
 
   // Load variants when product is loaded
   useEffect(() => {
-    if (product && product.isBaseProduct) {
+    if (!product) return;
+
+    const parentProductId = product.parentProductId ?? null;
+    const isBaseProduct = product.isBaseProduct ?? parentProductId === null;
+
+    if (isBaseProduct) {
       getProductVariants(parseInt(productId))
         .then(setVariants)
         .catch(err => console.error('Failed to load variants:', err));
+    } else {
+      setVariants([]);
     }
   }, [product, productId]);
 
@@ -413,16 +420,20 @@ export default function EditProductPage() {
   };
 
   const isFormValid = useMemo(() => {
+    const stockValue = formData.inventory?.quantityInStock || formData.stock;
+
     return formData.name &&
       formData.sku &&
       formData.productType &&
+      formData.categoryId &&
       formData.brandId &&
       formData.price &&
       !isNaN(parseFloat(formData.price)) &&
       parseFloat(formData.price) >= 0 &&
-      !isNaN(parseInt(formData.stock)) &&
-      parseInt(formData.stock) >= 0;
-  }, [formData.name, formData.sku, formData.productType, formData.brandId, formData.price, formData.stock]);
+      stockValue !== '' &&
+      !isNaN(parseInt(stockValue)) &&
+      parseInt(stockValue) >= 0;
+  }, [formData.name, formData.sku, formData.productType, formData.categoryId, formData.brandId, formData.price, formData.stock, formData.inventory?.quantityInStock]);
 
   if (productLoading || categoriesLoading || brandsLoading) {
     return (

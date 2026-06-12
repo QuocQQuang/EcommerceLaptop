@@ -84,6 +84,8 @@ interface ProductsResponse {
 const mapApiProductToProduct = (apiProduct: ApiProduct): Product => {
   // Extract stock quantity from inventory object (availableQuantity) or fallback to stockQuantity
   const stockQuantity = apiProduct.inventory?.availableQuantity || apiProduct.stockQuantity || 0;
+  const parentProductId = apiProduct.parentProductId ?? null;
+  const variants = Array.isArray(apiProduct.variants) ? apiProduct.variants : [];
 
   return {
     id: apiProduct.id,
@@ -97,10 +99,10 @@ const mapApiProductToProduct = (apiProduct: ApiProduct): Product => {
     createdAt: apiProduct.createdAt,
     updatedAt: apiProduct.updatedAt,
     // Variant support
-    isBaseProduct: apiProduct.isBaseProduct || false,
-    isVariant: apiProduct.isVariant || false,
+    isBaseProduct: apiProduct.isBaseProduct ?? parentProductId === null,
+    isVariant: apiProduct.isVariant ?? parentProductId !== null,
     parentProductId: apiProduct.parentProductId,
-    variantCount: apiProduct.variants?.length || 0,
+    variantCount: variants.length,
     variantName: apiProduct.variantName,
     variantSku: apiProduct.variantSku
   };
@@ -124,8 +126,7 @@ const useProductsQuery = (params: {
         page: params.page || 1,
         limit: params.limit || 20,
         search: params.search,
-        // Map status to isActive
-        isActive: params.status === 'active' ? true : params.status === 'inactive' ? false : undefined,
+        status: params.status,
         productType: params.productType,
         sortBy: params.sortBy,
         sortOrder: params.sortOrder

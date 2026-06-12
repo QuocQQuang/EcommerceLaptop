@@ -56,14 +56,19 @@ export function Combobox({
     const [searchValue, setSearchValue] = React.useState("")
 
     const selectedOption = options.find((option) => option.value === value)
+    const selectedLabel = selectedOption?.label || value
+    const displayOptions = React.useMemo(() => {
+        if (!value || selectedOption) return options
+        return [{ value, label: value }, ...options]
+    }, [options, selectedOption, value])
 
     // Filter options based on search
     const filteredOptions = React.useMemo(() => {
-        if (!searchValue) return options
-        return options.filter(option =>
+        if (!searchValue) return displayOptions
+        return displayOptions.filter(option =>
             option.label.toLowerCase().includes(searchValue.toLowerCase())
         )
-    }, [options, searchValue])
+    }, [displayOptions, searchValue])
 
     const handleSelect = (selectedValue: string) => {
         if (selectedValue === "other") {
@@ -113,7 +118,7 @@ export function Combobox({
                         className="w-full justify-between"
                         disabled={disabled}
                     >
-                        {selectedOption ? selectedOption.label : placeholder}
+                        {value ? selectedLabel : placeholder}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
@@ -191,7 +196,7 @@ export function Combobox({
             {value && (
                 <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
-                         chn: {selectedOption?.label || value}
+                         chn: {selectedLabel}
                     </span>
                     <Button
                         size="sm"
