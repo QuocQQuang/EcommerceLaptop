@@ -41,14 +41,14 @@ function VNPayPaymentContent() {
                 })
                 .catch(() => toast.error('Khng th ti thng tin n hng'));
         } else {
-            toast.error('ID n hng khng hp l');
+            toast.error('ID đơn hàng không hợp lệ');
             router.push('/checkout');
         }
     }, [orderId, router]);
 
     const handlePayment = async () => {
         if (!orderId || !order) {
-            toast.error('Thng tin n hng khng hp l');
+            toast.error('Thông tin đơn hàng không hợp lệ');
             return;
         }
 
@@ -92,7 +92,7 @@ function VNPayPaymentContent() {
         <div className="container mx-auto px-4 py-8">
             <Link href="/checkout" className="flex items-center text-muted-foreground hover:text-foreground mb-6">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Quay li thanh ton
+                Quay lại thanh toán
             </Link>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -109,28 +109,28 @@ function VNPayPaymentContent() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="space-y-2">
-                                <h3 className="font-semibold">Thng tin n hng</h3>
+                                <h3 className="font-semibold">Thông tin đơn hàng</h3>
                                 <div className="text-sm text-muted-foreground">
-                                    <p>Trng thi: <Badge variant={order.status === 'Pending' ? 'secondary' : 'default'}>{order.status}</Badge></p>
-                                    <p>Phng thc: VNPAY</p>
-                                    <p>a ch: {formatAddressForDisplay(order.shippingAddress)}</p>
+                                    <p>Trạng thái: <Badge variant={order.status === 'Pending' ? 'secondary' : 'default'}>{order.status}</Badge></p>
+                                    <p>Phương thức: VNPAY</p>
+                                    <p>Địa chỉ: {formatAddressForDisplay(order.shippingAddress)}</p>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
-                                <h3 className="font-semibold">Ch  thanh ton</h3>
+                                <h3 className="font-semibold">Chế độ thanh toán</h3>
                                 <div className="space-y-2">
                                     <RadioGroup value={environment} onValueChange={(value) => setEnvironment(value as 'sandbox' | 'production')}>
                                         <div className="flex items-center space-x-2 p-3 border rounded-md">
                                             <RadioGroupItem value="sandbox" id="sandbox" />
                                             <label htmlFor="sandbox" className="text-sm font-medium">
-                                                Ch  Test (Sandbox)
+                                                Chế độ Test (Sandbox)
                                             </label>
                                         </div>
                                         <div className="flex items-center space-x-2 p-3 border rounded-md">
                                             <RadioGroupItem value="production" id="production" />
                                             <label htmlFor="production" className="text-sm font-medium">
-                                                Ch  Thc t (Production)
+                                                Chế độ Thực tế (Production)
                                             </label>
                                         </div>
                                     </RadioGroup>
@@ -150,7 +150,7 @@ function VNPayPaymentContent() {
                             </Button>
 
                             <div className="text-xs text-muted-foreground text-center">
-                                Bng cch nhp vo nt trn, bn ng  vi <Link href="/terms" className="underline">iu khon dch v</Link> v <Link href="/privacy" className="underline">Chnh sch bo mt</Link>
+                                Bằng cách nhấp vào nút trên, bạn đồng ý với <Link href="/terms" className="underline">Điều khoản dịch vụ</Link> và <Link href="/privacy" className="underline">Chính sách bảo mật</Link>
                             </div>
                         </CardContent>
                     </Card>
@@ -159,20 +159,20 @@ function VNPayPaymentContent() {
                 <div className="lg:col-span-1">
                     <Card className="sticky top-24">
                         <CardHeader>
-                            <CardTitle>Tm tt n hng</CardTitle>
+                            <CardTitle>Tóm tắt đơn hàng</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
                             <div className="flex justify-between">
-                                <span>Tm tnh</span>
+                                <span>Tạm tính</span>
                                 <span>{formatCurrencyPrice(order.subtotal, selectedCurrency)}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span>Ph vn chuyn</span>
-                                <span>Min ph</span>
+                                <span>Phí vận chuyển</span>
+                                <span>Miễn phí</span>
                             </div>
                             <Separator />
                             <div className="flex justify-between text-lg font-bold">
-                                <span>Tng cng</span>
+                                <span>Tổng cộng</span>
                                 <span>{formatCurrencyPrice(order.totalAmount, selectedCurrency)}</span>
                             </div>
                         </CardContent>

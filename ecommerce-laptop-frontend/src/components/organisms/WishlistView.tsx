@@ -65,10 +65,10 @@ export function WishlistView() {
                 <div className="mx-auto w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-6">
                     <Heart className="w-10 h-10 text-gray-400" />
                 </div>
-                <h3 className="text-2xl font-semibold">Danh sch yu thch trng!</h3>
-                <p className="text-gray-600 mt-2">Thm mt vi laptop bn thch  bt u.</p>
+                <h3 className="text-2xl font-semibold">Danh sách yêu thích trống!</h3>
+                <p className="text-gray-600 mt-2">Thêm một vài laptop bạn thích để bắt đầu.</p>
                 <Link href="/products" className="inline-block mt-4">
-                    <Button>Duyt sn phm</Button>
+                    <Button>Duyệt sản phẩm</Button>
                 </Link>
             </div>
         );
@@ -80,41 +80,41 @@ export function WishlistView() {
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <label className="text-sm text-gray-600">Hin th</label>
+                            <label className="text-sm text-gray-600">Hiển thị</label>
                             <Select value={view} onValueChange={(v: any) => setView(v)}>
                                 <SelectTrigger className="h-8 w-36">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="grid">Li</SelectItem>
-                                    <SelectItem value="list">Danh sch</SelectItem>
+                                    <SelectItem value="grid">Lưới</SelectItem>
+                                    <SelectItem value="list">Danh sách</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm text-gray-600">Sp xp</label>
+                            <label className="text-sm text-gray-600">Sắp xếp</label>
                             <Select value={sort} onValueChange={(v: any) => setSort(v)}>
                                 <SelectTrigger className="h-8 w-44">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="added_desc">Mi nht</SelectItem>
-                                    <SelectItem value="added_asc">C nht</SelectItem>
-                                    <SelectItem value="price_asc">Gi: Thp  Cao</SelectItem>
-                                    <SelectItem value="price_desc">Gi: Cao  Thp</SelectItem>
+                                    <SelectItem value="added_desc">Mới nhất</SelectItem>
+                                    <SelectItem value="added_asc">Cũ nhất</SelectItem>
+                                    <SelectItem value="price_asc">Giá: Thấp đến Cao</SelectItem>
+                                    <SelectItem value="price_desc">Giá: Cao đến Thấp</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm text-gray-600">Thng hiu</label>
+                            <label className="text-sm text-gray-600">Thương hiệu</label>
                             <Select value={brandFilter} onValueChange={(v: any) => setBrandFilter(v)}>
                                 <SelectTrigger className="h-8 w-40">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">Tt c</SelectItem>
+                                    <SelectItem value="all">Tất cả</SelectItem>
                                     {brands.map(b => (
                                         <SelectItem key={b} value={b}>{b}</SelectItem>
                                     ))}
@@ -124,7 +124,7 @@ export function WishlistView() {
                     </div>
                 </div>
 
-                <div className="text-sm text-gray-500">{items.length} sn phm</div>
+                <div className="text-sm text-gray-500">{items.length} sản phẩm</div>
             </div>
 
             <div className={view === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
@@ -134,16 +134,16 @@ export function WishlistView() {
                             <div>
                                 <ProductCard product={item.product} />
                                 <div className="mt-2 flex items-center gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => removeItem(item.product.id)}>Xa</Button>
-                                    <Button size="sm" onClick={() => addToCart(item.product, 1)}>Thm vo gi</Button>
+                                    <Button variant="outline" size="sm" onClick={() => removeItem(item.product.id)}>Xóa</Button>
+                                    <Button size="sm" onClick={() => addToCart(item.product, 1)}>Thêm vào giỏ</Button>
                                     <Button variant={isInCompare(item.product.id) ? 'default' : 'outline'} size="sm" onClick={() => toggleCompare(item.product)}>
-                                        {isInCompare(item.product.id) ? ' chn' : 'So snh'}
+                                        {isInCompare(item.product.id) ? 'Đã chọn' : 'So sánh'}
                                     </Button>
                                 </div>
                                 <div className="mt-2">
                                     <Input
                                         value={item.note ?? ''}
-                                        placeholder="Ghi ch lu sau..."
+                                            placeholder="Ghi chú lưu sau..."
                                         onChange={(e) => setNote(item.product.id, e.target.value)}
                                     />
                                 </div>
@@ -157,10 +157,10 @@ export function WishlistView() {
                                     <div className="flex items-center justify-between">
                                         <h4 className="font-medium">{item.product.name}</h4>
                                         <div className="flex items-center gap-2">
-                                            <Button variant="outline" size="sm" onClick={() => removeItem(item.product.id)}>Xa</Button>
-                                            <Button size="sm" onClick={() => addToCart(item.product, 1)}>Thm vo gi</Button>
+                                            <Button variant="outline" size="sm" onClick={() => removeItem(item.product.id)}>Xóa</Button>
+                                            <Button size="sm" onClick={() => addToCart(item.product, 1)}>Thêm vào giỏ</Button>
                                             <Button variant={isInCompare(item.product.id) ? 'default' : 'outline'} size="sm" onClick={() => toggleCompare(item.product)}>
-                                                {isInCompare(item.product.id) ? ' chn' : 'So snh'}
+                                                {isInCompare(item.product.id) ? 'Đã chọn' : 'So sánh'}
                                             </Button>
                                         </div>
                                     </div>
@@ -168,7 +168,7 @@ export function WishlistView() {
                                     <div className="mt-2">
                                         <Input
                                             value={item.note ?? ''}
-                                            placeholder="Ghi ch lu sau..."
+                                        placeholder="Ghi chú lưu sau..."
                                             onChange={(e) => setNote(item.product.id, e.target.value)}
                                         />
                                     </div>

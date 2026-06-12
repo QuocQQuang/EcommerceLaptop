@@ -59,51 +59,6 @@ builder.Services.AddControllers()
 
 builder.Services.AddSignalR();
 
-// CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("Development", policy =>
-    {
-        policy.WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:3001", "https://localhost:3001", "http://localhost:3002", "https://localhost:3002")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
-    });
-
-    options.AddPolicy("Production", policy =>
-    {
-        policy.WithOrigins(
-                "https://ecommerce-laptop-quocquang.vercel.app",
-                "https://a33lprojecct.id.vn"  // Frontend custom domain nu c
-            )
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials()
-            .SetIsOriginAllowed(_ => true);  // Cho wildcard Vercel preview URLs
-    });
-
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.WithOrigins(
-                "http://localhost:3000", "https://localhost:3000",
-                "http://localhost:3001", "https://localhost:3001",
-                "http://localhost:3002", "https://localhost:3002",
-                "http://127.0.0.1:3000", "https://127.0.0.1:3000",
-                "https://ecommerce-laptop-quocquang.vercel.app",
-                "https://ecommerce-laptop-quocquang-git-*.vercel.app",
-                "https://a33lprojecct.id.vn"
-              )
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials()
-              .SetIsOriginAllowed(origin => origin.StartsWith("https://ecommerce-laptop-quocquang") ||
-                                           origin.StartsWith("http://localhost:") ||
-                                           origin.StartsWith("https://localhost:") ||
-                                           origin.StartsWith("http://127.0.0.1:") ||
-                                           origin.StartsWith("https://127.0.0.1:"));
-    });
-});
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

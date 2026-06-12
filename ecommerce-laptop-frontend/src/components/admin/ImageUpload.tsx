@@ -71,7 +71,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       onImagesChange([...images, ...newImages]);
     } catch (err: any) {
       console.error('Upload failed:', err?.message || err);
-      alert('Upload tht bi');
+      alert('Upload thất bại');
     }
   };
 
@@ -137,7 +137,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       }
     } catch (error) {
       console.error('Delete failed:', error);
-      toast.error('Xa nh tht bi. Vui lng th li.');
+      toast.error('Xóa ảnh thất bại. Vui lòng thử lại.');
     }
   };
 
@@ -150,7 +150,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   return (
     <div className={cn("space-y-4", className)}>
       <div className="flex items-center gap-2">
-        <Label>Hnh nh sn phm ({images.length}/{maxImages})</Label>
+        <Label>Hình ảnh sản phẩm ({images.length}/{maxImages})</Label>
         <Shield className="h-4 w-4 text-green-600" />
         <Badge variant="outline" className="text-xs">
         </Badge>
@@ -188,8 +188,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
           <p className="text-sm text-muted-foreground text-center">
             <>
-              Ko th nh vo y hoc{" "}
-              <span className="text-primary hover:underline">chn file</span>
+              Kéo thả ảnh vào đây hoặc{" "}
+              <span className="text-primary hover:underline">chọn file</span>
               <br />
               <span className="text-xs">JPG, PNG, WebP</span>
             </>
@@ -236,7 +236,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-muted-foreground">
-                    nh {index + 1}
+                    Ảnh {index + 1}
                   </span>
                   <Button
                     type="button"

@@ -64,13 +64,13 @@ export function Hero() {
                             className="text-5xl lg:text-7xl font-bold text-foreground"
                             variants={heroVariants}
                         >
-                            Tng lai ca Laptop
+                            Tương lai của Laptop
                         </motion.h1>
                         <motion.p
                             className="text-xl lg:text-2xl text-muted-foreground max-w-md mx-auto lg:mx-0"
                             variants={heroVariants}
                         >
-                            Tri nghim hiu nng vt tri v thit k tinh t trong dng laptop cao cp mi nht. c thit k dnh cho ngi sng to, chuyn gia v game th.
+                            Trải nghiệm hiệu năng vượt trội và thiết kế tinh tế trong dòng laptop cao cấp mới nhất. Được thiết kế dành cho người sáng tạo, chuyên gia và game thủ.
                         </motion.p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg">
@@ -81,7 +81,7 @@ export function Hero() {
                             </Button>
                             <Button asChild variant="outline" size="lg">
                                 <Link href="/features">
-                                    Xem tnh nng
+                                    Xem tính năng
                                     <Laptop className="ml-2 h-5 w-5" />
                                 </Link>
                             </Button>

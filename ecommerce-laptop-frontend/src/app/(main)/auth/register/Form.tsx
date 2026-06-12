@@ -126,21 +126,21 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
 
             // Show success and prompt user to check email for confirmation
             setSuccess(true);
-            toast.success('ng k thnh cng! Vui lng kim tra email  xc nhn ti khon.', { duration: 4000 });
+            toast.success('Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.', { duration: 4000 });
             setTimeout(() => {
                 if (onSuccess) onSuccess();
             }, 2000);
 
         } catch (err: any) {
-            let errorMessage = ' c li xy ra. Vui lng th li.';
+            let errorMessage = 'Đã có lỗi xảy ra. Vui lòng thử lại.';
             if (err.response?.data?.error) {
                 errorMessage = err.response.data.error;
             } else if (err.response?.data?.message) {
                 errorMessage = err.response.data.message;
             } else if (err.response?.status === 400 || err.response?.status === 409) {
-                errorMessage = 'Ti khon  tn ti. Vui lng ng nhp.';
+                errorMessage = 'Tài khoản đã tồn tại. Vui lòng đăng nhập.';
             } else if (err.response?.status >= 500) {
-                errorMessage = 'My ch gp s c, vui lng th li sau.';
+                errorMessage = 'Máy chủ gặp sự cố, vui lòng thử lại sau.';
             }
             toast.error(
                 <div className="flex items-center gap-2">
@@ -165,10 +165,10 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
                     <CheckCircle className="h-16 w-16 text-[#00f5d4] mx-auto mb-4" />
                 </motion.div>
                 <h2 className="text-2xl font-bold text-[#f5f5f5] mb-2">
-                    ng k thnh cng!
+                    Đăng ký thành công!
                 </h2>
                 <p className="text-[#9ca3af] mb-4">
-                    Ti khon ca bn  c to thnh cng. Vui lng kim tra email  xc nhn ti khon trc khi ng nhp.
+                    Tài khoản của bạn đã được tạo thành công. Vui lòng kiểm tra email để xác nhận tài khoản trước khi đăng nhập.
                 </p>
                 <LoadingSpinner size="sm" />
             </CardContent>
@@ -178,9 +178,9 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
     return (
         <>
             <CardHeader className="text-center pb-4">
-                <CardTitle className="text-2xl font-bold text-[#f5f5f5]">ng k</CardTitle>
+                <CardTitle className="text-2xl font-bold text-[#f5f5f5]">Đăng ký</CardTitle>
                 <CardDescription className="text-[#9ca3af]">
-                    in thng tin di y  to ti khon mi
+                    Điền thông tin dưới đây để tạo tài khoản mới
                 </CardDescription>
             </CardHeader>
 
@@ -332,7 +332,7 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
 
                     {/* Password Field */}
                     <div className="space-y-2">
-                        <Label htmlFor="password" className="text-sm font-medium text-[#f5f5f5]">Mt khu *</Label>
+                        <Label htmlFor="password" className="text-sm font-medium text-[#f5f5f5]">Mật khẩu *</Label>
                         <motion.div
                             className="relative"
                             whileFocus={inputFocusVariants}
@@ -345,7 +345,7 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
                                 value={formData.password}
                                 onChange={handleInputChange}
                                 onBlur={() => validation.handleFieldBlur('password', formData.password)}
-                                placeholder="Nhp mt khu"
+                                placeholder="Nhập mật khẩu"
                                 className={cn(
                                     "h-12 bg-[#1a1a1a] border-[#333] text-[#f5f5f5] placeholder-[#9ca3af] focus:border-[#00f5d4] focus:ring-[#00f5d4]/20 transition-all duration-200 pr-10",
                                     validation.touched.password && validation.errors.password && "border-red-500 focus:border-red-500"
@@ -363,7 +363,7 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
                         {/* Password Rules */}
                         {formData.password && (
                             <div className="mt-2 space-y-1">
-                                <p className="text-xs text-[#9ca3af]">Mt khu phi c:</p>
+                                <p className="text-xs text-[#9ca3af]">Mật khẩu phải có:</p>
                                 {passwordRules.map((rule, index) => (
                                     <div key={index} className="flex items-center text-xs">
                                         <Check
@@ -389,7 +389,7 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
 
                     {/* Confirm Password Field */}
                     <div className="space-y-2">
-                        <Label htmlFor="confirmPassword" className="text-sm font-medium text-[#f5f5f5]">Xc nhn mt khu *</Label>
+                        <Label htmlFor="confirmPassword" className="text-sm font-medium text-[#f5f5f5]">Xác nhận mật khẩu *</Label>
                         <motion.div
                             className="relative"
                             whileFocus={inputFocusVariants}
@@ -402,7 +402,7 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
                                 value={formData.confirmPassword}
                                 onChange={handleInputChange}
                                 onBlur={() => validation.handleFieldBlur('confirmPassword', formData.confirmPassword)}
-                                placeholder="Nhp li mt khu"
+                                placeholder="Nhập lại mật khẩu"
                                 className={cn(
                                     "h-12 bg-[#1a1a1a] border-[#333] text-[#f5f5f5] placeholder-[#9ca3af] focus:border-[#00f5d4] focus:ring-[#00f5d4]/20 transition-all duration-200 pr-10",
                                     validation.touched.confirmPassword && validation.errors.confirmPassword && "border-red-500 focus:border-red-500"
@@ -440,13 +440,13 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
                                 )}
                             />
                             <label htmlFor="agreeToTerms" className="text-sm text-[#9ca3af] cursor-pointer leading-relaxed">
-                                Ti ng  vi{' '}
+                                Tôi đồng ý với{' '}
                                 <a href="/terms" className="text-[#00f5d4] hover:text-[#6366f1]">
-                                    iu khon s dng
+                                    Điều khoản sử dụng
                                 </a>{' '}
                                 v{' '}
                                 <a href="/privacy" className="text-[#00f5d4] hover:text-[#6366f1]">
-                                    Chnh sch bo mt
+                                    Chính sách bảo mật
                                 </a>
                             </label>
                         </div>
@@ -469,10 +469,10 @@ export function RegisterForm({ onSuccess, callbackUrl = '/' }: RegisterFormProps
                             {loading ? (
                                 <>
                                     <LoadingSpinner size="sm" className="mr-2" />
-                                    ang to ti khon...
+                                    đang tạo tài khoản...
                                 </>
                             ) : (
-                                'To ti khon'
+                                'Tạo tài khoản'
                             )}
                         </Button>
                     </motion.div>

@@ -70,7 +70,7 @@ export default function AuthPageContent() {
             >
                 <Link href="/" className="flex items-center space-x-2 text-[#f5f5f5] hover:text-[#00f5d4] transition-colors">
                     <ArrowLeft className="h-6 w-6" />
-                    <span className="font-semibold">Trang ch</span>
+                    <span className="font-semibold">Trang chủ</span>
                 </Link>
             </motion.div>
 
@@ -91,10 +91,10 @@ export default function AuthPageContent() {
                         className="text-4xl font-bold text-[#f5f5f5] mb-2 bg-gradient-to-r from-[#00f5d4] to-[#6366f1] bg-clip-text text-transparent"
                         whileHover={{ scale: 1.02 }}
                     >
-                        {mode === 'login' ? 'Cho mng tr li' : 'To ti khon ca bn'}
+                        {mode === 'login' ? 'Chào mừng trở lại' : 'Tạo tài khoản của bạn'}
                     </motion.h1>
                     <p className="text-[#9ca3af] font-medium">
-                        {mode === 'login' ? 'ng nhp vo ti khon ca bn' : 'ng Nhp'}
+                        {mode === 'login' ? 'Đăng nhập vào tài khoản của bạn' : 'Đăng Nhập'}
                     </p>
                 </motion.div>
 
@@ -119,13 +119,13 @@ export default function AuthPageContent() {
                     {/* Toggle Mode */}
                     <div className="mt-6 text-center">
                         <p className="text-[#9ca3af]">
-                            {mode === 'login' ? "Cha c ti khon?" : " c ti khon?"}
+                            {mode === 'login' ? "Chưa có tài khoản?" : "Đã có tài khoản?"}
                             <Button
                                 variant="link"
                                 className="font-semibold text-[#00f5d4] hover:text-[#00c4a9] pl-2"
                                 onClick={toggleMode}
                             >
-                                {mode === 'login' ? 'ng k' : 'ng nhp'}
+                                {mode === 'login' ? 'Đăng ký' : 'Đăng nhập'}
                             </Button>
                         </p>
                     </div>

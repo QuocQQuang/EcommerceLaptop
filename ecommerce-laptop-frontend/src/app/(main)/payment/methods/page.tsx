@@ -14,7 +14,7 @@ function PaymentMethodsContent() {
 
     useEffect(() => {
         if (orderId <= 0) {
-            toast.error('ID n hng khng hp l');
+            toast.error('ID đơn hàng không hợp lệ');
             window.location.href = '/checkout';
         }
     }, [orderId]);
@@ -24,8 +24,8 @@ function PaymentMethodsContent() {
             <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[60vh]">
                 <Card>
                     <CardContent className="text-center p-8">
-                        <h2 className="text-xl font-semibold mb-2">Li</h2>
-                        <p>n hng khng hp l. <Link href="/checkout" className="text-primary underline">Quay li thanh ton</Link></p>
+                        <h2 className="text-xl font-semibold mb-2">Lỗi</h2>
+                        <p>Đơn hàng không hợp lệ. <Link href="/checkout" className="text-primary underline">Quay lại thanh toán</Link></p>
                     </CardContent>
                 </Card>
             </div>
@@ -36,14 +36,14 @@ function PaymentMethodsContent() {
         <div className="container mx-auto px-4 py-8">
             <Link href="/checkout" className="flex items-center text-muted-foreground hover:text-foreground mb-6">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Quay li
+                Quay lại
             </Link>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Chn phng thc thanh ton</CardTitle>
+                    <CardTitle>Chọn phương thức thanh toán</CardTitle>
                     <CardDescription>
-                        n hng #{orderId} - Chn phng thc ph hp vi bn
+                        Đơn hàng #{orderId} - Chọn phương thức phù hợp với bạn
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -55,7 +55,7 @@ function PaymentMethodsContent() {
                                 </div>
                                 <div className="text-left">
                                     <h3 className="font-medium">VNPAY</h3>
-                                    <p className="text-sm text-muted-foreground">Thanh ton qua VNPAY</p>
+                                    <p className="text-sm text-muted-foreground">Thanh toán qua VNPAY</p>
                                 </div>
                             </Link>
                         </Button>
@@ -67,7 +67,7 @@ function PaymentMethodsContent() {
                                 </div>
                                 <div className="text-left">
                                     <h3 className="font-medium">SePay</h3>
-                                    <p className="text-sm text-muted-foreground">Chuyn khon ngn hng qua QR</p>
+                                    <p className="text-sm text-muted-foreground">Chuyển khoản ngân hàng qua QR</p>
                                 </div>
                             </Link>
                         </Button>
@@ -79,7 +79,7 @@ function PaymentMethodsContent() {
                                 </div>
                                 <div className="text-left">
                                     <h3 className="font-medium">PayPal</h3>
-                                    <p className="text-sm text-muted-foreground">Thanh ton qua PayPal</p>
+                                    <p className="text-sm text-muted-foreground">Thanh toán qua PayPal</p>
                                 </div>
                             </Link>
                         </Button>
@@ -91,7 +91,7 @@ function PaymentMethodsContent() {
                                 </div>
                                 <div className="text-left">
                                     <h3 className="font-medium">Stripe</h3>
-                                    <p className="text-sm text-muted-foreground">Thanh ton th quc t</p>
+                                    <p className="text-sm text-muted-foreground">Thanh toán thẻ quốc tế</p>
                                 </div>
                             </Link>
                         </Button>
@@ -108,7 +108,7 @@ export default function PaymentMethodsPage() {
             <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[60vh]">
                 <Card>
                     <CardContent className="text-center p-8">
-                        <p>ang ti...</p>
+                        <p>Đang tải...</p>
                     </CardContent>
                 </Card>
             </div>

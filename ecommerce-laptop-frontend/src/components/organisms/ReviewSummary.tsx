@@ -32,7 +32,7 @@ export const ReviewSummary: React.FC<ReviewSummaryProps> = ({
             <div className="flex items-start justify-between mb-6">
                 <div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        nh gi sn phm
+                        Đánh giá sản phẩm
                     </h3>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="text-3xl font-bold text-gray-900">
@@ -41,13 +41,13 @@ export const ReviewSummary: React.FC<ReviewSummaryProps> = ({
                         <div>
                             <StarRating rating={summary.averageRating} size="lg" showValue={false} />
                             <div className="text-sm text-gray-500 mt-1">
-                                {summary.totalReviews} nh gi
+                                {summary.totalReviews} đánh giá
                             </div>
                         </div>
                     </div>
                     {summary.verifiedPurchaseCount > 0 && (
                         <div className="text-sm text-green-600">
-                            {summary.verifiedPurchaseCount} nh gi t ngi mua  xc thc
+                            {summary.verifiedPurchaseCount} đánh giá từ người mua đã xác thực
                         </div>
                     )}
                 </div>
@@ -55,7 +55,7 @@ export const ReviewSummary: React.FC<ReviewSummaryProps> = ({
 
             {/* Rating Breakdown */}
             <div className="space-y-2 mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Phn b nh gi</h4>
+                <h4 className="font-medium text-gray-900 mb-3">Phân bố đánh giá</h4>
                 {ratingBreakdown.map(({ rating, count, percentage }) => (
                     <div
                         key={rating}
@@ -91,13 +91,13 @@ export const ReviewSummary: React.FC<ReviewSummaryProps> = ({
                     onClick={handleShowAllClick}
                     className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
                 >
-                    Xem tt c
+                    Xem tất cả
                 </button>
                 <button
                     onClick={() => onFilterByRating?.(null)}
                     className="px-4 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors"
                 >
-                    Ch nh gi  xc thc
+                    Chỉ đánh giá đã xác thực
                 </button>
             </div>
         </div>

@@ -34,7 +34,7 @@ function PayPalPaymentContent() {
                 .then(setOrder)
                 .catch(() => toast.error('Khng th ti thng tin n hng'));
         } else {
-            toast.error('ID n hng khng hp l');
+            toast.error('ID đơn hàng không hợp lệ');
             router.push('/checkout');
         }
         setIsLoading(false);

@@ -125,7 +125,7 @@ function SePayPaymentContent() {
                             status: order.status,
                             paymentStatus: order.paymentStatus
                         });
-                        toast.error('Trng thi n hng khng hp l cho thanh ton.');
+                        toast.error('Trạng thái đơn hàng không hợp lệ cho thanh toán.');
                         router.push('/account/orders');
                         return;
                     }
@@ -206,7 +206,7 @@ function SePayPaymentContent() {
             }
         } else {
             logger.error(' SEPAY: Invalid order ID', { orderId });
-            toast.error('ID n hng khng hp l');
+            toast.error('ID đơn hàng không hợp lệ');
             router.push('/checkout');
         }
     }, [orderId, router, user, order, environment]);
@@ -301,7 +301,7 @@ function SePayPaymentContent() {
 
     const handleGenerateQR = async () => {
         if (!orderId || !order) {
-            toast.error('Thng tin n hng khng hp l');
+            toast.error('Thông tin đơn hàng không hợp lệ');
             return;
         }
 
@@ -359,7 +359,7 @@ function SePayPaymentContent() {
         <div className="container mx-auto px-4 py-8">
             <Link href="/checkout" className="flex items-center text-muted-foreground hover:text-foreground mb-6">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Quay li thanh ton
+                Quay lại thanh toán
             </Link>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -379,16 +379,16 @@ function SePayPaymentContent() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="space-y-2">
-                                <h3 className="font-semibold">Thng tin n hng</h3>
+                                <h3 className="font-semibold">Thông tin đơn hàng</h3>
                                 <div className="text-sm text-muted-foreground">
-                                    <p>Trng thi: <Badge variant={status === 'Pending' ? 'secondary' : status === 'Confirmed' ? 'default' : 'destructive'}>{status}</Badge></p>
-                                    <p>Phng thc: Chuyn khon ngn hng</p>
-                                    <p>a ch: {formatAddressForDisplay(order.shippingAddress)}</p>
+                                    <p>Trạng thái: <Badge variant={status === 'Pending' ? 'secondary' : status === 'Confirmed' ? 'default' : 'destructive'}>{status}</Badge></p>
+                                    <p>Phương thức: Chuyển khoản ngân hàng</p>
+                                    <p>Địa chỉ: {formatAddressForDisplay(order.shippingAddress)}</p>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
-                                <h3 className="font-semibold">Ch  thanh ton</h3>
+                                <h3 className="font-semibold">Chế độ thanh toán</h3>
                                 <div className="flex items-center space-x-2 p-3 border rounded-md">
                                     <Switch
                                         id="sepay-environment"
@@ -409,7 +409,7 @@ function SePayPaymentContent() {
 
                             {!qrData ? (
                                 <div className="space-y-4">
-                                    <h3 className="font-semibold">Hng dn thanh ton</h3>
+                                    <h3 className="font-semibold">Hướng dẫn thanh toán</h3>
                                     <p className="text-sm text-muted-foreground">
                                         1. Nhp nt &quot;To m QR&quot; bn di
                                     </p>
@@ -452,24 +452,24 @@ function SePayPaymentContent() {
                                     <div className="bg-muted/50 rounded-lg p-4">
                                         <h3 className="font-semibold mb-3 flex items-center">
                                             <Banknote className="h-4 w-4 mr-1" />
-                                            Thng tin chuyn khon
+                                            Thông tin chuyển khoản
                                         </h3>
                                         <div className="space-y-2 text-sm">
-                                            <p><strong>Ngn hng:</strong> {qrData.bankName}</p>
-                                            <p><strong>S ti khon:</strong> {qrData.bankAccount}</p>
-                                            <p><strong>S tin:</strong> {qrData.amount.toLocaleString('vi-VN')} </p>
+                                            <p><strong>Ngân hàng:</strong> {qrData.bankName}</p>
+                                            <p><strong>Số tài khoản:</strong> {qrData.bankAccount}</p>
+                                            <p><strong>Số tiền:</strong> {qrData.amount.toLocaleString('vi-VN')} </p>
                                             <p className="text-xs text-muted-foreground">
                                                 <strong>Ni dung chuyn khon:</strong> {qrData.description} <br />
-                                                <span className="text-red-600">Quan trng: Ni dung chuyn khon phi chnh xc  h thng nhn din n hng!</span>
+                                                <span className="text-red-600">Quan trọng: Nội dung chuyển khoản phải chính xác để hệ thống nhận diện đơn hàng!</span>
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="text-sm text-muted-foreground space-y-2">
-                                        <p> Qut m QR bng ng dng ngn hng ca bn</p>
-                                        <p> Hoc chuyn khon th cng n ti khon trn</p>
-                                        <p> Sau khi chuyn khon, h thng s t ng xc nhn trong 3-5 pht</p>
-                                        <p> Nu khng thy xc nhn sau 5 pht, vui lng lin h h tr</p>
+                                        <p> Quét mã QR bằng ứng dụng ngân hàng của bạn</p>
+                                        <p> Hoặc chuyển khoản thủ công đến tài khoản trên</p>
+                                        <p> Sau khi chuyển khoản, hệ thống sẽ tự động xác nhận trong 3-5 phút</p>
+                                        <p> Nếu không thấy xác nhận sau 5 phút, vui lòng liên hệ hỗ trợ</p>
                                     </div>
 
                                     <div className="flex space-x-2">
@@ -477,7 +477,7 @@ function SePayPaymentContent() {
                                             setQrData(null);
                                             stopPolling();
                                         }}>
-                                            To m QR mi
+                                            Tạo mã QR mới
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -485,7 +485,7 @@ function SePayPaymentContent() {
                                             onClick={() => router.push(`/checkout/confirmation?orderId=${orderId}`)}
                                             disabled={status !== 'Confirmed'}
                                         >
-                                            Xc nhn th cng
+                                            Xác nhận thủ công
                                         </Button>
                                     </div>
                                 </div>
@@ -497,20 +497,20 @@ function SePayPaymentContent() {
                 <div className="lg:col-span-1">
                     <Card className="sticky top-24">
                         <CardHeader>
-                            <CardTitle>Tm tt n hng</CardTitle>
+                            <CardTitle>Tóm tắt đơn hàng</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
                             <div className="flex justify-between">
-                                <span>Tm tnh</span>
+                                <span>Tạm tính</span>
                                 <span>{CurrencyService.convertAmount(order.subtotal, 'USD', 'VND').toLocaleString('vi-VN')} </span>
                             </div>
                             <div className="flex justify-between">
-                                <span>Ph vn chuyn</span>
-                                <span>Min ph</span>
+                                <span>Phí vận chuyển</span>
+                                <span>Miễn phí</span>
                             </div>
                             <Separator />
                             <div className="flex justify-between text-lg font-bold">
-                                <span>Tng cng</span>
+                                <span>Tổng cộng</span>
                                 <span>{CurrencyService.convertAmount(order.totalAmount, 'USD', 'VND').toLocaleString('vi-VN')} </span>
                             </div>
                         </CardContent>

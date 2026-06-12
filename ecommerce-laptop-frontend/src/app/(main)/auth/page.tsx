@@ -70,7 +70,7 @@ function AuthPageContent() {
             >
                 <Link href="/" className="flex items-center space-x-2 text-[#f5f5f5] hover:text-[#00f5d4] transition-colors">
                     <ArrowLeft className="h-6 w-6" />
-                    <span className="font-semibold">Trang ch</span>
+                    <span className="font-semibold">Trang chủ</span>
                 </Link>
             </motion.div>
 
@@ -91,10 +91,10 @@ function AuthPageContent() {
                         className="text-4xl font-bold text-[#f5f5f5] mb-2 bg-gradient-to-r from-[#00f5d4] to-[#6366f1] bg-clip-text text-transparent"
                         whileHover={{ scale: 1.02 }}
                     >
-                        {mode === 'login' ? 'Cho mng tr li' : 'To ti khon ca bn'}
+                        {mode === 'login' ? 'Chào mừng trở lại' : 'Tạo tài khoản của bạn'}
                     </motion.h1>
                     <p className="text-[#9ca3af] font-medium">
-                        {mode === 'login' ? 'ng nhp vo ti khon ca bn' : 'ng K'}
+                        {mode === 'login' ? 'Đăng nhập vào tài khoản của bạn' : 'Đăng Ký'}
                     </p>
                 </motion.div>
 
@@ -130,8 +130,8 @@ function AuthPageContent() {
                         onClick={toggleMode}
                     >
                         {mode === 'login'
-                            ? "Cha c ti khon? ng k"
-                            : " c ti khon? ng nhp"
+                            ? "Chưa có tài khoản? Đăng ký"
+                            : "Đã có tài khoản? Đăng nhập"
                         }
                     </Button>
                 </motion.div>

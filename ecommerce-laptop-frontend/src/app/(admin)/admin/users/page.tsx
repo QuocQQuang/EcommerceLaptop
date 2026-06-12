@@ -56,7 +56,7 @@ const ROLES_COLORS = {
 
 const UserStatusBadge = ({ isActive }: { isActive: boolean }) => (
   <Badge variant={isActive ? 'default' : 'secondary'}>
-    {isActive ? 'Hot ng' : ' kha'}
+    {isActive ? 'Hoạt động' : 'Đã khóa'}
   </Badge>
 );
 
@@ -107,7 +107,7 @@ const UserFormDialog = ({
     mutationFn: (data: CreateAdminUserRequest) => createUser(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('To ngi dng thnh cng');
+      toast.success('Tạo người dùng thành công');
       onOpenChange(false);
       resetForm();
     },
@@ -120,7 +120,7 @@ const UserFormDialog = ({
     mutationFn: ({ id, data }: { id: number; data: UpdateAdminUserRequest }) => updateUser(id.toString(), data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Cp nht ngi dng thnh cng');
+      toast.success('Cập nhật người dùng thành công');
       onOpenChange(false);
     },
     onError: (error) => {
@@ -144,11 +144,11 @@ const UserFormDialog = ({
 
     if (mode === 'create') {
       if (!formData.password) {
-        toast.error('Vui lng nhp mt khu');
+        toast.error('Vui lòng nhập mật khẩu');
         return;
       }
       if (!formData.roleId) {
-        toast.error('Vui lng chn vai tr');
+        toast.error('Vui lòng chọn vai trò');
         return;
       }
       createMutation.mutate({
@@ -161,7 +161,7 @@ const UserFormDialog = ({
       });
     } else if (user) {
       if (!formData.roleId) {
-        toast.error('Vui lng chn vai tr');
+        toast.error('Vui lòng chọn vai trò');
         return;
       }
       const updateData: UpdateAdminUserRequest = {
@@ -182,12 +182,12 @@ const UserFormDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'create' ? 'To ngi dng mi' : 'Sa thng tin ngi dng'}
+            {mode === 'create' ? 'Tạo người dùng mới' : 'Sửa thông tin người dùng'}
           </DialogTitle>
           <DialogDescription>
             {mode === 'create'
-              ? 'To ti khon mi cho h thng'
-              : `Cp nht thng tin cho ${user?.fullName}`
+              ? 'Tạo tài khoản mới cho hệ thống'
+              : `Cập nhật thông tin cho ${user?.fullName}`
             }
           </DialogDescription>
         </DialogHeader>
@@ -195,7 +195,7 @@ const UserFormDialog = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">H</Label>
+              <Label htmlFor="firstName">Họ</Label>
               <Input
                 id="firstName"
                 value={formData.firstName}
@@ -229,7 +229,7 @@ const UserFormDialog = ({
 
           {mode === 'create' && (
             <div className="space-y-2">
-              <Label htmlFor="password">Mt khu</Label>
+              <Label htmlFor="password">Mật khẩu</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -252,14 +252,14 @@ const UserFormDialog = ({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="role">Vai tr</Label>
+            <Label htmlFor="role">Vai trò</Label>
             <Select
               value={formData.roleId || ''}
               onValueChange={(value) => setFormData(prev => ({ ...prev, roleId: value || null }))}
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Chn vai tr" />
+                <SelectValue placeholder="Chọn vai trò" />
               </SelectTrigger>
               <SelectContent>
                 {rolesLoading ? (
@@ -283,7 +283,7 @@ const UserFormDialog = ({
               checked={formData.isActive}
               onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
             />
-            <Label htmlFor="isActive">Ti khon hot ng</Label>
+            <Label htmlFor="isActive">Tài khoản hoạt động</Label>
           </div>
 
           <DialogFooter>
@@ -293,10 +293,10 @@ const UserFormDialog = ({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Hy
+              Hủy
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'ang x l...' : (mode === 'create' ? 'To ti khon' : 'Cp nht')}
+              {isLoading ? 'đang xử lý...' : (mode === 'create' ? 'Tạo tài khoản' : 'Cập nhật')}
             </Button>
           </DialogFooter>
         </form>
@@ -315,7 +315,7 @@ const UserActions = ({ user }: { user: AdminUser }) => {
     mutationFn: (id: number) => toggleUserStatus(id.toString()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success(`${user.isActive ? 'Kha' : 'M kha'} ti khon thnh cng`);
+      toast.success(`${user.isActive ? 'Khóa' : 'Mở khóa'} tài khoản thành công`);
     },
     onError: (error) => {
       toast.error(handleApiError(error));
@@ -326,7 +326,7 @@ const UserActions = ({ user }: { user: AdminUser }) => {
     mutationFn: (id: number) => deleteUser(id.toString()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Xa ti khon thnh cng');
+      toast.success('Xóa tài khoản thành công');
       setShowDelete(false);
     },
     onError: (error) => {
@@ -350,8 +350,8 @@ const UserActions = ({ user }: { user: AdminUser }) => {
           onClick={() => setShowEdit(true)}
         >
           <Edit className="h-3 w-3 mr-1" />
-          Sa
-        </Button>
+            Sửa
+          </Button>
       </PermissionGuard>
 
       <PermissionGuard permission={PERMISSIONS.USERS_WRITE}>
@@ -361,7 +361,7 @@ const UserActions = ({ user }: { user: AdminUser }) => {
           onClick={() => toggleStatusMutation.mutate(user.id)}
           disabled={toggleStatusMutation.isPending}
         >
-          {user.isActive ? 'Kha' : 'M kha'}
+          {user.isActive ? 'Khóa' : 'Mở khóa'}
         </Button>
       </PermissionGuard>
 
@@ -373,7 +373,7 @@ const UserActions = ({ user }: { user: AdminUser }) => {
             onClick={() => setShowDelete(true)}
           >
             <Trash2 className="h-3 w-3 mr-1" />
-            Xa
+            Xóa
           </Button>
         )}
       </PermissionGuard>
@@ -390,22 +390,22 @@ const UserActions = ({ user }: { user: AdminUser }) => {
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xc nhn xa</DialogTitle>
+            <DialogTitle>Xác nhận xóa</DialogTitle>
             <DialogDescription>
-              Bn c chc mun xa ti khon <strong>{user.fullName}</strong>?
-              Hnh ng ny khng th hon tc.
+              Bạn có chắc muốn xóa tài khoản <strong>{user.fullName}</strong>?
+              Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDelete(false)}>
-              Hy
+              Hủy
             </Button>
             <Button
               variant="destructive"
               onClick={() => deleteMutation.mutate(user.id)}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'ang xa...' : 'Xa ti khon'}
+              {deleteMutation.isPending ? 'đang xóa...' : 'Xóa tài khoản'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -438,8 +438,8 @@ export default function UsersPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-destructive mb-2">Li ti d liu</h2>
-          <p className="text-muted-foreground">Khng th ti danh sch ngi dng</p>
+          <h2 className="text-xl font-semibold text-destructive mb-2">Lỗi tải dữ liệu</h2>
+          <p className="text-muted-foreground">Không thể tải danh sách người dùng</p>
         </div>
       </div>
     );
@@ -465,9 +465,9 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Qun l Admin</h1>
+          <h1 className="text-3xl font-bold">Quản lý Admin</h1>
           <p className="text-muted-foreground">
-            Qun l ti khon v phn quyn ngi dng h thng
+            Quản lý tài khoản và phân quyền người dùng hệ thống
           </p>
         </div>
 
@@ -475,7 +475,7 @@ export default function UsersPage() {
           <PermissionGuard permission={PERMISSIONS.USERS_WRITE}>
             <Button onClick={() => setShowCreate(true)}>
               <UserPlus className="h-4 w-4 mr-2" />
-              To ngi dng mi
+              Tạo người dùng mới
             </Button>
           </PermissionGuard>
         </div>
@@ -488,7 +488,7 @@ export default function UsersPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Tm kim ngi dng..."
+                placeholder="Tìm kiếm người dùng..."
                 className="pl-10"
                 value={search}
                 onChange={(e) => {
@@ -499,7 +499,7 @@ export default function UsersPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Hin th:</span>
+              <span className="text-sm text-muted-foreground">Hiển thị:</span>
               <Select
                 value={limit.toString()}
                 onValueChange={(value) => {
@@ -547,12 +547,12 @@ export default function UsersPage() {
               <table className="w-full">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Ngi dng</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium">Người dùng</th>
                     <th className="h-12 px-4 text-left align-middle font-medium">Email</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Vai tr</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Trng thi</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium">Ngy to</th>
-                    <th className="h-12 px-4 text-right align-middle font-medium">Thao tc</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium">Vai trò</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium">Trạng thái</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium">Ngày tạo</th>
+                    <th className="h-12 px-4 text-right align-middle font-medium">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -597,8 +597,8 @@ export default function UsersPage() {
               {total > 0 && (
                 <div className="flex items-center justify-between px-6 py-3 border-t">
                   <div className="text-sm text-muted-foreground">
-                    Hin th {((currentPage - 1) * pageSize) + 1} n{' '}
-                    {Math.min(currentPage * pageSize, total)} ca {total} kt qu
+                    Hiển thị {((currentPage - 1) * pageSize) + 1} đến{' '}
+                    {Math.min(currentPage * pageSize, total)} của {total} kết quả
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
@@ -607,7 +607,7 @@ export default function UsersPage() {
                       onClick={() => setPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
                     >
-                      Trc
+                      Trước
                     </Button>
                     <Button
                       variant="outline"

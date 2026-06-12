@@ -28,15 +28,15 @@ export function ComparisonTable() {
     if (items.length === 0) {
         return (
             <div className="py-12 text-center">
-                <h3 className="text-xl font-semibold">Cha c sn phm no  so snh</h3>
-                <p className="text-gray-600 mt-2">Thm sn phm t danh sch yu thch hoc trang sn phm  so snh.</p>
+                <h3 className="text-xl font-semibold">Chưa có sản phẩm nào để so sánh</h3>
+                <p className="text-gray-600 mt-2">Thêm sản phẩm từ danh sách yêu thích hoặc trang sản phẩm để so sánh.</p>
                 <div className="mt-4 flex items-center justify-center gap-3">
                     <Link href="/products">
-                        <Button>Duyt sn phm</Button>
+                        <Button>Duyệt sản phẩm</Button>
                     </Link>
                     {wishlistItems.length > 0 && (
                         <Link href="/wishlist">
-                            <Button variant="outline">M danh sch yu thch</Button>
+                                <Button variant="outline">Mở danh sách yêu thích</Button>
                         </Link>
                     )}
                 </div>
@@ -74,7 +74,7 @@ export function ComparisonTable() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Thng s</TableHead>
+                            <TableHead>Thông số</TableHead>
                             {items.map(p => (
                                 <TableHead key={p.id}>
                                     <div className="flex items-center justify-between">
@@ -86,7 +86,7 @@ export function ComparisonTable() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="sm" onClick={() => removeItem(p.id)}>Xa</Button>
+                                            <Button variant="ghost" size="sm" onClick={() => removeItem(p.id)}>Xóa</Button>
                                         </div>
                                     </div>
                                 </TableHead>
@@ -141,7 +141,7 @@ export function ComparisonTable() {
                     ))}
 
                     <div className="flex-shrink-0 self-start pt-4">
-                        <Button variant="outline" onClick={() => clear()}>Xa tt c</Button>
+                        <Button variant="outline" onClick={() => clear()}>Xóa tất cả</Button>
                     </div>
                 </div>
             </div>
@@ -159,13 +159,13 @@ export function ComparisonTable() {
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="sm" onClick={(e) => { e.preventDefault(); removeItem(p.id); }}>Xa</Button>
+                                <Button variant="ghost" size="sm" onClick={(e) => { e.preventDefault(); removeItem(p.id); }}>Xóa</Button>
                             </div>
                         </summary>
                         <div className="p-4 space-y-2">
                             {/* Price first */}
                             <div className="border-t pt-2">
-                                <div className="text-sm text-gray-600 font-medium">Gi</div>
+                                <div className="text-sm text-gray-600 font-medium">Giá</div>
                                 <div className="text-sm text-gray-700"><Price price={p.price} discountPrice={p.discountPrice} /></div>
                             </div>
 
@@ -195,7 +195,7 @@ export function ComparisonTable() {
                 ))}
 
                 <div className="flex justify-center">
-                    <Button variant="outline" onClick={() => clear()}>Xa tt c</Button>
+                    <Button variant="outline" onClick={() => clear()}>Xóa tất cả</Button>
                 </div>
             </div>
         </div>

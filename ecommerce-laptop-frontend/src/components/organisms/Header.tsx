@@ -67,13 +67,13 @@ export function Header() {
                         href="/"
                         className="transition-colors text-muted-foreground hover:text-foreground"
                     >
-                        Trang ch
+                        Trang chủ
                     </Link>
                     <Link
                         href="/products"
                         className="transition-colors text-muted-foreground hover:text-foreground"
                     >
-                        Sn phm
+                        Sản phẩm
                     </Link>
                     <Link
                         href="/blog"
@@ -85,19 +85,19 @@ export function Header() {
                         href="/features"
                         className="transition-colors text-muted-foreground hover:text-foreground"
                     >
-                        Tnh nng
+                        Tính năng
                     </Link>
                     <Link
                         href="/reviews"
                         className="transition-colors text-muted-foreground hover:text-foreground"
                     >
-                        nh gi
+                        Đánh giá
                     </Link>
                     <Link
                         href="/contact"
                         className="transition-colors text-muted-foreground hover:text-foreground"
                     >
-                        Lin h
+                        Liên hệ
                     </Link>
                 </nav>
 
@@ -151,7 +151,7 @@ export function Header() {
                                             <p className="text-xs leading-none text-muted-foreground">{user?.email || ''}</p>
                                         </>
                                     ) : (
-                                        <p className="text-sm">Cha ng nhp</p>
+                                        <p className="text-sm">Chưa đăng nhập</p>
                                     )}
                                 </div>
                             </DropdownMenuLabel>
@@ -170,10 +170,10 @@ export function Header() {
                                         </>
                                     )}
                                     <DropdownMenuItem asChild>
-                                        <Link href="/account">Ti khon</Link>
+                                        <Link href="/account">Tài khoản</Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
-                                        <Link href="/account/orders">n hng</Link>
+                                        <Link href="/account/orders">Đơn hàng</Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
@@ -181,7 +181,7 @@ export function Header() {
                                         className="text-danger focus:text-danger"
                                     >
                                         <LogOut className="mr-2 h-4 w-4" />
-                                        <span>ng xut</span>
+                                        <span>Đăng xuất</span>
                                     </DropdownMenuItem>
                                 </>
                             ) : (
@@ -189,13 +189,13 @@ export function Header() {
                                     <DropdownMenuItem asChild>
                                         <Link href="/auth/login">
                                             <LogIn className="mr-2 h-4 w-4" />
-                                            <span>ng nhp</span>
+                                            <span>Đăng nhập</span>
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
                                         <Link href="/auth/register">
                                             <User className="mr-2 h-4 w-4" />
-                                            <span>ng k</span>
+                                            <span>Đăng ký</span>
                                         </Link>
                                     </DropdownMenuItem>
                                 </>

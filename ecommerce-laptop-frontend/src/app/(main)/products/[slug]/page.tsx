@@ -189,7 +189,7 @@ export default function ProductPage() {
     const tabContents = [
         // Tab 0: Description
         <div key="description" className="prose max-w-none">
-            <p>{product.description || 'ang cp nht thng tin chi tit...'}</p>
+            <p>{product.description || 'Đang cập nhật thông tin chi tiết...'}</p>
         </div>,
         // Tab 1: Specifications
         <div key="specs" className="space-y-6">
@@ -207,7 +207,7 @@ export default function ProductPage() {
                 </div>
             ))}
             {Object.keys(groupedSpecs).length === 0 && (
-                <p className="text-gray-500">Thng s k thut s c cp nht sm.</p>
+                <p className="text-gray-500">Thông số kỹ thuật sẽ được cập nhật sớm.</p>
             )}
         </div>,
         // Tab 2: Reviews
@@ -220,9 +220,9 @@ export default function ProductPage() {
         <div className="container mx-auto px-4 py-8">
             {/* Breadcrumb */}
             <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-8">
-                <span>Trang ch</span>
+                <span>Trang chủ</span>
                 <span>/</span>
-                <span>Sn phm</span>
+                <span>Sản phẩm</span>
                 <span>/</span>
                 <span className="text-gray-900">{product.name}</span>
             </nav>
@@ -259,7 +259,7 @@ export default function ProductPage() {
                                     <Badge variant="secondary">-{discountPercentage}%</Badge>
                                 )}
                                 {product.stockQuantity === 0 && (
-                                    <Badge variant="outline">Ht hng</Badge>
+                                    <Badge variant="outline">Hết hàng</Badge>
                                 )}
                             </div>
                             {showLens && containerSize.width > 0 && (
@@ -329,7 +329,7 @@ export default function ProductPage() {
                             />
                             {hasDiscount && (
                                 <p className="text-sm text-green-600">
-                                    Tit kim: {new Intl.NumberFormat(undefined, { style: 'currency', currency: process.env.NEXT_PUBLIC_CURRENCY || 'USD' }).format(product.price - (product.discountPrice || 0))}
+                                    Tiết kiệm: {new Intl.NumberFormat(undefined, { style: 'currency', currency: process.env.NEXT_PUBLIC_CURRENCY || 'USD' }).format(product.price - (product.discountPrice || 0))}
                                 </p>
                             )}
                         </div>
@@ -339,12 +339,12 @@ export default function ProductPage() {
                             {product.stockQuantity > 0 ? (
                                 <>
                                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                    <span className="text-green-600">Cn hng ({product.stockQuantity} sn phm)</span>
+                                    <span className="text-green-600">Còn hàng ({product.stockQuantity} sản phẩm)</span>
                                 </>
                             ) : (
                                 <>
                                     <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                                    <span className="text-red-600">Ht hng</span>
+                                    <span className="text-red-600">Hết hàng</span>
                                 </>
                             )}
                         </div>
@@ -352,7 +352,7 @@ export default function ProductPage() {
                         {/* Description */}
                         {product.shortDescription && (
                             <div>
-                                <h3 className="font-semibold mb-2">M t ngn</h3>
+                                <h3 className="font-semibold mb-2">Mô tả ngắn</h3>
                                 <p className="text-gray-600">{product.shortDescription}</p>
                             </div>
                         )}
@@ -360,7 +360,7 @@ export default function ProductPage() {
                         {/* Quantity and Add to Cart */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-4">
-                                <span className="font-medium">S lng:</span>
+                                <span className="font-medium">Số lượng:</span>
                                 <div className="flex items-center border rounded-lg">
                                     <Button
                                         variant="ghost"
@@ -390,7 +390,7 @@ export default function ProductPage() {
                                     className="flex-1"
                                 >
                                     <ShoppingCart className="w-5 h-5 mr-2" />
-                                    Thm vo gi
+                                    Thêm vào giỏ
                                 </Button>
 
                                 <Button
@@ -421,15 +421,15 @@ export default function ProductPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
                             <div className="flex items-center gap-2">
                                 <Truck className="w-5 h-5 text-blue-600" />
-                                <span className="text-sm">Giao hng min ph</span>
+                                <span className="text-sm">Giao hàng miễn phí</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Shield className="w-5 h-5 text-green-600" />
-                                <span className="text-sm">Bo hnh chnh hng</span>
+                                <span className="text-sm">Bảo hành chính hãng</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <RotateCcw className="w-5 h-5 text-orange-600" />
-                                <span className="text-sm">i tr 7 ngy</span>
+                                <span className="text-sm">Đổi trả 7 ngày</span>
                             </div>
                         </div>
                     </div>
@@ -447,7 +447,7 @@ export default function ProductPage() {
                                 activeTab === 0 ? "border-b-2 border-blue-500 text-blue-600 font-medium" : "text-gray-500 hover:text-gray-700"
                             )}
                         >
-                            M t chi tit
+                            Mô tả chi tiết
                         </button>
                         <button
                             onClick={() => handleTabClick(1)}
@@ -456,7 +456,7 @@ export default function ProductPage() {
                                 activeTab === 1 ? "border-b-2 border-blue-500 text-blue-600 font-medium" : "text-gray-500 hover:text-gray-700"
                             )}
                         >
-                            Thng s k thut
+                            Thông số kỹ thuật
                         </button>
                         <button
                             onClick={() => handleTabClick(2)}
@@ -465,7 +465,7 @@ export default function ProductPage() {
                                 activeTab === 2 ? "border-b-2 border-blue-500 text-blue-600 font-medium" : "text-gray-500 hover:text-gray-700"
                             )}
                         >
-                            nh gi ({reviewCount})
+                            Đánh giá ({reviewCount})
                         </button>
                     </div>
                 </div>
@@ -478,7 +478,7 @@ export default function ProductPage() {
             {/* Related Products */}
             {relatedProducts.length > 0 && (
                 <div className="mt-16">
-                    <h2 className="text-2xl font-bold mb-8">Sn phm lin quan</h2>
+                    <h2 className="text-2xl font-bold mb-8">Sản phẩm liên quan</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {relatedProducts.map((relatedProduct) => (
                             <ProductCard key={relatedProduct.id} product={relatedProduct} />

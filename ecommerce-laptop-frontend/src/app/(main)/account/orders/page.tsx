@@ -86,7 +86,7 @@ export default function OrdersPage() {
             setTotalPages(Math.ceil((response.totalCount || 0) / 10));
         } catch (error) {
             console.error('Error loading orders:', error);
-            toast.error('Khng th ti danh sch n hng');
+            toast.error('Không thể tải danh sách đơn hàng');
             setOrders([]);
         } finally {
             setIsLoading(false);
@@ -103,10 +103,10 @@ export default function OrdersPage() {
         if (!selectedOrderId) return;
         try {
             setIsCancelling(true);
-            await orderService.cancelOrder(selectedOrderId, cancelReason || 'Khch hng yu cu hy n');
+            await orderService.cancelOrder(selectedOrderId, cancelReason || 'Khách hàng yêu cầu hủy đơn');
             // Optimistically update UI
             setOrders(prev => prev.map(o => o.id === selectedOrderId ? { ...o, status: 'cancelled' } : o));
-            toast.success(' hy n hng thnh cng');
+            toast.success('Đã hủy đơn hàng thành công');
             setCancelDialogOpen(false);
         } catch (error: any) {
             const message = error?.response?.data?.message || 'Hy n khng thnh cng';
@@ -129,12 +129,12 @@ export default function OrdersPage() {
 
     const getStatusBadge = (status: string) => {
         const statusConfig = {
-            pending: { label: 'Ch x l', variant: 'outline' as const, icon: Clock },
-            confirmed: { label: ' xc nhn', variant: 'secondary' as const, icon: CheckCircle },
-            processing: { label: 'ang x l', variant: 'default' as const, icon: Package },
-            shipped: { label: 'ang giao', variant: 'default' as const, icon: Truck },
-            delivered: { label: ' nhn hng', variant: 'default' as const, icon: CheckCircle },
-            cancelled: { label: ' hy', variant: 'destructive' as const, icon: XCircle },
+            pending: { label: 'Chờ xử lý', variant: 'outline' as const, icon: Clock },
+            confirmed: { label: 'Đã xác nhận', variant: 'secondary' as const, icon: CheckCircle },
+            processing: { label: 'đang xử lý', variant: 'default' as const, icon: Package },
+            shipped: { label: 'đang giao', variant: 'default' as const, icon: Truck },
+            delivered: { label: 'Đã nhận hàng', variant: 'default' as const, icon: CheckCircle },
+            cancelled: { label: 'đã hủy', variant: 'destructive' as const, icon: XCircle },
         } as const;
 
         const config = statusConfig[status as keyof typeof statusConfig];
@@ -170,9 +170,9 @@ export default function OrdersPage() {
         <PaymentProvider>
             <Card>
                 <CardHeader>
-                    <CardTitle>n hng ca ti</CardTitle>
+                    <CardTitle>Đơn hàng của tôi</CardTitle>
                     <CardDescription>
-                        Theo di v qun l cc n hng ca bn
+                        Theo dõi và quản lý các đơn hàng của bạn
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -181,7 +181,7 @@ export default function OrdersPage() {
                         <div className="relative flex-1 max-w-sm">
                             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                             <Input
-                                placeholder="Tm kim theo m n hng..."
+                                placeholder="Tìm kiếm theo mã đơn hàng..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-10"
@@ -189,16 +189,16 @@ export default function OrdersPage() {
                         </div>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
                             <SelectTrigger className="w-full sm:w-48">
-                                <SelectValue placeholder="Lc theo trng thi" />
+                                <SelectValue placeholder="Lọc theo trạng thái" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Tt c</SelectItem>
-                                <SelectItem value="pending">Ch x l</SelectItem>
-                                <SelectItem value="confirmed"> xc nhn</SelectItem>
-                                <SelectItem value="processing">ang x l</SelectItem>
-                                <SelectItem value="shipped">ang giao</SelectItem>
-                                <SelectItem value="delivered"> nhn hng</SelectItem>
-                                <SelectItem value="cancelled"> hy</SelectItem>
+                                <SelectItem value="all">Tất cả</SelectItem>
+                                <SelectItem value="pending">Chờ xử lý</SelectItem>
+                                <SelectItem value="confirmed">Đã xác nhận</SelectItem>
+                                <SelectItem value="processing">đang xử lý</SelectItem>
+                                <SelectItem value="shipped">đang giao</SelectItem>
+                                <SelectItem value="delivered">Đã nhận hàng</SelectItem>
+                                <SelectItem value="cancelled">đã hủy</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -208,12 +208,12 @@ export default function OrdersPage() {
                         <div className="text-center py-12">
                             <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                                Khng c n hng no
+                                Không có đơn hàng nào
                             </h3>
                             <p className="text-gray-500 dark:text-gray-400">
                                 {searchQuery || statusFilter !== 'all'
-                                    ? 'Khng tm thy n hng ph hp vi b lc'
-                                    : 'Bn cha c n hng no. Hy bt u mua sm!'
+                                    ? 'Không tìm thấy đơn hàng phù hợp với bộ lọc'
+                                    : 'Bạn chưa có đơn hàng nào. Hãy bắt đầu mua sắm!'
                                 }
                             </p>
                         </div>
@@ -223,9 +223,9 @@ export default function OrdersPage() {
                                 <div key={order.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
-                                            <h3 className="font-semibold">n hng {order.id}</h3>
+                                            <h3 className="font-semibold">Đơn hàng {order.id}</h3>
                                             <p className="text-sm text-gray-500">
-                                                Ngy t: {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                                                Ngày đặt: {new Date(order.createdAt).toLocaleDateString('vi-VN')}
                                             </p>
                                         </div>
                                         <div className="text-right">
@@ -246,7 +246,7 @@ export default function OrdersPage() {
                                                 <div className="flex-1">
                                                     <p className="font-medium">{item.productName}</p>
                                                     <p className="text-sm text-gray-500">
-                                                        S lng: {item.quantity}  {formatCurrencyPrice(item.unitPrice, selectedCurrency)}
+                                                        Số lượng: {item.quantity} x {formatCurrencyPrice(item.unitPrice, selectedCurrency)}
                                                     </p>
                                                 </div>
                                             </div>
@@ -258,7 +258,7 @@ export default function OrdersPage() {
                                         <div>
                                             {order.trackingNumber && (
                                                 <p className="text-sm text-gray-500">
-                                                    M vn n: <span className="font-mono">{order.trackingNumber}</span>
+                                                    Mã vận đơn: <span className="font-mono">{order.trackingNumber}</span>
                                                 </p>
                                             )}
                                         </div>
@@ -266,7 +266,7 @@ export default function OrdersPage() {
                                             <Link href={`/account/orders/${order.id}`}>
                                                 <Button variant="outline" size="sm">
                                                     <Eye className="h-4 w-4 mr-2" />
-                                                    Chi tit
+                                                    Chi tiết
                                                 </Button>
                                             </Link>
                                             <Dialog>
@@ -278,28 +278,28 @@ export default function OrdersPage() {
                                                 </DialogTrigger>
                                                 <DialogContent className="max-w-2xl">
                                                     <DialogHeader>
-                                                        <DialogTitle>Chi tit n hng {order.id}</DialogTitle>
+                                                        <DialogTitle>Chi tiết đơn hàng {order.id}</DialogTitle>
                                                         <DialogDescription>
-                                                            Thng tin chi tit v n hng ca bn
+                                                            Thông tin chi tiết về đơn hàng của bạn
                                                         </DialogDescription>
                                                     </DialogHeader>
                                                     <div className="space-y-6">
                                                         {/* Order Status */}
                                                         <div>
-                                                            <h4 className="font-medium mb-2">Trng thi n hng</h4>
+                                                            <h4 className="font-medium mb-2">Trạng thái đơn hàng</h4>
                                                             {getStatusBadge(order.status)}
                                                         </div>
 
                                                         {/* Items */}
                                                         <div>
-                                                            <h4 className="font-medium mb-2">Sn phm</h4>
+                                                            <h4 className="font-medium mb-2">Sản phẩm</h4>
                                                             <div className="space-y-2">
                                                                 {order.items.map((item, index) => (
                                                                     <div key={index} className="flex justify-between items-center py-2 border-b">
                                                                         <div>
                                                                             <p className="font-medium">{item.productName}</p>
                                                                             <p className="text-sm text-gray-500">
-                                                                                S lng: {item.quantity}
+                                                                                Số lượng: {item.quantity}
                                                                             </p>
                                                                         </div>
                                                                         <p className="font-medium">
@@ -312,7 +312,7 @@ export default function OrdersPage() {
 
                                                         {/* Shipping Address */}
                                                         <div>
-                                                            <h4 className="font-medium mb-2">a ch giao hng</h4>
+                                                            <h4 className="font-medium mb-2">Địa chỉ giao hàng</h4>
                                                             <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
                                                                 <p className="text-sm text-gray-600 dark:text-gray-400">
                                                                     {order.shippingAddress}
@@ -323,7 +323,7 @@ export default function OrdersPage() {
                                                         {/* Total */}
                                                         <div className="border-t pt-4">
                                                             <div className="flex justify-between items-center text-lg font-semibold">
-                                                                <span>Tng cng:</span>
+                                                                <span>Tổng cộng:</span>
                                                                 <span>{formatCurrencyPrice(order.totalAmount, selectedCurrency)}</span>
                                                             </div>
                                                         </div>
@@ -333,7 +333,7 @@ export default function OrdersPage() {
 
                                             {order.status === 'delivered' && (
                                                 <Button variant="default" size="sm">
-                                                    Mua li
+                                                    Mua lại
                                                 </Button>
                                             )}
 
@@ -341,13 +341,13 @@ export default function OrdersPage() {
                                                 order.paymentStatus !== 'paid' &&
                                                 order.paymentStatus !== 'completed' && (
                                                     <Button variant="destructive" size="sm" onClick={() => openCancelDialog(order.id)}>
-                                                        Hy n
+                                                        Hủy đơn
                                                     </Button>
                                                 )}
                                             {(order.status === 'pending' || order.status === 'confirmed') &&
                                                 (order.paymentStatus === 'paid' || order.paymentStatus === 'completed') && (
                                                     <div className="text-sm text-muted-foreground">
-                                                         thanh ton - Khng th hy
+                                                        Đã thanh toán - Không thể hủy
                                                     </div>
                                                 )}
                                             {order.status === 'pending' && (
@@ -356,7 +356,7 @@ export default function OrdersPage() {
                                                     size="sm"
                                                     onClick={() => setSelectedOrderForRetry(order.id)}
                                                 >
-                                                    Thanh ton li
+                                                    Thanh toán lại
                                                 </Button>
                                             )}
                                             <RetryPaymentModal
@@ -367,7 +367,7 @@ export default function OrdersPage() {
                                                 onClose={() => setSelectedOrderForRetry(null)}
                                                 onSuccess={() => {
                                                     loadOrders();
-                                                    toast.success(' khi to thanh ton li');
+                                                    toast.success('Đã khởi tạo thanh toán lại');
                                                 }}
                                             />
                                         </div>
@@ -385,7 +385,7 @@ export default function OrdersPage() {
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
                             >
-                                Trc
+                                Trước
                             </Button>
 
                             {[...Array(totalPages)].map((_, i) => {
@@ -417,19 +417,19 @@ export default function OrdersPage() {
                     <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Hy n hng</DialogTitle>
-                                <DialogDescription>Vui lng nhp l do hy n (khng bt buc).</DialogDescription>
+                                <DialogTitle>Hủy đơn hàng</DialogTitle>
+                                <DialogDescription>Vui lòng nhập lý do hủy đơn (không bắt buộc).</DialogDescription>
                             </DialogHeader>
                             <div className="space-y-3">
                                 <Input
-                                    placeholder="L do hy n"
+                                    placeholder="Lý do hủy đơn"
                                     value={cancelReason}
                                     onChange={(e) => setCancelReason(e.target.value)}
                                 />
                                 <div className="flex justify-end gap-2">
-                                    <Button variant="outline" onClick={() => setCancelDialogOpen(false)} disabled={isCancelling}>ng</Button>
+                                    <Button variant="outline" onClick={() => setCancelDialogOpen(false)} disabled={isCancelling}>Đóng</Button>
                                     <Button variant="destructive" onClick={handleCancelOrder} disabled={isCancelling}>
-                                        {isCancelling ? 'ang hy...' : 'Xc nhn hy'}
+                                        {isCancelling ? 'đang hủy...' : 'Xác nhận hủy'}
                                     </Button>
                                 </div>
                             </div>

@@ -36,7 +36,7 @@ function StripePaymentContent() {
                 .then(setOrder)
                 .catch(() => toast.error('Khng th ti thng tin n hng'));
         } else {
-            toast.error('ID n hng khng hp l');
+            toast.error('ID đơn hàng không hợp lệ');
             router.push('/checkout');
         }
         setIsLoading(false);
@@ -114,7 +114,7 @@ function StripePaymentContent() {
                 <div className="text-center">
                     <LoadingSpinner size="lg" />
                     <p className="mt-4 text-sm text-gray-500">
-                        {isLoading ? 'ang ti thng tin n hng...' : 'ang khi to thanh ton...'}
+                        {isLoading ? 'Đang tải thông tin đơn hàng...' : 'Đang khởi tạo thanh toán...'}
                     </p>
                 </div>
             </div>
@@ -128,9 +128,9 @@ function StripePaymentContent() {
                 <div className="mb-8">
                     <Link href="/checkout" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 transition-colors">
                         <ArrowLeft className="h-4 w-4 mr-1" />
-                        Quay li
+                        Quay lại
                     </Link>
-                    <h1 className="text-2xl font-semibold text-gray-900 mt-4">Thanh ton</h1>
+                    <h1 className="text-2xl font-semibold text-gray-900 mt-4">Thanh toán</h1>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
@@ -146,7 +146,7 @@ function StripePaymentContent() {
                     {/* Order Summary  Right, narrower */}
                     <div className="lg:col-span-2 order-1 lg:order-2">
                         <div className="bg-white rounded-lg border border-gray-200 p-6 lg:sticky lg:top-8">
-                            <h2 className="text-base font-semibold text-gray-900 mb-4">n hng #{order?.orderNumber}</h2>
+                            <h2 className="text-base font-semibold text-gray-900 mb-4">Đơn hàng #{order?.orderNumber}</h2>
 
                             {/* Items */}
                             {order?.items && order.items.length > 0 && (
@@ -170,11 +170,11 @@ function StripePaymentContent() {
                             {/* Totals */}
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">Tm tnh</span>
+                                    <span className="text-gray-500">Tạm tính</span>
                                     <span className="text-gray-900">{formatCurrencyPrice((order?.totalAmount || 0) - (order?.shippingFee || 0), selectedCurrency)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">Ph vn chuyn</span>
+                                    <span className="text-gray-500">Phí vận chuyển</span>
                                     <span className="text-gray-900">{formatCurrencyPrice(order?.shippingFee || 0, selectedCurrency)}</span>
                                 </div>
                             </div>
@@ -182,7 +182,7 @@ function StripePaymentContent() {
                             <Separator className="my-4" />
 
                             <div className="flex justify-between">
-                                <span className="text-base font-semibold text-gray-900">Tng cng</span>
+                                <span className="text-base font-semibold text-gray-900">Tổng cộng</span>
                                 <span className="text-base font-semibold text-gray-900">{formatCurrencyPrice(order?.totalAmount || 0, selectedCurrency)}</span>
                             </div>
                         </div>
@@ -272,7 +272,7 @@ function StripeForm({ order, clientSecret }: { order: OrderResponse | null, clie
                 {isProcessing ? (
                     <div className="flex items-center gap-2">
                         <LoadingSpinner size="sm" />
-                        <span>ang x l...</span>
+                        <span>Đang xử lý...</span>
                     </div>
                 ) : (
                     <span>Thanh ton {formatCurrencyPrice(order?.totalAmount || 0, 'VND')}</span>
@@ -282,7 +282,7 @@ function StripeForm({ order, clientSecret }: { order: OrderResponse | null, clie
             {/* Powered by Stripe */}
             <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
                 <Lock className="h-3 w-3" />
-                <span>c bo mt bi Stripe</span>
+                    <span>được bảo mật bởi Stripe</span>
             </div>
         </form>
     );

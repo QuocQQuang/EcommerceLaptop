@@ -70,7 +70,7 @@ export function LoginForm({ onSuccess, callbackUrl = '/' }: LoginFormProps) {
 
         // Validate form before submission
         if (!validation.validateAllFields(formData)) {
-            toast.error('Vui lng kim tra li thng tin  nhp');
+                    toast.error('Vui lòng kiểm tra lại thông tin đã nhập');
             return;
         }
 
@@ -90,16 +90,16 @@ export function LoginForm({ onSuccess, callbackUrl = '/' }: LoginFormProps) {
             if (result?.error) {
                 const newAttempts = attempts + 1;
                 setAttempts(newAttempts);
-                if (result.error.includes('b kha') || result.error.toLowerCase().includes('blocked')) {
-                    toast.error('IP ca bn  b kha tm thi do nhp sai qu nhiu. Th li sau 15 pht.');
+                if (result.error.includes('đã khóa') || result.error.toLowerCase().includes('blocked')) {
+                    toast.error('IP của bạn đã bị khóa tạm thời do nhập sai quá nhiều. Thử lại sau 15 phút.');
                 } else {
-                    toast.error('Thng tin ng nhp khng hp l');
+                    toast.error('Thông tin đăng nhập không hợp lệ');
                 }
                 if (newAttempts >= 3) {
-                    toast.info('Bn qun mt khu? Khi phc ti y.', {
+                    toast.info('Bạn quên mật khẩu? Khôi phục tại đây.', {
                         duration: 8000,
                         action: {
-                            label: 'Khi phc',
+                            label: 'Khôi phục',
                             onClick: () => window.location.href = '/auth/forgot-password'
                         }
                     });
@@ -112,7 +112,7 @@ export function LoginForm({ onSuccess, callbackUrl = '/' }: LoginFormProps) {
             if (err instanceof Error) {
                 toast.error(err.message);
             } else {
-                toast.error('My ch gp s c, vui lng th li sau.');
+                toast.error('Máy chủ gặp sự cố, vui lòng thử lại sau.');
             }
         } finally {
             setLoading(false);
@@ -122,9 +122,9 @@ export function LoginForm({ onSuccess, callbackUrl = '/' }: LoginFormProps) {
     return (
         <>
             <CardHeader className="text-center pb-4">
-                <CardTitle className="text-2xl font-bold text-[#f5f5f5]">ng nhp</CardTitle>
+                <CardTitle className="text-2xl font-bold text-[#f5f5f5]">Đăng nhập</CardTitle>
                 <CardDescription className="text-[#9ca3af]">
-                    Nhp email v mt khu  truy cp ti khon ca bn
+                    Nhập email và mật khẩu để truy cập tài khoản của bạn
                 </CardDescription>
             </CardHeader>
 
@@ -182,12 +182,12 @@ export function LoginForm({ onSuccess, callbackUrl = '/' }: LoginFormProps) {
                     {/* Password Input */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="password" className="text-sm font-medium text-[#f5f5f5]">Mt khu</Label>
+                            <Label htmlFor="password" className="text-sm font-medium text-[#f5f5f5]">Mật khẩu</Label>
                             <Link
                                 href="/auth/forgot-password"
                                 className="text-sm text-[#00f5d4] hover:text-[#6366f1] transition-colors duration-200"
                             >
-                                Qun mt khu?
+                                Quên mật khẩu?
                             </Link>
                         </div>
                         <motion.div
@@ -202,7 +202,7 @@ export function LoginForm({ onSuccess, callbackUrl = '/' }: LoginFormProps) {
                                 value={formData.password}
                                 onChange={handleInputChange}
                                 onBlur={handleInputBlur}
-                                placeholder="Nhp mt khu ca bn"
+                                placeholder="Nhập mật khẩu của bạn"
                                 className={`h-12 bg-[#1a1a1a] text-[#f5f5f5] placeholder-[#9ca3af] focus:ring-[#00f5d4]/20 transition-all duration-200 pr-12 ${validation.errors.password && validation.touched.password
                                     ? 'border-red-500 focus:border-red-500'
                                     : 'border-[#333] focus:border-[#00f5d4]'
@@ -244,7 +244,7 @@ export function LoginForm({ onSuccess, callbackUrl = '/' }: LoginFormProps) {
                             className="border-[#333] data-[state=checked]:bg-[#00f5d4]"
                         />
                         <Label htmlFor="rememberMe" className="text-sm text-[#9ca3af] cursor-pointer">
-                            Ghi nh ng nhp
+                            Ghi nhớ đăng nhập
                         </Label>
                     </div>
                 </CardContent>
@@ -259,10 +259,10 @@ export function LoginForm({ onSuccess, callbackUrl = '/' }: LoginFormProps) {
                             {loading ? (
                                 <>
                                     <LoadingSpinner size="sm" className="mr-2" />
-                                    ang ng nhp...
+                                    đang đăng nhập...
                                 </>
                             ) : (
-                                'ng nhp'
+                                'Đăng nhập'
                             )}
                         </Button>
                     </motion.div>

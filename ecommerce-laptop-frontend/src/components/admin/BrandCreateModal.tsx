@@ -69,7 +69,7 @@ export default function BrandCreateModal({
         e.preventDefault();
 
         if (!formData.name.trim()) {
-            toast.error('Vui lng nhp tn thng hiu');
+            toast.error('Vui lòng nhập tên thương hiệu');
             return;
         }
 
@@ -92,9 +92,9 @@ export default function BrandCreateModal({
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Thm thng hiu mi</DialogTitle>
+                    <DialogTitle>Thêm thương hiệu mới</DialogTitle>
                     <DialogDescription>
-                        To thng hiu mi cho sn phm
+                        Tạo thương hiệu mới cho sản phẩm
                     </DialogDescription>
                 </DialogHeader>
 
@@ -102,23 +102,23 @@ export default function BrandCreateModal({
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">Tn thng hiu *</Label>
+                                <Label htmlFor="name">Tên thương hiệu *</Label>
                                 <Input
                                     id="name"
                                     value={formData.name}
                                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                                    placeholder="Nhp tn thng hiu"
+                                    placeholder="Nhập tên thương hiệu"
                                     required
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="country">Quc gia</Label>
+                                <Label htmlFor="country">Quốc gia</Label>
                                 <Input
                                     id="country"
                                     value={formData.country}
                                     onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                                    placeholder="VD: M, i Loan"
+                                    placeholder="VD: Mỹ, Đài Loan"
                                 />
                             </div>
                         </div>
@@ -135,12 +135,12 @@ export default function BrandCreateModal({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="description">M t</Label>
+                            <Label htmlFor="description">Mô tả</Label>
                             <Textarea
                                 id="description"
                                 value={formData.description}
                                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                placeholder="M t v thng hiu"
+                                placeholder="Mô tả về thương hiệu"
                                 rows={3}
                             />
                         </div>
@@ -152,7 +152,7 @@ export default function BrandCreateModal({
                                 checked={formData.isActive}
                                 onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
                             />
-                            <Label htmlFor="isActive">Kch hot thng hiu</Label>
+                            <Label htmlFor="isActive">Kích hoạt thương hiệu</Label>
                         </div>
                     </div>
 
@@ -162,13 +162,13 @@ export default function BrandCreateModal({
                             variant="outline"
                             onClick={() => handleOpenChange(false)}
                         >
-                            Hy b
+                            Hủy bỏ
                         </Button>
                         <Button
                             type="submit"
                             disabled={!formData.name || createBrandMutation.isPending}
                         >
-                            {createBrandMutation.isPending ? 'ang to...' : 'To thng hiu'}
+                            {createBrandMutation.isPending ? 'Đang tạo...' : 'Tạo thương hiệu'}
                         </Button>
                     </DialogFooter>
                 </form>

@@ -30,9 +30,9 @@ export default function AdvancedSettingsSection({
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle>Ci t nng cao</CardTitle>
+                                <CardTitle>Cài đặt nâng cao</CardTitle>
                                 <CardDescription>
-                                    Qun l tags, thng s k thut v cc ci t khc
+                                    Quản lý tags, thông số kỹ thuật và các cài đặt khác
                                 </CardDescription>
                             </div>
                             {isExpanded ? (
@@ -49,15 +49,15 @@ export default function AdvancedSettingsSection({
                         {/* Legacy Fields for Backward Compatibility */}
                         <div className="space-y-4">
                             <div>
-                                <Label>Thng tin b sung</Label>
+                                <Label>Thông tin bổ sung</Label>
                                 <p className="text-sm text-muted-foreground mb-2">
-                                    Cc trng thng tin b sung cho tng thch ngc
+                                    Các trường thông tin bổ sung cho tương thích ngược
                                 </p>
                             </div>
 
 
                             <div className="space-y-2">
-                                <Label htmlFor="ports">Cng kt ni</Label>
+                                <Label htmlFor="ports">Cổng kết nối</Label>
                                 <Textarea
                                     id="ports"
                                     value={formData.ports || ''}

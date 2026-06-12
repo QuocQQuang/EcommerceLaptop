@@ -36,6 +36,19 @@ namespace EcommerceLaptop.API.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    private static readonly string[] DefaultAllowedOrigins =
+    [
+        "http://localhost:3000",
+        "https://localhost:3000",
+        "http://localhost:3001",
+        "https://localhost:3001",
+        "http://localhost:3002",
+        "https://localhost:3002",
+        "http://127.0.0.1:3000",
+        "https://127.0.0.1:3000",
+        "https://ecommerce-laptop-quocquang.vercel.app"
+    ];
+
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         // DbContext with warning suppression for pending model changes
@@ -398,12 +411,14 @@ public static class ServiceCollectionExtensions
                     }));
         });
 
-        // CORS
+        var allowedOrigins = GetAllowedOrigins(configuration);
+
+        // CORS. Keep exact origins because credentials are enabled.
         services.AddCors(options =>
         {
             options.AddPolicy("Development", policy =>
             {
-                policy.WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:3001", "https://localhost:3001", "http://localhost:3002", "https://localhost:3002")
+                policy.WithOrigins(allowedOrigins)
                       .AllowAnyMethod()
                       .AllowAnyHeader()
                       .AllowCredentials();
@@ -411,40 +426,47 @@ public static class ServiceCollectionExtensions
 
             options.AddPolicy("Production", policy =>
             {
-                policy.WithOrigins(
-                        "https://ecommerce-laptop-quocquang.vercel.app",
-                        "https://ecommerce-laptop-quocquang-git-*.vercel.app",
-                        "https://a33lprojecct.id.vn"
-                    )
+                policy.WithOrigins(allowedOrigins)
                     .AllowAnyMethod()
                     .AllowAnyHeader()
-                    .AllowCredentials()
-                    .SetIsOriginAllowed(_ => true);
+                    .AllowCredentials();
             });
 
             options.AddPolicy("AllowAll", policy =>
             {
-                policy.WithOrigins(
-                        "http://localhost:3000", "https://localhost:3000",
-                        "http://localhost:3001", "https://localhost:3001",
-                        "http://localhost:3002", "https://localhost:3002",
-                        "http://127.0.0.1:3000", "https://127.0.0.1:3000",
-                        "https://ecommerce-laptop-quocquang.vercel.app",
-                        "https://ecommerce-laptop-quocquang-git-*.vercel.app",
-                        "https://a33lprojecct.id.vn"
-                      )
+                policy.WithOrigins(allowedOrigins)
                       .AllowAnyMethod()
                       .AllowAnyHeader()
-                      .AllowCredentials()
-                      .SetIsOriginAllowed(origin => origin.StartsWith("https://ecommerce-laptop-quocquang") ||
-                                                   origin.StartsWith("http://localhost:") ||
-                                                   origin.StartsWith("https://localhost:") ||
-                                                   origin.StartsWith("http://127.0.0.1:") ||
-                                                   origin.StartsWith("https://127.0.0.1:"));
+                      .AllowCredentials();
             });
         });
 
         return services;
+    }
+
+    private static string[] GetAllowedOrigins(IConfiguration configuration)
+    {
+        var configuredOrigins = configuration.GetSection("AllowedOrigins")
+            .GetChildren()
+            .Select(section => section.Value)
+            .Where(origin => !string.IsNullOrWhiteSpace(origin));
+
+        var csvOrigins = (configuration["AllowedOrigins"] ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        var origins = configuredOrigins
+            .Concat(csvOrigins)
+            .Select(NormalizeOrigin)
+            .Where(origin => !string.IsNullOrWhiteSpace(origin))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        return origins.Length > 0 ? origins : DefaultAllowedOrigins;
+    }
+
+    private static string NormalizeOrigin(string? origin)
+    {
+        return (origin ?? string.Empty).Trim().TrimEnd('/');
     }
 
     public static IServiceCollection AddExternalServices(this IServiceCollection services, IConfiguration configuration)

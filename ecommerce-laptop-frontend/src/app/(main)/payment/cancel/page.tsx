@@ -44,7 +44,7 @@ function PaymentCancelContent() {
                 <Card className="w-full max-w-md">
                     <CardContent className="p-8 text-center">
                         <LoadingSpinner size="lg" />
-                        <p className="mt-4 text-muted-foreground">ang x l thng tin...</p>
+                        <p className="mt-4 text-muted-foreground">Đang xử lý thông tin...</p>
                     </CardContent>
                 </Card>
             </div>
@@ -52,7 +52,7 @@ function PaymentCancelContent() {
     }
 
     const getPaymentMethodName = (method?: string) => {
-        if (!method) return 'Khng xc nh';
+        if (!method) return 'Không xác định';
 
         switch (method.toLowerCase()) {
             case 'paypal':
@@ -80,12 +80,12 @@ function PaymentCancelContent() {
                         <XCircle className="h-16 w-16 text-orange-500" />
                     </div>
                     <CardTitle className="text-orange-700">
-                        Thanh ton  b hy
+                        Thanh toán đã bị hủy
                     </CardTitle>
                     <CardDescription>
                         {cancelInfo.reason
-                            ? `L do: ${cancelInfo.reason}`
-                            : 'Bn  hy qu trnh thanh ton. n hng ca bn cha c x l.'
+                            ? `Lý do: ${cancelInfo.reason}`
+                            : 'Bạn đã hủy quá trình thanh toán. Đơn hàng của bạn chưa được xử lý.'
                         }
                     </CardDescription>
                 </CardHeader>
@@ -94,7 +94,7 @@ function PaymentCancelContent() {
                         <div className="space-y-2 text-sm">
                             {cancelInfo.orderId && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">M n hng:</span>
+                                    <span className="text-muted-foreground">Mã đơn hàng:</span>
                                     <span className="font-medium">#{cancelInfo.orderId}</span>
                                 </div>
                             )}
@@ -108,11 +108,11 @@ function PaymentCancelContent() {
                     )}
 
                     <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                        <h4 className="font-medium text-orange-800 mb-2">iu g xy ra tip theo?</h4>
+                        <h4 className="font-medium text-orange-800 mb-2">Điều gì xảy ra tiếp theo?</h4>
                         <ul className="text-sm text-orange-700 space-y-1">
-                            <li> n hng cha c to</li>
-                            <li> Khng c khon tin no b tr</li>
-                            <li> Sn phm vn c trong gi hng</li>
+                            <li> Đơn hàng chưa được tạo</li>
+                            <li> Không có khoản tiền nào bị trừ</li>
+                            <li> Sản phẩm vẫn còn trong giỏ hàng</li>
                         </ul>
                     </div>
 
@@ -120,18 +120,18 @@ function PaymentCancelContent() {
                         <Button asChild className="w-full">
                             <Link href="/checkout">
                                 <RefreshCw className="w-4 h-4 mr-2" />
-                                Th li thanh ton
+                                Thử lại thanh toán
                             </Link>
                         </Button>
                         <Button variant="outline" asChild className="w-full">
                             <Link href="/cart">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Quay li gi hng
+                                Quay lại giỏ hàng
                             </Link>
                         </Button>
                         <Button variant="ghost" asChild className="w-full">
                             <Link href="/">
-                                Tip tc mua sm
+                                Tiếp tục mua sắm
                             </Link>
                         </Button>
                     </div>

@@ -6,9 +6,9 @@ export default function CustomersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Qun l khch hng</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Quản lý khách hàng</h1>
         <p className="text-muted-foreground">
-          Qun l thng tin khch hng vi bo mt v quyn ring t
+          Quản lý thông tin khách hàng với bảo mật và quyền riêng tư
         </p>
       </div>
 

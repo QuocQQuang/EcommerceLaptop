@@ -32,7 +32,7 @@ function ResetPasswordContent() {
     // Validate token and email on mount
     useEffect(() => {
         if (!token || !email) {
-            setError('Link t li mt khu khng hp l hoc  ht hn');
+            setError('Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
         }
     }, [token, email]);
 
@@ -44,19 +44,19 @@ function ResetPasswordContent() {
         const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
         if (password.length < minLength) {
-            return `Mt khu phi c t nht ${minLength} k t`;
+            return `Mật khẩu phải có ít nhất ${minLength} ký tự`;
         }
         if (!hasUpperCase) {
-            return 'Mt khu phi c t nht 1 ch hoa';
+            return 'Mật khẩu phải có ít nhất 1 chữ hoa';
         }
         if (!hasLowerCase) {
-            return 'Mt khu phi c t nht 1 ch thng';
+            return 'Mật khẩu phải có ít nhất 1 chữ thường';
         }
         if (!hasNumbers) {
-            return 'Mt khu phi c t nht 1 s';
+            return 'Mật khẩu phải có ít nhất 1 số';
         }
         if (!hasSpecialChar) {
-            return 'Mt khu phi c t nht 1 k t c bit';
+            return 'Mật khẩu phải có ít nhất 1 ký tự đặc biệt';
         }
         return null;
     };
@@ -65,23 +65,23 @@ function ResetPasswordContent() {
         e.preventDefault();
 
         if (!token || !email) {
-            setError('Link t li mt khu khng hp l');
+            setError('Link đặt lại mật khẩu không hợp lệ');
             return;
         }
 
         // Validate passwords
         if (!formData.newPassword.trim()) {
-            setError('Mt khu mi khng c  trng');
+            setError('Mật khẩu mới không được để trống');
             return;
         }
 
         if (!formData.confirmPassword.trim()) {
-            setError('Xc nhn mt khu khng c  trng');
+            setError('Xác nhận mật khẩu không được để trống');
             return;
         }
 
         if (formData.newPassword !== formData.confirmPassword) {
-            setError('Mt khu xc nhn khng khp');
+            setError('Mật khẩu xác nhận không khớp');
             return;
         }
 
@@ -99,9 +99,9 @@ function ResetPasswordContent() {
 
             if (response.success) {
                 setSuccess(true);
-                toast.success('t li mt khu thnh cng!');
+                toast.success('Đặt lại mật khẩu thành công!');
             } else {
-                setError(response.message || ' c li xy ra. Vui lng th li.');
+                setError(response.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.');
             }
         } catch (err: any) {
             console.error('Reset password error:', err);
@@ -110,7 +110,7 @@ function ResetPasswordContent() {
             } else if (err.response?.data?.message) {
                 setError(err.response.data.message);
             } else {
-                setError(' c li xy ra. Vui lng th li.');
+                setError('Đã có lỗi xảy ra. Vui lòng thử lại.');
             }
         } finally {
             setLoading(false);
@@ -130,21 +130,21 @@ function ResetPasswordContent() {
                         <CardContent className="pt-6 text-center">
                             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                                t li mt khu thnh cng!
+                                Đặt lại mật khẩu thành công!
                             </h2>
                             <p className="text-gray-600 mb-4">
-                                Mt khu ca bn  c cp nht thnh cng. By gi bn c th ng nhp vi mt khu mi.
+                                Mật khẩu của bạn đã được cập nhật thành công. Bây giờ bạn có thể đăng nhập với mật khẩu mới.
                             </p>
                             <div className="space-y-3">
                                 <Link href="/auth/login">
                                     <Button className="w-full">
                                         <Lock className="h-4 w-4 mr-2" />
-                                        ng nhp ngay
+                                        Đăng nhập ngay
                                     </Button>
                                 </Link>
                                 <Link href="/">
                                     <Button variant="outline" className="w-full">
-                                        V trang ch
+                                        Về trang chủ
                                     </Button>
                                 </Link>
                             </div>
@@ -163,21 +163,21 @@ function ResetPasswordContent() {
                         <CardContent className="pt-6 text-center">
                             <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                                Link khng hp l
+                                Link không hợp lệ
                             </h2>
                             <p className="text-gray-600 mb-4">
-                                Link t li mt khu khng hp l hoc  ht hn. Vui lng yu cu link mi.
+                                Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu link mới.
                             </p>
                             <div className="space-y-3">
                                 <Link href="/auth/forgot-password">
                                     <Button className="w-full">
-                                        Yu cu link mi
+                                        Yêu cầu link mới
                                     </Button>
                                 </Link>
                                 <Link href="/auth/login">
                                     <Button variant="outline" className="w-full">
                                         <ArrowLeft className="h-4 w-4 mr-2" />
-                                        Quay li ng nhp
+                                        Quay lại đăng nhập
                                     </Button>
                                 </Link>
                             </div>
@@ -194,22 +194,22 @@ function ResetPasswordContent() {
                 {/* Header */}
                 <div className="text-center">
                     <h2 className="mt-6 text-3xl font-bold text-gray-900">
-                        t li mt khu
+                        Đặt lại mật khẩu
                     </h2>
                     <p className="mt-2 text-sm text-gray-600">
-                        Nhp mt khu mi cho ti khon <span className="font-medium">{email}</span>
+                        Nhập mật khẩu mới cho tài khoản <span className="font-medium">{email}</span>
                     </p>
                 </div>
 
                 {/* Reset Password Form */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center">
-                            <Lock className="h-5 w-5 mr-2" />
-                            Mt khu mi
-                        </CardTitle>
-                        <CardDescription>
-                            Mt khu phi c t nht 8 k t, bao gm ch hoa, ch thng, s v k t c bit
+                            <CardTitle className="flex items-center">
+                                <Lock className="h-5 w-5 mr-2" />
+                                Mật khẩu mới
+                            </CardTitle>
+                            <CardDescription>
+                                Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
                         </CardDescription>
                     </CardHeader>
 
@@ -225,7 +225,7 @@ function ResetPasswordContent() {
 
                             {/* New Password Field */}
                             <div className="space-y-2">
-                                <Label htmlFor="newPassword">Mt khu mi</Label>
+                                <Label htmlFor="newPassword">Mật khẩu mới</Label>
                                 <div className="relative">
                                     <Input
                                         id="newPassword"
@@ -234,7 +234,7 @@ function ResetPasswordContent() {
                                         required
                                         value={formData.newPassword}
                                         onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                                        placeholder="Nhp mt khu mi"
+                                        placeholder="Nhập mật khẩu mới"
                                         disabled={loading}
                                         className="pr-10"
                                     />
@@ -255,7 +255,7 @@ function ResetPasswordContent() {
 
                             {/* Confirm Password Field */}
                             <div className="space-y-2">
-                                <Label htmlFor="confirmPassword">Xc nhn mt khu</Label>
+                                <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
                                 <div className="relative">
                                     <Input
                                         id="confirmPassword"
@@ -264,7 +264,7 @@ function ResetPasswordContent() {
                                         required
                                         value={formData.confirmPassword}
                                         onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                                        placeholder="Nhp li mt khu mi"
+                                        placeholder="Nhập lại mật khẩu mới"
                                         disabled={loading}
                                         className="pr-10"
                                     />
@@ -298,7 +298,7 @@ function ResetPasswordContent() {
                                 ) : (
                                     <>
                                         <Lock className="h-4 w-4 mr-2" />
-                                        t li mt khu
+                                        Đặt lại mật khẩu
                                     </>
                                 )}
                             </Button>
@@ -306,7 +306,7 @@ function ResetPasswordContent() {
                             <Link href="/auth/login">
                                 <Button variant="ghost" className="w-full">
                                     <ArrowLeft className="h-4 w-4 mr-2" />
-                                    Quay li ng nhp
+                                    Quay lại đăng nhập
                                 </Button>
                             </Link>
                         </CardFooter>
@@ -318,7 +318,7 @@ function ResetPasswordContent() {
                     <p className="text-sm text-gray-600">
                         Gp vn ? {' '}
                         <Link href="/contact" className="text-blue-600 hover:text-blue-500">
-                            Lin h h tr
+                            Liên hệ hỗ trợ
                         </Link>
                     </p>
                 </div>

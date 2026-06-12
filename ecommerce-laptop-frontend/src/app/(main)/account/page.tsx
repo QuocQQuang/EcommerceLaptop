@@ -99,7 +99,7 @@ export default function AccountPage() {
                 setOrders(ordersResponse.items || []); // Handle PaginatedResponse structure
             }
         } catch (err: any) {
-            setError('Khng th ti thng tin ti khon');
+            setError('Không thể tải thông tin tài khoản');
         } finally {
             setLoading(false);
         }
@@ -112,12 +112,12 @@ export default function AccountPage() {
 
             const response = await userService.updateProfile(formData);
             setProfile(response.data);
-            setSuccess('Cp nht thng tin thnh cng');
+            setSuccess('Cập nhật thông tin thành công');
             setEditMode(false);
 
             setTimeout(() => setSuccess(''), 3000);
         } catch (err: any) {
-            setError('Khng th cp nht thng tin');
+            setError('Không thể cập nhật thông tin');
         } finally {
             setSaving(false);
         }
@@ -138,12 +138,12 @@ export default function AccountPage() {
 
     const getStatusText = (status: string) => {
         const statusMap: { [key: string]: string } = {
-            pending: 'Ch xc nhn',
-            confirmed: ' xc nhn',
-            processing: 'ang x l',
-            shipped: 'ang giao hng',
-            delivered: ' nhn hng',
-            cancelled: ' hy'
+            pending: 'Chờ xác nhận',
+            confirmed: 'Đã xác nhận',
+            processing: 'đang xử lý',
+            shipped: 'đang giao hàng',
+            delivered: 'Đã nhận hàng',
+            cancelled: 'đã hủy'
         };
         const key = (status || '').toLowerCase();
         return statusMap[key] || status;
@@ -166,7 +166,7 @@ export default function AccountPage() {
                         Ti khon ca ti
                     </h1>
                     <p className="text-gray-600">
-                        Qun l thng tin c nhn v n hng ca bn
+                        Quản lý thông tin cá nhân và đơn hàng của bạn
                     </p>
                 </div>
 
@@ -187,21 +187,21 @@ export default function AccountPage() {
 
                 <Tabs defaultValue="profile" className="space-y-6">
                     <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="profile" className="flex items-center">
-                            <User className="h-4 w-4 mr-2" />
-                            Thng tin c nhn
-                        </TabsTrigger>
+                                <TabsTrigger value="profile" className="flex items-center">
+                                    <User className="h-4 w-4 mr-2" />
+                                    Thông tin cá nhân
+                                </TabsTrigger>
                         <TabsTrigger value="orders" className="flex items-center">
                             <Package className="h-4 w-4 mr-2" />
-                            n hng
+                            Đơn hàng
                         </TabsTrigger>
                         <TabsTrigger value="wishlist" className="flex items-center">
                             <Heart className="h-4 w-4 mr-2" />
-                            Yu thch
+                            Yêu thích
                         </TabsTrigger>
                         <TabsTrigger value="settings" className="flex items-center">
                             <Settings className="h-4 w-4 mr-2" />
-                            Ci t
+                            Cài đặt
                         </TabsTrigger>
                     </TabsList>
 
@@ -212,9 +212,9 @@ export default function AccountPage() {
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between">
                                     <div>
-                                        <CardTitle>Thng tin c bn</CardTitle>
+                                        <CardTitle>Thông tin cơ bản</CardTitle>
                                         <CardDescription>
-                                            Cp nht thng tin c nhn ca bn
+                                            Cập nhật thông tin cá nhân của bạn
                                         </CardDescription>
                                     </div>
                                     {!editMode ? (
@@ -224,7 +224,7 @@ export default function AccountPage() {
                                             onClick={() => setEditMode(true)}
                                         >
                                             <Edit className="h-4 w-4 mr-2" />
-                                            Chnh sa
+                                            Chỉnh sửa
                                         </Button>
                                     ) : (
                                         <div className="flex space-x-2">
@@ -256,7 +256,7 @@ export default function AccountPage() {
                                 <CardContent className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="firstName">H</Label>
+                                            <Label htmlFor="firstName">Họ</Label>
                                             <Input
                                                 id="firstName"
                                                 value={formData.firstName || ''}
@@ -265,7 +265,7 @@ export default function AccountPage() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="lastName">Tn</Label>
+                                            <Label htmlFor="lastName">Tên</Label>
                                             <Input
                                                 id="lastName"
                                                 value={formData.lastName || ''}
@@ -296,27 +296,27 @@ export default function AccountPage() {
                                                     try {
                                                         const email = formData.email || profile?.email;
                                                         if (!email) {
-                                                            toast.error('Khng tm thy email ti khon');
+                                                            toast.error('Không tìm thấy email tài khoản');
                                                             return;
                                                         }
                                                         const res = await userService.resendEmailConfirmation(email);
                                                         if (res.success) {
-                                                            toast.success(res.message || ' gi li email xc thc');
+                                                            toast.success(res.message || 'Đã gửi lại email xác thực');
                                                         } else {
-                                                            toast.error(res.message || 'Gi li email xc thc tht bi');
+                                                            toast.error(res.message || 'Gửi lại email xác thực thất bại');
                                                         }
                                                     } catch (e: any) {
-                                                        toast.error(e?.response?.data?.message || 'Khng th gi li email xc thc');
+                                                        toast.error(e?.response?.data?.message || 'Không thể gửi lại email xác thực');
                                                     }
                                                 }}
                                             >
-                                                Gi li email xc thc
+                                                Gửi lại email xác thực
                                             </Button>
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="phoneNumber">S in thoi</Label>
+                                        <Label htmlFor="phoneNumber">Số điện thoại</Label>
                                         <div className="relative">
                                             <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                                             <Input
@@ -325,13 +325,13 @@ export default function AccountPage() {
                                                 onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                                                 disabled={!editMode}
                                                 className="pl-10"
-                                                placeholder="Nhp s in thoi"
+                                                placeholder="Nhập số điện thoại"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="dateOfBirth">Ngy sinh</Label>
+                                        <Label htmlFor="dateOfBirth">Ngày sinh</Label>
                                         <div className="relative">
                                             <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                                             <Input
@@ -350,14 +350,14 @@ export default function AccountPage() {
                             {/* Address Information */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>a ch</CardTitle>
+                                    <CardTitle>Địa chỉ</CardTitle>
                                     <CardDescription>
-                                        a ch giao hng mc nh
+                                        Địa chỉ giao hàng mặc định
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="street">a ch chi tit</Label>
+                                        <Label htmlFor="street">Địa chỉ chi tiết</Label>
                                         <div className="relative">
                                             <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                                             <Input
@@ -369,14 +369,14 @@ export default function AccountPage() {
                                                 })}
                                                 disabled={!editMode}
                                                 className="pl-10"
-                                                placeholder="S nh, tn ng"
+                                                placeholder="Số nhà, tên đường"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="ward">Phng/X</Label>
+                                            <Label htmlFor="ward">Phường/Xã</Label>
                                             <Input
                                                 id="ward"
                                                 value={formData.address?.ward || ''}
@@ -385,11 +385,11 @@ export default function AccountPage() {
                                                     address: { ...formData.address, ward: e.target.value } as any
                                                 })}
                                                 disabled={!editMode}
-                                                placeholder="Phng/X"
+                                                placeholder="Phường/Xã"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="district">Qun/Huyn</Label>
+                                            <Label htmlFor="district">Quận/Huyện</Label>
                                             <Input
                                                 id="district"
                                                 value={formData.address?.district || ''}
@@ -398,14 +398,14 @@ export default function AccountPage() {
                                                     address: { ...formData.address, district: e.target.value } as any
                                                 })}
                                                 disabled={!editMode}
-                                                placeholder="Qun/Huyn"
+                                                placeholder="Quận/Huyện"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="city">Tnh/Thnh ph</Label>
+                                            <Label htmlFor="city">Tỉnh/Thành phố</Label>
                                             <Input
                                                 id="city"
                                                 value={formData.address?.city || ''}
@@ -414,11 +414,11 @@ export default function AccountPage() {
                                                     address: { ...formData.address, city: e.target.value } as any
                                                 })}
                                                 disabled={!editMode}
-                                                placeholder="Tnh/Thnh ph"
+                                                placeholder="Tỉnh/Thành phố"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="zipCode">M bu in</Label>
+                                            <Label htmlFor="zipCode">Mã bưu điện</Label>
                                             <Input
                                                 id="zipCode"
                                                 value={formData.address?.zipCode || ''}
@@ -427,7 +427,7 @@ export default function AccountPage() {
                                                     address: { ...formData.address, zipCode: e.target.value } as any
                                                 })}
                                                 disabled={!editMode}
-                                                placeholder="M bu in"
+                                                placeholder="Mã bưu điện"
                                             />
                                         </div>
                                     </div>
@@ -440,9 +440,9 @@ export default function AccountPage() {
                     <TabsContent value="orders">
                         <Card>
                             <CardHeader>
-                                <CardTitle>n hng ca ti</CardTitle>
+                                <CardTitle>Đơn hàng của tôi</CardTitle>
                                 <CardDescription>
-                                    Theo di trng thi n hng v lch s mua hng
+                                    Theo dõi trạng thái đơn hàng và lịch sử mua hàng
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -450,10 +450,10 @@ export default function AccountPage() {
                                     <div className="text-center py-8">
                                         <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                                         <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                            Cha c n hng no
+                                            Chưa có đơn hàng nào
                                         </h3>
                                         <p className="text-gray-500">
-                                            Bn cha c n hng no. Hy bt u mua sm ngay!
+                                            Bạn chưa có đơn hàng nào. Hãy bắt đầu mua sắm ngay!
                                         </p>
                                     </div>
                                 ) : (
@@ -463,7 +463,7 @@ export default function AccountPage() {
                                                 <div className="flex justify-between items-start mb-3">
                                                     <div>
                                                         <h4 className="font-medium text-gray-900">
-                                                            n hng #{order.orderNumber}
+                                                            Đơn hàng #{order.orderNumber}
                                                         </h4>
                                                         <p className="text-sm text-gray-500">
                                                             {new Date(order.createdAt).toLocaleDateString('vi-VN')}
@@ -484,7 +484,7 @@ export default function AccountPage() {
                                                 </div>
 
                                                 <div className="flex justify-between items-center pt-3 border-t border-gray-200">
-                                                    <span className="font-medium">Tng cng:</span>
+                                                    <span className="font-medium">Tổng cộng:</span>
                                                     <span className="font-bold text-lg text-blue-600">
                                                         {formatCurrencyPrice(order.totalAmount, selectedCurrency)}
                                                     </span>
@@ -501,19 +501,19 @@ export default function AccountPage() {
                     <TabsContent value="wishlist">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Danh sch yu thch</CardTitle>
+                                <CardTitle>Danh sách yêu thích</CardTitle>
                                 <CardDescription>
-                                    Cc sn phm bn  thm vo danh sch yu thch
+                                    Các sản phẩm bạn đã thêm vào danh sách yêu thích
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-center py-8">
                                     <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                        Danh sch yu thch trng
+                                        Danh sách yêu thích trống
                                     </h3>
                                     <p className="text-gray-500">
-                                        Thm sn phm vo danh sch yu thch  theo di chng d dng hn
+                                        Thêm sản phẩm vào danh sách yêu thích để theo dõi chúng dễ dàng hơn
                                     </p>
                                 </div>
                             </CardContent>
@@ -527,7 +527,7 @@ export default function AccountPage() {
                                 <ChangePasswordForm
                                     onSuccess={() => {
                                         setShowChangePassword(false);
-                                        setSuccess('Mt khu  c thay i thnh cng');
+                                        setSuccess('Mật khẩu đã được thay đổi thành công');
                                         setTimeout(() => setSuccess(''), 3000);
                                     }}
                                     onCancel={() => setShowChangePassword(false)}
@@ -539,10 +539,10 @@ export default function AccountPage() {
                                     <CardHeader>
                                         <CardTitle className="flex items-center">
                                             <Lock className="h-5 w-5 mr-2" />
-                                            i mt khu
+                                            Đổi mật khẩu
                                         </CardTitle>
                                         <CardDescription>
-                                            Thay i mt khu ti khon ca bn
+                                            Thay đổi mật khẩu tài khoản của bạn
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
@@ -552,7 +552,7 @@ export default function AccountPage() {
                                             onClick={() => setShowChangePassword(true)}
                                         >
                                             <Lock className="h-4 w-4 mr-2" />
-                                            i mt khu
+                                            Đổi mật khẩu
                                         </Button>
                                     </CardContent>
                                 </Card>

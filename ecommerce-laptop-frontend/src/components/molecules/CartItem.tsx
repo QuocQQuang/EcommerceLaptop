@@ -155,17 +155,17 @@ export function CartSummary({ className }: CartSummaryProps) {
 
     return (
         <div className={cn('bg-gray-50 p-4 rounded-lg', className)}>
-            <h3 className="font-semibold text-lg mb-4">Tm tt n hng</h3>
+            <h3 className="font-semibold text-lg mb-4">Tóm tắt đơn hàng</h3>
 
             <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                    <span>Tm tnh ({itemCount} sn phm)</span>
+                    <span>Tạm tính ({itemCount} sản phẩm)</span>
                     <span>{new Intl.NumberFormat(undefined, { style: 'currency', currency: process.env.NEXT_PUBLIC_CURRENCY || 'USD' }).format(subtotal)}</span>
                 </div>
 
                 <div className="flex justify-between text-sm">
-                    <span>Ph vn chuyn</span>
-                    <span>Min ph</span>
+                    <span>Phí vận chuyển</span>
+                    <span>Miễn phí</span>
                 </div>
 
                 {/* Free shipping note removed for USD default */}
@@ -173,7 +173,7 @@ export function CartSummary({ className }: CartSummaryProps) {
                 <hr className="border-gray-300" />
 
                 <div className="flex justify-between font-semibold text-lg">
-                    <span>Tng cng</span>
+                    <span>Tổng cộng</span>
                     <span className="text-red-600">{new Intl.NumberFormat(undefined, { style: 'currency', currency: process.env.NEXT_PUBLIC_CURRENCY || 'USD' }).format(totalAmount)}</span>
                 </div>
             </div>

@@ -58,7 +58,7 @@ export function PromotionInteractiveContent() {
     {
       code: 'LAPTOP500K',
       title: 'Gim 500,000',
-      description: 'Cho n hng t 15 triu',
+      description: 'Cho đơn hàng từ 15 triệu',
       expiry: '30/09/2025',
       used: 847,
       total: 1000,
@@ -67,7 +67,7 @@ export function PromotionInteractiveContent() {
     {
       code: 'STUDENT30',
       title: 'Gim 30%',
-      description: 'Dnh cho sinh vin',
+      description: 'Dành cho sinh viên',
       expiry: '31/12/2025',
       used: 234,
       total: 500,
@@ -76,7 +76,7 @@ export function PromotionInteractiveContent() {
     {
       code: 'FIRSTBUY200K',
       title: 'Gim 200,000',
-      description: 'Khch hng mi',
+      description: 'Khách hàng mới',
       expiry: '15/10/2025',
       used: 156,
       total: 300,
@@ -85,7 +85,7 @@ export function PromotionInteractiveContent() {
     {
       code: 'FREESHIP',
       title: 'Min ph ship',
-      description: 'Ton quc',
+      description: 'Toàn quốc',
       expiry: '25/09/2025',
       used: 1247,
       total: 2000,
@@ -113,12 +113,12 @@ export function PromotionInteractiveContent() {
       <section id="flash-sale" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
           <Zap className="w-8 h-8 mr-3 text-red-600" />
-           Flash Sale - Gi Sc 24h
+           Flash Sale - Giá Sốc 24h
         </h2>
 
         <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-6 text-white mb-8">
           <div className="text-center">
-            <h3 className="text-2xl font-bold mb-2"> ANG DIN RA</h3>
+            <h3 className="text-2xl font-bold mb-2"> ĐANG DIỄN RA</h3>
             <p className="text-lg mb-4">Thi gian cn li:</p>
             <div className="flex justify-center space-x-4 text-2xl font-mono font-bold">
               <div className="bg-black/20 px-4 py-2 rounded">05</div>
@@ -202,7 +202,7 @@ export function PromotionInteractiveContent() {
             loadingKey="view-all-flash-sale"
             className="border-red-500 text-red-600 hover:bg-red-50"
           >
-            Xem tt c Flash Sale
+            Xem tất cả Flash Sale
           </LoadingButton>
         </div>
       </section>
@@ -211,7 +211,7 @@ export function PromotionInteractiveContent() {
       <section id="voucher-codes" className="content-section">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
           <Tag className="w-8 h-8 mr-3 text-purple-600" />
-           M Gim Gi
+            Mã Giảm Giá
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -256,7 +256,7 @@ export function PromotionInteractiveContent() {
                   onClick={() => copyToClipboard(voucher.code)}
                   className="w-full"
                 >
-                   Sao chp m
+                   Sao chép mã
                 </LoadingButton>
               </CardContent>
             </Card>
@@ -265,20 +265,20 @@ export function PromotionInteractiveContent() {
 
         <div className="mt-8 text-center bg-purple-50 rounded-xl p-6">
           <h3 className="text-xl font-bold text-purple-900 mb-2">
-             Cch s dng m gim gi
+              Cách sử dụng mã giảm giá
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-purple-800">
             <div>
               <div className="text-2xl mb-2"></div>
-              <strong>Bc 1:</strong> Thm sn phm vo gi hng
+              <strong>Bước 1:</strong> Thêm sản phẩm vào giỏ hàng
             </div>
             <div>
               <div className="text-2xl mb-2"></div>
-              <strong>Bc 2:</strong> Nhp m ti trang thanh ton
+              <strong>Bước 2:</strong> Nhập mã tại trang thanh toán
             </div>
             <div>
               <div className="text-2xl mb-2"></div>
-              <strong>Bc 3:</strong> Nhn ngay u i
+              <strong>Bước 3:</strong> Nhận ngay ưu đãi
             </div>
           </div>
         </div>

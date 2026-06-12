@@ -24,7 +24,7 @@ function CheckoutSuccessContent() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <p className="text-muted-foreground">
-                        Cm n bn  mua sm! n hng ca bn  c nhn v
+                        Cảm ơn bạn đã mua sắm! Đơn hàng của bạn đã được nhận và
                         ang c x l.
                     </p>
                     {orderId && (

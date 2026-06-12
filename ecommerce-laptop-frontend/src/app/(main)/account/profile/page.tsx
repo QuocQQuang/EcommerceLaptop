@@ -31,21 +31,21 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 const profileSchema = z.object({
-    firstName: z.string().min(1, 'H khng c  trng'),
-    lastName: z.string().min(1, 'Tn khng c  trng'),
+    firstName: z.string().min(1, 'Họ không được để trống'),
+    lastName: z.string().min(1, 'Tên không được để trống'),
     phoneNumber: z.string().optional(),
 });
 
 const passwordSchema = z
     .object({
-        currentPassword: z.string().min(1, 'Mt khu hin ti l bt buc'),
+        currentPassword: z.string().min(1, 'Mật khẩu hiện tại là bắt buộc'),
         newPassword: z
             .string()
-            .min(8, 'Mt khu mi phi c t nht 8 k t'),
+            .min(8, 'Mật khẩu mới phải có ít nhất 8 ký tự'),
         confirmPassword: z.string(),
     })
     .refine((data) => data.newPassword === data.confirmPassword, {
-        message: 'Mt khu xc nhn khng khp',
+        message: 'Mật khẩu xác nhận không khớp',
         path: ['confirmPassword'],
     });
 
@@ -95,7 +95,7 @@ export default function ProfilePage() {
                     setAvatarUrl(profile.profilePictureUrl || null);
                 } catch (error) {
                     console.error('Failed to load profile:', error);
-                    toast.error('Khng th ti thng tin c nhn.');
+                    toast.error('Không thể tải thông tin cá nhân.');
                 }
             }
             setIsLoading(false);
@@ -116,11 +116,11 @@ export default function ProfilePage() {
                     lastName: values.lastName,
                 },
             });
-            toast.success('Cp nht thng tin thnh cng!');
+            toast.success('Cập nhật thông tin thành công!');
         } catch (error: any) {
             const errorMessage =
                 error.response?.data?.message ||
-                'C li xy ra, vui lng th li.';
+                'Có lỗi xảy ra, vui lòng thử lại.';
             toast.error(errorMessage);
         } finally {
             setIsSavingProfile(false);
@@ -134,12 +134,12 @@ export default function ProfilePage() {
                 values.currentPassword,
                 values.newPassword,
             );
-            toast.success('i mt khu thnh cng!');
+            toast.success('Đổi mật khẩu thành công!');
             passwordForm.reset();
         } catch (error: any) {
             const errorMessage =
                 error.response?.data?.message ||
-                'C li xy ra, vui lng th li.';
+                'Có lỗi xảy ra, vui lòng thử lại.';
             toast.error(errorMessage);
         } finally {
             setIsSavingPassword(false);
@@ -153,18 +153,18 @@ export default function ProfilePage() {
         if (!file) return;
 
         if (file.size > 10 * 1024 * 1024) {
-            toast.error('Kch thc file khng c vt qu 10MB.');
+            toast.error('Kích thước file không được vượt quá 10MB.');
             return;
         }
 
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
-            toast.error('nh dng file khng hp l. Ch chp nhn JPG, PNG, WebP.');
+            toast.error('Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG, WebP.');
             return;
         }
 
         setIsUploading(true);
-        const toastId = toast.loading('ang ti nh ln...');
+        const toastId = toast.loading('đang tải ảnh lên...');
 
         try {
             const response = await userService.uploadAvatar(file);
@@ -179,12 +179,12 @@ export default function ProfilePage() {
                 },
             });
 
-            toast.success('Cp nht nh i din thnh cng!', { id: toastId });
+            toast.success('Cập nhật ảnh đại diện thành công!', { id: toastId });
         } catch (error: any) {
             console.error('Avatar upload error:', error);
             const errorMessage =
                 error.response?.data?.message ||
-                'C li xy ra khi ti nh ln.';
+                'Có lỗi xảy ra khi tải ảnh lên.';
             toast.error(errorMessage, { id: toastId });
         } finally {
             setIsUploading(false);
@@ -230,10 +230,10 @@ export default function ProfilePage() {
                 <CardHeader>
                     <CardTitle className="flex items-center">
                         <User className="mr-2" />
-                        H s ca ti
+                        Hồ sơ của tôi
                     </CardTitle>
                     <CardDescription>
-                        Qun l thng tin c nhn v bo mt ti khon ca bn.
+                        Quản lý thông tin cá nhân và bảo mật tài khoản của bạn.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -286,7 +286,7 @@ export default function ProfilePage() {
                             className="space-y-6 mt-6"
                         >
                             <h3 className="text-lg font-medium">
-                                Thng tin c nhn
+                                Thông tin cá nhân
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
@@ -327,7 +327,7 @@ export default function ProfilePage() {
                                 name="phoneNumber"
                                 render={({ field }: { field: any }) => (
                                     <FormItem>
-                                        <FormLabel>S in thoi</FormLabel>
+                                        <FormLabel>Số điện thoại</FormLabel>
                                         <FormControl>
                                             <Input
                                                 placeholder="09xxxxxxxx"
@@ -361,14 +361,14 @@ export default function ProfilePage() {
                         >
                             <h3 className="text-lg font-medium flex items-center">
                                 <Lock className="mr-2 h-5 w-5" />
-                                i mt khu
+                                Đổi mật khẩu
                             </h3>
                             <FormField
                                 control={passwordForm.control}
                                 name="currentPassword"
                                 render={({ field }: { field: any }) => (
                                     <FormItem>
-                                        <FormLabel>Mt khu hin ti</FormLabel>
+                                        <FormLabel>Mật khẩu hiện tại</FormLabel>
                                         <FormControl>
                                             <div className="relative">
                                                 <Input
@@ -408,7 +408,7 @@ export default function ProfilePage() {
                                     name="newPassword"
                                     render={({ field }: { field: any }) => (
                                         <FormItem>
-                                            <FormLabel>Mt khu mi</FormLabel>
+                                            <FormLabel>Mật khẩu mới</FormLabel>
                                             <FormControl>
                                                 <div className="relative">
                                                     <Input
@@ -448,7 +448,7 @@ export default function ProfilePage() {
                                     render={({ field }: { field: any }) => (
                                         <FormItem>
                                             <FormLabel>
-                                                Xc nhn mt khu mi
+                                                Xác nhận mật khẩu mới
                                             </FormLabel>
                                             <FormControl>
                                                 <div className="relative">
@@ -489,8 +489,8 @@ export default function ProfilePage() {
                                 disabled={isSavingPassword || !passwordForm.formState.isDirty}
                             >
                                 {isSavingPassword
-                                    ? 'ang cp nht...'
-                                    : 'Cp nht mt khu'}
+                                    ? 'đang cập nhật...'
+                                    : 'Cập nhật mật khẩu'}
                             </Button>
                         </form>
                     </Form>

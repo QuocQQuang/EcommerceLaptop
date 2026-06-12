@@ -57,7 +57,7 @@ export default function BundleSpecificationsSection({
                             <div>
                                 <CardTitle>Thng s combo</CardTitle>
                                 <CardDescription>
-                                    Nhp thng tin chi tit cho combo sn phm
+                                    Nhập thông tin chi tiết cho combo sản phẩm
                                 </CardDescription>
                             </div>
                             {isExpanded ? (
@@ -77,7 +77,7 @@ export default function BundleSpecificationsSection({
                                     id="bundleType"
                                     value={formData.bundleType || ''}
                                     onChange={(e) => onInputChange('bundleType', e.target.value)}
-                                    placeholder="VD: Combo Gaming, Combo Vn phng"
+                                    placeholder="VD: Combo Gaming, Combo Văn phòng"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -94,7 +94,7 @@ export default function BundleSpecificationsSection({
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="validFrom">C hiu lc t</Label>
+                                <Label htmlFor="validFrom">Có hiệu lực từ</Label>
                                 <Input
                                     id="validFrom"
                                     type="date"
@@ -103,7 +103,7 @@ export default function BundleSpecificationsSection({
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="validTo">C hiu lc n</Label>
+                                <Label htmlFor="validTo">Có hiệu lực đến</Label>
                                 <Input
                                     id="validTo"
                                     type="date"
@@ -115,17 +115,17 @@ export default function BundleSpecificationsSection({
 
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <Label>Sn phm trong combo</Label>
+                                <Label>Sản phẩm trong combo</Label>
                                 <Button type="button" onClick={addBundleItem} size="sm">
                                     <Plus className="h-4 w-4 mr-2" />
-                                    Thm sn phm
+                                    Thêm sản phẩm
                                 </Button>
                             </div>
 
                             {formData.bundleItems?.map((item, index) => (
                                 <div key={index} className="p-4 border rounded-lg space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <span className="font-medium">Sn phm {index + 1}</span>
+                                        <span className="font-medium">Sản phẩm {index + 1}</span>
                                         <Button
                                             type="button"
                                             variant="ghost"
@@ -138,13 +138,13 @@ export default function BundleSpecificationsSection({
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <div className="space-y-2">
-                                            <Label>Sn phm</Label>
+                                            <Label>Sản phẩm</Label>
                                             <select
                                                 value={item.productId}
                                                 onChange={(e) => updateBundleItem(index, 'productId', e.target.value)}
                                                 className="w-full p-2 border rounded-md"
                                             >
-                                                <option value="">Chn sn phm</option>
+                                                <option value="">Chọn sản phẩm</option>
                                                 {products?.map((product) => (
                                                     <option key={product.id} value={product.id.toString()}>
                                                         {product.name}
@@ -153,7 +153,7 @@ export default function BundleSpecificationsSection({
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>S lng</Label>
+                                            <Label>Số lượng</Label>
                                             <Input
                                                 type="number"
                                                 value={item.quantity}
@@ -163,7 +163,7 @@ export default function BundleSpecificationsSection({
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Gim gi (%)</Label>
+                                            <Label>Giảm giá (%)</Label>
                                             <Input
                                                 type="number"
                                                 value={item.discountPercentage}
@@ -179,8 +179,8 @@ export default function BundleSpecificationsSection({
 
                             {(!formData.bundleItems || formData.bundleItems.length === 0) && (
                                 <div className="text-center py-8 text-muted-foreground">
-                                    <p>Cha c sn phm no trong combo</p>
-                                    <p className="text-sm">Nhn "Thm sn phm"  bt u</p>
+                                    <p>Chưa có sản phẩm nào trong combo</p>
+                                    <p className="text-sm">Nhấn "Thêm sản phẩm" để bắt đầu</p>
                                 </div>
                             )}
                         </div>

@@ -195,10 +195,10 @@ export default function BlogSettingsPage() {
             setSaving(true);
             // Mock API call
             console.log('Saving blog settings:', settings);
-            toast.success('Ci t  c lu thnh cng');
+            toast.success('Cài đặt đã được lưu thành công');
         } catch (error) {
             console.error('Failed to save settings:', error);
-            toast.error('Khng th lu ci t');
+            toast.error('Không thể lưu cài đặt');
         } finally {
             setSaving(false);
         }
@@ -206,22 +206,22 @@ export default function BlogSettingsPage() {
 
     // Reset settings
     const handleReset = () => {
-        if (confirm('Bn c chc chn mun khi phc ci t mc nh?')) {
+        if (confirm('Bạn có chắc chắn muốn khôi phục cài đặt mặc định?')) {
             // Reset to default values
-            toast.success(' khi phc ci t mc nh');
+            toast.success('Đã khôi phục cài đặt mặc định');
         }
     };
 
     const themeOptions = [
-        { value: 'default', label: 'Theme mc nh' },
-        { value: 'dark', label: 'Theme ti' },
-        { value: 'light', label: 'Theme sng' },
-        { value: 'minimal', label: 'Theme ti gin' },
-        { value: 'modern', label: 'Theme hin i' }
+        { value: 'default', label: 'Theme mặc định' },
+        { value: 'dark', label: 'Theme tối' },
+        { value: 'light', label: 'Theme sáng' },
+        { value: 'minimal', label: 'Theme tối giản' },
+        { value: 'modern', label: 'Theme hiện đại' }
     ];
 
     const timezones = [
-        { value: 'Asia/Ho_Chi_Minh', label: 'Vit Nam (GMT+7)' },
+        { value: 'Asia/Ho_Chi_Minh', label: 'Việt Nam (GMT+7)' },
         { value: 'UTC', label: 'UTC (GMT+0)' },
         { value: 'America/New_York', label: 'New York (GMT-5)' },
         { value: 'Europe/London', label: 'London (GMT+0)' },
@@ -229,7 +229,7 @@ export default function BlogSettingsPage() {
     ];
 
     const languages = [
-        { value: 'vi-VN', label: 'Ting Vit' },
+        { value: 'vi-VN', label: 'Tiếng Việt' },
         { value: 'en-US', label: 'English (US)' },
         { value: 'en-GB', label: 'English (UK)' },
         { value: 'zh-CN', label: ' ()' },
@@ -237,10 +237,10 @@ export default function BlogSettingsPage() {
     ];
 
     const userRoles = [
-        { value: 'subscriber', label: 'Ngi ng k' },
-        { value: 'contributor', label: 'Cng tc vin' },
-        { value: 'author', label: 'Tc gi' },
-        { value: 'editor', label: 'Bin tp vin' }
+        { value: 'subscriber', label: 'Người đăng ký' },
+        { value: 'contributor', label: 'Cộng tác viên' },
+        { value: 'author', label: 'Tác giả' },
+        { value: 'editor', label: 'Biên tập viên' }
     ];
 
     return (
@@ -248,23 +248,23 @@ export default function BlogSettingsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Ci t Blog</h1>
-                    <p className="text-gray-500">Qun l cu hnh v ty chnh blog ca bn</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Cài đặt Blog</h1>
+                    <p className="text-gray-500">Quản lý cấu hình và tùy chỉnh blog của bạn</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={handleReset}>
-                        Khi phc mc nh
+                        Khôi phục mặc định
                     </Button>
                     <Button onClick={handleSave} disabled={saving}>
                         {saving ? (
                             <>
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                                ang lu...
+                                đang lưu...
                             </>
                         ) : (
                             <>
                                 <Save className="w-4 h-4 mr-2" />
-                                Lu ci t
+                                Lưu cài đặt
                             </>
                         )}
                     </Button>
@@ -275,12 +275,12 @@ export default function BlogSettingsPage() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="grid w-full grid-cols-7">
                     <TabsTrigger value="general">Chung</TabsTrigger>
-                    <TabsTrigger value="theme">Giao din</TabsTrigger>
-                    <TabsTrigger value="content">Ni dung</TabsTrigger>
+                    <TabsTrigger value="theme">Giao diện</TabsTrigger>
+                    <TabsTrigger value="content">Nội dung</TabsTrigger>
                     <TabsTrigger value="seo">SEO</TabsTrigger>
                     <TabsTrigger value="email">Email</TabsTrigger>
-                    <TabsTrigger value="security">Bo mt</TabsTrigger>
-                    <TabsTrigger value="advanced">Nng cao</TabsTrigger>
+                    <TabsTrigger value="security">Bảo mật</TabsTrigger>
+                    <TabsTrigger value="advanced">Nâng cao</TabsTrigger>
                 </TabsList>
 
                 {/* General Settings Tab */}
@@ -289,21 +289,21 @@ export default function BlogSettingsPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Globe className="w-5 h-5" />
-                                Thng tin chung
+                                Thông tin chung
                             </CardTitle>
                             <CardDescription>
-                                Cu hnh thng tin c bn ca blog
+                                Cấu hình thông tin cơ bản của blog
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="siteName">Tn blog *</Label>
+                                    <Label htmlFor="siteName">Tên blog *</Label>
                                     <Input
                                         id="siteName"
                                         value={settings.siteName}
                                         onChange={(e) => updateSetting('siteName', e.target.value)}
-                                        placeholder="Nhp tn blog..."
+                                        placeholder="Nhập tên blog..."
                                     />
                                 </div>
                                 <div>
@@ -318,19 +318,19 @@ export default function BlogSettingsPage() {
                             </div>
 
                             <div>
-                                <Label htmlFor="siteDescription">M t blog</Label>
+                                <Label htmlFor="siteDescription">Mô tả blog</Label>
                                 <Textarea
                                     id="siteDescription"
                                     value={settings.siteDescription}
                                     onChange={(e) => updateSetting('siteDescription', e.target.value)}
-                                    placeholder="M t ngn v blog ca bn..."
+                                    placeholder="Mô tả ngắn về blog của bạn..."
                                     className="min-h-20"
                                 />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <Label htmlFor="timezone">Mi gi</Label>
+                                    <Label htmlFor="timezone">Múi giờ</Label>
                                     <Select
                                         value={settings.timezone}
                                         onValueChange={(value) => updateSetting('timezone', value)}
@@ -348,7 +348,7 @@ export default function BlogSettingsPage() {
                                     </Select>
                                 </div>
                                 <div>
-                                    <Label htmlFor="language">Ngn ng</Label>
+                                    <Label htmlFor="language">Ngôn ngữ</Label>
                                     <Select
                                         value={settings.language}
                                         onValueChange={(value) => updateSetting('language', value)}
@@ -366,7 +366,7 @@ export default function BlogSettingsPage() {
                                     </Select>
                                 </div>
                                 <div>
-                                    <Label htmlFor="dateFormat">nh dng ngy</Label>
+                                    <Label htmlFor="dateFormat">Định dạng ngày</Label>
                                     <Select
                                         value={settings.dateFormat}
                                         onValueChange={(value) => updateSetting('dateFormat', value)}
@@ -387,9 +387,9 @@ export default function BlogSettingsPage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Lin kt mng x hi</CardTitle>
+                            <CardTitle>Liên kết mạng xã hội</CardTitle>
                             <CardDescription>
-                                Thm cc lin kt mng x hi ca blog
+                                Thêm các liên kết mạng xã hội của blog
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -444,7 +444,7 @@ export default function BlogSettingsPage() {
                                 Giao din v thit k
                             </CardTitle>
                             <CardDescription>
-                                Ty chnh giao din v mu sc ca blog
+                                Tùy chỉnh giao diện và màu sắc của blog
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -468,7 +468,7 @@ export default function BlogSettingsPage() {
                                     </Select>
                                 </div>
                                 <div>
-                                    <Label htmlFor="fontFamily">Font ch</Label>
+                                    <Label htmlFor="fontFamily">Font chữ</Label>
                                     <Select
                                         value={settings.fontFamily}
                                         onValueChange={(value) => updateSetting('fontFamily', value)}
@@ -489,7 +489,7 @@ export default function BlogSettingsPage() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="primaryColor">Mu chnh</Label>
+                                    <Label htmlFor="primaryColor">Màu chính</Label>
                                     <div className="flex gap-2">
                                         <Input
                                             id="primaryColor"
@@ -507,7 +507,7 @@ export default function BlogSettingsPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <Label htmlFor="accentColor">Mu ph</Label>
+                                    <Label htmlFor="accentColor">Màu phụ</Label>
                                     <div className="flex gap-2">
                                         <Input
                                             id="accentColor"
@@ -548,12 +548,12 @@ export default function BlogSettingsPage() {
                             </div>
 
                             <div>
-                                <Label htmlFor="customCSS">CSS ty chnh</Label>
+                                <Label htmlFor="customCSS">CSS tùy chỉnh</Label>
                                 <Textarea
                                     id="customCSS"
                                     value={settings.customCSS}
                                     onChange={(e) => updateSetting('customCSS', e.target.value)}
-                                    placeholder="/* Thm CSS ty chnh ca bn  y */"
+                                    placeholder="                                /* Thêm CSS tùy chỉnh của bạn ở đây */"
                                     className="min-h-32 font-mono text-sm"
                                 />
                             </div>
@@ -567,16 +567,16 @@ export default function BlogSettingsPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Monitor className="w-5 h-5" />
-                                Ci t ni dung
+                                Cài đặt nội dung
                             </CardTitle>
                             <CardDescription>
-                                Qun l cch hin th v tng tc vi ni dung
+                                Quản lý cách hiển thị và tương tác với nội dung
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="postsPerPage">S bi vit mi trang</Label>
+                                    <Label htmlFor="postsPerPage">Số bài viết mỗi trang</Label>
                                     <Input
                                         id="postsPerPage"
                                         type="number"
@@ -587,7 +587,7 @@ export default function BlogSettingsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="excerptLength"> di tm tt (k t)</Label>
+                                    <Label htmlFor="excerptLength">Độ dài tóm tắt (ký tự)</Label>
                                     <Input
                                         id="excerptLength"
                                         type="number"
@@ -604,9 +604,9 @@ export default function BlogSettingsPage() {
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label>Cho php bnh lun</Label>
+                                        <Label>Cho phép bình luận</Label>
                                         <p className="text-sm text-gray-500">
-                                            Ngi dng c th bnh lun trn bi vit
+                                            Người dùng có thể bình luận trên bài viết
                                         </p>
                                     </div>
                                     <Switch
@@ -617,9 +617,9 @@ export default function BlogSettingsPage() {
 
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label>Duyt bnh lun</Label>
+                                        <Label>Duyệt bình luận</Label>
                                         <p className="text-sm text-gray-500">
-                                            Bnh lun cn c duyt trc khi hin th
+                                            Bình luận cần được duyệt trước khi hiển thị
                                         </p>
                                     </div>
                                     <Switch
@@ -630,9 +630,9 @@ export default function BlogSettingsPage() {
 
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label>Cho php ng k</Label>
+                                        <Label>Cho phép đăng ký</Label>
                                         <p className="text-sm text-gray-500">
-                                            Ngi dng c th t to ti khon
+                                            Người dùng có thể tự tạo tài khoản
                                         </p>
                                     </div>
                                     <Switch
@@ -644,7 +644,7 @@ export default function BlogSettingsPage() {
 
                             {settings.allowRegistration && (
                                 <div>
-                                    <Label htmlFor="defaultUserRole">Vai tr mc nh</Label>
+                                    <Label htmlFor="defaultUserRole">Vai trò mặc định</Label>
                                     <Select
                                         value={settings.defaultUserRole}
                                         onValueChange={(value) => updateSetting('defaultUserRole', value)}
@@ -672,31 +672,31 @@ export default function BlogSettingsPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Globe className="w-5 h-5" />
-                                Ci t SEO v Analytics
+                                Cài đặt SEO và Analytics
                             </CardTitle>
                             <CardDescription>
-                                Ti u ha cho cng c tm kim v theo di Analytics
+                                Tối ưu hóa cho công cụ tìm kiếm và theo dõi Analytics
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <Label htmlFor="metaDescription">M t meta mc nh</Label>
+                                <Label htmlFor="metaDescription">Mô tả meta mặc định</Label>
                                 <Textarea
                                     id="metaDescription"
                                     value={settings.metaDescription}
                                     onChange={(e) => updateSetting('metaDescription', e.target.value)}
-                                    placeholder="M t mc nh cho trang web..."
+                                    placeholder="Mô tả mặc định cho trang web..."
                                     className="min-h-20"
                                 />
                             </div>
 
                             <div>
-                                <Label htmlFor="metaKeywords">T kha meta mc nh</Label>
+                                <Label htmlFor="metaKeywords">Từ khóa meta mặc định</Label>
                                 <Input
                                     id="metaKeywords"
                                     value={settings.metaKeywords}
                                     onChange={(e) => updateSetting('metaKeywords', e.target.value)}
-                                    placeholder="t kha 1, t kha 2, t kha 3"
+                                    placeholder="từ khóa 1, từ khóa 2, từ khóa 3"
                                 />
                             </div>
 
@@ -726,9 +726,9 @@ export default function BlogSettingsPage() {
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label>To Sitemap t ng</Label>
+                                        <Label>Tạo Sitemap tự động</Label>
                                         <p className="text-sm text-gray-500">
-                                            T ng to sitemap XML cho SEO
+                                            Tự động tạo sitemap XML cho SEO
                                         </p>
                                     </div>
                                     <Switch
@@ -739,9 +739,9 @@ export default function BlogSettingsPage() {
 
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label>To robots.txt</Label>
+                                        <Label>Tạo robots.txt</Label>
                                         <p className="text-sm text-gray-500">
-                                            T ng to file robots.txt
+                                            Tự động tạo file robots.txt
                                         </p>
                                     </div>
                                     <Switch
@@ -760,16 +760,16 @@ export default function BlogSettingsPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Mail className="w-5 h-5" />
-                                Ci t Email
+                                Cài đặt Email
                             </CardTitle>
                             <CardDescription>
-                                Cu hnh SMTP v thng bo email
+                                Cấu hình SMTP và thông báo email
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="emailFrom">Email gi</Label>
+                                    <Label htmlFor="emailFrom">Email gửi</Label>
                                     <Input
                                         id="emailFrom"
                                         type="email"
@@ -779,7 +779,7 @@ export default function BlogSettingsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="emailFromName">Tn ngi gi</Label>
+                                    <Label htmlFor="emailFromName">Tên người gửi</Label>
                                     <Input
                                         id="emailFromName"
                                         value={settings.emailFromName}
@@ -791,7 +791,7 @@ export default function BlogSettingsPage() {
 
                             <Separator />
 
-                            <h4 className="font-semibold">Ci t SMTP</h4>
+                            <h4 className="font-semibold">Cài đặt SMTP</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="md:col-span-2">
                                     <Label htmlFor="smtpHost">SMTP Host</Label>
@@ -837,9 +837,9 @@ export default function BlogSettingsPage() {
 
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label>Thng bo email</Label>
+                                    <Label>Thông báo email</Label>
                                     <p className="text-sm text-gray-500">
-                                        Gi email thng bo cho cc s kin
+                                        Gửi email thông báo cho các sự kiện
                                     </p>
                                 </div>
                                 <Switch
@@ -857,19 +857,19 @@ export default function BlogSettingsPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Shield className="w-5 h-5" />
-                                Ci t Bo mt
+                                Cài đặt Bảo mật
                             </CardTitle>
                             <CardDescription>
-                                Bo v blog v ti khon ngi dng
+                                Bảo vệ blog và tài khoản người dùng
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label>Kch hot CAPTCHA</Label>
+                                        <Label>Kích hoạt CAPTCHA</Label>
                                         <p className="text-sm text-gray-500">
-                                            S dng reCAPTCHA  chng spam
+                                            Sử dụng reCAPTCHA để chống spam
                                         </p>
                                     </div>
                                     <Switch
@@ -904,9 +904,9 @@ export default function BlogSettingsPage() {
 
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label>Xc thc 2 bc</Label>
+                                        <Label>Xác thực 2 bước</Label>
                                         <p className="text-sm text-gray-500">
-                                            Yu cu xc thc 2 bc cho admin
+                                            Yêu cầu xác thực 2 bước cho admin
                                         </p>
                                     </div>
                                     <Switch
@@ -920,7 +920,7 @@ export default function BlogSettingsPage() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="sessionTimeout">Thi gian ht hn session (giy)</Label>
+                                    <Label htmlFor="sessionTimeout">Thời gian hết hạn session (giây)</Label>
                                     <Input
                                         id="sessionTimeout"
                                         type="number"
@@ -931,7 +931,7 @@ export default function BlogSettingsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="maxLoginAttempts">S ln ng nhp sai ti a</Label>
+                                    <Label htmlFor="maxLoginAttempts">Số lần đăng nhập sai tối đa</Label>
                                     <Input
                                         id="maxLoginAttempts"
                                         type="number"
@@ -952,21 +952,21 @@ export default function BlogSettingsPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Settings className="w-5 h-5" />
-                                Ci t Nng cao
+                                Cài đặt Nâng cao
                             </CardTitle>
                             <CardDescription>
-                                Cu hnh hiu nng, API v cc tnh nng nng cao
+                                Cấu hình hiệu năng, API và các tính năng nâng cao
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-4">
-                                <h4 className="font-semibold">Hiu nng</h4>
+                                <h4 className="font-semibold">Hiệu năng</h4>
                                 <div className="space-y-4 ml-4">
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
-                                            <Label>Kch hot Cache</Label>
+                                            <Label>Kích hoạt Cache</Label>
                                             <p className="text-sm text-gray-500">
-                                                Lu cache  tng tc  ti trang
+                                                Lưu cache để tăng tốc độ tải trang
                                             </p>
                                         </div>
                                         <Switch
@@ -977,7 +977,7 @@ export default function BlogSettingsPage() {
 
                                     {settings.enableCaching && (
                                         <div>
-                                            <Label htmlFor="cacheExpiry">Thi gian cache (giy)</Label>
+                                            <Label htmlFor="cacheExpiry">Thời gian cache (giây)</Label>
                                             <Input
                                                 id="cacheExpiry"
                                                 type="number"
@@ -991,9 +991,9 @@ export default function BlogSettingsPage() {
 
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
-                                            <Label>Nn Gzip</Label>
+                                            <Label>Nén Gzip</Label>
                                             <p className="text-sm text-gray-500">
-                                                Nn ni dung  gim bng thng
+                                                Nén nội dung để giảm băng thông
                                             </p>
                                         </div>
                                         <Switch
@@ -1032,13 +1032,13 @@ export default function BlogSettingsPage() {
                             <Separator />
 
                             <div className="space-y-4">
-                                <h4 className="font-semibold">API v Tch hp</h4>
+                                <h4 className="font-semibold">API và Tích hợp</h4>
                                 <div className="space-y-4 ml-4">
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
                                             <Label>API REST</Label>
                                             <p className="text-sm text-gray-500">
-                                                Cho php truy cp qua API
+                                                Cho phép truy cập qua API
                                             </p>
                                         </div>
                                         <Switch
@@ -1051,7 +1051,7 @@ export default function BlogSettingsPage() {
                                         <div className="space-y-0.5">
                                             <Label>Webhooks</Label>
                                             <p className="text-sm text-gray-500">
-                                                Gi thng bo qua webhook
+                                                Gửi thông báo qua webhook
                                             </p>
                                         </div>
                                         <Switch
@@ -1065,10 +1065,10 @@ export default function BlogSettingsPage() {
                             <Separator />
 
                             <div className="space-y-4">
-                                <h4 className="font-semibold">Bo tr v Debug</h4>
+                                <h4 className="font-semibold">Bảo trì và Debug</h4>
                                 <div className="space-y-4 ml-4">
                                     <div>
-                                        <Label htmlFor="backupFrequency">Tn sut backup</Label>
+                                        <Label htmlFor="backupFrequency">Tần suất backup</Label>
                                         <Select
                                             value={settings.backupFrequency}
                                             onValueChange={(value) => updateSetting('backupFrequency', value)}
@@ -1077,20 +1077,20 @@ export default function BlogSettingsPage() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="hourly">Hng gi</SelectItem>
-                                                <SelectItem value="daily">Hng ngy</SelectItem>
-                                                <SelectItem value="weekly">Hng tun</SelectItem>
-                                                <SelectItem value="monthly">Hng thng</SelectItem>
-                                                <SelectItem value="never">Khng backup</SelectItem>
+                                                <SelectItem value="hourly">Hàng giờ</SelectItem>
+                                                <SelectItem value="daily">Hàng ngày</SelectItem>
+                                                <SelectItem value="weekly">Hàng tuần</SelectItem>
+                                                <SelectItem value="monthly">Hàng tháng</SelectItem>
+                                                <SelectItem value="never">Không backup</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
 
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
-                                            <Label>Ch  Debug</Label>
+                                            <Label>Chế độ Debug</Label>
                                             <p className="text-sm text-gray-500">
-                                                Hin th thng tin debug cho developer
+                                                Hiển thị thông tin debug cho developer
                                             </p>
                                         </div>
                                         <Switch
@@ -1101,9 +1101,9 @@ export default function BlogSettingsPage() {
 
                                     <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
-                                            <Label>Ch  bo tr</Label>
+                                            <Label>Chế độ bảo trì</Label>
                                             <p className="text-sm text-gray-500">
-                                                Tm kha truy cp cho ngi dng
+                                                Tạm khóa truy cập cho người dùng
                                             </p>
                                         </div>
                                         <Switch
@@ -1114,12 +1114,12 @@ export default function BlogSettingsPage() {
 
                                     {settings.maintenanceMode && (
                                         <div>
-                                            <Label htmlFor="maintenanceMessage">Thng bo bo tr</Label>
+                                            <Label htmlFor="maintenanceMessage">Thông báo bảo trì</Label>
                                             <Textarea
                                                 id="maintenanceMessage"
                                                 value={settings.maintenanceMessage}
                                                 onChange={(e) => updateSetting('maintenanceMessage', e.target.value)}
-                                                placeholder="Trang web ang bo tr..."
+                                                placeholder="Trang web đang bảo trì..."
                                                 className="min-h-20"
                                             />
                                         </div>
