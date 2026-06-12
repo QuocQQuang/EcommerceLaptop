@@ -201,7 +201,7 @@ export default function LlmConfigPage() {
                 const created = await llmService.createProfile(profileData);
                 await loadProviders();
                 setSelectedProfile(created);
-                toast.success(" to cấu hình mi");
+                toast.success("Đã tạo cấu hình mới");
             }
             setIsEditingProfile(false);
         } catch (e) {
@@ -404,7 +404,7 @@ Vui lòng chọn một nhà cung cấp từ danh sách bên trái hoặc tạo m
                                 <CardHeader className="border-b bg-muted/10 pb-4">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <CardTitle>{isEditingProvider ? 'To Nh Cung Cp Mi' : (selectedProfile ? `Cấu hình: ${selectedProfile.name}` : providerDisplayName(selectedProvider))}</CardTitle>
+                                            <CardTitle>{isEditingProvider ? 'Tạo Nhà Cung Cấp Mới' : (selectedProfile ? `Cấu hình: ${selectedProfile.name}` : providerDisplayName(selectedProvider))}</CardTitle>
                                             <CardDescription>
                                                 {selectedProfile ? `ID: ${selectedProfile.modelId}  Provider: ${selectedProvider?.name}` : 'Thông tin chung nhà cung cấp'}
                                             </CardDescription>
@@ -444,7 +444,7 @@ Vui lòng chọn một nhà cung cấp từ danh sách bên trái hoặc tạo m
                                                 <Input id="provider-name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="VD: OpenRouter, OpenAI..." />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="provider-type">Loi (Type)</Label>
+                                                <Label htmlFor="provider-type">Loại (Type)</Label>
                                                 <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v })}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Chọn loại" />
@@ -668,7 +668,7 @@ Sử dụng LLM riêng biệt để tối ưu câu hỏi và trích xuất filte
 
                                         {/* Active Rewriting Profile */}
                                         <div className="space-y-2">
-                                            <Label>Profile dng cho Rewriting</Label>
+                                            <Label>Profile dùng cho Rewriting</Label>
                                             <Select
                                                 value={globalRewritingProfileId?.toString() || "null"}
                                                 onValueChange={(v) => setGlobalRewritingProfileId(v === "null" ? null : parseInt(v))}
@@ -687,7 +687,7 @@ Sử dụng LLM riêng biệt để tối ưu câu hỏi và trích xuất filte
                                             </Select>
                                             <p className="text-xs text-muted-foreground">
                                                 Chọn một profile nhẹ/nhanh (ví dụ: gpt-4o-mini, llama3) để giảm chi phí và độ trễ rewriting.
-                                                Nu  trng, h thng s fallback v Main Chat Profile.
+                                                Nếu để trống, hệ thống sẽ fallback về Main Chat Profile.
                                             </p>
                                         </div>
 
@@ -705,7 +705,7 @@ Sử dụng LLM riêng biệt để tối ưu câu hỏi và trích xuất filte
                                                 />
                                                 <div className="w-12 text-center font-mono text-sm border rounded py-1">{globalCarouselLimit}</div>
                                             </div>
-                                            <p className="text-xs text-muted-foreground">S lng sản phẩm ti a tr v trong Carousel.</p>
+                                            <p className="text-xs text-muted-foreground">Số lượng sản phẩm tối đa trả về trong Carousel.</p>
                                         </div>
                                     </CardContent>
                                 </Card>

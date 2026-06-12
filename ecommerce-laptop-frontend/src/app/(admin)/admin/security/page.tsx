@@ -538,7 +538,7 @@ export default function SecurityPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Bảo mật hệ thống</h1>
           <p className="text-muted-foreground">
-            Quản lý IP blocking, rate limiting v gim st bo mt
+            Quản lý IP blocking, rate limiting và giám sát bảo mật
           </p>
         </div>
         <div className="flex space-x-2">
@@ -552,7 +552,7 @@ export default function SecurityPage() {
             }}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Lm mi
+            Làm mới
           </Button>
           <ExportButtons
             type="security-events"
@@ -654,7 +654,7 @@ export default function SecurityPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center space-x-2">
                   <Activity className="h-5 w-5" />
-                  <span>S kin bo mt gn y</span>
+                  <span>Sự kiện bảo mật gần đây</span>
                 </CardTitle>
                 <ExportButtons
                   type="security-report"
@@ -785,9 +785,9 @@ export default function SecurityPage() {
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px]">
                       <DialogHeader>
-                        <DialogTitle>Thêm quy tắc IP mi</DialogTitle>
+                        <DialogTitle>Thêm quy tắc IP mới</DialogTitle>
                         <DialogDescription>
-                          To quy tắc chn hoc cho php IP address.
+                          Tạo quy tắc chặn hoặc cho phép IP address.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
@@ -805,7 +805,7 @@ export default function SecurityPage() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="ip-type" className="text-right">
-                            Loi
+                            Loại
                           </Label>
                           <Select
                             value={newIPRule.type}
@@ -818,17 +818,17 @@ export default function SecurityPage() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="blacklist">Blacklist (Chặn)</SelectItem>
-                              <SelectItem value="whitelist">Whitelist (Cho php)</SelectItem>
+                              <SelectItem value="whitelist">Whitelist (Cho phép)</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="ip-reason" className="text-right">
-                            L do
+                            Lý do
                           </Label>
                           <Textarea
                             id="ip-reason"
-                            placeholder="L do p dng quy tắc ny..."
+                            placeholder="Lý do áp dụng quy tắc này..."
                             className="col-span-3"
                             value={newIPRule.reason || ''}
                             onChange={(e) => setNewIPRule(prev => ({ ...prev, reason: e.target.value }))}
@@ -836,7 +836,7 @@ export default function SecurityPage() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="ip-expires" className="text-right">
-                            Ht hn
+                            Hết hạn
                           </Label>
                           <Input
                             id="ip-expires"
@@ -858,7 +858,7 @@ export default function SecurityPage() {
                           {createIPRuleMutation.isPending ? (
                             <RefreshCw className="h-4 w-4 animate-spin mr-2" />
                           ) : null}
-                          To quy tắc
+                          Tạo quy tắc
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -911,10 +911,10 @@ export default function SecurityPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>IP Address</TableHead>
-                      <TableHead>Loi</TableHead>
-                      <TableHead>L do</TableHead>
+                      <TableHead>Loại</TableHead>
+                      <TableHead>Lý do</TableHead>
                       <TableHead>Trạng thái</TableHead>
-                      <TableHead>Ht hn</TableHead>
+                      <TableHead>Hết hạn</TableHead>
                       <TableHead>Hoạt động cuối</TableHead>
                       <TableHead>Thao tác</TableHead>
                     </TableRow>
@@ -969,7 +969,7 @@ export default function SecurityPage() {
                               <span className="text-sm">
                                 {formatDistanceToNow(rule.lastActivity, { addSuffix: true, locale: vi })}
                                 <div className="text-xs text-muted-foreground">
-                                  {rule.attemptCount} ln th
+                                  {rule.attemptCount} lần thử
                                 </div>
                               </span>
                             ) : (
@@ -1018,9 +1018,9 @@ export default function SecurityPage() {
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[525px]">
                       <DialogHeader>
-                        <DialogTitle>Thêm quy tắc Rate Limit mi</DialogTitle>
+                        <DialogTitle>Thêm quy tắc Rate Limit mới</DialogTitle>
                         <DialogDescription>
-                          To quy tắc gii hn tc  request cho endpoint.
+                          Tạo quy tắc giới hạn tốc độ request cho endpoint.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
@@ -1050,7 +1050,7 @@ export default function SecurityPage() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="rule-method" className="text-right">
-                            Phng thc
+                            Phương thức
                           </Label>
                           <Select
                             value={newRateLimitRule.method}
@@ -1062,7 +1062,7 @@ export default function SecurityPage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="ALL">Tt c</SelectItem>
+                              <SelectItem value="ALL">Tất cả</SelectItem>
                               <SelectItem value="GET">GET</SelectItem>
                               <SelectItem value="POST">POST</SelectItem>
                               <SelectItem value="PUT">PUT</SelectItem>
@@ -1128,7 +1128,7 @@ export default function SecurityPage() {
                           {createRateLimitMutation.isPending ? (
                             <RefreshCw className="h-4 w-4 animate-spin mr-2" />
                           ) : null}
-                          To quy tắc
+                          Tạo quy tắc
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -1181,8 +1181,8 @@ export default function SecurityPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Tên / Endpoint</TableHead>
-                      <TableHead>Phng thc</TableHead>
-                      <TableHead>Gii hn</TableHead>
+                      <TableHead>Phương thức</TableHead>
+                      <TableHead>Giới hạn</TableHead>
                       <TableHead>Trạng thái</TableHead>
                       <TableHead>Cập nhật</TableHead>
                       <TableHead>Thao tác</TableHead>
@@ -1295,7 +1295,7 @@ export default function SecurityPage() {
               {/* Search and Filters */}
               <div className="mb-6 flex flex-col sm:flex-row gap-4">
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <span>Hin th {filteredSecurityEvents.length} / {securityEvents.length} s kin</span>
+                  <span>Hiển thị {filteredSecurityEvents.length} / {securityEvents.length} sự kiện</span>
                 </div>
                 <div className="flex-1">
                   <div className="relative">
@@ -1310,13 +1310,13 @@ export default function SecurityPage() {
                 </div>
                 <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Loi s kin" />
+                    <SelectValue placeholder="Loại sự kiện" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tt c</SelectItem>
-                    <SelectItem value="ip_access_allowed">IP c php</SelectItem>
-                    <SelectItem value="ip_access_denied">IP b t chi</SelectItem>
-                    <SelectItem value="rate_limit_exceeded">Vt Rate Limit</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="ip_access_allowed">IP được phép</SelectItem>
+                    <SelectItem value="ip_access_denied">IP bị từ chối</SelectItem>
+                    <SelectItem value="rate_limit_exceeded">Vượt Rate Limit</SelectItem>
                     <SelectItem value="suspicious_activity">Hoạt động đáng nghi</SelectItem>
                     <SelectItem value="login_attempt">Thử đăng nhập</SelectItem>
                     <SelectItem value="authentication_failed">Xác thực thất bại</SelectItem>
@@ -1324,10 +1324,10 @@ export default function SecurityPage() {
                 </Select>
                 <Select value={severityFilter} onValueChange={setSeverityFilter}>
                   <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Mc " />
+                    <SelectValue placeholder="Mức độ" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tt c</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
                     <SelectItem value="Critical">Critical</SelectItem>
                     <SelectItem value="High">High</SelectItem>
                     <SelectItem value="Medium">Medium</SelectItem>
@@ -1339,8 +1339,8 @@ export default function SecurityPage() {
                     <SelectValue placeholder="Thời gian" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tt c</SelectItem>
-                    <SelectItem value="today">Hm nay</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="today">Hôm nay</SelectItem>
                     <SelectItem value="week">7 ngày qua</SelectItem>
                     <SelectItem value="month">30 ngày qua</SelectItem>
                   </SelectContent>
@@ -1372,11 +1372,11 @@ export default function SecurityPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Thời gian</TableHead>
-                      <TableHead>Loi s kin</TableHead>
+                      <TableHead>Loại sự kiện</TableHead>
                       <TableHead>IP Address</TableHead>
                       <TableHead>Correlation ID</TableHead>
                       <TableHead>Mô tả</TableHead>
-                      <TableHead>Mc </TableHead>
+                      <TableHead>Mức độ</TableHead>
                       <TableHead>Trạng thái</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1394,7 +1394,7 @@ export default function SecurityPage() {
                               {getEventTypeIcon(event.eventType)}
                               <span className="text-sm">
                                 {event.eventType === 'failed_login' && 'Đăng nhập thất bại'}
-                                {event.eventType === 'password_changed' && 'i mt khu'}
+                                {event.eventType === 'password_changed' && 'Đổi mật khẩu'}
                                 {event.eventType === 'ip_rule_deleted' && 'Xóa quy tắc IP'}
                                 {event.eventType === 'suspicious_activity' && 'Hoạt động đáng nghi'}
                                 {!['failed_login', 'password_changed', 'ip_rule_deleted', 'suspicious_activity'].includes(event.eventType) && event.eventType}
@@ -1419,12 +1419,12 @@ export default function SecurityPage() {
                             {(event as any).wasBlocked ? (
                               <Badge variant="destructive">
                                 <XCircle className="h-3 w-3 mr-1" />
-                                 chn
+                                Bị chặn
                               </Badge>
                             ) : (
                               <Badge variant="secondary">
                                 <CheckCircle className="h-3 w-3 mr-1" />
-                                {(event as any).status === 'logged' ? ' ghi nhn' : 'Cho php'}
+                                {(event as any).status === 'logged' ? 'Đã ghi nhận' : 'Cho phép'}
                               </Badge>
                             )}
                           </TableCell>
@@ -1448,7 +1448,7 @@ export default function SecurityPage() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-6">
                   <div className="text-sm text-muted-foreground">
-                    Hin th {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredSecurityEvents.length)} ca {filteredSecurityEvents.length} s kin
+                    Hiển thị {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredSecurityEvents.length)} của {filteredSecurityEvents.length} sự kiện
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button

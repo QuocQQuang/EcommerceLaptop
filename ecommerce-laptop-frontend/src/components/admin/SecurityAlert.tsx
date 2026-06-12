@@ -43,19 +43,19 @@ export function SecurityAlert({
             },
             high_access: {
                 icon: AlertTriangle,
-                title: 'Truy cp qu mc',
+                title: 'Truy cập quá mức',
                 color: 'border-orange-500 bg-orange-50',
                 iconColor: 'text-orange-600'
             },
             unauthorized_attempt: {
                 icon: Shield,
-                title: 'Truy cp tri php',
+                title: 'Truy cập trái phép',
                 color: 'border-red-500 bg-red-50',
                 iconColor: 'text-red-600'
             },
             data_breach_risk: {
                 icon: AlertTriangle,
-                title: 'Ri ro r r d liu',
+                title: 'Rủi ro rò rỉ dữ liệu',
                 color: 'border-red-600 bg-red-100',
                 iconColor: 'text-red-700'
             }
@@ -65,8 +65,8 @@ export function SecurityAlert({
 
     const getSeverityConfig = () => {
         const configs = {
-            low: { color: 'bg-green-100 text-green-800', label: 'Thp' },
-            medium: { color: 'bg-yellow-100 text-yellow-800', label: 'Trung bnh' },
+            low: { color: 'bg-green-100 text-green-800', label: 'Thấp' },
+            medium: { color: 'bg-yellow-100 text-yellow-800', label: 'Trung bình' },
             high: { color: 'bg-orange-100 text-orange-800', label: 'Cao' },
             critical: { color: 'bg-red-100 text-red-800', label: 'Nghiêm trọng' }
         };

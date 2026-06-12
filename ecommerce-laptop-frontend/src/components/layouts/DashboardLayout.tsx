@@ -71,7 +71,7 @@ export function DashboardLayout({
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
               <Filter className="w-4 h-4" />
-              <span>B lc d liu</span>
+              <span>Bộ lọc dữ liệu</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -239,13 +239,13 @@ interface DateRangeFilterProps {
 
 function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
   const options = [
-    { value: 'today', label: 'Hm nay' },
-    { value: 'yesterday', label: 'Hm qua' },
+    { value: 'today', label: 'Hôm nay' },
+    { value: 'yesterday', label: 'Hôm qua' },
     { value: 'week', label: '7 ngày qua' },
     { value: 'month', label: 'Tháng này' },
-    { value: 'quarter', label: 'Qu ny' },
-    { value: 'year', label: 'Nm ny' },
-    { value: 'custom', label: 'Ty chnh' }
+    { value: 'quarter', label: 'Quý này' },
+    { value: 'year', label: 'Năm này' },
+    { value: 'custom', label: 'Tùy chỉnh' }
   ];
 
   return (

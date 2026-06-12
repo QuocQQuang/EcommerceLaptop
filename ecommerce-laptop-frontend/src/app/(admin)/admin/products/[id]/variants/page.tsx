@@ -998,7 +998,7 @@ export default function VariantManagementPage() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle>
-                            Bin th ({filteredVariants.length})
+                            Biến thể ({filteredVariants.length})
                         </CardTitle>
                         <Button type="button" variant="outline" onClick={() => window.location.reload()}>
                             Làm mới

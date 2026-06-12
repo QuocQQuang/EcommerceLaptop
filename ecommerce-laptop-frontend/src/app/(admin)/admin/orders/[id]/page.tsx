@@ -655,7 +655,7 @@ export default function OrderDetailPage() {
                 <p>{order.shippingAddress}</p>
               </div>
               <div>
-                <Label className="text-sm font-medium">Phng thc</Label>
+                <Label className="text-sm font-medium">Phương thức</Label>
                 <p>{order.shippingMethod}</p>
               </div>
               {order.trackingNumber && (

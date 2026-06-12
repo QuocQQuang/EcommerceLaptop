@@ -441,7 +441,7 @@ export default function BlogSettingsPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Palette className="w-5 h-5" />
-                                Giao din v thit k
+                                Giao diện và thiết kế
                             </CardTitle>
                             <CardDescription>
                                 Tùy chỉnh giao diện và màu sắc của blog
@@ -1006,7 +1006,7 @@ export default function BlogSettingsPage() {
                                         <div className="space-y-0.5">
                                             <Label>CDN</Label>
                                             <p className="text-sm text-gray-500">
-                                                S dng Content Delivery Network
+                                                Sử dụng Content Delivery Network
                                             </p>
                                         </div>
                                         <Switch

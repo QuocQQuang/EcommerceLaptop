@@ -517,7 +517,7 @@ export default function SettingsPage() {
                       <span>
                         {category === 'general' ? 'Cài đặt chung' :
                           category === 'security' ? 'Bảo mật' :
-                            category === 'database' ? 'C s d liu' : category}
+                            category === 'database' ? 'Cơ sở dữ liệu' : category}
                       </span>
                     </CardTitle>
                   </CardHeader>
@@ -554,7 +554,7 @@ export default function SettingsPage() {
                               disabled={!setting.isEditable}
                             />
                             <Label htmlFor={setting.key} className="text-sm text-muted-foreground">
-                              {setting.value === 'true' ? 'Bt' : 'Tt'}
+                              {setting.value === 'true' ? 'Bật' : 'Tắt'}
                             </Label>
                           </div>
                         ) : setting.type === 'number' ? (
@@ -750,7 +750,7 @@ export default function SettingsPage() {
                         ) : (
                           <CheckCircle className="h-4 w-4 mr-2" />
                         )}
-                        Kim tra kt ni
+                        Kiểm tra kết nối
                       </Button>
                     </div>
                   </>
@@ -787,7 +787,7 @@ export default function SettingsPage() {
                         <CardTitle>{gateway.name}</CardTitle>
                         <div className="flex items-center space-x-2">
                           <Badge variant={gateway.isEnabled ? "default" : "secondary"}>
-                            {gateway.isEnabled ? 'đang hoạt động' : 'Tm dng'}
+                            {gateway.isEnabled ? 'đang hoạt động' : 'Tạm dừng'}
                           </Badge>
                           {gateway.testMode && (
                             <Badge variant="outline">Test Mode</Badge>
@@ -830,7 +830,7 @@ export default function SettingsPage() {
                         ) : (
                           <CheckCircle className="h-4 w-4 mr-2" />
                         )}
-                        Kim tra kt ni
+                        Kiểm tra kết nối
                       </Button>
                     </div>
                   </CardContent>
@@ -846,12 +846,12 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Shield className="h-5 w-5" />
-                <span>Cài đặt bo mt</span>
+                <span>Cài đặt bảo mật</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Cc cài đặt bo mt c quản lý trong tab &quot;Chung&quot;  trn.
+                Các cài đặt bảo mật được quản lý trong tab &quot;Chung&quot; ở trên.
               </p>
             </CardContent>
           </Card>
@@ -911,11 +911,11 @@ export default function SettingsPage() {
 
                                   {notification.isEnabled && (
                                     <div className="space-y-2 pt-2">
-                                      <Label className="text-sm font-medium">Ngi nhn:</Label>
+                                      <Label className="text-sm font-medium">Người nhận:</Label>
                                       <div className="flex flex-wrap gap-2">
                                         {notification.recipients.toUser && (
                                           <Badge variant="secondary" className="text-xs">
-                                            Ngi dng
+                                            Người dùng
                                           </Badge>
                                         )}
                                         {notification.recipients.toAdmin && (
@@ -940,7 +940,7 @@ export default function SettingsPage() {
                                           variant="outline"
                                           onClick={() => handleTestConnection('email-notification', notification.eventType)}
                                         >
-                                          Gi th
+                                          Gửi thử
                                         </Button>
                                       </div>
                                     </div>
@@ -988,14 +988,14 @@ export default function SettingsPage() {
                           disabled={emailNotificationsLoading}
                         >
                           <RefreshCw className={`h-4 w-4 mr-2 ${emailNotificationsLoading ? 'animate-spin' : ''}`} />
-                          Lm mi
+                          Làm mới
                         </Button>
                         <Button
                           onClick={() => handleTestConnection('email-notification', 'test_all')}
                           variant="outline"
                         >
                           <Mail className="h-4 w-4 mr-2" />
-                          Kim tra tt c
+                          Kiểm tra tất cả
                         </Button>
                       </div>
                     </CardContent>
@@ -1022,7 +1022,7 @@ export default function SettingsPage() {
                         <>
                           <div className="grid grid-cols-2 gap-6">
                             <div className="space-y-2">
-                              <Label htmlFor="max-requests">S email ti a</Label>
+                              <Label htmlFor="max-requests">Số email tối đa</Label>
                               <Input
                                 id="max-requests"
                                 type="number"
@@ -1032,12 +1032,12 @@ export default function SettingsPage() {
                                 onChange={(e) => handleRateLimitChange('maxRequests', parseInt(e.target.value) || 5)}
                               />
                               <p className="text-xs text-muted-foreground">
-                                S lng email ti a c php gi trong khong thi gian
+                                Số lượng email tối đa được phép gửi trong khoảng thời gian
                               </p>
                             </div>
 
                             <div className="space-y-2">
-                              <Label htmlFor="window-seconds">Khong thi gian (giy)</Label>
+                              <Label htmlFor="window-seconds">Khoảng thời gian (giây)</Label>
                               <Input
                                 id="window-seconds"
                                 type="number"
@@ -1047,7 +1047,7 @@ export default function SettingsPage() {
                                 onChange={(e) => handleRateLimitChange('windowSeconds', parseInt(e.target.value) || 900)}
                               />
                               <p className="text-xs text-muted-foreground">
-                                Khong thi gian tnh bng giy (60-3600)
+                                Khoảng thời gian tính bằng giây (60-3600)
                               </p>
                             </div>
                           </div>
@@ -1075,10 +1075,10 @@ export default function SettingsPage() {
                                   checked={emailRateLimitSettings.enableRateLimiting}
                                   onCheckedChange={(checked) => handleRateLimitChange('enableRateLimiting', checked)}
                                 />
-                                <Label htmlFor="enable-rate-limiting">Bt Rate Limiting</Label>
+                                <Label htmlFor="enable-rate-limiting">Bật Rate Limiting</Label>
                               </div>
                               <p className="text-xs text-muted-foreground">
-                                Bt/tt tnh nng gii hn s lng email
+                                Bật/tắt tính năng giới hạn số lượng email
                               </p>
                             </div>
                           </div>
@@ -1101,7 +1101,7 @@ export default function SettingsPage() {
                               disabled={emailRateLimitLoading}
                             >
                               <RefreshCw className={`h-4 w-4 mr-2 ${emailRateLimitLoading ? 'animate-spin' : ''}`} />
-                              Lm mi
+                              Làm mới
                             </Button>
                           </div>
 
