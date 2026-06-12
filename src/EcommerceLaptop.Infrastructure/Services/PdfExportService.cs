@@ -22,7 +22,9 @@ using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Math;
+using System.Globalization;
 using System.Text;
+using System.Xml;
 
 namespace EcommerceLaptop.Infrastructure.Services;
 
@@ -280,58 +282,89 @@ public class PdfExportService : IPdfExportService
         }
     }
 
-    public async Task<byte[]> ExportInvoiceXmlAsync(Order order)
+    public Task<byte[]> ExportInvoiceXmlAsync(Order order)
     {
         try
         {
-            var xml = new StringBuilder();
-            xml.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            xml.AppendLine("<Invoice>");
-            xml.AppendLine($"  <InvoiceNumber>{order.OrderNumber}</InvoiceNumber>");
-            xml.AppendLine($"  <InvoiceDate>{order.OrderDate:yyyy-MM-ddTHH:mm:ss}</InvoiceDate>");
-            xml.AppendLine($"  <Status>{order.Status}</Status>");
+            using var stream = new MemoryStream();
+            var settings = new XmlWriterSettings
+            {
+                Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                Indent = true,
+                Async = false
+            };
 
-            xml.AppendLine("  <Company>");
-            xml.AppendLine("    <Name>CNG TY TNHH LAPTOP STORE</Name>");
-            xml.AppendLine("    <Address>123 ng ABC, Qun XYZ, TP.HCM</Address>");
-            xml.AppendLine("    <Phone>0123-456-789</Phone>");
-            xml.AppendLine("    <Email>info@laptopstore.com</Email>");
-            xml.AppendLine("  </Company>");
+            using (var writer = XmlWriter.Create(stream, settings))
+            {
+                writer.WriteStartDocument();
+                writer.WriteStartElement("Invoice");
 
-            xml.AppendLine("  <Customer>");
-            xml.AppendLine($"    <Name>{order.User.FirstName} {order.User.LastName}</Name>");
-            xml.AppendLine($"    <Email>{order.User.Email}</Email>");
-            xml.AppendLine($"    <Address>{order.ShippingAddress.Street}, {order.ShippingAddress.City}, {order.ShippingAddress.Province}</Address>");
-            xml.AppendLine("  </Customer>");
+                writer.WriteElementString("InvoiceNumber", order.OrderNumber);
+                writer.WriteElementString("InvoiceDate", order.OrderDate.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture));
+                writer.WriteElementString("Status", order.Status.ToString());
 
-            xml.AppendLine("  <Items>");
+                writer.WriteStartElement("Company");
+                writer.WriteElementString("Name", "Công ty TNHH Laptop Store");
+                writer.WriteElementString("Address", "123 đường ABC, Quận XYZ, TP.HCM");
+                writer.WriteElementString("Phone", "0123-456-789");
+                writer.WriteElementString("Email", "info@laptopstore.com");
+                writer.WriteEndElement();
+
+                writer.WriteStartElement("Customer");
+                writer.WriteElementString("Name", $"{order.User.FirstName} {order.User.LastName}".Trim());
+                writer.WriteElementString("Email", order.User.Email);
+                writer.WriteElementString("Address", FormatAddress(order.ShippingAddress));
+                writer.WriteEndElement();
+
+                writer.WriteStartElement("Items");
             foreach (var item in order.OrderItems)
             {
-                xml.AppendLine("    <Item>");
-                xml.AppendLine($"      <ProductName>{item.Product.Name}</ProductName>");
-                xml.AppendLine($"      <Quantity>{item.Quantity}</Quantity>");
-                xml.AppendLine($"      <UnitPrice>{item.UnitPrice}</UnitPrice>");
-                xml.AppendLine($"      <TotalPrice>{item.TotalPrice}</TotalPrice>");
-                xml.AppendLine("    </Item>");
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("ProductName", item.Product?.Name ?? string.Empty);
+                    writer.WriteElementString("Quantity", item.Quantity.ToString(CultureInfo.InvariantCulture));
+                    writer.WriteElementString("UnitPrice", FormatMoney(item.UnitPrice));
+                    writer.WriteElementString("TotalPrice", FormatMoney(item.TotalPrice));
+                    writer.WriteEndElement();
             }
-            xml.AppendLine("  </Items>");
+                writer.WriteEndElement();
 
-            xml.AppendLine("  <Totals>");
-            xml.AppendLine($"    <SubTotal>{order.SubTotal}</SubTotal>");
-            xml.AppendLine($"    <DiscountAmount>{order.DiscountAmount}</DiscountAmount>");
-            xml.AppendLine($"    <ShippingAmount>{order.ShippingAmount}</ShippingAmount>");
-            xml.AppendLine($"    <TaxAmount>{order.TaxAmount}</TaxAmount>");
-            xml.AppendLine($"    <TotalAmount>{order.TotalAmount}</TotalAmount>");
-            xml.AppendLine("  </Totals>");
+                writer.WriteStartElement("Totals");
+                writer.WriteElementString("SubTotal", FormatMoney(order.SubTotal));
+                writer.WriteElementString("DiscountAmount", FormatMoney(order.DiscountAmount));
+                writer.WriteElementString("ShippingAmount", FormatMoney(order.ShippingAmount));
+                writer.WriteElementString("TaxAmount", FormatMoney(order.TaxAmount));
+                writer.WriteElementString("TotalAmount", FormatMoney(order.TotalAmount));
+                writer.WriteEndElement();
 
-            xml.AppendLine("</Invoice>");
+                writer.WriteEndElement();
+                writer.WriteEndDocument();
+            }
 
-            return Encoding.UTF8.GetBytes(xml.ToString());
+            return Task.FromResult(stream.ToArray());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating XML invoice for order {OrderId}", order.Id);
             throw;
+        }
+
+        static string FormatMoney(decimal value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+
+        static string FormatAddress(EcommerceLaptop.Core.ValueObjects.Address? address)
+        {
+            if (address is null)
+            {
+                return string.Empty;
+            }
+
+            return string.Join(", ", new[]
+            {
+                address.Street,
+                address.City,
+                address.Province,
+                address.PostalCode,
+                address.Country
+            }.Where(part => !string.IsNullOrWhiteSpace(part)));
         }
     }
 

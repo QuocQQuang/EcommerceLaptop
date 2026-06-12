@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>n hng  c giao - E-Commerce Laptop</title>
+    <title>Đơn hàng đã được giao - E-Commerce Laptop</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -98,83 +98,83 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1> n hng ang c giao!</h1>
+            <h1>Đơn hàng đang được giao!</h1>
         </div>
         <div class="content">
-            <h2>Xin cho {{CustomerName}},</h2>
-            <p>Tin tuyt vi! n hng ca bn  c giao cho n v vn chuyn v ang trn ng n a ch ca
-                bn.</p>
+            <h2>Xin chào {{CustomerName}},</h2>
+<p>Tin tuyệt vời! Đơn hàng của bạn đã được giao cho đơn vị vận chuyển và đang trên đường đến địa chỉ của
+bạn.</p>
 
             <div class="tracking-info">
-                <h3> Thng tin vn chuyn</h3>
-                <p><strong>M vn n:</strong> {{TrackingNumber}}</p>
-                <p><strong>n v vn chuyn:</strong> {{ShippingCarrier}}</p>
-                <p><strong>Thi gian giao hng d kin:</strong> {{EstimatedDelivery}}</p>
+                <h3> Thông tin vận chuyển</h3>
+                <p><strong>Mã vận đơn:</strong> {{TrackingNumber}}</p>
+                <p><strong>Đơn vị vận chuyển:</strong> {{ShippingCarrier}}</p>
+                <p><strong>Thời gian giao hàng dự kiến:</strong> {{EstimatedDelivery}}</p>
             </div>
 
             <div class="order-summary">
-                <h3>Thng tin n hng</h3>
-                <p><strong>M n hng:</strong> {{OrderId}}</p>
-                <p><strong>Ngy t hng:</strong> {{OrderDate}}</p>
-                <p><strong>Ngy giao hng:</strong> {{ShippedDate}}</p>
-                <p><strong>Tng gi tr:</strong> {{TotalAmount}} VN</p>
+                <h3>Thông tin đơn hàng</h3>
+                <p><strong>Mã đơn hàng:</strong> {{OrderId}}</p>
+                <p><strong>Ngày đặt hàng:</strong> {{OrderDate}}</p>
+                <p><strong>Ngày giao hàng:</strong> {{ShippedDate}}</p>
+                <p><strong>Tổng giá trị:</strong> {{TotalAmount}} VN</p>
             </div>
 
             <div class="shipping-status">
-                <h3> a ch nhn hng</h3>
+                <h3> Địa chỉ nhận hàng</h3>
                 <p><strong>{{ShippingName}}</strong></p>
                 <p>{{ShippingPhone}}</p>
                 <p>{{ShippingAddress}}</p>
                 <p>{{ShippingCity}}, {{ShippingProvince}}</p>
             </div>
 
-            <h3> Trng thi vn chuyn:</h3>
+            <h3> Trạng thái vận chuyển:</h3>
             <div class="timeline">
                 <div class="timeline-item completed">
-                    <strong> n hng  c xc nhn</strong>
+                    <strong>Đơn hàng đã được xác nhận</strong>
                     <br><small>{{OrderDate}}</small>
                 </div>
                 <div class="timeline-item completed">
-                    <strong> n hng  c ng gi</strong>
+                    <strong>Đơn hàng đã được đóng gói</strong>
                     <br><small>{{PackedDate}}</small>
                 </div>
                 <div class="timeline-item completed">
-                    <strong> n hng  c giao cho vn chuyn</strong>
+                    <strong>Đơn hàng đã được giao cho vận chuyển</strong>
                     <br><small>{{ShippedDate}}</small>
                 </div>
                 <div class="timeline-item">
-                    <strong> ang giao hng</strong>
+                    <strong>Đang giao hàng</strong>
                     <br><small>D kin: {{EstimatedDelivery}}</small>
                 </div>
             </div>
 
             <div style="text-align: center;">
-                <a href="{{TrackingUrl}}" class="button">Theo di n hng</a>
+                <a href="{{TrackingUrl}}" class="button">Theo dõi đơn hàng</a>
             </div>
 
-            <h3> Thng tin quan trng:</h3>
+            <h3> Thông tin quan trọng:</h3>
             <ul>
-                <li><strong>Kim tra hng ha:</strong> Vui lng kim tra sn phm ngay khi nhn hng</li>
-                <li><strong>Khiu ni:</strong> Nu c vn , hy lin h vi chng ti trong vng 24 gi</li>
-                <li><strong>Bo hnh:</strong> Sn phm c bo hnh theo chnh sch ca hng</li>
-                <li><strong>Ha n in t:</strong> S c gi qua email sau khi giao hng thnh cng</li>
+                <li><strong>Kiểm tra hàng hóa:</strong> Vui lòng kiểm tra sản phẩm ngay khi nhận hàng</li>
+                <li><strong>Khiếu nại:</strong> Nếu có vấn đề, hãy liên hệ với chúng tôi trong vòng 24 giờ</li>
+                <li><strong>Bảo hành:</strong> Sản phẩm được bảo hành theo chính sách của hàng</li>
+                <li><strong>Hóa đơn điện tử:</strong> Sẽ được gửi qua email sau khi giao hàng thành công</li>
             </ul>
 
-            <h3> Cn h tr?</h3>
+            <h3> Cần hỗ trợ?</h3>
             <div class="order-summary">
-                <p><strong>Hotline giao hng:</strong> {{DeliveryHotline}}</p>
-                <p><strong>Email h tr:</strong> support@ecommercelaptop.com</p>
-                <p><strong>Chat trc tuyn:</strong> C sn trn website 24/7</p>
+                <p><strong>Hotline giao hàng:</strong> {{DeliveryHotline}}</p>
+                <p><strong>Email hỗ trợ:</strong> support@ecommercelaptop.com</p>
+                <p><strong>Chat trực tuyến:</strong> Có sẵn trên website 24/7</p>
             </div>
 
             <p>Cm n bn  tin tng v mua sm ti E-Commerce Laptop. Chng ti hy vng bn s hi lng vi sn phm!
             </p>
 
-            <p><strong>Trn trng,</strong><br>
-                i ng E-Commerce Laptop</p>
+<p><strong>Trân trọng,</strong><br>
+Đội ngũ E-Commerce Laptop</p>
         </div>
         <div class="footer">
-            <p>&copy; 2025 E-Commerce Laptop. Tt c cc quyn c bo lu.</p>
+            <p>&copy; 2025 E-Commerce Laptop. Tất cả các quyền được bảo lưu.</p>
             <p>Hotline: 1900-1234 | Email: support@ecommercelaptop.com</p>
             <p>Website: www.ecommercelaptop.com</p>
         </div>

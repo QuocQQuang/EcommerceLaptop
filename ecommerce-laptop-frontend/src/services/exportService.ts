@@ -41,16 +41,39 @@ adminClient.interceptors.request.use(async (config) => {
 // Response interceptor for error handling
 adminClient.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
         if (error.response?.status === 401) {
             // Token expired or invalid, redirect to admin login
             if (typeof window !== 'undefined') {
                 window.location.href = '/admin-login';
             }
         }
+
+        const responseData = error.response?.data;
+        if (typeof Blob !== 'undefined' && responseData instanceof Blob) {
+            const parsedError = await parseBlobError(responseData);
+            if (parsedError) {
+                error.response.data = parsedError;
+                error.message = parsedError.detail || parsedError.message || error.message;
+            }
+        }
+
         return Promise.reject(error);
     }
 );
+
+async function parseBlobError(blob: Blob): Promise<{ detail?: string; message?: string; title?: string } | null> {
+    if (!blob.type.includes('json')) {
+        return null;
+    }
+
+    try {
+        const text = await blob.text();
+        return JSON.parse(text);
+    } catch {
+        return null;
+    }
+}
 
 export class ExportService {
     /**

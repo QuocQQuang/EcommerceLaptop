@@ -6,13 +6,13 @@ import type { Address } from '@/types/address';
  */
 export const formatAddressForDisplay = (address: string | Address | undefined | null): string => {
     if (!address) {
-        return 'Cha c a ch';
+        return 'Chưa có địa chỉ';
     }
 
     // If it's already a string, return it as is (but cleaned)
     if (typeof address === 'string') {
         const cleaned = address.replace(/,\s*,/g, ',').replace(/^,|,$/, '').trim();
-        return cleaned || 'Cha c a ch';
+        return cleaned || 'Chưa có địa chỉ';
     }
 
     // If it's an Address object, format it properly
@@ -23,7 +23,7 @@ export const formatAddressForDisplay = (address: string | Address | undefined | 
         address.city
     ].filter(part => part && part.trim() !== '');
 
-    return parts.length > 0 ? parts.join(', ') : 'Cha c a ch';
+    return parts.length > 0 ? parts.join(', ') : 'Chưa có địa chỉ';
 };
 
 /**
@@ -137,8 +137,8 @@ export const formatAddressParts = (address: string | Address | undefined | null)
     location: string; // ward, district, city
 } => {
     const defaultResult = {
-        full: 'Cha c a ch',
-        short: 'Cha c a ch', 
+        full: 'Chưa có địa chỉ',
+        short: 'Chưa có địa chỉ', 
         line1: '',
         location: ''
     };
@@ -160,8 +160,8 @@ export const formatAddressParts = (address: string | Address | undefined | null)
         .filter(part => part && part.trim() !== '')
         .join(', ');
 
-    const full = [line1, location].filter(part => part).join(', ') || 'Cha c a ch';
-    const short = location || line1 || 'Cha c a ch';
+    const full = [line1, location].filter(part => part).join(', ') || 'Chưa có địa chỉ';
+    const short = location || line1 || 'Chưa có địa chỉ';
 
     return {
         full,

@@ -9,7 +9,7 @@ import logger from '@/lib/logger';
 import { orderService } from '@/services/orderService';
 import { CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -416,10 +416,12 @@ function PaymentReturnContent({ gateway }: { gateway: GatewayType }) {
 // Validate gateway param
 const validGateways: GatewayType[] = ['vnpay', 'momo', 'zalopay', 'stripe', 'paypal', 'sepay'];
 
-export default function PaymentReturnPage({ params }: { params: { gateway: string } }) {
-    const gateway = params.gateway.toLowerCase() as GatewayType;
+export default function PaymentReturnPage() {
+    const params = useParams<{ gateway?: string | string[] }>();
+    const gatewayParam = Array.isArray(params.gateway) ? params.gateway[0] : params.gateway;
+    const gateway = gatewayParam?.toLowerCase() as GatewayType | undefined;
 
-    if (!validGateways.includes(gateway)) {
+    if (!gateway || !validGateways.includes(gateway)) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                 <Card className="w-full max-w-md">
@@ -427,7 +429,7 @@ export default function PaymentReturnPage({ params }: { params: { gateway: strin
                         <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
                         <CardTitle className="text-red-700">Cổng thanh toán không hợp lệ</CardTitle>
                         <CardDescription>
-                            Cổng thanh toán &quot;{params.gateway}&quot; không được hỗ trợ.
+                            Cổng thanh toán &quot;{gatewayParam || 'không xác định'}&quot; không được hỗ trợ.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

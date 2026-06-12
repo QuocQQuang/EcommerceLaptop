@@ -43,11 +43,12 @@ export function OrderExportButtons({ orderId, orderNumber, className }: OrderExp
             console.error('Export error:', error);
 
             // Handle specific error messages from backend
-            if (error.response?.status === 400) {
+            if (error.response?.status === 400 || error.response?.status === 404) {
                 const errorData = error.response.data;
-                if (errorData?.message) {
+                const message = errorData?.detail || errorData?.message || error.message;
+                if (message) {
                     toast.error('Không thể xuất hóa đơn', {
-                        description: errorData.message,
+                        description: message,
                         duration: 5000
                     });
                 } else {

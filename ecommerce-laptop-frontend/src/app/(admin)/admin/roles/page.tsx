@@ -231,8 +231,8 @@ const RoleFormDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0 sm:max-w-4xl">
+        <DialogHeader className="shrink-0 px-6 pt-6 pr-12">
           <DialogTitle>{mode === 'create' ? 'Tạo vai trò mới' : `Sửa vai trò: ${role?.name}`}</DialogTitle>
           <DialogDescription>
             {mode === 'create'
@@ -241,15 +241,15 @@ const RoleFormDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-2">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col gap-0">
+            <TabsList className="mx-6 mt-4 grid w-auto shrink-0 grid-cols-2">
               <TabsTrigger value="basic">Thông tin cơ bản</TabsTrigger>
               <TabsTrigger value="permissions">Phân quyền chi tiết</TabsTrigger>
             </TabsList>
 
-            <div className="flex-1 overflow-auto">
-              <TabsContent value="basic" className="p-4 space-y-4">
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <TabsContent value="basic" className="h-full space-y-4 overflow-y-auto p-6">
                 <div className="space-y-2">
                   <Label htmlFor="name">Tên vai trò</Label>
                   <Input
@@ -290,8 +290,8 @@ const RoleFormDialog = ({
                 )}
               </TabsContent>
 
-              <TabsContent value="permissions" className="h-full flex flex-col overflow-hidden">
-                <div className="px-4 pt-4 pb-2">
+              <TabsContent value="permissions" className="flex h-full min-h-0 flex-col overflow-hidden">
+                <div className="shrink-0 px-6 pt-6 pb-3">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex-1">
                       <h3 className="text-lg font-medium">Danh sách quyền hạn</h3>
@@ -313,7 +313,7 @@ const RoleFormDialog = ({
                   </div>
                 </div>
 
-                <div className="flex-1 px-4 pb-4 h-[calc(100vh-400px)] flex overflow-hidden gap-4">
+                <div className="flex min-h-0 flex-1 gap-4 overflow-hidden px-6 pb-4">
                   {permissionsLoading ? (
                     <div className="w-full space-y-4 py-4">
                       {Array.from({ length: 4 }).map((_, i) => (
@@ -322,7 +322,7 @@ const RoleFormDialog = ({
                     </div>
                   ) : (
                     Object.keys(groupedAndFilteredPermissions).length > 0 ? (
-                      <div className="flex w-full overflow-hidden">
+                      <div className="flex min-h-0 w-full overflow-hidden">
                         {/* Left menu (modules) */}
                         <ScrollArea className="hidden md:block w-56 shrink-0 border rounded-lg">
                           <div className="p-2">
@@ -348,10 +348,10 @@ const RoleFormDialog = ({
                         </ScrollArea>
 
                         {/* Right content */}
-                        <div className="flex-1 ml-0 md:ml-4 overflow-hidden">
+                        <div className="ml-0 min-w-0 flex-1 overflow-hidden md:ml-4">
                           {activeModule && groupedAndFilteredPermissions[activeModule] ? (
-                            <Card>
-                              <CardHeader className="flex-row items-center justify-between p-4">
+                            <Card className="flex h-full flex-col overflow-hidden">
+                              <CardHeader className="shrink-0 flex-row items-center justify-between p-4">
                                 <div className="flex items-center space-x-2">
                                   <Shield className="h-5 w-5 text-primary" />
                                   <CardTitle className="text-base">{PermissionModules[activeModule] || activeModule}</CardTitle>
@@ -383,8 +383,8 @@ const RoleFormDialog = ({
                                 </div>
                               </CardHeader>
                               <Separator />
-                              <CardContent className="p-0">
-                                <ScrollArea className="h-[calc(100vh-500px)]">
+                              <CardContent className="min-h-0 flex-1 p-0">
+                                <ScrollArea className="h-full">
                                   <Table>
                                     <TableHeader>
                                       <TableRow>
@@ -439,7 +439,7 @@ const RoleFormDialog = ({
             </div>
           </Tabs>
 
-          <DialogFooter className="mt-auto p-4 border-t">
+          <DialogFooter className="shrink-0 border-t bg-background p-4">
             <Button
               type="button"
               variant="ghost"
