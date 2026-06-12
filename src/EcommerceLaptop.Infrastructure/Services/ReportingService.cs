@@ -5,6 +5,7 @@ using EcommerceLaptop.Core.DTOs.Export;
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Infrastructure.Data;
+using EcommerceLaptop.Infrastructure.Services.Security;
 
 namespace EcommerceLaptop.Infrastructure.Services;
 
@@ -13,17 +14,20 @@ public class ReportingService : IReportingService
     private readonly ApplicationDbContext _context;
     private readonly IPdfExportService _pdfExportService;
     private readonly IExcelExportService _excelExportService;
+    private readonly ISecurityEventService _securityEventService;
     private readonly ILogger<ReportingService> _logger;
 
     public ReportingService(
         ApplicationDbContext context,
         IPdfExportService pdfExportService,
         IExcelExportService excelExportService,
+        ISecurityEventService securityEventService,
         ILogger<ReportingService> logger)
     {
         _context = context;
         _pdfExportService = pdfExportService;
         _excelExportService = excelExportService;
+        _securityEventService = securityEventService;
         _logger = logger;
     }
 
@@ -284,9 +288,33 @@ public class ReportingService : IReportingService
 
     public async Task<ExportResultDto> ExportSecurityEventsToExcelAsync(int page = 1, int pageSize = 1000, string? search = null, string? eventType = null, string? severity = null, DateTime? startDate = null, DateTime? endDate = null)
     {
-        // Legacy SQL query removed. Events are now in Loki.
-        // TODO: Implement Loki Export if needed.
-        var events = new List<SecurityEvent>(); // Empty list for now
+        var safePage = Math.Max(page, 1);
+        var safePageSize = Math.Clamp(pageSize, 1, 1000);
+
+        var result = await _securityEventService.GetEventsAsync(
+            eventType: eventType,
+            severity: severity,
+            from: startDate,
+            to: endDate,
+            page: safePage,
+            pageSize: safePageSize);
+
+        if (!result.IsSuccess || result.Data == null)
+        {
+            throw new InvalidOperationException(result.ErrorMessage ?? "Failed to retrieve security events");
+        }
+
+        var events = result.Data.Items.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            events = events.Where(e =>
+                (e.EventType?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (e.Description?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (e.IPAddress?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (e.UserAgent?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (e.Details?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
+        }
 
         var excelBytes = await _excelExportService.ExportSecurityEventsToExcelAsync(events);
         var fileName = $"DanhSachSuKienBaoMat_{DateTime.Now:yyyyMMddHHmmss}.xlsx";

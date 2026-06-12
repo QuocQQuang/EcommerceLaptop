@@ -38,7 +38,7 @@ public class AuthController(
         // Default to Customer context if not specified
         var context = request.Context ?? AuthContext.Customer;
 
-        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var ipAddress = GetClientIpAddress();
         var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
         _logger.LogInformation(" UNIFIED LOGIN ATTEMPT - Email: {Email} | Context: {Context} | IP: {IP}",
@@ -112,7 +112,7 @@ public class AuthController(
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
-        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var ipAddress = GetClientIpAddress();
         var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
         _logger.LogInformation(" UNIFIED REFRESH ATTEMPT - Context: {Context}", request.Context);
@@ -166,7 +166,7 @@ public class AuthController(
             _logger.LogInformation(" UNIFIED LOGOUT SUCCESS - UserId: {UserId}", userId);
 
             // Log successful logout based on context
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var ipAddress = GetClientIpAddress();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
             if (context == AuthContext.Admin)
@@ -297,7 +297,7 @@ public class AuthController(
         // Default to Customer context if not specified
         var context = request.Context ?? AuthContext.Customer;
 
-        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var ipAddress = GetClientIpAddress();
         var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
         var requestWithContext = request with { IpAddress = ipAddress, UserAgent = userAgent };
@@ -380,7 +380,7 @@ public class AuthController(
             _logger.LogInformation(" UNIFIED CHANGE PASSWORD SUCCESS - UserId: {UserId}", userId);
 
             // Log successful password change
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var ipAddress = GetClientIpAddress();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             var context = GetCurrentUserContext();
 
@@ -412,7 +412,7 @@ public class AuthController(
             _logger.LogWarning(" UNIFIED CHANGE PASSWORD FAILED - UserId: {UserId}", userId);
 
             // Log failed password change as security event
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var ipAddress = GetClientIpAddress();
             await _auditLoggingService.LogSecurityEventAsync(
                 "failed_password_change",
                 $"Failed password change attempt for userId: {userId}",
@@ -453,7 +453,7 @@ public class AuthController(
     public async Task<IActionResult> ResetPassword([FromBody] UnifiedResetPasswordRequest request)
     {
         // Extract IP address and user agent for security logging
-        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var ipAddress = GetClientIpAddress();
         var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
         // Set IP address in request

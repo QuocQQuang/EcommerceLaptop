@@ -75,10 +75,10 @@ public class UsersController(
         {
             // Log failed password change attempt
             _logger.LogWarning("Failed password change attempt for user {UserId} from IP {IP}",
-                userId.Value, HttpContext.Connection.RemoteIpAddress?.ToString());
+                userId.Value, GetClientIpAddress());
 
             // Record security event using audit logging service
-            var failedIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+            var failedIpAddress = GetClientIpAddress();
             await _auditLoggingService.LogSecurityEventAsync(
                 "failed_password_change",
                 "Invalid current password provided for password change",
@@ -108,10 +108,10 @@ public class UsersController(
 
         // Log successful password change
         _logger.LogInformation("Password changed successfully for user {UserId} from IP {IP}",
-            userId.Value, HttpContext.Connection.RemoteIpAddress?.ToString());
+            userId.Value, GetClientIpAddress());
 
         // Record security event using audit logging service
-        var successIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        var successIpAddress = GetClientIpAddress();
         await _auditLoggingService.LogSecurityEventAsync(
             "password_changed",
             "Password changed successfully",

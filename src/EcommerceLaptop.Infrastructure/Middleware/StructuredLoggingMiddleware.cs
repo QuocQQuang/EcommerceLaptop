@@ -46,23 +46,6 @@ public class StructuredLoggingMiddleware
 
     private static string GetClientIPAddress(HttpContext context)
     {
-        var ipHeaders = new[]
-        {
-            "CF-Connecting-IP",
-            "X-Forwarded-For",
-            "X-Real-IP",
-            "X-Client-IP"
-        };
-
-        foreach (var header in ipHeaders)
-        {
-            var value = context.Request.Headers[header].FirstOrDefault();
-            if (!string.IsNullOrEmpty(value))
-            {
-                return value.Split(',').FirstOrDefault()?.Trim() ?? "";
-            }
-        }
-
-        return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return context.GetClientIpAddress("unknown");
     }
 }

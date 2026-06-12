@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using EcommerceLaptop.Core.Interfaces;
 using EcommerceLaptop.Core.DTOs.Chat;
+using EcommerceLaptop.Infrastructure.Middleware;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -54,7 +55,7 @@ namespace EcommerceLaptop.API.Hubs
         private string GetClientIp()
         {
             var httpContext = Context.GetHttpContext();
-            return httpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown";
+            return httpContext?.GetClientIpAddress() ?? "Unknown";
         }
 
         private bool IsRateLimited(string identifier)

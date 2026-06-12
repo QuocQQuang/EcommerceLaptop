@@ -14,6 +14,7 @@ using EcommerceLaptop.API.Authorization;
 using EcommerceLaptop.API.Hubs; // Added
 using OpenTelemetry.Metrics;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,17 @@ builder.Services.AddApplicationServices();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddSwaggerDocumentation();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor
+        | ForwardedHeaders.XForwardedProto
+        | ForwardedHeaders.XForwardedHost;
+
+    // The API runs behind VPS/Nginx reverse proxies whose IPs can vary.
+    // Keep Kestrel accessible only through the trusted proxy when this is enabled.
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -71,6 +83,8 @@ if (app.Environment.IsDevelopment())
 // Configure CORS policy - allow all origins
 var corsPolicy = "AllowAll";
 Log.Information("CORS CONFIGURATION: Using {Policy}", corsPolicy);
+
+app.UseForwardedHeaders();
 
 // Enable WebSocket support for SignalR
 app.UseWebSockets();
@@ -186,7 +200,7 @@ app.Use(async (context, next) =>
     {
         try
         {
-            var ip = context.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+            var ip = context.GetClientIpAddress();
             var ua = context.Request.Headers["User-Agent"].ToString();
             var endpoint = context.Request.Path.ToString();
             var method = context.Request.Method;

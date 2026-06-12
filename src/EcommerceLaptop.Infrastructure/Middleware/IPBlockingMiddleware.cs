@@ -99,50 +99,7 @@ public class IPBlockingMiddleware
 
     private static string GetClientIPAddress(HttpContext context)
     {
-        // Try to get the real IP address from various headers (for reverse proxy scenarios)
-        var ipHeaders = new[]
-        {
-            "CF-Connecting-IP",     // Cloudflare
-            "X-Forwarded-For",      // Standard proxy header
-            "X-Real-IP",           // Nginx proxy
-            "X-Client-IP",         // Apache proxy
-            "X-Original-Forwarded-For"
-        };
-
-        foreach (var header in ipHeaders)
-        {
-            var value = context.Request.Headers[header].FirstOrDefault();
-            if (!string.IsNullOrEmpty(value))
-            {
-                // X-Forwarded-For can contain multiple IPs, take the first one
-                var ip = value.Split(',').FirstOrDefault()?.Trim();
-                if (IsValidIPAddress(ip))
-                {
-                    return ip;
-                }
-            }
-        }
-
-        // Fall back to connection remote IP
-        var remoteIP = context.Connection.RemoteIpAddress?.ToString();
-        if (!string.IsNullOrEmpty(remoteIP))
-        {
-            // Handle IPv6 loopback as IPv4 loopback
-            if (remoteIP == "::1")
-                return "127.0.0.1";
-            
-            return remoteIP;
-        }
-
-        return "unknown";
-    }
-
-    private static bool IsValidIPAddress(string? ip)
-    {
-        if (string.IsNullOrEmpty(ip))
-            return false;
-
-        return System.Net.IPAddress.TryParse(ip, out _);
+        return context.GetClientIpAddress("unknown");
     }
 
     private static bool IsExcludedPath(string? path)

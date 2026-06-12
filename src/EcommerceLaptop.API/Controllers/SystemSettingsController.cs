@@ -153,7 +153,7 @@ public class SystemSettingsController(
                 GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
                 "email_test_rate_limited",
                 $"Email test rate limited for recipient {toEmail}",
-                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+                GetClientIpAddress(),
                 Request.Headers["User-Agent"].ToString(),
                 targetResource: "SystemSettings/test-email");
             return StatusCode(429, new { success = false, message = "Rate limit exceeded. Please try again later." });
@@ -168,7 +168,7 @@ public class SystemSettingsController(
                 GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
                 "email_test_failed",
                 $"Failed to send test email to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
-                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+                GetClientIpAddress(),
                 Request.Headers["User-Agent"].ToString(),
                 targetResource: "SystemSettings/test-email");
             return StatusCode(500, new { success = false, message = "Failed to send test email" });
@@ -180,7 +180,7 @@ public class SystemSettingsController(
             GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
             "email_test_success",
             $"Sent test email to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString(),
             targetResource: "SystemSettings/test-email");
 
@@ -211,7 +211,7 @@ public class SystemSettingsController(
                 GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
                 "notification_test_rate_limited",
                 $"Notification test rate limited for event {request.EventType} to {toEmail}",
-                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+                GetClientIpAddress(),
                 Request.Headers["User-Agent"].ToString(),
                 targetResource: "SystemSettings/test-notification");
             return StatusCode(429, new { success = false, message = "Rate limit exceeded. Please try again later." });
@@ -230,7 +230,7 @@ public class SystemSettingsController(
                 GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
                 "notification_test_failed",
                 $"Failed to send test notification {request.EventType} to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
-                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+                GetClientIpAddress(),
                 Request.Headers["User-Agent"].ToString(),
                 targetResource: "SystemSettings/test-notification");
             return StatusCode(500, new { success = false, message = "Failed to send test notification" });
@@ -241,7 +241,7 @@ public class SystemSettingsController(
             GetAdminIdAsInt() ?? 2, // Default to SuperAdmin (ID 2)
             "notification_test_success",
             $"Sent test notification {request.EventType} to {toEmail} in {stopwatch.ElapsedMilliseconds} ms",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString(),
             targetResource: "SystemSettings/test-notification"); return Ok(new { success = true, elapsedMs = stopwatch.ElapsedMilliseconds });
     }

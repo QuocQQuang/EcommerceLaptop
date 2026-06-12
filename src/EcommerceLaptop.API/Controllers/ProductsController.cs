@@ -144,7 +144,7 @@ public class ProductsController(
         var userId = GetCurrentUserId();
         if (userId.HasValue)
         {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var ipAddress = GetClientIpAddress();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
             await _auditLoggingService.LogUserActivityAsync(
@@ -453,7 +453,7 @@ public class ProductsController(
         var adminUserId = GetCurrentUserId();
         if (adminUserId.HasValue)
         {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var ipAddress = GetClientIpAddress();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
             await _auditLoggingService.LogAdminActivityAsync(
@@ -533,7 +533,7 @@ public class ProductsController(
         var adminUserId = GetCurrentUserId();
         if (adminUserId.HasValue)
         {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var ipAddress = GetClientIpAddress();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
             await _auditLoggingService.LogAdminActivityAsync(
@@ -570,7 +570,7 @@ public class ProductsController(
         var adminUserId = GetCurrentUserId();
         if (adminUserId.HasValue)
         {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var ipAddress = GetClientIpAddress();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
             await _auditLoggingService.LogAdminActivityAsync(

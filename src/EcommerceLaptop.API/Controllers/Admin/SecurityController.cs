@@ -1,6 +1,7 @@
 using EcommerceLaptop.Core.Entities;
 using EcommerceLaptop.Core.ValueObjects;
 using EcommerceLaptop.Infrastructure.Services.Security;
+using EcommerceLaptop.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -107,7 +108,7 @@ public class SecurityController : ControllerBase
             adminId,
             "ip_rule_created",
             $"Blocked {rule.IPAddress} ({rule.Type}) - {rule.Reason}",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString(),
             targetResource: rule.IPAddress);
 
@@ -146,7 +147,7 @@ public class SecurityController : ControllerBase
             adminId,
             "ip_rule_updated",
             $"Updated rule {id} for {rule.IPAddress}",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString(),
             targetResource: rule.IPAddress);
 
@@ -170,7 +171,7 @@ public class SecurityController : ControllerBase
             adminId,
             "ip_rule_deleted",
             $"Deleted IP rule {id}",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString());
 
         return Ok(new { success = true, message = "IP rule deleted successfully" });
@@ -196,7 +197,7 @@ public class SecurityController : ControllerBase
             adminUserId ?? 2, // Default to Super Admin (ID 2)
             "ip_blocked",
             $"Blocked IP {request.IPAddress} - {request.Reason}",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString(),
             targetResource: request.IPAddress);
 
@@ -223,7 +224,7 @@ public class SecurityController : ControllerBase
             adminUserId ?? 2, // Default to Super Admin (ID 2)
             "ip_unblocked",
             $"Unblocked IP {request.IPAddress}",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString(),
             targetResource: request.IPAddress);
 
@@ -338,7 +339,7 @@ public class SecurityController : ControllerBase
             GetCurrentAdminUserId() ?? 2, // Default to Super Admin (ID 2)
             "rate_limit_rule_created",
             $"Created rate limit rule {rule.Name} for {rule.Endpoint}",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString(),
             targetResource: rule.Endpoint);
 
@@ -384,7 +385,7 @@ public class SecurityController : ControllerBase
             GetCurrentAdminUserId() ?? 2, // Default to Super Admin (ID 2)
             "rate_limit_rule_updated",
             $"Updated rate limit rule {id} - {rule.Name}",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString(),
             targetResource: rule.Endpoint);
 
@@ -416,7 +417,7 @@ public class SecurityController : ControllerBase
             GetCurrentAdminUserId() ?? 2, // Default to Super Admin (ID 2)
             "rate_limit_rule_deleted",
             $"Deleted rate limit rule {id}",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString());
 
         return Ok(new { success = true, message = "Rate limit rule deleted successfully" });
@@ -527,7 +528,7 @@ public class SecurityController : ControllerBase
             adminUserId,
             "security_event_updated",
             $"Updated security event {id}",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString());
 
         return Ok(result.Data);
@@ -601,7 +602,7 @@ public class SecurityController : ControllerBase
             adminUserId,
             "security_event_resolved",
             $"Resolved security event {id}",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "",
+            GetClientIpAddress(),
             Request.Headers["User-Agent"].ToString());
 
         return Ok(new { success = true, message = "Security event marked as resolved" });
@@ -627,6 +628,11 @@ public class SecurityController : ControllerBase
         }
 
         return null; // Return null if no valid admin user ID found
+    }
+
+    private string GetClientIpAddress()
+    {
+        return HttpContext.GetClientIpAddress();
     }
 
     #endregion

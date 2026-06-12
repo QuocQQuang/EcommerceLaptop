@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using EcommerceLaptop.Infrastructure.Middleware;
 using EcommerceLaptop.Infrastructure.Services.Security;
 using System.Security.Claims;
 
@@ -66,7 +67,7 @@ public abstract class BaseApiController(ILogger logger) : ControllerBase
     /// </summary>
     protected string GetClientIpAddress()
     {
-        return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        return HttpContext.GetClientIpAddress();
     }
 
     /// <summary>

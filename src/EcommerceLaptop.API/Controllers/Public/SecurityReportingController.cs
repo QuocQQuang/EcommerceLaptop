@@ -1,4 +1,5 @@
 using EcommerceLaptop.Infrastructure.Services.Security;
+using EcommerceLaptop.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -107,7 +108,7 @@ public class SecurityReportingController : ControllerBase
 
     private string GetClientIp()
     {
-        return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        return HttpContext.GetClientIpAddress();
     }
 }
 

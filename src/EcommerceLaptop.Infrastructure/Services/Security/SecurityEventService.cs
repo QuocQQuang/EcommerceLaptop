@@ -168,13 +168,9 @@ public class SecurityEventService : ISecurityEventService
 
     public async Task<ServiceResult<Dictionary<string, int>>> GetEventStatisticsAsync(int days = 7)
     {
-        // For statistics, we should ideally use LogQL aggregation queries (e.g. sum by count)
-        // For now, let's return a basic placeholder or implement basic aggregation via LokiClient later.
-        // Or fallback to SQL if we still keep some data there.
-        // Given the requirements, let's try to query Loki for stats if possible, or return empty if complex.
-
-        // Simplified: Return empty stats to avoid error, or implement specific Loki aggregation query
-        return ServiceResult<Dictionary<string, int>>.Success(new Dictionary<string, int>());
+        var to = DateTime.UtcNow;
+        var from = to.AddDays(-Math.Max(days, 1));
+        return await GetEventStatisticsAsync(from, to);
     }
 
     public async Task<ServiceResult<List<SecurityEvent>>> GetEventsByIPAsync(string ipAddress, int hours = 24)
@@ -184,9 +180,12 @@ public class SecurityEventService : ISecurityEventService
             var from = DateTime.UtcNow.AddHours(-hours);
             var to = DateTime.UtcNow;
 
-            // Query with IP address label filter
-            var query = $"{{app=\"ecommerce-api\", IPAddress=\"{ipAddress}\"}}";
-            var events = await _lokiClient.QueryAsync(query, from, to, 100);
+            var query = "{app=\"ecommerce-api\", EventType=~\".+\"}";
+            var events = await _lokiClient.QueryAsync(query, from, to, 1000);
+            events = events
+                .Where(e => string.Equals(e.IPAddress, ipAddress, StringComparison.OrdinalIgnoreCase))
+                .Take(100)
+                .ToList();
 
             return ServiceResult<List<SecurityEvent>>.Success(events);
         }
@@ -199,9 +198,38 @@ public class SecurityEventService : ISecurityEventService
 
     public async Task<ServiceResult<List<SecurityEvent>>> GetRelatedEventsAsync(int eventId)
     {
-        // Hard to find "Related" by ID in Loki without querying everything.
-        // Returning empty list for now.
-        return ServiceResult<List<SecurityEvent>>.Success(new List<SecurityEvent>());
+        try
+        {
+            var to = DateTime.UtcNow;
+            var from = to.AddDays(-30);
+            var query = "{app=\"ecommerce-api\", EventType=~\".+\"}";
+            var events = await _lokiClient.QueryAsync(query, from, to, 1000);
+            var source = events.FirstOrDefault(e => e.Id == eventId);
+
+            if (source == null)
+            {
+                return ServiceResult<List<SecurityEvent>>.Success(new List<SecurityEvent>());
+            }
+
+            var related = events
+                .Where(e => e.Id != source.Id)
+                .Where(e =>
+                    (!string.IsNullOrWhiteSpace(source.CorrelationId)
+                        && string.Equals(e.CorrelationId, source.CorrelationId, StringComparison.OrdinalIgnoreCase))
+                    || (!string.IsNullOrWhiteSpace(source.IPAddress)
+                        && source.IPAddress != "Unknown"
+                        && string.Equals(e.IPAddress, source.IPAddress, StringComparison.OrdinalIgnoreCase)))
+                .OrderByDescending(e => e.CreatedAt)
+                .Take(50)
+                .ToList();
+
+            return ServiceResult<List<SecurityEvent>>.Success(related);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting related security events for {EventId}", eventId);
+            return ServiceResult<List<SecurityEvent>>.Failure("Failed to retrieve related events");
+        }
     }
 
     public async Task<ServiceResult<bool>> MarkEventAsResolvedAsync(int eventId, string resolvedBy, string resolution)
@@ -255,9 +283,12 @@ public class SecurityEventService : ISecurityEventService
     {
         try
         {
-            // Query Loki with correlation ID label filter
-            var query = $"{{app=\"ecommerce-api\", CorrelationId=\"{correlationId}\"}}";
-            var events = await _lokiClient.QueryAsync(query, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow, 100);
+            var query = "{app=\"ecommerce-api\", EventType=~\".+\"}";
+            var events = await _lokiClient.QueryAsync(query, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow, 1000);
+            events = events
+                .Where(e => string.Equals(e.CorrelationId, correlationId, StringComparison.OrdinalIgnoreCase))
+                .Take(100)
+                .ToList();
             return ServiceResult<List<SecurityEvent>>.Success(events);
         }
         catch (Exception ex)
@@ -287,7 +318,7 @@ public class SecurityEventService : ISecurityEventService
             }
 
             // Get total count
-            var totalQuery = "{app=\"ecommerce-api\"}";
+            var totalQuery = "{app=\"ecommerce-api\", EventType=~\".+\"}";
             stats["total"] = await _lokiClient.CountAsync(totalQuery, from, to);
 
             return ServiceResult<Dictionary<string, int>>.Success(stats);
@@ -307,7 +338,47 @@ public class SecurityEventService : ISecurityEventService
 
     public async Task<ServiceResult<List<SecurityEvent>>> GetSuspiciousActivityAsync(DateTime from, DateTime to, int threshold = 10)
     {
-        return ServiceResult<List<SecurityEvent>>.Success(new List<SecurityEvent>());
+        try
+        {
+            var query = "{app=\"ecommerce-api\", EventType=~\".+\"}";
+            var events = await _lokiClient.QueryAsync(query, from, to, 1000);
+
+            var suspiciousTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "failed_login",
+                "failed_password_change",
+                "rate_limit_exceeded",
+                "ip_access_blocked",
+                "ip_blocked",
+                "http_404_not_found",
+                "csp_violation"
+            };
+
+            var suspiciousIps = events
+                .Where(e => !string.IsNullOrWhiteSpace(e.IPAddress) && e.IPAddress != "Unknown")
+                .GroupBy(e => e.IPAddress, StringComparer.OrdinalIgnoreCase)
+                .Where(g => g.Count(e =>
+                    suspiciousTypes.Contains(e.EventType)
+                    || IsHighSeverity(e.Severity)) >= threshold)
+                .Select(g => g.Key)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var suspiciousEvents = events
+                .Where(e =>
+                    suspiciousTypes.Contains(e.EventType)
+                    || IsHighSeverity(e.Severity)
+                    || suspiciousIps.Contains(e.IPAddress))
+                .OrderByDescending(e => e.CreatedAt)
+                .Take(200)
+                .ToList();
+
+            return ServiceResult<List<SecurityEvent>>.Success(suspiciousEvents);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting suspicious activity from Loki");
+            return ServiceResult<List<SecurityEvent>>.Failure("Failed to retrieve suspicious activity");
+        }
     }
 
     public async Task<ServiceResult<bool>> CreateAlertRuleAsync(string name, string eventType, int threshold, TimeSpan window, string? description = null, int? adminUserId = null)
@@ -382,6 +453,14 @@ public class SecurityEventService : ISecurityEventService
             "admin_action" => "Medium",
             _ => "Medium"
         };
+    }
+
+    private static bool IsHighSeverity(string? severity)
+    {
+        return severity?.Equals("High", StringComparison.OrdinalIgnoreCase) == true
+            || severity?.Equals("Critical", StringComparison.OrdinalIgnoreCase) == true
+            || severity?.Equals("Error", StringComparison.OrdinalIgnoreCase) == true
+            || severity?.Equals("Fatal", StringComparison.OrdinalIgnoreCase) == true;
     }
 }
 

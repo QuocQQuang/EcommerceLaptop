@@ -4,6 +4,7 @@ using EcommerceLaptop.Core.DTOs.Admin;
 using EcommerceLaptop.Core.Services;
 using EcommerceLaptop.Infrastructure.Data;
 using EcommerceLaptop.Core.Entities;
+using EcommerceLaptop.Infrastructure.Services.Security;
 using System.Text;
 using System.Text.Json;
 
@@ -12,11 +13,16 @@ namespace EcommerceLaptop.Infrastructure.Services;
 public class AdminDashboardService : IAdminDashboardService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ISecurityEventService _securityEventService;
     private readonly ILogger<AdminDashboardService> _logger;
 
-    public AdminDashboardService(ApplicationDbContext context, ILogger<AdminDashboardService> logger)
+    public AdminDashboardService(
+        ApplicationDbContext context,
+        ISecurityEventService securityEventService,
+        ILogger<AdminDashboardService> logger)
     {
         _context = context;
+        _securityEventService = securityEventService;
         _logger = logger;
     }
 
@@ -385,12 +391,30 @@ public class AdminDashboardService : IAdminDashboardService
     {
         try
         {
-            // Legacy SQL query removed. Events are now in Loki.
-            // TODO: Implement Loki query for Dashboard.
-            var totalItems = 0;
-            var events = new List<SecurityEventDto>();
+            var safePage = Math.Max(page, 1);
+            var safeLimit = Math.Clamp(limit, 1, 100);
+            var result = await _securityEventService.GetEventsAsync(
+                severity: severity,
+                page: safePage,
+                pageSize: safeLimit);
 
-            return new PagedResponseDto<SecurityEventDto>(events, totalItems, page, limit);
+            if (!result.IsSuccess || result.Data == null)
+            {
+                throw new InvalidOperationException(result.ErrorMessage ?? "Failed to retrieve security events");
+            }
+
+            var events = result.Data.Items.Select(e => new SecurityEventDto
+            {
+                Id = e.Id,
+                Description = e.Description,
+                Severity = e.Severity,
+                IpAddress = e.IPAddress,
+                CreatedAt = e.CreatedAt,
+                UserAgent = e.UserAgent ?? string.Empty,
+                EventType = e.EventType
+            }).ToList();
+
+            return new PagedResponseDto<SecurityEventDto>(events, result.Data.TotalCount, safePage, safeLimit);
         }
         catch (Exception ex)
         {

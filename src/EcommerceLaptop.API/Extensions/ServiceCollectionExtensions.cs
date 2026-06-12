@@ -11,6 +11,7 @@ using EcommerceLaptop.Core.Services.Payment;
 using EcommerceLaptop.Core.Validators;
 using EcommerceLaptop.Infrastructure.Data;
 using EcommerceLaptop.Infrastructure.Jobs; // Correct namespace
+using EcommerceLaptop.Infrastructure.Middleware;
 using EcommerceLaptop.Infrastructure.Repositories;
 using EcommerceLaptop.Infrastructure.Services;
 using EcommerceLaptop.Infrastructure.Services.AI;
@@ -311,7 +312,7 @@ public static class ServiceCollectionExtensions
             options.OnRejected = async (context, cancellationToken) =>
             {
                 var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                var clientIp = context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+                var clientIp = context.HttpContext.GetClientIpAddress();
                 var endpoint = context.HttpContext.Request.Path;
                 var userAgent = context.HttpContext.Request.Headers["User-Agent"].ToString();
 
@@ -349,7 +350,7 @@ public static class ServiceCollectionExtensions
             // 1000 requests per minute per IP for general API usage
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    partitionKey: httpContext.GetClientIpAddress("unknown"),
                     factory: partition => new FixedWindowRateLimiterOptions
                     {
                         AutoReplenishment = true,
@@ -362,7 +363,7 @@ public static class ServiceCollectionExtensions
             // 10 requests per minute per IP
             options.AddPolicy("AuthPolicy", httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    partitionKey: httpContext.GetClientIpAddress("unknown"),
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 10,
@@ -375,7 +376,7 @@ public static class ServiceCollectionExtensions
             // 3 requests per 15 minutes per IP
             options.AddPolicy("PasswordChangePolicy", httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    partitionKey: httpContext.GetClientIpAddress("unknown"),
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 3,
@@ -388,7 +389,7 @@ public static class ServiceCollectionExtensions
             // 200 requests per minute per IP (Higher limit for admins)
             options.AddPolicy("AdminPolicy", httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    partitionKey: httpContext.GetClientIpAddress("unknown"),
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 200,
@@ -401,7 +402,7 @@ public static class ServiceCollectionExtensions
             // 20 requests per minute per IP
             options.AddPolicy("AdminAuthPolicy", httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    partitionKey: httpContext.GetClientIpAddress("unknown"),
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 20,
