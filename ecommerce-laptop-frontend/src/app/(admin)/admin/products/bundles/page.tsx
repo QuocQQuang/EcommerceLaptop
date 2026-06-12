@@ -26,12 +26,10 @@ import {
     TableRow
 } from '@/components/ui/table';
 import {
-    PermissionGuard,
-    useAdminAuth
+    PermissionGuard
 } from '@/contexts/AdminAuthContext';
 import { useCurrencyContext } from '@/contexts/CurrencyContext';
-import { PERMISSIONS } from '@/lib/admin-api';
-import apiClient from '@/lib/api';
+import { getAdminProducts, PERMISSIONS } from '@/lib/admin-api';
 import { formatCurrencyPrice } from '@/lib/currency';
 import { Product } from '@/types/api';
 import { useQuery } from '@tanstack/react-query';
@@ -133,8 +131,8 @@ const useProductsQuery = () => {
     return useQuery({
         queryKey: ['admin', 'products'],
         queryFn: async () => {
-            const response = await apiClient.get('/products/admin');
-            return response.data.products || [];
+            const response = await getAdminProducts({ page: 1, limit: 200 });
+            return response.products;
         }
     });
 };
@@ -151,7 +149,6 @@ const getStatusBadge = (isActive: boolean) => {
 
 export default function BundlesPage() {
     const { selectedCurrency } = useCurrencyContext();
-    const { user } = useAdminAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [showCreateDialog, setShowCreateDialog] = useState(false);
     const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);

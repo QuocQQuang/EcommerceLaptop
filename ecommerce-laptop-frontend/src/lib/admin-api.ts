@@ -30,6 +30,18 @@ export interface ApiResponse<T = any> {
   errors?: string[];
 }
 
+const unwrapApiData = <T>(raw: any): T => {
+  return (raw && typeof raw === 'object' && 'data' in raw) ? raw.data as T : raw as T;
+};
+
+const unwrapApiArray = <T>(raw: any): T[] => {
+  const data = unwrapApiData<any>(raw);
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
+};
+
 export interface PaginatedResponse<T> {
   items: T[];
   totalItems: number;
@@ -1244,6 +1256,7 @@ export interface ProductUpdateDto {
   Ports?: string;
   // Accessory specific fields
   Type?: string;
+  AccessoryType?: string;
   Compatibility?: string;
   Color?: string;
   Material?: string;
@@ -1694,7 +1707,10 @@ export const mapFormToUpdatePayload = (formData: ProductFormData): ProductUpdate
     if (typeof weightKg === 'number') (payload as any).WeightKg = weightKg;
 
   } else if (formData.productType === 'Accessory') {
-    if (formData.accessoryType) (payload as any).Type = formData.accessoryType;
+    if (formData.accessoryType) {
+      (payload as any).AccessoryType = formData.accessoryType;
+      (payload as any).Type = formData.accessoryType;
+    }
     if (formData.compatibility) (payload as any).Compatibility = formData.compatibility;
     if (formData.specificationDetails) (payload as any).SpecificationDetails = formData.specificationDetails;
     if (formData.connectivity) (payload as any).Connectivity = formData.connectivity;
@@ -1714,8 +1730,23 @@ export const mapFormToUpdatePayload = (formData: ProductFormData): ProductUpdate
   return payload;
 };
 
+export const mapFormToCreatePayload = (formData: ProductFormData, brands: Brand[] = []): any => {
+  const payload: any = mapFormToUpdatePayload(formData);
+  const brand = brands.find(b => b.id === Number(payload.BrandId));
+  if (brand?.name) {
+    payload.Brand = brand.name;
+  }
+  return payload;
+};
+
 export const getAdminProducts = async (params: AdminProductsParams = {}): Promise<AdminProductsResponse> => {
-  const response = await api.get<any>('/products/admin', { params });
+  const backendParams: any = { ...params };
+  if (backendParams.limit && !backendParams.pageSize) {
+    backendParams.pageSize = backendParams.limit;
+  }
+  delete backendParams.limit;
+
+  const response = await api.get<any>('/products/admin', { params: backendParams });
   const raw = response.data;
   return {
     products: raw.data || [],
@@ -1727,27 +1758,31 @@ export const getAdminProducts = async (params: AdminProductsParams = {}): Promis
 };
 
 export const getAdminProduct = async (productId: number): Promise<Product> => {
-  const response = await api.get<{ data: Product }>(`/products/${productId}`);
+  const response = await api.get<ApiResponse<Product>>(`/products/admin/${productId}`);
   console.log(' getAdminProduct response:', {
     productId,
     responseData: response.data,
-    product: response.data.data
+    product: unwrapApiData<Product>(response.data)
   });
-  //  FIXED: Correctly extract product from the 'data' property of the response
-  return response.data.data;
+  return unwrapApiData<Product>(response.data);
 };
 
-export const createProduct = async (productData: Partial<Product>): Promise<Product> => {
-  const response = await api.post<Product>('/products', productData);
-  return response.data;
+export const getProductVariants = async (productId: number): Promise<Product[]> => {
+  const response = await api.get<ApiResponse<Product[]>>(`/products/${productId}/variants`);
+  return unwrapApiArray<Product>(response.data);
+};
+
+export const createProduct = async (productData: any): Promise<Product> => {
+  const response = await api.post<ApiResponse<Product>>('/products', productData);
+  return unwrapApiData<Product>(response.data);
 };
 
 export const updateProduct = async (productId: number, productData: any): Promise<Product> => {
   // Backend expects Brand as string; if only BrandId is provided, resolve name
   if (productData && productData.BrandId && !productData.Brand) {
     try {
-      const brandsResp = await api.get<Brand[]>('/admin/brands');
-      const brand = brandsResp.data.find(b => b.id === Number(productData.BrandId));
+      const brands = await getBrands();
+      const brand = brands.find(b => b.id === Number(productData.BrandId));
       if (brand?.name) {
         productData.Brand = brand.name;
       }
@@ -1868,21 +1903,23 @@ export interface BrandFormData {
 
 // Basic category/brand getters (for dropdowns)
 export const getCategories = async (): Promise<Category[]> => {
-  const response = await api.get<Category[]>('/admin/categories');
+  const response = await api.get<Category[] | ApiResponse<Category[]>>('/admin/categories');
+  const categories = unwrapApiArray<Category>(response.data);
   console.log(' getCategories response:', {
     responseData: response.data,
-    categoriesCount: response.data?.length
+    categoriesCount: categories.length
   });
-  return response.data;
+  return categories;
 };
 
 export const getBrands = async (): Promise<Brand[]> => {
-  const response = await api.get<Brand[]>('/admin/brands');
+  const response = await api.get<Brand[] | ApiResponse<Brand[]>>('/admin/brands');
+  const brands = unwrapApiArray<Brand>(response.data);
   console.log(' getBrands response:', {
     responseData: response.data,
-    brandsCount: response.data?.length
+    brandsCount: brands.length
   });
-  return response.data;
+  return brands;
 };
 
 // Admin API functions with product counts
@@ -2123,12 +2160,12 @@ export const getLogDetails = async (logId: number): Promise<AdminAuditLog> => {
 // Variant management functions
 export const createVariant = async (productId: number, variantData: any): Promise<any> => {
   const response = await api.post(`/products/${productId}/variants`, variantData);
-  return response.data;
+  return unwrapApiData(response.data);
 };
 
 export const updateVariant = async (productId: number, variantId: number, variantData: any): Promise<any> => {
   const response = await api.put(`/products/${productId}/variants/${variantId}`, variantData);
-  return response.data;
+  return unwrapApiData(response.data);
 };
 
 // Variant image management functions
@@ -2186,7 +2223,7 @@ export const deleteVariantImage = async (productId: number, variantId: number, i
 
 export const deleteVariant = async (productId: number, variantId: number): Promise<any> => {
   const response = await api.delete(`/products/${productId}/variants/${variantId}`);
-  return response.data;
+  return unwrapApiData(response.data);
 };
 
 // Inventory management for base products

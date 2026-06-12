@@ -18,6 +18,7 @@ interface MediaManagementSectionProps {
     onImagesChange?: (images: ProductImage[]) => void;
     onImageUpload?: (files: FileList) => Promise<void>;
     onImageDelete?: (imageId: string) => Promise<void>;
+    disabled?: boolean;
 }
 
 export default function MediaManagementSection({
@@ -29,7 +30,8 @@ export default function MediaManagementSection({
     images,
     onImagesChange,
     onImageUpload,
-    onImageDelete
+    onImageDelete,
+    disabled = false
 }: MediaManagementSectionProps) {
     // Convert formData.images to ProductImage format when explicit images not provided
     const fallbackImages: ProductImage[] = formData.images.map((url, index) => ({
@@ -84,7 +86,7 @@ export default function MediaManagementSection({
                                 onImageUpload={onImageUpload}
                                 onImageDelete={onImageDelete}
                                 maxImages={10}
-                                disabled={false}
+                                disabled={disabled}
                             />
                         </div>
                     </CardContent>

@@ -109,6 +109,27 @@ public class ProductsController(
     }
 
     /// <summary>
+    /// Gets specific product by ID for admin management, including inactive products.
+    /// </summary>
+    [HttpGet("admin/{id:int}")]
+    [Authorize(Policy = "RequirePermission:products:read")]
+    public async Task<IActionResult> GetAdminProduct(int id)
+    {
+        var product = await _productService.GetByIdWithDetailsAsync(id);
+        if (product is null)
+            return ErrorResponse("Product not found", 404);
+
+        if (product.IsBaseProduct)
+        {
+            var variants = await _productService.GetVariantsAsync(id);
+            product.Variants = variants.ToList();
+        }
+
+        var productDto = _mapper.Map<ProductDto>(product);
+        return SuccessResponse(productDto);
+    }
+
+    /// <summary>
     /// Gets specific product by ID
     /// </summary>
     /// <param name="id">Product ID</param>
@@ -420,6 +441,7 @@ public class ProductsController(
     /// <returns>Created product</returns>
     [HttpPost]
     [Authorize(Policy = "RequirePermission:products:write")]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> CreateProduct([FromBody] JsonElement request)
     {
         // Deserialize to base request first to get ProductType
@@ -450,6 +472,18 @@ public class ProductsController(
 
 
         var createdProduct = await _productService.CreateProductAsync(product);
+
+        var stockQuantity = ExtractStockQuantity(request);
+        if (stockQuantity.HasValue)
+        {
+            await SyncInventoryAsync(
+                createdProduct.Id,
+                stockQuantity.Value,
+                createdProduct.Price,
+                "PRODUCT_CREATE");
+        }
+
+        createdProduct = await _productService.GetByIdWithDetailsAsync(createdProduct.Id) ?? createdProduct;
         var productDto = _mapper.Map<ProductDto>(createdProduct);
 
         // Log admin product creation activity
@@ -469,8 +503,13 @@ public class ProductsController(
             );
         }
 
-        return CreatedAtAction(nameof(GetProduct), new { id = createdProduct.Id },
-            SuccessResponse(productDto, "Product created successfully"));
+        return CreatedAtAction(nameof(GetAdminProduct), new { id = createdProduct.Id },
+            new ApiResponse<ProductDto>
+            {
+                Success = true,
+                Data = productDto,
+                Message = "Product created successfully"
+            });
     }
 
     /// <summary>
@@ -481,6 +520,7 @@ public class ProductsController(
     /// <returns>Updated product</returns>
     [HttpPut("{id}")]
     [Authorize(Policy = "RequirePermission:products:write")]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonElement request)
     {
         var existingProduct = await _productService.GetByIdWithDetailsAsync(id);
@@ -492,43 +532,9 @@ public class ProductsController(
 
         var updatedProduct = await _productService.UpdateProductAsync(existingProduct);
 
-        // Align base product inventory update with variant behavior when StockQuantity is provided
-        if (request.ValueKind == JsonValueKind.Object && request.TryGetProperty("StockQuantity", out var stockElement))
-        {
-            if (stockElement.TryGetInt32(out var stockQuantity))
-            {
-                var inventory = await _inventoryService.GetInventoryByProductIdAsync(id);
-                if (inventory == null)
-                {
-                    var createRequest = new CoreInventory.CreateInventoryRequest
-                    {
-                        ProductId = id,
-                        QuantityInStock = stockQuantity,
-                        ReorderLevel = 10,
-                        MaxStockLevel = 1000, 
-                        WarehouseLocation = "Main Warehouse",
-                        UnitCost = existingProduct.Price * 0.8m // Estimated
-                    };
-                    await _inventoryService.CreateInventoryAsync(createRequest);
-                }
-                else
-                {
-                    var quantityDifference = stockQuantity - inventory.QuantityInStock;
-                    if (quantityDifference != 0)
-                    {
-                        var adjustmentRequest = new CoreInventory.StockAdjustmentRequest
-                        {
-                            ProductId = id,
-                            Quantity = quantityDifference,
-                            Reference = "PRODUCT_UPDATE",
-                            Notes = $"Base product inventory update: {inventory.QuantityInStock} -> {stockQuantity}",
-                            WarehouseLocation = inventory.WarehouseLocation
-                        };
-                        await _inventoryService.AdjustStockAsync(adjustmentRequest);
-                    }
-                }
-            }
-        }
+        var stockQuantity = ExtractStockQuantity(request);
+        if (stockQuantity.HasValue)
+            await SyncInventoryAsync(id, stockQuantity.Value, existingProduct.Price, "PRODUCT_UPDATE");
 
         var productDto = _mapper.Map<ProductDto>(updatedProduct);
 
@@ -559,6 +565,7 @@ public class ProductsController(
     /// <returns>Success status</returns>
     [HttpDelete("{id}")]
     [Authorize(Policy = "RequirePermission:products:delete")]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> DeleteProduct(int id)
     {
         // Get product info before deletion for logging
@@ -604,10 +611,40 @@ public class ProductsController(
     }
 
     /// <summary>
+    /// Creates a variant for a base product (Admin only)
+    /// </summary>
+    [HttpPost("{id}/variants")]
+    [Authorize(Policy = "RequirePermission:products:write")]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> CreateVariant(int id, [FromBody] CreateVariantDto request)
+    {
+        var baseProduct = await _productService.GetByIdWithDetailsAsync(id);
+        if (baseProduct == null || baseProduct.ParentProductId != null)
+            return ErrorResponse("Base product not found", 404);
+
+        var variant = CreateVariantFromBaseProduct(baseProduct, request);
+
+        try
+        {
+            var createdVariant = await _productService.CreateVariantAsync(id, variant);
+            await SyncInventoryAsync(createdVariant.Id, request.StockQuantity, createdVariant.Price, "VARIANT_CREATE");
+
+            createdVariant = await _productService.GetByIdWithDetailsAsync(createdVariant.Id) ?? createdVariant;
+            var variantDto = _mapper.Map<ProductDto>(createdVariant);
+            return SuccessResponse(variantDto, "Variant created successfully");
+        }
+        catch (ArgumentException ex)
+        {
+            return ErrorResponse(ex.Message, 400);
+        }
+    }
+
+    /// <summary>
     /// Updates a variant (Admin only)
     /// </summary>
     [HttpPut("{id}/variants/{variantId}")]
     [Authorize(Policy = "RequirePermission:products:write")]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> UpdateVariant(int id, int variantId, [FromBody] UpdateVariantDto request)
     {
         var variant = await _productService.GetByIdAsync(variantId);
@@ -620,6 +657,7 @@ public class ProductsController(
         if (request.Price.HasValue) variant.Price = request.Price.Value;
         if (request.Description != null) variant.Description = request.Description;
         if (request.IsActive.HasValue) variant.IsActive = request.IsActive.Value;
+        ApplyVariantSpecificUpdates(variant, request);
         variant.UpdatedAt = DateTime.UtcNow;
 
         var result = await _productService.UpdateProductAsync(variant);
@@ -668,6 +706,7 @@ public class ProductsController(
     /// </summary>
     [HttpDelete("{id}/variants/{variantId}")]
     [Authorize(Policy = "RequirePermission:products:delete")]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> DeleteVariant(int id, int variantId)
     {
         var success = await _productService.DeleteVariantAsync(variantId);
@@ -687,6 +726,7 @@ public class ProductsController(
     [HttpPost("{id}/images")]
     [Authorize(Policy = "RequirePermission:products:manage")]
     [Consumes("multipart/form-data")]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> UploadProductImages(int id, IFormFileCollection files)
     {
         if (files == null || files.Count == 0)
@@ -758,6 +798,7 @@ public class ProductsController(
     /// </summary>
     [HttpDelete("{id}/images/{imageId}")]
     [Authorize(Policy = "RequirePermission:products:manage")]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> DeleteProductImage(int id, string imageId)
     {
         var product = await _productService.GetByIdAsync(id);
@@ -796,6 +837,182 @@ public class ProductsController(
             "bundle" => JsonSerializer.Deserialize<Bundle>(rawJson, options) ?? throw new JsonException("Failed to deserialize to Bundle."),
             _ => throw new ArgumentException("Invalid product type specified.")
         };
+    }
+
+    private Product CreateVariantFromBaseProduct(Product baseProduct, CreateVariantDto request)
+    {
+        Product variant = baseProduct switch
+        {
+            Laptop laptop => new Laptop
+            {
+                Series = request.Series ?? laptop.Series,
+                CpuBrand = request.CpuBrand ?? laptop.CpuBrand,
+                CpuModel = request.CpuModel ?? laptop.CpuModel,
+                CpuGeneration = request.CpuGeneration ?? laptop.CpuGeneration,
+                CpuCores = request.CpuCores ?? laptop.CpuCores,
+                CpuBaseClockGHz = request.CpuBaseClockGHz ?? laptop.CpuBaseClockGHz,
+                CpuBoostClockGHz = request.CpuBoostClockGHz ?? laptop.CpuBoostClockGHz,
+                CpuCache = request.CpuCache ?? laptop.CpuCache,
+                RamType = request.RamType ?? laptop.RamType,
+                RamCapacityGB = request.RamCapacityGB ?? laptop.RamCapacityGB,
+                RamSlots = request.RamSlots ?? laptop.RamSlots,
+                RamSpeed = request.RamSpeed ?? laptop.RamSpeed,
+                RamUpgradeable = request.RamUpgradeable ?? laptop.RamUpgradeable,
+                StorageType = request.StorageType ?? laptop.StorageType,
+                StorageCapacityGB = request.StorageCapacityGB ?? laptop.StorageCapacityGB,
+                StorageInterface = request.StorageInterface ?? laptop.StorageInterface,
+                NvMeSupport = request.NvMeSupport ?? laptop.NvMeSupport,
+                GpuType = request.GpuType ?? laptop.GpuType,
+                GpuBrand = request.GpuBrand ?? laptop.GpuBrand,
+                GpuModel = request.GpuModel ?? laptop.GpuModel,
+                GpuVramGB = request.GpuVramGB ?? laptop.GpuVramGB,
+                DisplaySizeInches = request.DisplaySizeInches ?? laptop.DisplaySizeInches,
+                DisplayResolution = request.DisplayResolution ?? laptop.DisplayResolution,
+                DisplayPanelType = request.DisplayPanelType ?? laptop.DisplayPanelType,
+                DisplayRefreshRateHz = request.DisplayRefreshRateHz ?? laptop.DisplayRefreshRateHz,
+                DisplayTouchscreen = request.DisplayTouchscreen ?? laptop.DisplayTouchscreen,
+                BatteryCapacityWh = request.BatteryCapacityWh ?? laptop.BatteryCapacityWh,
+                WeightKg = request.WeightKg ?? laptop.WeightKg,
+                Dimensions = request.Dimensions ?? laptop.Dimensions,
+                Color = request.Color ?? laptop.Color,
+                Ports = request.Ports ?? laptop.Ports,
+                WiFi6Support = request.WiFi6Support ?? laptop.WiFi6Support,
+                BluetoothSupport = request.BluetoothSupport ?? laptop.BluetoothSupport,
+                BluetoothVersion = request.BluetoothVersion ?? laptop.BluetoothVersion,
+                WarrantyPeriod = request.WarrantyPeriod ?? laptop.WarrantyPeriod,
+                TargetAudience = request.TargetAudience ?? laptop.TargetAudience
+            },
+            Accessory accessory => new Accessory
+            {
+                AccessoryType = accessory.AccessoryType,
+                Compatibility = accessory.Compatibility,
+                Specifications = accessory.Specifications,
+                Color = request.Color ?? accessory.Color,
+                Connectivity = accessory.Connectivity
+            },
+            Bundle bundle => new Bundle
+            {
+                BundleType = bundle.BundleType,
+                DiscountPercentage = bundle.DiscountPercentage,
+                ValidFrom = bundle.ValidFrom,
+                ValidTo = bundle.ValidTo
+            },
+            _ => throw new ArgumentException("Unsupported product type")
+        };
+
+        variant.Name = $"{baseProduct.Name} - {request.VariantName}".Trim();
+        variant.Description = request.Description ?? baseProduct.Description;
+        variant.Brand = baseProduct.Brand;
+        variant.Model = baseProduct.Model;
+        variant.Price = request.Price;
+        variant.SKU = request.VariantSku;
+        variant.VariantName = request.VariantName;
+        variant.VariantSku = request.VariantSku;
+        variant.IsActive = request.IsActive;
+        variant.CategoryId = baseProduct.CategoryId;
+        variant.BrandId = baseProduct.BrandId;
+
+        return variant;
+    }
+
+    private void ApplyVariantSpecificUpdates(Product variant, UpdateVariantDto request)
+    {
+        if (variant is not Laptop laptop)
+            return;
+
+        laptop.Series = request.Series ?? laptop.Series;
+        laptop.CpuBrand = request.CpuBrand ?? laptop.CpuBrand;
+        laptop.CpuModel = request.CpuModel ?? laptop.CpuModel;
+        laptop.CpuGeneration = request.CpuGeneration ?? laptop.CpuGeneration;
+        laptop.CpuCores = request.CpuCores ?? laptop.CpuCores;
+        laptop.CpuBaseClockGHz = request.CpuBaseClockGHz ?? laptop.CpuBaseClockGHz;
+        laptop.CpuBoostClockGHz = request.CpuBoostClockGHz ?? laptop.CpuBoostClockGHz;
+        laptop.CpuCache = request.CpuCache ?? laptop.CpuCache;
+        laptop.RamType = request.RamType ?? laptop.RamType;
+        laptop.RamCapacityGB = request.RamCapacityGB ?? laptop.RamCapacityGB;
+        laptop.RamSlots = request.RamSlots ?? laptop.RamSlots;
+        laptop.RamSpeed = request.RamSpeed ?? laptop.RamSpeed;
+        laptop.RamUpgradeable = request.RamUpgradeable ?? laptop.RamUpgradeable;
+        laptop.StorageType = request.StorageType ?? laptop.StorageType;
+        laptop.StorageCapacityGB = request.StorageCapacityGB ?? laptop.StorageCapacityGB;
+        laptop.StorageInterface = request.StorageInterface ?? laptop.StorageInterface;
+        laptop.NvMeSupport = request.NvMeSupport ?? laptop.NvMeSupport;
+        laptop.GpuType = request.GpuType ?? laptop.GpuType;
+        laptop.GpuBrand = request.GpuBrand ?? laptop.GpuBrand;
+        laptop.GpuModel = request.GpuModel ?? laptop.GpuModel;
+        laptop.GpuVramGB = request.GpuVramGB ?? laptop.GpuVramGB;
+        laptop.DisplaySizeInches = request.DisplaySizeInches ?? laptop.DisplaySizeInches;
+        laptop.DisplayResolution = request.DisplayResolution ?? laptop.DisplayResolution;
+        laptop.DisplayPanelType = request.DisplayPanelType ?? laptop.DisplayPanelType;
+        laptop.DisplayRefreshRateHz = request.DisplayRefreshRateHz ?? laptop.DisplayRefreshRateHz;
+        laptop.DisplayTouchscreen = request.DisplayTouchscreen ?? laptop.DisplayTouchscreen;
+        laptop.BatteryCapacityWh = request.BatteryCapacityWh ?? laptop.BatteryCapacityWh;
+        laptop.WeightKg = request.WeightKg ?? laptop.WeightKg;
+        laptop.Dimensions = request.Dimensions ?? laptop.Dimensions;
+        laptop.Color = request.Color ?? laptop.Color;
+        laptop.Ports = request.Ports ?? laptop.Ports;
+        laptop.WiFi6Support = request.WiFi6Support ?? laptop.WiFi6Support;
+        laptop.BluetoothSupport = request.BluetoothSupport ?? laptop.BluetoothSupport;
+        laptop.BluetoothVersion = request.BluetoothVersion ?? laptop.BluetoothVersion;
+        laptop.WarrantyPeriod = request.WarrantyPeriod ?? laptop.WarrantyPeriod;
+        laptop.TargetAudience = request.TargetAudience ?? laptop.TargetAudience;
+    }
+
+    private int? ExtractStockQuantity(JsonElement request)
+    {
+        if (request.ValueKind != JsonValueKind.Object)
+            return null;
+
+        foreach (var property in request.EnumerateObject())
+        {
+            if (!string.Equals(property.Name, "StockQuantity", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(property.Name, "Stock", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (property.Value.TryGetInt32(out var stockQuantity))
+                return stockQuantity;
+
+            if (property.Value.ValueKind == JsonValueKind.String &&
+                int.TryParse(property.Value.GetString(), out stockQuantity))
+            {
+                return stockQuantity;
+            }
+        }
+
+        return null;
+    }
+
+    private async Task SyncInventoryAsync(int productId, int stockQuantity, decimal productPrice, string reference)
+    {
+        var inventory = await _inventoryService.GetInventoryByProductIdAsync(productId);
+        if (inventory == null)
+        {
+            await _inventoryService.CreateInventoryAsync(new CoreInventory.CreateInventoryRequest
+            {
+                ProductId = productId,
+                QuantityInStock = stockQuantity,
+                ReorderLevel = 10,
+                MaxStockLevel = 1000,
+                WarehouseLocation = "Main Warehouse",
+                UnitCost = productPrice * 0.8m
+            });
+            return;
+        }
+
+        var quantityDifference = stockQuantity - inventory.QuantityInStock;
+        if (quantityDifference == 0)
+            return;
+
+        await _inventoryService.AdjustStockAsync(new CoreInventory.StockAdjustmentRequest
+        {
+            ProductId = productId,
+            Quantity = quantityDifference,
+            Reference = reference,
+            Notes = $"Product inventory update: {inventory.QuantityInStock} -> {stockQuantity}",
+            WarehouseLocation = inventory.WarehouseLocation
+        });
     }
 
     private void ApplyProductUpdates(Product product, JsonElement request)
@@ -977,6 +1194,7 @@ public class ProductsController(
     /// </summary>
     [HttpPost("bundles")]
     [Authorize(Policy = "RequirePermission:products:write")]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> CreateBundle([FromBody] CreateBundleRequest request)
     {
         var bundle = await _productService.CreateBundleAsync(
@@ -995,6 +1213,7 @@ public class ProductsController(
     /// </summary>
     [HttpPost("bundles/calculate-price")]
     [Authorize(Policy = "RequirePermission:products:read")]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> CalculateBundlePrice([FromBody] CalculateBundlePriceRequest request)
     {
         var price = await _productService.CalculateBundlePriceAsync(request.ProductIds, request.DiscountPercentage);
@@ -1051,6 +1270,7 @@ public class ProductsController(
     /// </summary>
     [HttpPut("bulk/pricing")]
     [Authorize(Policy = "RequirePermission:products:manage")]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> BulkUpdatePricing([FromBody] BulkPricingUpdateRequest request)
     {
         var success = await _productService.BulkUpdatePricingAsync(request.ProductIds, request.PriceAdjustmentPercentage);
@@ -1075,6 +1295,7 @@ public class ProductsController(
     [HttpPost("{id}/variants/{variantId}/images")]
     [Authorize(Policy = "RequirePermission:products:manage")]
     [Consumes("multipart/form-data")]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> UploadVariantImages(int id, int variantId, IFormFileCollection files)
     {
         // Debug logging
@@ -1182,6 +1403,36 @@ public class ProductsController(
                 }).ToList()
             }
         });
+    }
+
+    /// <summary>
+    /// Deletes a variant image (Admin only)
+    /// </summary>
+    [HttpDelete("{id}/variants/{variantId}/images/{imageId}")]
+    [Authorize(Policy = "RequirePermission:products:manage")]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> DeleteVariantImage(int id, int variantId, string imageId)
+    {
+        var variant = await _productService.GetByIdAsync(variantId);
+        if (variant == null || variant.ParentProductId != id)
+            return ErrorResponse("Variant not found", 404);
+
+        var image = variant.Images.FirstOrDefault(i => i.ImageId == imageId);
+        if (image == null)
+            return ErrorResponse("Image not found", 404);
+
+        try
+        {
+            await _imageHostingService.DeleteImageAsync(image.ImageId!);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to delete variant image from hosting service: {ImageId}", imageId);
+        }
+
+        await _productService.DeleteProductImageAsync(image.Id);
+
+        return SuccessResponse(new { deleted = true }, "Variant image deleted successfully");
     }
     #endregion
 }

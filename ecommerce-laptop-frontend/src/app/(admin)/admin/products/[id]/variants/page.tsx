@@ -32,8 +32,7 @@ import {
     useAdminAuth
 } from '@/contexts/AdminAuthContext';
 import { useCurrencyContext } from '@/contexts/CurrencyContext';
-import { createVariant, deleteVariant, deleteVariantImage, PERMISSIONS, updateVariant, uploadVariantImages } from '@/lib/admin-api';
-import apiClient from '@/lib/api';
+import { createVariant, deleteVariant, deleteVariantImage, getAdminProduct, getProductVariants, PERMISSIONS, updateVariant, uploadVariantImages } from '@/lib/admin-api';
 import { formatCurrencyPrice } from '@/lib/currency';
 import { Product } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -54,10 +53,7 @@ import { toast } from 'sonner';
 const useProductQuery = (productId: string) => {
     return useQuery({
         queryKey: ['admin', 'product', productId],
-        queryFn: async () => {
-            const response = await apiClient.get(`/products/${productId}`);
-            return response.data.data;
-        },
+        queryFn: () => getAdminProduct(parseInt(productId)),
         enabled: !!productId
     });
 };
@@ -65,10 +61,7 @@ const useProductQuery = (productId: string) => {
 const useVariantsQuery = (productId: string) => {
     return useQuery({
         queryKey: ['admin', 'variants', productId],
-        queryFn: async () => {
-            const response = await apiClient.get(`/products/${productId}/variants`);
-            return response.data.data;
-        },
+        queryFn: () => getProductVariants(parseInt(productId)),
         enabled: !!productId
     });
 };
@@ -150,7 +143,8 @@ export default function VariantManagementPage() {
     const router = useRouter();
     const params = useParams();
     const productId = params.id as string;
-    const { user } = useAdminAuth();
+    const { hasPermission } = useAdminAuth();
+    const canManageImages = hasPermission(PERMISSIONS.PRODUCTS_MANAGE);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -374,7 +368,7 @@ export default function VariantManagementPage() {
             variants.forEach((variant: any) => {
                 if (variant.images && variant.images.length > 0) {
                     const productImages: ProductImage[] = variant.images.map((img: any, index: number) => ({
-                        imageId: img.id.toString(),
+                        imageId: img.imageId || img.id?.toString(),
                         imageUrl: img.imageUrl,
                         altText: img.altText || `Variant image ${index + 1}`,
                         displayOrder: img.sortOrder || index + 1
@@ -413,6 +407,11 @@ export default function VariantManagementPage() {
 
     // Handle image upload for existing variants
     const handleVariantImageUpload = async (variantId: number, files: FileList) => {
+        if (!canManageImages) {
+            toast.error('Bạn không có quyền quản lý hình ảnh sản phẩm');
+            return;
+        }
+
         try {
             console.log(' Uploading images for variant:', variantId, 'Files:', files.length);
             const results = await uploadVariantImages(parseInt(productId), variantId, files);
@@ -445,6 +444,11 @@ export default function VariantManagementPage() {
 
     // Handle image delete for existing variants
     const handleVariantImageDelete = async (variantId: number, imageId: string) => {
+        if (!canManageImages) {
+            toast.error('Bạn không có quyền quản lý hình ảnh sản phẩm');
+            return;
+        }
+
         try {
             await deleteVariantImage(parseInt(productId), variantId, imageId);
 
@@ -571,7 +575,7 @@ export default function VariantManagementPage() {
         createVariantMutation.mutate(variantData, {
             onSuccess: async (newVariant) => {
                 // Step 2: Upload images if any
-                if (createImages.length > 0 && newVariant.id) {
+                if (canManageImages && createImages.length > 0 && newVariant.id) {
                     try {
                         // Convert File objects to FileList
                         const dt = new DataTransfer();
@@ -837,7 +841,7 @@ export default function VariantManagementPage() {
         }, {
             onSuccess: async () => {
                 // Step 2: Upload new images if any
-                if (editImages.length > 0) {
+                if (canManageImages && editImages.length > 0) {
                     try {
                         // Convert File objects to FileList
                         const dt = new DataTransfer();
@@ -1506,6 +1510,7 @@ export default function VariantManagementPage() {
                                     handleImageRemove(index, false);
                                 }}
                                 maxImages={5}
+                                disabled={!canManageImages}
                                 className="w-full"
                             />
                         </TabsContent>
@@ -1991,6 +1996,7 @@ export default function VariantManagementPage() {
                                     }
                                 }}
                                 maxImages={5}
+                                disabled={!canManageImages}
                                 className="w-full"
                             />
                         </TabsContent>

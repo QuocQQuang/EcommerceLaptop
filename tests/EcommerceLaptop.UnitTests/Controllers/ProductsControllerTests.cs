@@ -183,9 +183,7 @@ namespace EcommerceLaptop.UnitTests.Controllers
 
             // Assert
             var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
-            // The controller wraps the OkObjectResult inside the CreatedAtActionResult values, resulting in double wrapping
-            var innerResult = createdResult.Value.Should().BeOfType<OkObjectResult>().Subject;
-            var response = innerResult.Value.Should().BeAssignableTo<ApiResponse<ProductDto>>().Subject;
+            var response = createdResult.Value.Should().BeAssignableTo<ApiResponse<ProductDto>>().Subject;
             response.Data.Name.Should().Be("New Laptop");
         }
 

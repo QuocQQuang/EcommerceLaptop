@@ -32,6 +32,7 @@ interface EnhancedProductFormProps {
     onImagesChange?: (images: ProductImage[]) => void;
     onImageUpload?: (files: FileList) => Promise<void>;
     onImageDelete?: (imageId: string) => Promise<void>;
+    imageManagementDisabled?: boolean;
 }
 
 export default function EnhancedProductForm({
@@ -48,7 +49,8 @@ export default function EnhancedProductForm({
     images,
     onImagesChange,
     onImageUpload,
-    onImageDelete
+    onImageDelete,
+    imageManagementDisabled = false
 }: EnhancedProductFormProps) {
     const [activeTab, setActiveTab] = useState('basic');
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -233,6 +235,7 @@ export default function EnhancedProductForm({
                         onImagesChange={onImagesChange}
                         onImageUpload={onImageUpload}
                         onImageDelete={onImageDelete}
+                        disabled={imageManagementDisabled}
                     />
                 </TabsContent>
 

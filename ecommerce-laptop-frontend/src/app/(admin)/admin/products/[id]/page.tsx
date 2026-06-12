@@ -20,13 +20,13 @@ import {
   getAdminProduct,
   getBrands,
   getCategories,
+  getProductVariants,
   mapFormToUpdatePayload,
   mapProductToForm,
   updateProduct,
   updateVariant,
   uploadProductImages
 } from '@/lib/admin-api';
-import apiClient from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
@@ -86,7 +86,7 @@ export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
   const productId = params.id as string;
-  const { user } = useAdminAuth();
+  const { hasPermission } = useAdminAuth();
   const queryClient = useQueryClient();
 
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useCategoriesQuery();
@@ -277,18 +277,13 @@ export default function EditProductPage() {
   const [currentSpecKey, setCurrentSpecKey] = useState('');
   const [currentSpecValue, setCurrentSpecValue] = useState('');
   const [variants, setVariants] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState('basic');
+  const canManageImages = hasPermission(PERMISSIONS.PRODUCTS_MANAGE);
 
   // Load variants when product is loaded
   useEffect(() => {
     if (product && product.isBaseProduct) {
-      // Load variants for base products
-      apiClient.get(`/products/${productId}/variants`)
-        .then(response => {
-          if (response.data.success) {
-            setVariants(response.data.data || []);
-          }
-        })
+      getProductVariants(parseInt(productId))
+        .then(setVariants)
         .catch(err => console.error('Failed to load variants:', err));
     }
   }, [product, productId]);
@@ -374,6 +369,7 @@ export default function EditProductPage() {
 
       // Update local state
       setProductImages(prev => prev.filter(img => img.imageId !== imageId));
+      await productQuery.refetch();
     } catch (error) {
       console.error('Error deleting image:', error);
       toast.error('Xóa ảnh thất bại');
@@ -549,6 +545,7 @@ export default function EditProductPage() {
           onImagesChange={setProductImages}
           onImageUpload={handleImageUpload}
           onImageDelete={handleImageDelete}
+          imageManagementDisabled={!canManageImages}
         />
       </div>
     </PermissionGuard>

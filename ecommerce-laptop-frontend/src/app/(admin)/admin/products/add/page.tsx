@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import {
   useAdminAuth
 } from '@/contexts/AdminAuthContext';
-import { createProduct, getBrands, getCategories, ProductFormData, uploadProductImages } from '@/lib/admin-api';
+import { PERMISSIONS, createProduct, getBrands, getCategories, mapFormToCreatePayload, ProductFormData, uploadProductImages, type Brand } from '@/lib/admin-api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -32,45 +32,14 @@ const useBrandsQuery = () => {
   });
 };
 
-const useCreateProductMutation = (productImages: ProductImage[]) => {
+const useCreateProductMutation = (productImages: ProductImage[], brands: Brand[], canManageImages: boolean) => {
   return useMutation({
     mutationFn: async (productData: ProductFormData) => {
-      // Map to backend API format - send as JsonElement
-      const backendData: any = {
-        ProductType: productData.productType,
-        Name: productData.name,
-        SKU: productData.sku,
-        Description: productData.description,
-        Price: parseFloat(productData.price),
-        Stock: parseInt(productData.stock) || 0,
-        Brand: productData.brandId, // Will need to get actual brand name
-        Model: productData.shortDescription || '',
-        IsActive: productData.status === 'active'
-      };
-
-      // Add specific fields based on product type
-      if (productData.productType === 'Laptop') {
-        backendData.CPU = productData.cpu || '';
-        backendData.RAM = productData.ram || '';
-        backendData.Storage = productData.storage || '';
-        backendData.GPU = productData.gpu || '';
-        backendData.Display = productData.display || '';
-        backendData.Battery = productData.battery || '';
-        backendData.Weight_Kg = productData.weight_kg || '';
-        backendData.OperatingSystem = productData.operatingSystem || '';
-        backendData.Ports = productData.ports || '';
-      } else if (productData.productType === 'Accessory') {
-        backendData.Type = productData.accessoryType || '';
-        backendData.Compatibility = productData.compatibility || '';
-        backendData.Color = productData.color || '';
-        backendData.Material = productData.material || '';
-        backendData.Warranty = productData.warranty || '';
-      }
-
+      const backendData = mapFormToCreatePayload(productData, brands);
       const newProduct = await createProduct(backendData);
 
       // Upload images if any
-      if (productImages.length > 0 && newProduct.id) {
+      if (canManageImages && productImages.length > 0 && newProduct.id) {
         const imageFiles = await Promise.all(
           productImages.map(async (img) => {
             const response = await fetch(img.imageUrl);
@@ -99,14 +68,15 @@ const useCreateProductMutation = (productImages: ProductImage[]) => {
 
 export default function AddProductPage() {
   const router = useRouter();
-  const { user } = useAdminAuth();
+  const { hasPermission } = useAdminAuth();
   const queryClient = useQueryClient();
 
   const { data: categories } = useCategoriesQuery();
   const { data: brands } = useBrandsQuery();
 
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
-  const createProductMutation = useCreateProductMutation(productImages);
+  const canManageImages = hasPermission(PERMISSIONS.PRODUCTS_MANAGE);
+  const createProductMutation = useCreateProductMutation(productImages, brands || [], canManageImages);
 
   // Callback functions for refreshing data
   const handleCategoryCreated = (category: any) => {
@@ -249,6 +219,9 @@ export default function AddProductPage() {
         products={[]} // Empty for create form
         onCategoryCreated={handleCategoryCreated}
         onBrandCreated={handleBrandCreated}
+        images={productImages}
+        onImagesChange={setProductImages}
+        imageManagementDisabled={!canManageImages}
       />
     </div>
   );

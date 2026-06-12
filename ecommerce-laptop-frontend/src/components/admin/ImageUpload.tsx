@@ -48,11 +48,22 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const doDirectUpload = async (files: FileList) => {
+    if (disabled) return;
+
     console.log('doDirectUpload called with files:', {
       count: files.length,
       names: Array.from(files).map(f => f.name),
       productId
     });
+
+    if (onImageUpload) {
+      try {
+        await onImageUpload(files);
+      } catch (err: any) {
+        console.error('Upload failed:', err?.message || err);
+      }
+      return;
+    }
 
     if (!productId) {
       handlePreviewFiles(files);
@@ -84,6 +95,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     onDrop: (e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
+      if (disabled) return;
       const files = e.dataTransfer.files;
       if (!files || files.length === 0) return;
       doDirectUpload(files);
