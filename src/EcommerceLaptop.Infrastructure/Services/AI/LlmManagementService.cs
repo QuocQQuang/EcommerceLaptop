@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text;
+using EcommerceLaptop.Core.DTOs.AI;
 
 namespace EcommerceLaptop.Infrastructure.Services.AI
 {
@@ -104,8 +105,24 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
 
         public async Task UpdateProfileAsync(LlmProfile profile)
         {
-            _context.Entry(profile).State = EntityState.Modified;
-            profile.UpdatedAt = DateTime.UtcNow;
+            var existing = await _context.LlmProfiles.FindAsync(profile.Id);
+            if (existing == null)
+            {
+                return;
+            }
+
+            existing.ProviderId = profile.ProviderId;
+            existing.Name = profile.Name;
+            existing.ModelId = profile.ModelId;
+            existing.ConfigJson = profile.ConfigJson;
+            existing.IsActive = profile.IsActive;
+            existing.UpdatedAt = DateTime.UtcNow;
+
+            if (!string.IsNullOrWhiteSpace(profile.ApiKey))
+            {
+                existing.ApiKey = profile.ApiKey;
+            }
+
             await _context.SaveChangesAsync();
         }
 
@@ -241,8 +258,45 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             return models.OrderBy(m => m);
         }
 
-        public async Task<EcommerceLaptop.Core.DTOs.AI.ChatTestResponse> TestChatAsync(EcommerceLaptop.Core.DTOs.AI.TestChatRequest request)
+        public async Task<ChatTestResponse> TestChatAsync(TestChatRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.Message))
+            {
+                return new ChatTestResponse { Success = false, Error = "Message is required." };
+            }
+
+            if (request.Message.Length > 2000)
+            {
+                return new ChatTestResponse { Success = false, Error = "Message is too long." };
+            }
+
+            if (request.ProfileId.HasValue)
+            {
+                var profile = await _context.LlmProfiles
+                    .Include(p => p.Provider)
+                    .FirstOrDefaultAsync(p => p.Id == request.ProfileId.Value);
+
+                if (profile == null)
+                {
+                    return new ChatTestResponse { Success = false, Error = "Profile not found." };
+                }
+
+                request.ProviderType = profile.Provider?.Type ?? request.ProviderType;
+                request.BaseUrl = profile.Provider?.BaseUrl;
+                request.ApiKey = profile.ApiKey;
+                request.ModelId = profile.ModelId;
+            }
+
+            if (string.IsNullOrWhiteSpace(request.ModelId))
+            {
+                return new ChatTestResponse { Success = false, Error = "Model ID is required." };
+            }
+
+            if (string.IsNullOrWhiteSpace(request.ApiKey) && !string.Equals(request.ProviderType, "ollama", StringComparison.OrdinalIgnoreCase))
+            {
+                return new ChatTestResponse { Success = false, Error = "API key is not configured for this profile." };
+            }
+
             var httpClient = _httpClientFactory.CreateClient("llm-test-chat");
             var baseUrl = request.BaseUrl?.TrimEnd('/');
             if (string.IsNullOrEmpty(baseUrl)) baseUrl = "https://api.openai.com/v1";
@@ -293,7 +347,7 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                         }
                     }
 
-                    return new EcommerceLaptop.Core.DTOs.AI.ChatTestResponse
+                    return new ChatTestResponse
                     {
                         Success = true,
                         Message = reply ?? "Success (No content)",
@@ -302,11 +356,10 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
                 }
                 else
                 {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    return new EcommerceLaptop.Core.DTOs.AI.ChatTestResponse
+                    return new ChatTestResponse
                     {
                         Success = false,
-                        Error = $"API Error ({response.StatusCode}): {errorContent}",
+                        Error = GetSafeProviderError(response),
                         Latency = latency
                     };
                 }
@@ -314,13 +367,36 @@ namespace EcommerceLaptop.Infrastructure.Services.AI
             catch (Exception ex)
             {
                 sw.Stop();
-                return new EcommerceLaptop.Core.DTOs.AI.ChatTestResponse
+                return new ChatTestResponse
                 {
                     Success = false,
-                    Error = $"Connection Failed: {ex.Message}",
+                    Error = GetSafeConnectionError(ex),
                     Latency = $"{sw.ElapsedMilliseconds}ms"
                 };
             }
+        }
+
+        private static string GetSafeProviderError(HttpResponseMessage response)
+        {
+            return response.StatusCode switch
+            {
+                System.Net.HttpStatusCode.Unauthorized => "Provider authentication failed. Check the stored API key.",
+                System.Net.HttpStatusCode.Forbidden => "Provider rejected this request. Check provider permissions or model access.",
+                System.Net.HttpStatusCode.NotFound => "Provider endpoint or model was not found.",
+                System.Net.HttpStatusCode.TooManyRequests => "Provider rate limit reached. Try again later.",
+                _ => $"Provider request failed with status {(int)response.StatusCode}."
+            };
+        }
+
+        private static string GetSafeConnectionError(Exception ex)
+        {
+            return ex switch
+            {
+                TaskCanceledException => "Provider request timed out.",
+                HttpRequestException => "Could not connect to the provider.",
+                JsonException => "Provider returned an unsupported response format.",
+                _ => "Test chat failed."
+            };
         }
 
         // Rewriting Profile Management

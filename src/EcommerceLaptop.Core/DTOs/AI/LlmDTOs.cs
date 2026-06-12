@@ -13,12 +13,27 @@ namespace EcommerceLaptop.Core.DTOs.AI
 
     public class TestChatRequest
     {
+        public int? ProfileId { get; set; }
         public string ProviderType { get; set; } = "openai";
         public string? BaseUrl { get; set; }
         public string? ApiKey { get; set; }
         public string ModelId { get; set; } = string.Empty;
         public Dictionary<string, string>? CustomHeaders { get; set; }
-         public string Message { get; set; } = "Hello";
+        public string Message { get; set; } = "Hello";
+    }
+
+    public class LlmProviderResponseDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = "openai";
+        public string? BaseUrl { get; set; }
+        public string? Website { get; set; }
+        public string? Description { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public IEnumerable<LlmProfileResponseDto> Profiles { get; set; } = Array.Empty<LlmProfileResponseDto>();
     }
 
     /// <summary>

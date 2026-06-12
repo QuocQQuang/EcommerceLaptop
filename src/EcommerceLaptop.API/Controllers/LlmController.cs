@@ -28,7 +28,7 @@ namespace EcommerceLaptop.API.Controllers
         public async Task<IActionResult> GetAllProviders()
         {
             var providers = await _llmService.GetAllProvidersAsync();
-            return Ok(providers);
+            return Ok(providers.Select(LlmProfileMapper.MapProviderToDto));
         }
 
         [HttpGet("providers/{id}")]
@@ -36,7 +36,7 @@ namespace EcommerceLaptop.API.Controllers
         {
             var provider = await _llmService.GetProviderByIdAsync(id);
             if (provider == null) return NotFound();
-            return Ok(provider);
+            return Ok(LlmProfileMapper.MapProviderToDto(provider));
         }
 
         [HttpPost("providers")]
@@ -44,13 +44,13 @@ namespace EcommerceLaptop.API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var created = await _llmService.CreateProviderAsync(provider);
-            return CreatedAtAction(nameof(GetProvider), new { id = created.Id }, created);
+            return CreatedAtAction(nameof(GetProvider), new { id = created.Id }, LlmProfileMapper.MapProviderToDto(created));
         }
 
         [HttpPut("providers/{id}")]
         public async Task<IActionResult> UpdateProvider(int id, [FromBody] LlmProvider provider)
         {
-            if (id != provider.Id) return BadRequest();
+            provider.Id = id;
             await _llmService.UpdateProviderAsync(provider);
             return NoContent();
         }
@@ -105,7 +105,7 @@ namespace EcommerceLaptop.API.Controllers
         [HttpPut("profiles/{id}")]
         public async Task<IActionResult> UpdateProfile(int id, [FromBody] LlmProfile profile)
         {
-            if (id != profile.Id) return BadRequest();
+            profile.Id = id;
             await _llmService.UpdateProfileAsync(profile);
             return NoContent();
         }
@@ -158,9 +158,9 @@ namespace EcommerceLaptop.API.Controllers
                 var models = await _llmService.FetchRemoteModelsAsync(request);
                 return Ok(models);
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new { message = "Unable to fetch models from the provider." });
             }
         }
 
@@ -208,6 +208,20 @@ namespace EcommerceLaptop.API.Controllers
     // --- Helpers ---
     public static class LlmProfileMapper
     {
+        public static LlmProviderResponseDto MapProviderToDto(LlmProvider provider) => new LlmProviderResponseDto
+        {
+            Id = provider.Id,
+            Name = provider.Name,
+            Type = provider.Type,
+            BaseUrl = provider.BaseUrl,
+            Website = provider.Website,
+            Description = provider.Description,
+            IsActive = provider.IsActive,
+            CreatedAt = provider.CreatedAt,
+            UpdatedAt = provider.UpdatedAt,
+            Profiles = provider.Profiles.Select(MapToDto)
+        };
+
         public static LlmProfileResponseDto MapToDto(LlmProfile p) => new LlmProfileResponseDto
         {
             Id = p.Id,

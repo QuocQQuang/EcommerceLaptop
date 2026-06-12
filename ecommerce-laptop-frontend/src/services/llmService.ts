@@ -112,7 +112,7 @@ export const llmService = {
         return data;
     },
 
-    async testChat(req: { baseUrl: string, apiKey: string, modelId: string, message: string }): Promise<any> {
+    async testChat(req: { profileId?: number, baseUrl?: string, apiKey?: string, modelId?: string, message: string }): Promise<any> {
         const { data } = await api.post('/llm/test-chat', req);
         return data;
     },

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using EcommerceLaptop.Core.Interfaces;
 using EcommerceLaptop.Core.DTOs.Chat;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 
 namespace EcommerceLaptop.API.Controllers
@@ -15,10 +16,12 @@ namespace EcommerceLaptop.API.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
+        private readonly ILogger<ChatController> _logger;
 
-        public ChatController(IChatService chatService)
+        public ChatController(IChatService chatService, ILogger<ChatController> logger)
         {
             _chatService = chatService;
+            _logger = logger;
         }
 
         [HttpPost("send")]
@@ -26,21 +29,22 @@ namespace EcommerceLaptop.API.Controllers
         {
             if (string.IsNullOrWhiteSpace(request.Message))
             {
-                return BadRequest("Message is required.");
+                return BadRequest(new { error = "Message is required." });
+            }
+
+            if (request.Message.Length > 2000)
+            {
+                return BadRequest(new { error = "Message is too long." });
             }
 
             // For load testing, we aggregate the stream into a single response 
             // to simulate a request-response cycle and verify completion/correctness.
             
             var fullResponse = new StringBuilder();
-            var events = new List<ChatStreamEvent>();
-
             try 
             {
                 await foreach (var chatEvent in _chatService.StreamChatAsync(request.Message, request.SessionId, User.Identity?.Name))
                 {
-                    events.Add(chatEvent); // Collect events for debugging if needed
-
                     if (chatEvent is TokenEvent tokenEvent)
                     {
                         fullResponse.Append(tokenEvent.Token);
@@ -50,20 +54,20 @@ namespace EcommerceLaptop.API.Controllers
                         // If it's a non-recoverable error, we might want to return 500 or 400
                         if (!errorEvent.Recoverable)
                         {
-                            return StatusCode(503, errorEvent.Message);
+                            return StatusCode(503, new { error = "Chat service is temporarily unavailable." });
                         }
                     }
                 }
 
                 return Ok(new 
                 { 
-                    Response = fullResponse.ToString(),
-                    Events = events // Optional: return trace of events
+                    Response = fullResponse.ToString()
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                _logger.LogError(ex, "Chat request failed.");
+                return StatusCode(500, new { error = "Chat request failed." });
             }
         }
     }

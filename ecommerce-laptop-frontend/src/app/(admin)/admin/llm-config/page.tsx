@@ -269,18 +269,36 @@ export default function LlmConfigPage() {
     };
 
     const handleTestChat = async () => {
+        if (!testChatMsg.trim()) {
+            toast.error("Vui lòng nhập nội dung test");
+            return;
+        }
+
+        if (!selectedProfile && !formData.apiKey) {
+            toast.error("Vui lòng chọn profile đã lưu hoặc nhập API Key để test");
+            return;
+        }
+
         setIsTestingChat(true);
         setTestChatResult(null);
         try {
-            const res = await llmService.testChat({
-                baseUrl: formData.baseUrl || selectedProvider?.baseUrl || selectedProfile?.provider?.baseUrl || '',
-                apiKey: formData.apiKey || '',   // empty = backend uses stored key by profile ID
-                modelId: formData.modelId || selectedProfile?.modelId || '',
-                message: testChatMsg
-            });
+            const res = selectedProfile
+                ? await llmService.testChat({
+                    profileId: selectedProfile.id,
+                    message: testChatMsg.trim()
+                })
+                : await llmService.testChat({
+                    baseUrl: formData.baseUrl || selectedProvider?.baseUrl || '',
+                    apiKey: formData.apiKey,
+                    modelId: formData.modelId || '',
+                    message: testChatMsg.trim()
+                });
             setTestChatResult(res);
         } catch (e: any) {
-            setTestChatResult({ success: false, error: e.message });
+            setTestChatResult({
+                success: false,
+                error: e.response?.data?.error || e.response?.data?.message || "Không thể test chatbot"
+            });
         } finally {
             setIsTestingChat(false);
         }

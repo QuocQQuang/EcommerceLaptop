@@ -65,6 +65,12 @@ export default function EnhancedProductForm({
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
     const stockValue = formData.inventory?.quantityInStock || formData.stock;
+    const hasValue = (value: unknown) => {
+        if (typeof value === 'boolean') return true;
+        if (value === null || value === undefined) return false;
+        return value.toString().trim() !== '';
+    };
+
     const requiredFieldStatus = useMemo(() => [
         { key: 'name', filled: Boolean(formData.name?.trim()), message: 'Tên sản phẩm là bắt buộc' },
         { key: 'sku', filled: Boolean(formData.sku?.trim()), message: 'SKU là bắt buộc' },
@@ -84,9 +90,94 @@ export default function EnhancedProductForm({
     ], [formData.name, formData.sku, formData.productType, formData.categoryId, formData.brandId, formData.price, stockValue]);
 
     const completionProgress = useMemo(() => {
-        const filledFields = requiredFieldStatus.filter(field => field.filled).length;
-        return Math.round((filledFields / requiredFieldStatus.length) * 100);
-    }, [requiredFieldStatus]);
+        const commonFields = [
+            formData.name,
+            formData.sku,
+            formData.description,
+            formData.productType,
+            formData.categoryId,
+            formData.brandId,
+            formData.price,
+            stockValue,
+            formData.status,
+            formData.inventory?.reservedQuantity,
+            formData.inventory?.reorderLevel,
+            formData.inventory?.maxStockLevel,
+            formData.inventory?.warehouseLocation
+        ];
+
+        const laptopFields = [
+            formData.series,
+            formData.model,
+            formData.cpuBrand,
+            formData.cpuModel,
+            formData.cpuGeneration,
+            formData.cpuCores,
+            formData.cpuBaseClockGHz,
+            formData.cpuBoostClockGHz,
+            formData.cpuCache,
+            formData.ramType,
+            formData.ramCapacityGB,
+            formData.ramSlots,
+            formData.ramSpeed,
+            formData.ramUpgradeable,
+            formData.storageType,
+            formData.storageCapacityGB,
+            formData.storageInterface,
+            formData.nvMeSupport,
+            formData.gpuType,
+            formData.gpuBrand,
+            formData.gpuModel,
+            formData.gpuVramGB,
+            formData.displaySizeInches,
+            formData.displayResolution,
+            formData.displayPanelType,
+            formData.displayRefreshRateHz,
+            formData.displayTouchscreen,
+            formData.batteryCapacityWh,
+            formData.weightKg,
+            formData.color,
+            formData.ports,
+            formData.wiFi6Support,
+            formData.bluetoothSupport,
+            formData.bluetoothVersion,
+            formData.warrantyPeriod,
+            formData.targetAudience
+        ];
+
+        const accessoryFields = [
+            formData.accessoryType,
+            formData.compatibility,
+            formData.specificationDetails,
+            formData.connectivity,
+            formData.material,
+            formData.color,
+            formData.warrantyPeriod
+        ];
+
+        const bundleFields = [
+            formData.bundleType,
+            formData.discountPercentage,
+            formData.validFrom,
+            formData.validTo,
+            ...(formData.bundleItems?.flatMap(item => [
+                item.productId,
+                item.quantity,
+                item.discountPercentage
+            ]) || [])
+        ];
+
+        const productSpecificFields =
+            formData.productType === 'Laptop'
+                ? laptopFields
+                : formData.productType === 'Accessory'
+                    ? accessoryFields
+                    : bundleFields;
+
+        const progressFields = [...commonFields, ...productSpecificFields];
+        const filledFields = progressFields.filter(hasValue).length;
+        return Math.round((filledFields / progressFields.length) * 100);
+    }, [formData, stockValue]);
 
     const computedValidationErrors = useMemo(() => {
         const errors: Record<string, string> = { ...validationErrors };
