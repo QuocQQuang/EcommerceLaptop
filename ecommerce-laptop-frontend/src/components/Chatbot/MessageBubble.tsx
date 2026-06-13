@@ -59,13 +59,15 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                                     pre: ({ children }) => (
                                         <pre className="mb-4 overflow-x-auto rounded-2xl bg-neutral-950 p-3 text-xs text-white">{children}</pre>
                                     ),
-                                    code: ({ inline, children }) => (
-                                        inline ? (
-                                            <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-xs font-mono text-neutral-900">{children}</code>
-                                        ) : (
+                                    code: ({ className, children }) => {
+                                        const isBlock = className?.startsWith('language-') || String(children).includes('\n');
+
+                                        return isBlock ? (
                                             <code className="block whitespace-pre-wrap rounded-2xl bg-neutral-950 px-3 py-2 text-xs text-white">{children}</code>
-                                        )
-                                    ),
+                                        ) : (
+                                            <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-xs font-mono text-neutral-900">{children}</code>
+                                        );
+                                    },
                                     a: ({ children, href }) => (
                                         <a
                                             href={href}
