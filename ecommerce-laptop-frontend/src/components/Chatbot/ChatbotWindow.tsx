@@ -61,7 +61,7 @@ export function ChatbotWindow({
 
     const handleConsultation = (productName: string) => {
         if (!isStreaming) {
-            onSendMessage(`T vn v ${productName}`);
+            onSendMessage(`Tư vấn về ${productName}`);
         }
     };
 
@@ -84,18 +84,13 @@ export function ChatbotWindow({
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ duration: 0.3 }}
-                        className="fixed bottom-6 right-6 z-50 w-full md:w-[33vw] md:min-w-[500px] md:max-w-[600px] h-[calc(100vh-3rem)] bg-white/80 backdrop-blur-xl saturate-150 border border-neutral-200/80 rounded-2xl shadow-chatbot-window flex flex-col overflow-hidden"
-                        style={{
-                            left: 'auto',
-                            right: '1.5rem',
-                            bottom: '1.5rem',
-                        }}
+                        className="fixed inset-y-6 right-6 z-50 w-full md:w-[66vw] md:min-w-[520px] md:max-w-[900px] bg-white/88 backdrop-blur-xl saturate-150 border border-neutral-200/80 rounded-2xl shadow-chatbot-window flex flex-col overflow-hidden"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200/80 bg-white/60">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                <h3 className="font-semibold text-sm text-neutral-900">Tr l AI</h3>
+                                <h3 className="font-semibold text-sm text-neutral-900">Chat Bot</h3>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
@@ -198,7 +193,7 @@ export function ChatbotWindow({
                                     type="text"
                                     value={inputValue}
                                     onChange={(e) => setInputValue(e.target.value)}
-                                    placeholder="Hi v laptop..."
+                                    placeholder="Bắt đầu trò chuyện..."
                                     disabled={isStreaming}
                                     className="flex-1 px-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent disabled:bg-neutral-50 disabled:text-neutral-400"
                                 />

@@ -43,7 +43,29 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                                     ol: ({ children }) => <ol className="mb-2 last:mb-0 ml-4 list-decimal text-neutral-800">{children}</ol>,
                                     li: ({ children }) => <li className="mb-1 text-neutral-800">{children}</li>,
                                     strong: ({ children }) => <strong className="font-semibold text-neutral-900">{children}</strong>,
-                                    code: ({ children }) => <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-xs font-mono text-neutral-900">{children}</code>,
+                                    table: ({ children }) => (
+                                        <div className="my-4 overflow-x-auto rounded-2xl border border-neutral-200/80">
+                                            <table className="min-w-full border-collapse text-sm">{children}</table>
+                                        </div>
+                                    ),
+                                    thead: ({ children }) => <thead className="bg-neutral-50 border-b border-neutral-200">{children}</thead>,
+                                    tbody: ({ children }) => <tbody>{children}</tbody>,
+                                    tr: ({ children }) => <tr className="even:bg-neutral-50">{children}</tr>,
+                                    th: ({ children }) => <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-neutral-700 border border-neutral-200">{children}</th>,
+                                    td: ({ children }) => <td className="px-3 py-2 text-neutral-700 border border-neutral-200">{children}</td>,
+                                    blockquote: ({ children }) => (
+                                        <blockquote className="mb-4 rounded-2xl border-l-4 border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">{children}</blockquote>
+                                    ),
+                                    pre: ({ children }) => (
+                                        <pre className="mb-4 overflow-x-auto rounded-2xl bg-neutral-950 p-3 text-xs text-white">{children}</pre>
+                                    ),
+                                    code: ({ inline, children }) => (
+                                        inline ? (
+                                            <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-xs font-mono text-neutral-900">{children}</code>
+                                        ) : (
+                                            <code className="block whitespace-pre-wrap rounded-2xl bg-neutral-950 px-3 py-2 text-xs text-white">{children}</code>
+                                        )
+                                    ),
                                     a: ({ children, href }) => (
                                         <a
                                             href={href}

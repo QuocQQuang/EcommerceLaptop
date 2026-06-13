@@ -75,7 +75,7 @@ export function ShippingTracking({
                     <div className="p-3 bg-blue-50 rounded-lg">
                         <div className="flex items-center space-x-2">
                             <Badge variant="outline" className="bg-blue-100 text-blue-800">
-                                D kin giao hng
+                                Đang được giao hàng
                             </Badge>
                             <span className="text-sm font-medium text-blue-900">
                                 {new Date(estimatedDeliveryDate).toLocaleDateString('vi-VN')}
