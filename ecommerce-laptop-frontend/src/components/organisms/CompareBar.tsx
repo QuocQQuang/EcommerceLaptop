@@ -15,12 +15,12 @@ export default function CompareBar() {
             <div className="bg-white dark:bg-slate-900 border rounded-lg shadow-lg p-3 flex items-center gap-3">
                 <div className="flex items-center gap-2">
                     <Scale className="w-5 h-5 text-blue-600" />
-                    <div className="text-sm font-medium">So snh ({items.length})</div>
+                    <div className="text-sm font-medium">So sánh ({items.length})</div>
                 </div>
 
                 <div className="flex items-center gap-2">
                     <Link href="/compare">
-                        <Button size="sm" className="bg-blue-600 text-white">So snh ngay</Button>
+                        <Button size="sm" className="bg-blue-600 text-white">So sánh ngay</Button>
                     </Link>
                     <Button size="sm" variant="outline" onClick={() => clear()}>Xóa</Button>
                 </div>
