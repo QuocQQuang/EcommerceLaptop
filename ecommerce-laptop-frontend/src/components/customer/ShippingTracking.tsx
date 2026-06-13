@@ -42,7 +42,7 @@ export function ShippingTracking({
                 <div className="flex items-start space-x-3">
                     <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
                     <div>
-                        <p className="font-medium text-gray-900 mb-1">a ch giao hng</p>
+                        <p className="font-medium text-gray-900 mb-1">Địa chỉ giao hàng</p>
                         <p className="text-sm text-gray-700">{shippingAddress}</p>
                     </div>
                 </div>
@@ -52,7 +52,7 @@ export function ShippingTracking({
                     <div className="flex items-center space-x-3">
                         <Package className="h-5 w-5 text-gray-500" />
                         <div className="flex-1">
-                            <p className="font-medium text-gray-900 mb-1">M vn n</p>
+                            <p className="font-medium text-gray-900 mb-1">Mã vận đơn</p>
                             <div className="flex items-center space-x-2">
                                 <code className="text-sm bg-gray-100 px-2 py-1 rounded font-mono">
                                     {trackingNumber}
@@ -63,7 +63,7 @@ export function ShippingTracking({
                                     onClick={() => window.open(getTrackingUrl(trackingNumber), '_blank')}
                                 >
                                     <ExternalLink className="h-4 w-4 mr-1" />
-                                    Theo di
+                                    Theo dõi
                                 </Button>
                             </div>
                         </div>

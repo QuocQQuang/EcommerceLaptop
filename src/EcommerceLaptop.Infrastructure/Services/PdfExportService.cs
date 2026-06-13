@@ -381,7 +381,7 @@ public class PdfExportService : IPdfExportService
             using var writer = new PdfWriter(outputStream);
             using var pdfDoc = new PdfDocument(reader, writer);
 
-            // Thm thng tin ch k vo metadata
+            // Thêm thông tin chữ ký vào metadata
             var info = pdfDoc.GetDocumentInfo();
             info.SetTitle($"Hóa đơn - {signatureInfo.CompanyName}");
             info.SetAuthor(signatureInfo.SignerName);

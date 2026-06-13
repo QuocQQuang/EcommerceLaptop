@@ -14,7 +14,7 @@ public class ExportController(
     private readonly IReportingService _reportingService = reportingService;
 
     /// <summary>
-    /// Xut ha n PDF vi ch k s (Admin only)
+    /// Xuất hóa đơn PDF với chữ ký số (Admin only)
     /// </summary>
     [HttpGet("invoice/pdf/{orderId}")]
     [Authorize(Policy = "AdminOnly")]
@@ -25,7 +25,7 @@ public class ExportController(
     }
 
     /// <summary>
-    /// Xut ha n XML (Admin only)
+    /// Xuất hóa đơn XML (Admin only)
     /// </summary>
     [HttpGet("invoice/xml/{orderId}")]
     [Authorize(Policy = "AdminOnly")]
@@ -36,7 +36,7 @@ public class ExportController(
     }
 
     /// <summary>
-    /// Xut danh sch n hng ra Excel (Admin only)
+    /// Xuất danh sách đơn hàng ra Excel (Admin only)
     /// </summary>
     [HttpGet("orders/excel")]
     [Authorize(Policy = "AdminOnly")]
@@ -53,7 +53,7 @@ public class ExportController(
     }
 
     /// <summary>
-    /// Xut danh sch sn phm ra Excel (Admin only)
+    /// Xuất danh sách sản phẩm ra Excel (Admin only)
     /// </summary>
     [HttpGet("products/excel")]
     [Authorize(Policy = "AdminOnly")]
@@ -70,7 +70,7 @@ public class ExportController(
     }
 
     /// <summary>
-    /// Xut bo co doanh thu ra Excel (Admin only)
+    /// Xuất báo cáo doanh thu ra Excel (Admin only)
     /// </summary>
     [HttpGet("revenue/excel")]
     [Authorize(Policy = "AdminOnly")]
@@ -83,7 +83,7 @@ public class ExportController(
     }
 
     /// <summary>
-    /// Xut bo co tn kho ra Excel (Admin only)
+    /// Xuất báo cáo tồn kho ra Excel (Admin only)
     /// </summary>
     [HttpGet("inventory/excel")]
     [Authorize(Policy = "AdminOnly")]
@@ -94,7 +94,7 @@ public class ExportController(
     }
 
     /// <summary>
-    /// Xut danh sch khch hng ra Excel (Admin only)
+    /// Xuất danh sách khách hàng ra Excel (Admin only)
     /// </summary>
     [HttpGet("users/excel")]
     [Authorize(Policy = "AdminOnly")]
@@ -112,7 +112,7 @@ public class ExportController(
     #region Customer Export Endpoints
 
     /// <summary>
-    /// Xut ha n PDF cho khch hng
+    /// Xuất hóa đơn PDF cho khách hàng
     /// </summary>
     [HttpGet("customer/invoice/pdf/{orderId}")]
     [Authorize]
@@ -129,7 +129,7 @@ public class ExportController(
     }
 
     /// <summary>
-    /// Xut ha n XML cho khch hng
+    /// Xuất hóa đơn XML cho khách hàng
     /// </summary>
     [HttpGet("customer/invoice/xml/{orderId}")]
     [Authorize] 
@@ -146,7 +146,7 @@ public class ExportController(
     }
 
     /// <summary>
-    /// Xut danh sch s kin bo mt ra Excel (Admin only)
+    /// Xuất danh sách sự kiện bảo mật ra Excel (Admin only)
     /// </summary>
     [HttpGet("security-events/excel")]
     [Authorize(Policy = "AdminOnly")]
@@ -164,7 +164,7 @@ public class ExportController(
     }
 
     /// <summary>
-    /// Xut danh sch IP Block Rules ra Excel (Admin only)
+    /// Xuất danh sách IP Block Rules ra Excel (Admin only)
     /// </summary>
     [HttpGet("ip-block-rules/excel")]
     [Authorize(Policy = "AdminOnly")]
@@ -180,7 +180,7 @@ public class ExportController(
     }
 
     /// <summary>
-    /// Xut danh sch Rate Limit Rules ra Excel (Admin only)
+    /// Xuất danh sách Rate Limit Rules ra Excel (Admin only)
     /// </summary>
     [HttpGet("rate-limit-rules/excel")]
     [Authorize(Policy = "AdminOnly")]
@@ -195,7 +195,7 @@ public class ExportController(
     }
 
     /// <summary>
-    /// Xut bo co bo mt tng hp ra Excel (Admin only)
+    /// Xuất báo cáo bảo mật tổng hợp ra Excel (Admin only)
     /// </summary>
     [HttpGet("security-report/excel")]
     [Authorize(Policy = "AdminOnly")]
