@@ -1265,7 +1265,6 @@ export default function SecurityPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center space-x-2">
                   <Eye className="h-5 w-5" />
-                  <span>Giám sát bảo mật theo thời gian thực</span>
                 </CardTitle>
                 <ExportButtons
                   type="security-events"
