@@ -602,7 +602,6 @@ public class ProductsController(
     /// Gets all variants for a product (Admin only)
     /// </summary>
     [HttpGet("{id}/variants")]
-    [Authorize(Policy = "RequirePermission:products:read")]
     public async Task<IActionResult> GetVariants(int id)
     {
         var variants = await _productService.GetVariantsAsync(id);

@@ -23,6 +23,8 @@ const PRICE_FILTER_MAX_USD = 5000;
 const PRICE_FILTER_STEP_USD = 50;
 const DEFAULT_PRICE_RANGE = [0, PRICE_FILTER_MAX_USD];
 
+const getCategoryValue = (category: Category) => category.slug || category.name;
+
 function ProductsContent() {
     const { selectedCurrency } = useCurrencyContext();
     const searchParams = useSearchParams();
@@ -127,11 +129,12 @@ function ProductsContent() {
         setCurrentPage(1);
     };
 
-    const handleCategoryChange = (category: string, checked: boolean) => {
+    const handleCategoryChange = (category: string, checked: boolean, aliases: string[] = []) => {
         if (checked) {
-            setSelectedCategories([...selectedCategories, category]);
+            setSelectedCategories(prev => prev.includes(category) ? prev : [...prev, category]);
         } else {
-            setSelectedCategories(selectedCategories.filter(c => c !== category));
+            const valuesToRemove = new Set([category, ...aliases]);
+            setSelectedCategories(prev => prev.filter(c => !valuesToRemove.has(c)));
         }
         setCurrentPage(1);
     };
@@ -150,6 +153,12 @@ function ProductsContent() {
 
     const formatPrice = (price: number) => {
         return formatCurrencyPrice(price, selectedCurrency);
+    };
+
+    const getCategoryLabel = (categoryValue: string) => {
+        return categories.find(category =>
+            getCategoryValue(category) === categoryValue || category.name === categoryValue
+        )?.name ?? categoryValue;
     };
 
     const activeFiltersCount = selectedBrands.length + selectedCategories.length +
@@ -248,7 +257,7 @@ function ProductsContent() {
 
                         {selectedCategories.map(category => (
                             <Badge key={category} variant="secondary" className="flex items-center gap-1">
-                                {category}
+                                {getCategoryLabel(category)}
                                 <X
                                     className="w-3 h-3 cursor-pointer"
                                     onClick={() => handleCategoryChange(category, false)}
@@ -329,21 +338,29 @@ function ProductsContent() {
                             {filtersLoading ? (
                                 <div className="text-sm text-gray-500">Đang tải...</div>
                             ) : (
-                                categories.map(category => (
-                                    <div key={category.id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id={`category-${category.id}`}
-                                            checked={selectedCategories.includes(category.name)}
-                                            onCheckedChange={(checked) => handleCategoryChange(category.name, checked as boolean)}
-                                        />
-                                        <label htmlFor={`category-${category.id}`} className="text-sm text-gray-700 cursor-pointer">
-                                            {category.name}
-                                            {category.productCount && (
-                                                <span className="text-xs text-gray-500 ml-1">({category.productCount})</span>
-                                            )}
-                                        </label>
-                                    </div>
-                                ))
+                                categories.map(category => {
+                                    const categoryValue = getCategoryValue(category);
+                                    const isSelected = selectedCategories.includes(categoryValue) ||
+                                        selectedCategories.includes(category.name);
+
+                                    return (
+                                        <div key={category.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`category-${category.id}`}
+                                                checked={isSelected}
+                                                onCheckedChange={(checked) =>
+                                                    handleCategoryChange(categoryValue, checked as boolean, [category.name])
+                                                }
+                                            />
+                                            <label htmlFor={`category-${category.id}`} className="text-sm text-gray-700 cursor-pointer">
+                                                {category.name}
+                                                {category.productCount && (
+                                                    <span className="text-xs text-gray-500 ml-1">({category.productCount})</span>
+                                                )}
+                                            </label>
+                                        </div>
+                                    );
+                                })
                             )}
                         </div>
 

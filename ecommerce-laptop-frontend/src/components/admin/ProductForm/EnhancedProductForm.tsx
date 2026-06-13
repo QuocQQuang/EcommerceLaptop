@@ -266,7 +266,7 @@ export default function EnhancedProductForm({
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="basic">Thông tin cơ bản</TabsTrigger>
+                    <TabsTrigger value="basic">Base</TabsTrigger>
                     <TabsTrigger value="specs">Thông số kỹ thuật</TabsTrigger>
                     <TabsTrigger value="inventory">Kho hàng</TabsTrigger>
                     <TabsTrigger value="media">Hình ảnh & Media</TabsTrigger>

@@ -57,7 +57,7 @@ export default function BasicInformationSection({
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle>Thông tin cơ bản</CardTitle>
+                                <CardTitle>Base</CardTitle>
                                 <CardDescription>
                                     Nhập thông tin cơ bản của sản phẩm
                                 </CardDescription>

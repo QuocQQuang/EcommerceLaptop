@@ -53,7 +53,7 @@ export default function LaptopSpecificationsSection({
                         <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle>Thông tin cơ bản</CardTitle>
+                                    <CardTitle>Cơ bản</CardTitle>
                                     <CardDescription>Series và model của laptop</CardDescription>
                                 </div>
                                 {isExpanded('laptop-basic') ? (

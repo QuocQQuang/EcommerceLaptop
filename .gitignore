@@ -173,3 +173,5 @@ docs/nginx.config
 appsettings.json
 appsettings.*.json
 !appsettings.example.json
+# CocoIndex Code (ccc)
+/.cocoindex_code/
