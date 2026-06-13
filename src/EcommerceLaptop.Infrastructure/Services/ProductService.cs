@@ -120,7 +120,7 @@ public class ProductService : IProductService
                 Query = searchTerm,
                 Page = page,
                 PageSize = pageSize,
-                Brands = !string.IsNullOrEmpty(brand) ? new[] { brand } : null,
+                Brands = SplitFilterValues(brand),
                 MinPrice = minPrice,
                 MaxPrice = maxPrice,
                 IsActive = isActive,
@@ -180,6 +180,13 @@ public class ProductService : IProductService
             Page = page,
             PageSize = pageSize
         };
+    }
+
+    private static string[]? SplitFilterValues(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? null
+            : value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
 
     public async Task<PagedResult<Laptop>> GetLaptopsAsync(

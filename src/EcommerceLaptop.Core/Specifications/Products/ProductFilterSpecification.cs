@@ -17,9 +17,38 @@ public class ProductFilterSpecification : BaseSpecification<Product>
         bool baseProductsOnly = false,
         bool variantsOnly = false,
         bool includeVariants = false)
+        : this(
+            searchTerm,
+            SplitFilterValues(brand),
+            minPrice,
+            maxPrice,
+            category,
+            isActive,
+            sortBy,
+            skip,
+            take,
+            baseProductsOnly,
+            variantsOnly,
+            includeVariants)
+    {
+    }
+
+    private ProductFilterSpecification(
+        string? searchTerm,
+        string[] brands,
+        decimal? minPrice,
+        decimal? maxPrice,
+        string? category,
+        bool? isActive,
+        string? sortBy,
+        int? skip = null,
+        int? take = null,
+        bool baseProductsOnly = false,
+        bool variantsOnly = false,
+        bool includeVariants = false)
         : base(p => 
             (string.IsNullOrEmpty(searchTerm) || p.Name.Contains(searchTerm) || p.Brand.Contains(searchTerm)) &&
-            (string.IsNullOrEmpty(brand) || p.Brand == brand) &&
+            (brands.Length == 0 || brands.Contains(p.Brand.ToLower())) &&
             (!minPrice.HasValue || p.Price >= minPrice.Value) &&
             (!maxPrice.HasValue || p.Price <= maxPrice.Value) &&
             (string.IsNullOrEmpty(category) || (p.Category != null && p.Category.Name == category)) &&
@@ -71,5 +100,15 @@ public class ProductFilterSpecification : BaseSpecification<Product>
         {
             ApplyPaging(skip.Value, take.Value);
         }
+    }
+
+    private static string[] SplitFilterValues(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? Array.Empty<string>()
+            : value
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(v => v.ToLowerInvariant())
+                .ToArray();
     }
 }

@@ -19,6 +19,10 @@ import { Filter, Grid, List, SlidersHorizontal, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
+const PRICE_FILTER_MAX_USD = 5000;
+const PRICE_FILTER_STEP_USD = 50;
+const DEFAULT_PRICE_RANGE = [0, PRICE_FILTER_MAX_USD];
+
 function ProductsContent() {
     const { selectedCurrency } = useCurrencyContext();
     const searchParams = useSearchParams();
@@ -34,7 +38,7 @@ function ProductsContent() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-    const [priceRange, setPriceRange] = useState([0, 100000000]);
+    const [priceRange, setPriceRange] = useState(DEFAULT_PRICE_RANGE);
     const [sortBy, setSortBy] = useState<'newest' | 'price_asc' | 'price_desc' | 'name' | 'rating'>('newest');
 
     // Available filter options from API
@@ -92,7 +96,7 @@ function ProductsContent() {
                     brand: selectedBrands.length > 0 ? selectedBrands.join(',') : undefined,
                     category: selectedCategories.length > 0 ? selectedCategories.join(',') : undefined,
                     minPrice: priceRange[0] > 0 ? priceRange[0] : undefined,
-                    maxPrice: priceRange[1] < 100000000 ? priceRange[1] : undefined,
+                    maxPrice: priceRange[1] < PRICE_FILTER_MAX_USD ? priceRange[1] : undefined,
                     sortBy
                 };
 
@@ -139,7 +143,7 @@ function ProductsContent() {
     const clearAllFilters = () => {
         setSelectedBrands([]);
         setSelectedCategories([]);
-        setPriceRange([0, 100000000]);
+        setPriceRange(DEFAULT_PRICE_RANGE);
         setSearchQuery('');
         setCurrentPage(1);
     };
@@ -149,7 +153,7 @@ function ProductsContent() {
     };
 
     const activeFiltersCount = selectedBrands.length + selectedCategories.length +
-        (priceRange[0] > 0 || priceRange[1] < 100000000 ? 1 : 0) +
+        (priceRange[0] > 0 || priceRange[1] < PRICE_FILTER_MAX_USD ? 1 : 0) +
         (searchQuery ? 1 : 0);
 
     return (
@@ -252,12 +256,12 @@ function ProductsContent() {
                             </Badge>
                         ))}
 
-                        {(priceRange[0] > 0 || priceRange[1] < 100000000) && (
+                        {(priceRange[0] > 0 || priceRange[1] < PRICE_FILTER_MAX_USD) && (
                             <Badge variant="secondary" className="flex items-center gap-1">
                                 {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
                                 <X
                                     className="w-3 h-3 cursor-pointer"
-                                    onClick={() => setPriceRange([0, 100000000])}
+                                    onClick={() => setPriceRange(DEFAULT_PRICE_RANGE)}
                                 />
                             </Badge>
                         )}
@@ -352,13 +356,13 @@ function ProductsContent() {
                                 <Slider
                                     value={priceRange}
                                     onValueChange={handlePriceRangeChange}
-                                    max={100000000}
-                                    step={1000000}
+                                    max={PRICE_FILTER_MAX_USD}
+                                    step={PRICE_FILTER_STEP_USD}
                                     className="mb-4"
                                 />
-                                <div className="flex justify-between text-sm text-gray-600">
-                                    <span>{formatPrice(priceRange[0])}</span>
-                                    <span>{formatPrice(priceRange[1])}</span>
+                                <div className="flex items-start justify-between gap-3 text-xs text-gray-600">
+                                    <span className="min-w-0 break-words">{formatPrice(priceRange[0])}</span>
+                                    <span className="min-w-0 break-words text-right">{formatPrice(priceRange[1])}</span>
                                 </div>
                             </div>
                         </div>
