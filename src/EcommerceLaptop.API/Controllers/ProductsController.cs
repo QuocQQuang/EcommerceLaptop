@@ -602,6 +602,7 @@ public class ProductsController(
     /// Gets all variants for a product (Admin only)
     /// </summary>
     [HttpGet("{id}/variants")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetVariants(int id)
     {
         var variants = await _productService.GetVariantsAsync(id);
