@@ -75,13 +75,19 @@ export const categoryService = {
      */
     async getCategoriesWithProductCount(): Promise<Category[]> {
         try {
-            // Fix: call public endpoint directly instead of admin→fallback pattern
-            // (admin endpoint caused 2 requests: 1 failed 403 + 1 fallback)
-            const { data } = await apiClient.get('/products/categories/with-counts');
+            // Public products page should use the backend category counts endpoint.
+            // Backend currently exposes this at api/admin/categories/with-counts.
+            const { data } = await apiClient.get('/admin/categories/with-counts');
             return data.data || data || [];
         } catch (error) {
-            console.error('Failed to fetch categories with product count:', error);
-            return [];
+            console.error('Failed to fetch categories with product count from admin endpoint, falling back to public route:', error);
+            try {
+                const { data } = await apiClient.get('/products/categories/with-counts');
+                return data.data || data || [];
+            } catch (innerError) {
+                console.error('Fallback fetch for categories with product count also failed:', innerError);
+                return [];
+            }
         }
     },
 
